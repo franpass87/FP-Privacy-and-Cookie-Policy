@@ -3,12 +3,16 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://example.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      FP Digital Assistant
  * Author URI:  https://example.com/
  * License:     GPL2
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: fp-privacy-cookie-policy
  * Domain Path: /languages
+ * Requires at least: 6.0
+ * Tested up to: 6.5
+ * Requires PHP: 7.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +24,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
     class FP_Privacy_Cookie_Policy {
 
         const OPTION_KEY        = 'fp_privacy_cookie_settings';
-        const VERSION           = '1.0.0';
+        const VERSION           = '1.1.0';
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';
         const NONCE_ACTION      = 'fp_privacy_nonce';
@@ -73,7 +77,39 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * Load textdomain.
          */
         public function load_textdomain() {
-            load_plugin_textdomain( 'fp-privacy-cookie-policy', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+            $domain        = 'fp-privacy-cookie-policy';
+            $languages_dir = dirname( plugin_basename( __FILE__ ) ) . '/languages/';
+
+            if ( load_plugin_textdomain( $domain, false, $languages_dir ) ) {
+                return;
+            }
+
+            $locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+            $po_file = plugin_dir_path( __FILE__ ) . 'languages/' . $domain . '-' . $locale . '.po';
+
+            if ( ! is_readable( $po_file ) ) {
+                return;
+            }
+
+            if ( ! class_exists( 'PO', false ) ) {
+                require_once ABSPATH . WPINC . '/pomo/po.php';
+            }
+
+            $po = new PO();
+
+            if ( ! $po->import_from_file( $po_file ) ) {
+                return;
+            }
+
+            if ( isset( $GLOBALS['l10n'][ $domain ] ) ) {
+                $po->merge_with( $GLOBALS['l10n'][ $domain ] );
+            }
+
+            $GLOBALS['l10n'][ $domain ] = $po;
+
+            if ( isset( $GLOBALS['l10n_unloaded'][ $domain ] ) ) {
+                unset( $GLOBALS['l10n_unloaded'][ $domain ] );
+            }
         }
 
         /**
@@ -1541,6 +1577,8 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $domain = defined( 'COOKIE_DOMAIN' ) ? COOKIE_DOMAIN : '';
 
             setcookie( self::CONSENT_COOKIE . '_id', $consent_id, time() + YEAR_IN_SECONDS, $path, $domain, is_ssl(), true );
+
+            $_COOKIE[ self::CONSENT_COOKIE . '_id' ] = $consent_id;
 
             return $consent_id;
         }

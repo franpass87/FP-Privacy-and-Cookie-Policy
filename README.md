@@ -11,6 +11,7 @@ Plugin WordPress progettato per gestire privacy policy, cookie policy e consenso
 - Registro consensi con anonimizzazione IP, esportazione in CSV e conservazione degli eventi di scelta.
 - Integrazione automatica con Google Consent Mode v2 (`analytics_storage`, `ad_storage`, `ad_user_data`, `ad_personalization`, `functionality_storage`, `security_storage`).
 - Supporto per Google Tag Manager/eventi personalizzati via `dataLayer` e custom event `fp-consent-change`.
+- Traduzioni `en_US` pronte all'uso e file `.pot` per localizzazioni aggiuntive.
 
 ## Installazione
 
