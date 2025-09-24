@@ -17,6 +17,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:99
+msgid "Settings"
+msgstr "Settings"
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2527
 msgid "Questo plugin memorizza e registra le preferenze di consenso dei visitatori per aiutarvi a dimostrare la conformità al GDPR."
 msgstr "This plugin stores and logs visitors' consent preferences to help you demonstrate GDPR compliance."
@@ -577,3 +581,56 @@ msgstr "The consent log table is missing or corrupted. Recreate it to keep stori
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:555
 msgid "Ricrea tabella registro consensi"
 msgstr "Recreate consent log table"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2219
+msgid "FP Privacy & Cookie Policy consent log table"
+msgstr "FP Privacy & Cookie Policy consent log table"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2224
+msgid "FP Privacy & Cookie Policy consent cleanup schedule"
+msgstr "FP Privacy & Cookie Policy consent cleanup schedule"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2238
+msgid "FP Privacy & Cookie Policy"
+msgstr "FP Privacy & Cookie Policy"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2245
+msgid "Consent log table is operational"
+msgstr "Consent log table is operational"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2248
+msgid "The consent log table is available and ready to store new consent events."
+msgstr "The consent log table is available and ready to store new consent events."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2258
+msgid "Open consent tools"
+msgstr "Open consent tools"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2263
+msgid "Consent log table is missing"
+msgstr "Consent log table is missing"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2266
+msgid "The consent log table could not be found. Consents will not be tracked until the table is recreated."
+msgstr "The consent log table could not be found. Consents will not be tracked until the table is recreated."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2297
+msgid "Consent log cleanup is scheduled"
+msgstr "Consent log cleanup is scheduled"
+
+#. translators: %s is a human readable time interval.
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2302
+msgid "The consent log cleanup event is scheduled to run in %s."
+msgstr "The consent log cleanup event is scheduled to run in %s."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2314
+msgid "Review retention settings"
+msgstr "Review retention settings"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2319
+msgid "Consent log cleanup is not scheduled"
+msgstr "Consent log cleanup is not scheduled"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2322
+msgid "The consent log cleanup task is not scheduled. Old consent records may accumulate over time."
+msgstr "The consent log cleanup task is not scheduled. Old consent records may accumulate over time."
