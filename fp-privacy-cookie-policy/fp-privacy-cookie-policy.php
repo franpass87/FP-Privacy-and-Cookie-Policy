@@ -3,7 +3,7 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://example.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.3.2
+ * Version:     1.4.0
  * Author:      FP Digital Assistant
  * Author URI:  https://example.com/
  * License:     GPL2
@@ -24,7 +24,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
     class FP_Privacy_Cookie_Policy {
 
         const OPTION_KEY        = 'fp_privacy_cookie_settings';
-        const VERSION           = '1.3.2';
+        const VERSION           = '1.4.0';
         const VERSION_OPTION    = 'fp_privacy_cookie_version';
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';
@@ -1836,6 +1836,10 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             <button class="fp-btn fp-btn-preferences fp-consent-manage" type="button" data-consent-manage data-consent-action="open-preferences" aria-haspopup="dialog" aria-controls="fp-consent-modal" aria-hidden="true" aria-expanded="false" hidden>
                 <span class="fp-consent-manage__label"><?php echo esc_html( $texts['manage_consent'] ); ?></span>
             </button>
+            <div class="fp-consent-status" id="fp-consent-status" data-consent-status hidden>
+                <span class="fp-consent-status__label"><?php echo esc_html( $texts['updated_at'] ); ?>:</span>
+                <time class="fp-consent-status__value" data-consent-updated datetime=""></time>
+            </div>
             <?php
         }
 

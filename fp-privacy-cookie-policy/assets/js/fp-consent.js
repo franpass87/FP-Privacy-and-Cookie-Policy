@@ -12,6 +12,21 @@
     var googleDefaults = settings.googleDefaults || {};
     var cookieTtlDays = parseInt(settings.cookieTtlDays, 10);
     var cookieOptions = settings.cookieOptions || {};
+    var texts = settings.texts || {};
+    var statusLabelText = texts.updatedAt || '';
+    var consentMetadata = {
+        updatedAt: null
+    };
+    var statusElement;
+    var statusValueElement;
+    var preferredLocales = [];
+    if (settings.language) {
+        preferredLocales.push(settings.language);
+    }
+    if (typeof navigator !== 'undefined' && navigator.language) {
+        preferredLocales.push(navigator.language);
+    }
+    preferredLocales.push('en-GB');
     if (isNaN(cookieTtlDays)) {
         cookieTtlDays = null;
     }
@@ -32,6 +47,8 @@
         bannerElement = document.querySelector('.fp-consent-banner');
         modalElement = document.querySelector('.fp-consent-modal');
         manageButton = document.querySelector('[data-consent-manage]');
+        statusElement = document.querySelector('[data-consent-status]');
+        statusValueElement = statusElement ? statusElement.querySelector('[data-consent-updated]') : null;
 
         if (settings.language) {
             document.documentElement.setAttribute('data-fp-consent-lang', settings.language);
@@ -56,6 +73,7 @@
             toggleManageButton(false);
         }
 
+        updateUpdatedAtUI();
         bindActions();
     }
 
@@ -144,6 +162,7 @@
     }
 
     function getStoredConsent() {
+        consentMetadata.updatedAt = null;
         try {
             var cookie = readCookie(cookieName);
             if (!cookie) {
@@ -151,6 +170,10 @@
             }
             var parsed = JSON.parse(cookie);
             if (parsed && typeof parsed === 'object') {
+                if (parsed.__fpTimestamp) {
+                    consentMetadata.updatedAt = parsed.__fpTimestamp;
+                    delete parsed.__fpTimestamp;
+                }
                 return parsed;
             }
         } catch (error) {
@@ -164,19 +187,22 @@
             return;
         }
 
+        var timestamp = new Date().toISOString();
         requiredKeys.forEach(function (key) {
             state[key] = true;
         });
 
+        consentMetadata.updatedAt = timestamp;
         currentConsent = state;
         applyConsentToInterface(state);
-        storeConsentCookie(state);
+        storeConsentCookie(state, timestamp);
         updateGoogleConsent(state, false);
         hideBanner();
         closeModal();
         dispatchConsentEvent(state, eventType);
         sendConsentToServer(state, eventType);
         toggleManageButton(true);
+        updateUpdatedAtUI();
     }
 
     function applyConsentToInterface(state) {
@@ -233,13 +259,24 @@
 
     function pushDataLayer(state, googleState) {
         window.dataLayer = window.dataLayer || [];
+        var timestamp = consentMetadata.updatedAt;
+        var isoTimestamp;
+        if (timestamp) {
+            var date = new Date(timestamp);
+            if (!isNaN(date.getTime())) {
+                isoTimestamp = date.toISOString();
+            }
+        }
+        if (!isoTimestamp) {
+            isoTimestamp = new Date().toISOString();
+        }
         window.dataLayer.push({
             event: 'fp_consent_update',
             consent_id: consentId,
             consent_state: Object.assign({}, state),
             google_consent: Object.assign({}, googleState || {}),
             consent_language: settings.language || '',
-            consent_timestamp: new Date().toISOString()
+            consent_timestamp: isoTimestamp
         });
     }
 
@@ -270,8 +307,14 @@
         });
     }
 
-    function storeConsentCookie(state) {
-        var value = encodeURIComponent(JSON.stringify(state));
+    function storeConsentCookie(state, timestamp) {
+        var payload = Object.assign({}, state);
+        var storedTimestamp = timestamp || consentMetadata.updatedAt;
+        if (storedTimestamp) {
+            payload.__fpTimestamp = storedTimestamp;
+        }
+
+        var value = encodeURIComponent(JSON.stringify(payload));
         var attributes = [];
         var maxAgeSeconds = null;
 
@@ -381,10 +424,15 @@
     }
 
     function dispatchConsentEvent(state, eventType) {
+        var updatedAt = consentMetadata.updatedAt;
+        if (!updatedAt) {
+            updatedAt = new Date().toISOString();
+        }
         var detail = {
             consentId: consentId,
             state: Object.assign({}, state),
-            eventType: eventType
+            eventType: eventType,
+            updatedAt: updatedAt
         };
         var event;
         try {
@@ -415,12 +463,137 @@
             manageButton.classList.add('is-visible');
             manageButton.setAttribute('aria-hidden', 'false');
             manageButton.setAttribute('aria-expanded', 'false');
+            updateUpdatedAtUI();
         } else {
             manageButton.classList.remove('is-visible');
             manageButton.hidden = true;
             manageButton.setAttribute('aria-hidden', 'true');
             manageButton.setAttribute('aria-expanded', 'false');
+            if (statusElement) {
+                statusElement.hidden = true;
+                statusElement.classList.remove('is-visible');
+            }
+            if (statusValueElement) {
+                statusValueElement.textContent = '';
+                statusValueElement.removeAttribute('datetime');
+            }
+            manageButton.removeAttribute('title');
+            manageButton.removeAttribute('aria-describedby');
         }
+    }
+
+    function updateUpdatedAtUI() {
+        if (!statusElement || !statusValueElement) {
+            if (manageButton) {
+                manageButton.removeAttribute('title');
+                manageButton.removeAttribute('aria-describedby');
+            }
+            return;
+        }
+
+        if (manageButton && (manageButton.hidden || !manageButton.classList.contains('is-visible'))) {
+            statusElement.hidden = true;
+            statusElement.classList.remove('is-visible');
+            return;
+        }
+
+        if (!consentMetadata.updatedAt) {
+            statusElement.hidden = true;
+            statusElement.classList.remove('is-visible');
+            statusValueElement.textContent = '';
+            statusValueElement.removeAttribute('datetime');
+            if (manageButton) {
+                manageButton.removeAttribute('title');
+                manageButton.removeAttribute('aria-describedby');
+            }
+            return;
+        }
+
+        var formatted = formatTimestamp(consentMetadata.updatedAt);
+        if (!formatted) {
+            statusElement.hidden = true;
+            statusElement.classList.remove('is-visible');
+            statusValueElement.textContent = '';
+            statusValueElement.removeAttribute('datetime');
+            if (manageButton) {
+                manageButton.removeAttribute('title');
+                manageButton.removeAttribute('aria-describedby');
+            }
+            return;
+        }
+
+        statusValueElement.textContent = formatted.text;
+        statusValueElement.setAttribute('datetime', formatted.iso);
+        statusElement.hidden = false;
+        statusElement.classList.add('is-visible');
+
+        if (manageButton) {
+            if (statusLabelText) {
+                manageButton.setAttribute('title', statusLabelText + ': ' + formatted.text);
+            } else {
+                manageButton.setAttribute('title', formatted.text);
+            }
+            if (statusElement.id) {
+                manageButton.setAttribute('aria-describedby', statusElement.id);
+            } else {
+                manageButton.removeAttribute('aria-describedby');
+            }
+        }
+    }
+
+    function formatTimestamp(timestamp) {
+        if (!timestamp) {
+            return null;
+        }
+
+        var date = new Date(timestamp);
+        if (isNaN(date.getTime())) {
+            return null;
+        }
+
+        var options = {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        };
+        var seenLocales = {};
+        var text = '';
+
+        for (var i = 0; i < preferredLocales.length; i++) {
+            var locale = preferredLocales[i];
+            if (!locale || seenLocales[locale]) {
+                continue;
+            }
+            seenLocales[locale] = true;
+            try {
+                text = date.toLocaleString(locale, options);
+                if (text) {
+                    break;
+                }
+            } catch (error) {
+                continue;
+            }
+        }
+
+        if (!text) {
+            try {
+                text = date.toLocaleString(undefined, options);
+            } catch (error) {
+                text = '';
+            }
+        }
+
+        if (!text) {
+            text = date.toISOString().replace('T', ' ').replace(/\..*/, ' UTC');
+        }
+
+        return {
+            text: text,
+            iso: date.toISOString()
+        };
     }
 
     function normalizeSameSite(value) {
