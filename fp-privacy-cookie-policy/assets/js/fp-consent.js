@@ -26,6 +26,10 @@
         bannerElement = document.querySelector('.fp-consent-banner');
         modalElement = document.querySelector('.fp-consent-modal');
 
+        if (settings.language) {
+            document.documentElement.setAttribute('data-fp-consent-lang', settings.language);
+        }
+
         ensureGtag();
         if (googleDefaults && Object.keys(googleDefaults).length) {
             window.gtag('consent', 'default', googleDefaults);
@@ -224,6 +228,7 @@
             consent_id: consentId,
             consent_state: Object.assign({}, state),
             google_consent: Object.assign({}, googleState || {}),
+            consent_language: settings.language || '',
             consent_timestamp: new Date().toISOString()
         });
     }
