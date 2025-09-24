@@ -11,6 +11,7 @@
     var categories = settings.categories || {};
     var googleDefaults = settings.googleDefaults || {};
     var cookieTtlDays = parseInt(settings.cookieTtlDays, 10);
+    var cookieOptions = settings.cookieOptions || {};
     if (isNaN(cookieTtlDays)) {
         cookieTtlDays = null;
     }
@@ -271,7 +272,7 @@
 
     function storeConsentCookie(state) {
         var value = encodeURIComponent(JSON.stringify(state));
-        var attributes = ['path=/', 'SameSite=Lax'];
+        var attributes = [];
         var maxAgeSeconds = null;
 
         if (cookieTtlDays === 0) {
@@ -282,6 +283,17 @@
             maxAgeSeconds = 365 * 24 * 60 * 60;
         }
 
+        var path = typeof cookieOptions.path === 'string' && cookieOptions.path ? cookieOptions.path : '/';
+        attributes.push('path=' + path);
+
+        var sameSite = typeof cookieOptions.sameSite === 'string' && cookieOptions.sameSite ? cookieOptions.sameSite : 'Lax';
+        sameSite = normalizeSameSite(sameSite);
+        attributes.push('SameSite=' + sameSite);
+
+        if (typeof cookieOptions.domain === 'string' && cookieOptions.domain) {
+            attributes.push('domain=' + cookieOptions.domain);
+        }
+
         if (maxAgeSeconds) {
             attributes.push('max-age=' + maxAgeSeconds);
             var expires = new Date();
@@ -289,7 +301,18 @@
             attributes.push('expires=' + expires.toUTCString());
         }
 
-        if (window.location && window.location.protocol === 'https:') {
+        var secure;
+        if (typeof cookieOptions.secure === 'boolean') {
+            secure = cookieOptions.secure;
+        } else {
+            secure = !!(window.location && window.location.protocol === 'https:');
+        }
+
+        if (sameSite.toLowerCase() === 'none') {
+            secure = true;
+        }
+
+        if (secure) {
             attributes.push('Secure');
         }
         document.cookie = cookieName + '=' + value + ';' + attributes.join(';');
@@ -397,6 +420,19 @@
             manageButton.hidden = true;
             manageButton.setAttribute('aria-hidden', 'true');
             manageButton.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    function normalizeSameSite(value) {
+        var normalized = (value || '').toString().trim().toLowerCase();
+        switch (normalized) {
+            case 'strict':
+                return 'Strict';
+            case 'none':
+                return 'None';
+            case 'lax':
+            default:
+                return 'Lax';
         }
     }
 })();
