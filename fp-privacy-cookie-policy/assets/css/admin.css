@@ -1,0 +1,41 @@
+.fp-privacy-admin .fp-banner-settings,
+.fp-privacy-admin .fp-categories fieldset {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.fp-privacy-admin .fp-banner-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.fp-privacy-admin .fp-categories {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.fp-privacy-admin .fp-category legend {
+    font-size: 1rem;
+}
+
+.fp-consent-log-table code {
+    background: #f3f4f6;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+}
+
+.fp-consent-log-actions {
+    margin: 1rem 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.fp-help-tab code {
+    background: #f3f4f6;
+    padding: 0.2rem 0.45rem;
+    border-radius: 4px;
+}
