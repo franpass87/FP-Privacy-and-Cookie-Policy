@@ -2106,13 +2106,25 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         public function ajax_save_consent() {
             check_ajax_referer( self::NONCE_ACTION, 'nonce' );
 
-            $consent_id = isset( $_POST['consentId'] ) ? sanitize_text_field( wp_unslash( $_POST['consentId'] ) ) : '';
+            $consent_id = isset( $_POST['consentId'] ) ? $this->sanitize_consent_identifier( wp_unslash( $_POST['consentId'] ) ) : '';
             $event      = isset( $_POST['event'] ) ? sanitize_key( wp_unslash( $_POST['event'] ) ) : 'save_preferences';
             $consent    = isset( $_POST['consent'] ) ? wp_unslash( $_POST['consent'] ) : array();
 
-            $consent_id = substr( $consent_id, 0, 64 );
+            if ( ! is_array( $consent ) ) {
+                wp_send_json_error( array( 'message' => __( 'Dati non validi.', 'fp-privacy-cookie-policy' ) ), 400 );
+            }
 
-            if ( empty( $consent_id ) || ! is_array( $consent ) ) {
+            $cookie_consent_id = isset( $_COOKIE[ self::CONSENT_COOKIE . '_id' ] )
+                ? $this->sanitize_consent_identifier( wp_unslash( $_COOKIE[ self::CONSENT_COOKIE . '_id' ] ) )
+                : '';
+
+            if ( $cookie_consent_id ) {
+                $consent_id = $cookie_consent_id;
+            } elseif ( empty( $consent_id ) ) {
+                $consent_id = $this->sanitize_consent_identifier( $this->get_consent_id() );
+            }
+
+            if ( empty( $consent_id ) ) {
                 wp_send_json_error( array( 'message' => __( 'Dati non validi.', 'fp-privacy-cookie-policy' ) ), 400 );
             }
 
@@ -2138,7 +2150,12 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 wp_send_json_error( array( 'message' => __( 'Impossibile registrare il consenso. Riprova.', 'fp-privacy-cookie-policy' ) ), 500 );
             }
 
-            wp_send_json_success( array( 'message' => __( 'Consenso aggiornato.', 'fp-privacy-cookie-policy' ) ) );
+            wp_send_json_success(
+                array(
+                    'message'   => __( 'Consenso aggiornato.', 'fp-privacy-cookie-policy' ),
+                    'consentId' => $consent_id,
+                )
+            );
         }
 
         /**
@@ -2344,6 +2361,12 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             global $wpdb;
 
             $table_name = self::get_consent_table_name();
+
+            $consent_id = $this->sanitize_consent_identifier( $consent_id );
+
+            if ( '' === $consent_id ) {
+                return false;
+            }
 
             $ip_address = isset( $_SERVER['REMOTE_ADDR'] ) ? wp_unslash( $_SERVER['REMOTE_ADDR'] ) : '';
             $ip_address = wp_privacy_anonymize_ip( $ip_address );
@@ -2556,10 +2579,18 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          */
         protected function get_consent_id() {
             if ( isset( $_COOKIE[ self::CONSENT_COOKIE . '_id' ] ) ) {
-                return sanitize_text_field( wp_unslash( $_COOKIE[ self::CONSENT_COOKIE . '_id' ] ) );
+                $existing_id = $this->sanitize_consent_identifier( wp_unslash( $_COOKIE[ self::CONSENT_COOKIE . '_id' ] ) );
+
+                if ( $existing_id ) {
+                    return $existing_id;
+                }
             }
 
-            $consent_id = wp_generate_uuid4();
+            $consent_id = $this->sanitize_consent_identifier( wp_generate_uuid4() );
+
+            if ( '' === $consent_id ) {
+                return '';
+            }
             $settings   = $this->get_settings();
             $lifetime   = $this->get_consent_cookie_lifetime( $settings );
             $options    = $this->get_consent_cookie_options( $lifetime, $settings );
@@ -2571,6 +2602,24 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $_COOKIE[ self::CONSENT_COOKIE . '_id' ] = $consent_id;
 
             return $consent_id;
+        }
+
+        /**
+         * Sanitize the consent identifier to avoid storing unexpected characters.
+         *
+         * @param string $identifier Raw identifier.
+         *
+         * @return string
+         */
+        protected function sanitize_consent_identifier( $identifier ) {
+            $identifier = sanitize_text_field( (string) $identifier );
+            $identifier = preg_replace( '/[^a-z0-9\-]/i', '', $identifier );
+
+            if ( ! is_string( $identifier ) ) {
+                $identifier = '';
+            }
+
+            return substr( $identifier, 0, 64 );
         }
 
         /**

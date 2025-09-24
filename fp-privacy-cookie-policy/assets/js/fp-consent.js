@@ -302,9 +302,26 @@
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
             },
             body: params.toString()
-        }).catch(function (error) {
-            console.warn('[FP Privacy] Unable to log consent', error);
-        });
+        })
+            .then(function (response) {
+                if (!response || !response.ok) {
+                    throw new Error('HTTP ' + (response ? response.status : '0'));
+                }
+                return response.json().catch(function () {
+                    return null;
+                });
+            })
+            .then(function (payload) {
+                if (!payload || typeof payload !== 'object') {
+                    return;
+                }
+                if (payload.success && payload.data && payload.data.consentId) {
+                    consentId = payload.data.consentId;
+                }
+            })
+            .catch(function (error) {
+                console.warn('[FP Privacy] Unable to log consent', error);
+            });
     }
 
     function storeConsentCookie(state, timestamp) {
