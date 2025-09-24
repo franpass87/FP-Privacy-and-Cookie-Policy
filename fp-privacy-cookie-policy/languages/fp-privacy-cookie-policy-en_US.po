@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: FP Privacy and Cookie Policy 1.1.0\n"
+"Project-Id-Version: FP Privacy and Cookie Policy 1.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-09-24 16:28+0000\n"
 "PO-Revision-Date: 2025-09-24 16:28+0000\n"
@@ -454,3 +454,53 @@ msgstr "Consent updated."
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1500
 msgid "Non autorizzato."
 msgstr "Not allowed."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:523
+msgid "Conservazione registro consensi"
+msgstr "Consent log retention"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1029
+msgid "Giorni di conservazione del registro"
+msgstr "Log retention (days)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1033
+msgid "Imposta 0 per disattivare la pulizia automatica. Valori inferiori a 30 giorni vengono automaticamente aumentati."
+msgstr "Set 0 to disable automatic cleanup. Values lower than 30 days are automatically increased."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:240
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:256
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:312
+msgid "Registro consensi FP Privacy & Cookie Policy"
+msgstr "FP Privacy & Cookie Policy consent log"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:339
+msgid "Registrato il"
+msgstr "Logged on"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:351
+msgid "Stato del consenso"
+msgstr "Consent state"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:356
+msgid "IP anonimizzato"
+msgstr "Anonymised IP"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:361
+msgid "User agent"
+msgstr "User agent"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1706
+msgid "La tabella del registro consensi non è disponibile. Riattiva il plugin per ricrearla."
+msgstr "The consent log table is not available. Reactivate the plugin to recreate it."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1923
+msgid "La tabella del registro consensi non è disponibile."
+msgstr "The consent log table is not available."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:452
+msgid "Alcune voci del registro non sono state rimosse e richiedono un intervento manuale."
+msgstr "Some log entries were not removed and require manual intervention."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1815
+msgid "Definisci il periodo di conservazione del registro e utilizza gli strumenti di esportazione/cancellazione dati integrati in WordPress."
+msgstr "Define the log retention period and use the built-in WordPress export/erasure tools to handle data requests."

@@ -3,7 +3,7 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://example.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      FP Digital Assistant
  * Author URI:  https://example.com/
  * License:     GPL2
@@ -24,11 +24,12 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
     class FP_Privacy_Cookie_Policy {
 
         const OPTION_KEY        = 'fp_privacy_cookie_settings';
-        const VERSION           = '1.1.0';
+        const VERSION           = '1.2.0';
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';
         const NONCE_ACTION      = 'fp_privacy_nonce';
         const DEFAULT_LANGUAGE  = 'it';
+        const CLEANUP_HOOK      = 'fp_privacy_cleanup_logs';
 
         /**
          * Singleton instance.
@@ -71,6 +72,9 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             add_action( 'wp_ajax_fp_save_consent', array( $this, 'ajax_save_consent' ) );
             add_action( 'wp_ajax_nopriv_fp_save_consent', array( $this, 'ajax_save_consent' ) );
             add_action( 'admin_post_fp_export_consent', array( $this, 'export_consent_logs' ) );
+            add_action( self::CLEANUP_HOOK, array( $this, 'cleanup_consent_logs' ) );
+            add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_privacy_exporter' ) );
+            add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_privacy_eraser' ) );
         }
 
         /**
@@ -117,6 +121,10 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          */
         public static function activate() {
             self::create_consent_table();
+
+            if ( ! wp_next_scheduled( self::CLEANUP_HOOK ) ) {
+                wp_schedule_event( time(), 'daily', self::CLEANUP_HOOK );
+            }
         }
 
         /**
@@ -125,7 +133,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         public static function create_consent_table() {
             global $wpdb;
 
-            $table_name      = $wpdb->prefix . self::CONSENT_TABLE;
+            $table_name      = self::get_consent_table_name();
             $charset_collate = $wpdb->get_charset_collate();
 
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -150,7 +158,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * Register deactivation hook.
          */
         public static function deactivate() {
-            // Nothing to do for now.
+            wp_clear_scheduled_hook( self::CLEANUP_HOOK );
         }
 
         /**
@@ -158,11 +166,300 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          */
         public static function uninstall() {
             delete_option( self::OPTION_KEY );
+            wp_clear_scheduled_hook( self::CLEANUP_HOOK );
 
             global $wpdb;
 
-            $table_name = $wpdb->prefix . self::CONSENT_TABLE;
+            $table_name = self::get_consent_table_name();
             $wpdb->query( "DROP TABLE IF EXISTS {$table_name}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        }
+
+        /**
+         * Retrieve consent logs table name.
+         *
+         * @return string
+         */
+        protected static function get_consent_table_name() {
+            global $wpdb;
+
+            return $wpdb->prefix . self::CONSENT_TABLE;
+        }
+
+        /**
+         * Check if consent table exists.
+         *
+         * @return bool
+         */
+        protected function consent_table_exists() {
+            global $wpdb;
+
+            $table_name = self::get_consent_table_name();
+
+            return $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+        }
+
+        /**
+         * Cleanup old consent logs based on retention settings.
+         */
+        public function cleanup_consent_logs() {
+            if ( ! $this->consent_table_exists() ) {
+                return;
+            }
+
+            $settings        = $this->get_settings();
+            $retention_days  = isset( $settings['retention_days'] ) ? (int) $settings['retention_days'] : 0;
+            $retention_days  = (int) apply_filters( 'fp_privacy_consent_retention_days', $retention_days, $settings );
+
+            if ( $retention_days < 1 ) {
+                return;
+            }
+
+            $cutoff = gmdate( 'Y-m-d H:i:s', time() - ( $retention_days * DAY_IN_SECONDS ) );
+
+            global $wpdb;
+
+            $table_name = self::get_consent_table_name();
+
+            $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                $wpdb->prepare(
+                    "DELETE FROM {$table_name} WHERE created_at < %s",
+                    $cutoff
+                )
+            );
+        }
+
+        /**
+         * Register data exporter with WordPress privacy tools.
+         *
+         * @param array $exporters Existing exporters.
+         *
+         * @return array
+         */
+        public function register_privacy_exporter( $exporters ) {
+            $exporters['fp-privacy-cookie-policy'] = array(
+                'exporter_friendly_name' => __( 'Registro consensi FP Privacy & Cookie Policy', 'fp-privacy-cookie-policy' ),
+                'callback'               => array( $this, 'export_personal_data' ),
+            );
+
+            return $exporters;
+        }
+
+        /**
+         * Register data eraser with WordPress privacy tools.
+         *
+         * @param array $erasers Existing erasers.
+         *
+         * @return array
+         */
+        public function register_privacy_eraser( $erasers ) {
+            $erasers['fp-privacy-cookie-policy'] = array(
+                'eraser_friendly_name' => __( 'Registro consensi FP Privacy & Cookie Policy', 'fp-privacy-cookie-policy' ),
+                'callback'             => array( $this, 'erase_personal_data' ),
+            );
+
+            return $erasers;
+        }
+
+        /**
+         * Export personal data for a given email address.
+         *
+         * @param string $email_address Email address.
+         * @param int    $page          Page number.
+         *
+         * @return array
+         */
+        public function export_personal_data( $email_address, $page = 1 ) {
+            if ( ! $this->consent_table_exists() ) {
+                return array(
+                    'data' => array(),
+                    'done' => true,
+                );
+            }
+
+            $user = get_user_by( 'email', $email_address );
+
+            if ( ! $user ) {
+                return array(
+                    'data' => array(),
+                    'done' => true,
+                );
+            }
+
+            $page     = max( 1, (int) $page );
+            $per_page = 50;
+            $offset   = ( $page - 1 ) * $per_page;
+
+            global $wpdb;
+
+            $table_name = self::get_consent_table_name();
+
+            $logs = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT * FROM {$table_name} WHERE user_id = %d ORDER BY created_at DESC LIMIT %d OFFSET %d",
+                    $user->ID,
+                    $per_page,
+                    $offset
+                )
+            );
+
+            if ( empty( $logs ) ) {
+                return array(
+                    'data' => array(),
+                    'done' => true,
+                );
+            }
+
+            $group_label  = __( 'Registro consensi FP Privacy & Cookie Policy', 'fp-privacy-cookie-policy' );
+            $export_items = array();
+
+            foreach ( $logs as $log ) {
+                $item_data = array();
+
+                $item_data[] = array(
+                    'name'  => __( 'ID consenso', 'fp-privacy-cookie-policy' ),
+                    'value' => $log->consent_id,
+                );
+
+                $item_data[] = array(
+                    'name'  => __( 'Evento', 'fp-privacy-cookie-policy' ),
+                    'value' => $log->event_type,
+                );
+
+                $formatted_date = mysql2date(
+                    get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+                    $log->created_at,
+                    true
+                );
+
+                if ( empty( $formatted_date ) ) {
+                    $formatted_date = $log->created_at;
+                }
+
+                $item_data[] = array(
+                    'name'  => __( 'Registrato il', 'fp-privacy-cookie-policy' ),
+                    'value' => $formatted_date,
+                );
+
+                $decoded_state = json_decode( $log->consent_state, true );
+                if ( is_array( $decoded_state ) ) {
+                    $state_value = wp_json_encode( $decoded_state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+                } else {
+                    $state_value = $log->consent_state;
+                }
+
+                $item_data[] = array(
+                    'name'  => __( 'Stato del consenso', 'fp-privacy-cookie-policy' ),
+                    'value' => $state_value,
+                );
+
+                $item_data[] = array(
+                    'name'  => __( 'IP anonimizzato', 'fp-privacy-cookie-policy' ),
+                    'value' => $log->ip_address,
+                );
+
+                $item_data[] = array(
+                    'name'  => __( 'User agent', 'fp-privacy-cookie-policy' ),
+                    'value' => $log->user_agent,
+                );
+
+                $export_items[] = array(
+                    'group_id'    => 'fp-privacy-cookie-policy-consents',
+                    'group_label' => $group_label,
+                    'item_id'     => 'consent-' . (int) $log->id,
+                    'data'        => $item_data,
+                );
+            }
+
+            $done = count( $logs ) < $per_page;
+
+            return array(
+                'data' => $export_items,
+                'done' => $done,
+            );
+        }
+
+        /**
+         * Erase personal data for a given email address.
+         *
+         * @param string $email_address Email address.
+         * @param int    $page          Page number.
+         *
+         * @return array
+         */
+        public function erase_personal_data( $email_address, $page = 1 ) {
+            if ( ! $this->consent_table_exists() ) {
+                return array(
+                    'items_removed'  => false,
+                    'items_retained' => false,
+                    'messages'       => array(),
+                    'done'           => true,
+                );
+            }
+
+            $user = get_user_by( 'email', $email_address );
+
+            if ( ! $user ) {
+                return array(
+                    'items_removed'  => false,
+                    'items_retained' => false,
+                    'messages'       => array(),
+                    'done'           => true,
+                );
+            }
+
+            $page     = max( 1, (int) $page );
+            $per_page = 50;
+            $offset   = ( $page - 1 ) * $per_page;
+
+            global $wpdb;
+
+            $table_name = self::get_consent_table_name();
+
+            $ids = $wpdb->get_col(
+                $wpdb->prepare(
+                    "SELECT id FROM {$table_name} WHERE user_id = %d ORDER BY id ASC LIMIT %d OFFSET %d",
+                    $user->ID,
+                    $per_page,
+                    $offset
+                )
+            );
+
+            if ( empty( $ids ) ) {
+                return array(
+                    'items_removed'  => false,
+                    'items_retained' => false,
+                    'messages'       => array(),
+                    'done'           => true,
+                );
+            }
+
+            $items_removed  = false;
+            $items_retained = false;
+
+            foreach ( $ids as $id ) {
+                $deleted = $wpdb->delete( $table_name, array( 'id' => (int) $id ), array( '%d' ) );
+
+                if ( $deleted ) {
+                    $items_removed = true;
+                } else {
+                    $items_retained = true;
+                }
+            }
+
+            $messages = array();
+
+            if ( $items_retained ) {
+                $messages[] = __( 'Alcune voci del registro non sono state rimosse e richiedono un intervento manuale.', 'fp-privacy-cookie-policy' );
+            }
+
+            $done = count( $ids ) < $per_page;
+
+            return array(
+                'items_removed'  => $items_removed,
+                'items_retained' => $items_retained,
+                'messages'       => $messages,
+                'done'           => $done,
+            );
         }
 
         /**
@@ -221,6 +518,14 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 'fp_privacy_general_section'
             );
 
+            add_settings_field(
+                'retention_days',
+                __( 'Conservazione registro consensi', 'fp-privacy-cookie-policy' ),
+                array( $this, 'render_retention_field' ),
+                'fp_privacy_cookie_policy',
+                'fp_privacy_general_section'
+            );
+
             add_settings_section(
                 'fp_privacy_categories_section',
                 __( 'Categorie di cookie', 'fp-privacy-cookie-policy' ),
@@ -275,6 +580,10 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $output['categories']      = $this->sanitize_categories_settings( $categories_input, $defaults['categories'] );
             $output['google_defaults'] = $this->sanitize_google_defaults( $google_input, $defaults['google_defaults'] );
             $output['translations']    = $this->sanitize_translations( $translations_input, $defaults['translations'], $defaults );
+            $output['retention_days']  = $this->sanitize_retention_days(
+                isset( $input['retention_days'] ) ? $input['retention_days'] : $defaults['retention_days'],
+                $defaults['retention_days']
+            );
 
             return $output;
         }
@@ -522,6 +831,46 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Sanitize retention days value.
+         *
+         * @param mixed $value   Incoming value.
+         * @param int   $default Default retention.
+         *
+         * @return int
+         */
+        protected function sanitize_retention_days( $value, $default ) {
+            if ( '' === $value ) {
+                return (int) $default;
+            }
+
+            if ( is_string( $value ) ) {
+                $value = trim( $value );
+            }
+
+            if ( ! is_numeric( $value ) ) {
+                return (int) $default;
+            }
+
+            $value = (int) $value;
+
+            if ( $value < 0 ) {
+                return (int) $default;
+            }
+
+            if ( 0 === $value ) {
+                return 0;
+            }
+
+            $minimum = (int) apply_filters( 'fp_privacy_consent_retention_min_days', 30 );
+
+            if ( $minimum < 1 ) {
+                $minimum = 1;
+            }
+
+            return max( $minimum, $value );
+        }
+
+        /**
          * Render privacy policy editor.
          */
         public function render_privacy_editor() {
@@ -664,6 +1013,25 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     </p>
                 </div>
             </fieldset>
+            <?php
+        }
+
+        /**
+         * Render retention field.
+         */
+        public function render_retention_field() {
+            $options        = $this->get_settings();
+            $retention_days = isset( $options['retention_days'] ) ? (int) $options['retention_days'] : 0;
+            ?>
+            <p>
+                <label for="fp_retention_days">
+                    <input type="number" class="small-text" id="fp_retention_days" min="0" step="1" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[retention_days]" value="<?php echo esc_attr( $retention_days ); ?>" />
+                    <?php echo esc_html__( 'Giorni di conservazione del registro', 'fp-privacy-cookie-policy' ); ?>
+                </label>
+            </p>
+            <p class="description">
+                <?php echo esc_html__( 'Imposta 0 per disattivare la pulizia automatica. Valori inferiori a 30 giorni vengono automaticamente aumentati.', 'fp-privacy-cookie-policy' ); ?>
+            </p>
             <?php
         }
 
@@ -871,6 +1239,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                         ),
                     ),
                 ),
+                'retention_days'        => 365,
                 'google_defaults'        => array(
                     'analytics_storage'    => 'denied',
                     'ad_storage'           => 'denied',
@@ -1333,7 +1702,13 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         protected function render_logs_tab() {
             global $wpdb;
 
-            $table_name = $wpdb->prefix . self::CONSENT_TABLE;
+            if ( ! $this->consent_table_exists() ) {
+                echo '<p>' . esc_html__( 'La tabella del registro consensi non è disponibile. Riattiva il plugin per ricrearla.', 'fp-privacy-cookie-policy' ) . '</p>';
+
+                return;
+            }
+
+            $table_name = self::get_consent_table_name();
             $per_page   = 50;
             $paged      = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1;
             $offset     = ( $paged - 1 ) * $per_page;
@@ -1437,7 +1812,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     <li><?php esc_html_e( 'Configura le categorie e collega i servizi realmente utilizzati sul sito.', 'fp-privacy-cookie-policy' ); ?></li>
                     <li><?php esc_html_e( 'Imposta i valori predefiniti del Google Consent Mode in base al principio di minimizzazione.', 'fp-privacy-cookie-policy' ); ?></li>
                     <li><?php esc_html_e( 'Inserisci nei template il codice di Google tag manager/gtag.js condizionato dagli eventi di consenso.', 'fp-privacy-cookie-policy' ); ?></li>
-                    <li><?php esc_html_e( 'Conserva il registro dei consensi per almeno 12 mesi o secondo le policy del cliente.', 'fp-privacy-cookie-policy' ); ?></li>
+                    <li><?php esc_html_e( 'Definisci il periodo di conservazione del registro e utilizza gli strumenti di esportazione/cancellazione dati integrati in WordPress.', 'fp-privacy-cookie-policy' ); ?></li>
                 </ol>
                 <h3><?php esc_html_e( 'Shortcode disponibili', 'fp-privacy-cookie-policy' ); ?></h3>
                 <ul>
@@ -1504,9 +1879,13 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * @param array  $consent    Consent data.
          */
         protected function log_consent( $consent_id, $event, $consent ) {
+            if ( ! $this->consent_table_exists() ) {
+                self::create_consent_table();
+            }
+
             global $wpdb;
 
-            $table_name = $wpdb->prefix . self::CONSENT_TABLE;
+            $table_name = self::get_consent_table_name();
 
             $ip_address = isset( $_SERVER['REMOTE_ADDR'] ) ? wp_unslash( $_SERVER['REMOTE_ADDR'] ) : '';
             $ip_address = wp_privacy_anonymize_ip( $ip_address );
@@ -1540,7 +1919,11 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
             global $wpdb;
 
-            $table_name = $wpdb->prefix . self::CONSENT_TABLE;
+            if ( ! $this->consent_table_exists() ) {
+                wp_die( esc_html__( 'La tabella del registro consensi non è disponibile.', 'fp-privacy-cookie-policy' ) );
+            }
+
+            $table_name = self::get_consent_table_name();
 
             $logs = $wpdb->get_results( "SELECT * FROM {$table_name} ORDER BY created_at DESC" );
 

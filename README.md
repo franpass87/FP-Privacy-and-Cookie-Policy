@@ -12,6 +12,7 @@ Plugin WordPress progettato per gestire privacy policy, cookie policy e consenso
 - Integrazione automatica con Google Consent Mode v2 (`analytics_storage`, `ad_storage`, `ad_user_data`, `ad_personalization`, `functionality_storage`, `security_storage`).
 - Supporto per Google Tag Manager/eventi personalizzati via `dataLayer` e custom event `fp-consent-change`.
 - Traduzioni `en_US` pronte all'uso e file `.pot` per localizzazioni aggiuntive.
+- Impostazione del periodo di conservazione del registro con pulizia pianificata e integrazione con gli strumenti privacy di WordPress.
 
 ## Installazione
 
@@ -29,6 +30,7 @@ Plugin WordPress progettato per gestire privacy policy, cookie policy e consenso
 3. Configura il banner cookie (titolo, messaggio, etichette pulsanti) e decidi se mostrare il pulsante di rifiuto e quello delle preferenze. Compila anche i testi in inglese per offrire un'esperienza bilingue.
 4. Per ciascuna categoria indica descrizione, servizi e durata dei cookie utilizzati. Le categorie obbligatorie sono marcate come "Sempre attivo" nel front-end.
 5. Imposta i valori di default del Google Consent Mode v2 scegliendo tra `granted` o `denied` per ciascun segnale.
+6. Configura la conservazione del registro consensi per rispettare le policy interne e le richieste GDPR.
 
 ## Google Consent Mode v2
 
@@ -41,6 +43,8 @@ Plugin WordPress progettato per gestire privacy policy, cookie policy e consenso
 
 - Nella tab **Registro consensi** trovi gli ultimi eventi registrati (50 per pagina) con data, ID consenso, stato e IP anonimizzato.
 - È possibile esportare l'intero registro in formato CSV per adempiere agli obblighi di accountability.
+- Puoi definire un periodo di conservazione automatica del registro per eliminare i consensi più datati.
+- Il registro è compatibile con gli strumenti di esportazione ed eliminazione dati di WordPress per gestire le richieste GDPR.
 - Gli ID consenso sono conservati in un cookie tecnico sicuro e anonimo (`fp_consent_state_id`).
 
 ## Suggerimenti legali
