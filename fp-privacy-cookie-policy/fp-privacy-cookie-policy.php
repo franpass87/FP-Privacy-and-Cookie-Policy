@@ -3,7 +3,7 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://example.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.4.0
+ * Version:     1.5.0
  * Author:      FP Digital Assistant
  * Author URI:  https://example.com/
  * License:     GPL2
@@ -24,7 +24,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
     class FP_Privacy_Cookie_Policy {
 
         const OPTION_KEY        = 'fp_privacy_cookie_settings';
-        const VERSION           = '1.4.0';
+        const VERSION           = '1.5.0';
         const VERSION_OPTION    = 'fp_privacy_cookie_version';
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';
@@ -2705,4 +2705,9 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
     register_uninstall_hook( __FILE__, array( 'FP_Privacy_Cookie_Policy', 'uninstall' ) );
 
     FP_Privacy_Cookie_Policy::instance();
+
+    if ( defined( 'WP_CLI' ) && WP_CLI ) {
+        require_once __DIR__ . '/includes/class-fp-privacy-cli.php';
+        \WP_CLI::add_command( 'fp-privacy', new FP_Privacy_CLI( FP_Privacy_Cookie_Policy::instance() ) );
+    }
 }
