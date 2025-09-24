@@ -42,7 +42,7 @@ Plugin WordPress progettato per gestire privacy policy, cookie policy e consenso
 ## Registro consensi
 
 - Nella tab **Registro consensi** trovi gli ultimi eventi registrati (50 per pagina) con data, ID consenso, stato e IP anonimizzato.
-- È possibile esportare l'intero registro in formato CSV per adempiere agli obblighi di accountability.
+- È possibile esportare l'intero registro in formato CSV per adempiere agli obblighi di accountability, con esportazione a blocchi ottimizzata e personalizzabile tramite il filtro `fp_privacy_csv_export_batch_size` per gestire archivi molto grandi.
 - Puoi definire un periodo di conservazione automatica del registro per eliminare i consensi più datati.
 - Il registro è compatibile con gli strumenti di esportazione ed eliminazione dati di WordPress per gestire le richieste GDPR.
 - Gli ID consenso sono conservati in un cookie tecnico sicuro e anonimo (`fp_consent_state_id`).
