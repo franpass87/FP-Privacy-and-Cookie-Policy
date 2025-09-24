@@ -16,6 +16,26 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2527
+msgid "Questo plugin memorizza e registra le preferenze di consenso dei visitatori per aiutarvi a dimostrare la conformità al GDPR."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2531
+msgid "Salviamo le scelte nel cookie tecnico %s per ricordare le preferenze dell'utente."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2536
+msgid "Associamo a ogni browser un identificativo anonimo conservato nel cookie %s per collegare gli eventi registrati."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2539
+msgid "Registriamo nel database la data e l'ora, l'azione scelta, l'indirizzo IP anonimizzato e il browser utilizzato."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2541
+msgid "I dati vengono conservati per il periodo configurato nelle impostazioni del plugin e sono disponibili per esportazioni o cancellazioni tramite gli strumenti privacy di WordPress."
+msgstr ""
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:141
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:142
 msgid "Privacy & Cookie"

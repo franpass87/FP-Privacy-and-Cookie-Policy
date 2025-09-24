@@ -67,6 +67,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             add_action( 'init', array( $this, 'load_textdomain' ) );
             add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
             add_action( 'admin_init', array( $this, 'register_settings' ) );
+            add_action( 'admin_init', array( $this, 'add_privacy_policy_content' ) );
             add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
             add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_assets' ) );
             add_action( 'wp_footer', array( $this, 'render_consent_banner' ) );
@@ -1483,6 +1484,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $options    = $this->get_settings();
             $localized  = $this->get_localized_settings();
             $text_values = $this->get_frontend_texts( $localized['language'] );
+            $cookie_options = $this->get_frontend_cookie_options( $options );
 
             wp_enqueue_style( 'fp-privacy-frontend', plugin_dir_url( __FILE__ ) . 'assets/css/banner.css', array(), self::VERSION );
 
@@ -1498,6 +1500,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 'googleDefaults' => $options['google_defaults'],
                 'language'       => $localized['language'],
                 'cookieTtlDays'  => isset( $options['consent_cookie_days'] ) ? (int) $options['consent_cookie_days'] : 0,
+                'cookieOptions'  => $cookie_options,
                 'texts'          => array(
                     'manageConsent' => $text_values['manage_consent'],
                     'updatedAt'     => $text_values['updated_at'],
@@ -2492,6 +2495,55 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             }
 
             return $options;
+        }
+
+        /**
+         * Retrieve consent cookie options suitable for frontend usage.
+         *
+         * @param array $settings Plugin settings.
+         *
+         * @return array
+         */
+        protected function get_frontend_cookie_options( array $settings ) {
+            $lifetime = $this->get_consent_cookie_lifetime( $settings );
+            $options  = $this->get_consent_cookie_options( $lifetime, $settings );
+
+            return array(
+                'path'     => isset( $options['path'] ) ? (string) $options['path'] : '/',
+                'domain'   => isset( $options['domain'] ) ? (string) $options['domain'] : '',
+                'sameSite' => isset( $options['samesite'] ) ? (string) $options['samesite'] : 'Lax',
+                'secure'   => ! empty( $options['secure'] ),
+            );
+        }
+
+        /**
+         * Add the privacy policy content suggestion in the WordPress privacy guide.
+         */
+        public function add_privacy_policy_content() {
+            if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
+                return;
+            }
+
+            $content  = '<p>' . esc_html__( 'Questo plugin memorizza e registra le preferenze di consenso dei visitatori per aiutarvi a dimostrare la conformità al GDPR.', 'fp-privacy-cookie-policy' ) . '</p>';
+            $content .= '<ul>';
+            $content .= '<li>' . sprintf(
+                /* translators: %s is the cookie name. */
+                esc_html__( 'Salviamo le scelte nel cookie tecnico %s per ricordare le preferenze dell\'utente.', 'fp-privacy-cookie-policy' ),
+                '<code>' . esc_html( self::CONSENT_COOKIE ) . '</code>'
+            ) . '</li>';
+            $content .= '<li>' . sprintf(
+                /* translators: %s is the cookie name. */
+                esc_html__( 'Associamo a ogni browser un identificativo anonimo conservato nel cookie %s per collegare gli eventi registrati.', 'fp-privacy-cookie-policy' ),
+                '<code>' . esc_html( self::CONSENT_COOKIE ) . '_id</code>'
+            ) . '</li>';
+            $content .= '<li>' . esc_html__( 'Registriamo nel database la data e l\'ora, l\'azione scelta, l\'indirizzo IP anonimizzato e il browser utilizzato.', 'fp-privacy-cookie-policy' ) . '</li>';
+            $content .= '</ul>';
+            $content .= '<p>' . esc_html__( 'I dati vengono conservati per il periodo configurato nelle impostazioni del plugin e sono disponibili per esportazioni o cancellazioni tramite gli strumenti privacy di WordPress.', 'fp-privacy-cookie-policy' ) . '</p>';
+
+            wp_add_privacy_policy_content(
+                __( 'FP Privacy and Cookie Policy', 'fp-privacy-cookie-policy' ),
+                wp_kses_post( $content )
+            );
         }
     }
 

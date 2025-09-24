@@ -17,6 +17,26 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2527
+msgid "Questo plugin memorizza e registra le preferenze di consenso dei visitatori per aiutarvi a dimostrare la conformità al GDPR."
+msgstr "This plugin stores and logs visitors' consent preferences to help you demonstrate GDPR compliance."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2531
+msgid "Salviamo le scelte nel cookie tecnico %s per ricordare le preferenze dell'utente."
+msgstr "We store the choices inside the technical cookie %s to remember the user's preferences."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2536
+msgid "Associamo a ogni browser un identificativo anonimo conservato nel cookie %s per collegare gli eventi registrati."
+msgstr "We associate each browser with an anonymous identifier stored in the %s cookie to link the recorded events."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2539
+msgid "Registriamo nel database la data e l'ora, l'azione scelta, l'indirizzo IP anonimizzato e il browser utilizzato."
+msgstr "We record the date and time, the action taken, the anonymised IP address and the user agent in the database."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2541
+msgid "I dati vengono conservati per il periodo configurato nelle impostazioni del plugin e sono disponibili per esportazioni o cancellazioni tramite gli strumenti privacy di WordPress."
+msgstr "The data is kept for the period configured in the plugin settings and can be exported or erased through the WordPress privacy tools."
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:137
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:138
 msgid "Privacy & Cookie"
