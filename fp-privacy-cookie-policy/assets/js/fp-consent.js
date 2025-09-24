@@ -10,6 +10,10 @@
     var consentId = settings.consentId || '';
     var categories = settings.categories || {};
     var googleDefaults = settings.googleDefaults || {};
+    var cookieTtlDays = parseInt(settings.cookieTtlDays, 10);
+    if (isNaN(cookieTtlDays)) {
+        cookieTtlDays = null;
+    }
     var requiredKeys = Object.keys(categories).filter(function (key) {
         return categories[key] && categories[key].required;
     });
@@ -262,7 +266,24 @@
 
     function storeConsentCookie(state) {
         var value = encodeURIComponent(JSON.stringify(state));
-        var attributes = ['path=/','max-age=' + 60 * 60 * 24 * 365,'SameSite=Lax'];
+        var attributes = ['path=/', 'SameSite=Lax'];
+        var maxAgeSeconds = null;
+
+        if (cookieTtlDays === 0) {
+            maxAgeSeconds = null;
+        } else if (cookieTtlDays && cookieTtlDays > 0) {
+            maxAgeSeconds = cookieTtlDays * 24 * 60 * 60;
+        } else {
+            maxAgeSeconds = 365 * 24 * 60 * 60;
+        }
+
+        if (maxAgeSeconds) {
+            attributes.push('max-age=' + maxAgeSeconds);
+            var expires = new Date();
+            expires.setTime(expires.getTime() + maxAgeSeconds * 1000);
+            attributes.push('expires=' + expires.toUTCString());
+        }
+
         if (window.location && window.location.protocol === 'https:') {
             attributes.push('Secure');
         }

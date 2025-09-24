@@ -4,7 +4,7 @@ Tags: gdpr, cookie banner, consent management, privacy policy, google consent mo
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,6 +20,7 @@ FP Privacy and Cookie Policy helps agencies and professionals implement a comple
 * Consent registry with anonymised IP address, AJAX logging and CSV export.
 * Native Google Consent Mode v2 integration and `dataLayer` events to orchestrate your tracking setup.
 * Configurable consent log retention with automatic cleanup and integration with the WordPress privacy export/erase tools.
+* Adjustable consent cookie duration to align banner re-consent with your legal requirements.
 
 == Installation ==
 1. Upload the `fp-privacy-cookie-policy` folder to the `/wp-content/plugins/` directory, or install the plugin from the WordPress plugin screen.
@@ -43,6 +44,10 @@ Usa la tab "Registro consensi" per consultare gli eventi registrati ed esportare
 3. Registro consensi con esportazione CSV e informazioni anonimizzate.
 
 == Changelog ==
+= 1.3.0 =
+* Added a dedicated control to configure the lifetime of the consent cookie, with safeguards and filters for advanced workflows.
+* Updated the frontend script to respect the configured consent lifetime while keeping secure defaults in place.
+
 = 1.2.0 =
 * Added retention controls for the consent registry with daily scheduled cleanup.
 * Integrated the consent logs with WordPress personal data exporter and eraser workflows.

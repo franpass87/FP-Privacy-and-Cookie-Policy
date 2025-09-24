@@ -3,7 +3,7 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://example.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.2.0
+ * Version:     1.3.0
  * Author:      FP Digital Assistant
  * Author URI:  https://example.com/
  * License:     GPL2
@@ -24,7 +24,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
     class FP_Privacy_Cookie_Policy {
 
         const OPTION_KEY        = 'fp_privacy_cookie_settings';
-        const VERSION           = '1.2.0';
+        const VERSION           = '1.3.0';
         const VERSION_OPTION    = 'fp_privacy_cookie_version';
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';
@@ -606,6 +606,14 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 'fp_privacy_general_section'
             );
 
+            add_settings_field(
+                'consent_cookie_days',
+                __( 'Durata cookie di consenso', 'fp-privacy-cookie-policy' ),
+                array( $this, 'render_consent_cookie_field' ),
+                'fp_privacy_cookie_policy',
+                'fp_privacy_general_section'
+            );
+
             add_settings_section(
                 'fp_privacy_categories_section',
                 __( 'Categorie di cookie', 'fp-privacy-cookie-policy' ),
@@ -663,6 +671,10 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $output['retention_days']  = $this->sanitize_retention_days(
                 isset( $input['retention_days'] ) ? $input['retention_days'] : $defaults['retention_days'],
                 $defaults['retention_days']
+            );
+            $output['consent_cookie_days'] = $this->sanitize_cookie_duration_days(
+                isset( $input['consent_cookie_days'] ) ? $input['consent_cookie_days'] : $defaults['consent_cookie_days'],
+                $defaults['consent_cookie_days']
             );
 
             return $output;
@@ -958,6 +970,46 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Sanitize consent cookie duration value.
+         *
+         * @param mixed $value   Incoming value.
+         * @param int   $default Default duration.
+         *
+         * @return int
+         */
+        protected function sanitize_cookie_duration_days( $value, $default ) {
+            if ( '' === $value ) {
+                return (int) $default;
+            }
+
+            if ( is_string( $value ) ) {
+                $value = trim( $value );
+            }
+
+            if ( ! is_numeric( $value ) ) {
+                return (int) $default;
+            }
+
+            $value = (int) $value;
+
+            if ( $value < 0 ) {
+                return (int) $default;
+            }
+
+            if ( 0 === $value ) {
+                return 0;
+            }
+
+            $minimum = (int) apply_filters( 'fp_privacy_consent_cookie_min_days', 30 );
+
+            if ( $minimum < 1 ) {
+                $minimum = 1;
+            }
+
+            return max( $minimum, $value );
+        }
+
+        /**
          * Render privacy policy editor.
          */
         public function render_privacy_editor() {
@@ -1118,6 +1170,25 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             </p>
             <p class="description">
                 <?php echo esc_html__( 'Imposta 0 per disattivare la pulizia automatica. Valori inferiori a 30 giorni vengono automaticamente aumentati.', 'fp-privacy-cookie-policy' ); ?>
+            </p>
+            <?php
+        }
+
+        /**
+         * Render consent cookie duration field.
+         */
+        public function render_consent_cookie_field() {
+            $options            = $this->get_settings();
+            $consent_cookie_days = isset( $options['consent_cookie_days'] ) ? (int) $options['consent_cookie_days'] : 0;
+            ?>
+            <p>
+                <label for="fp_consent_cookie_days">
+                    <input type="number" class="small-text" id="fp_consent_cookie_days" min="0" step="1" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[consent_cookie_days]" value="<?php echo esc_attr( $consent_cookie_days ); ?>" />
+                    <?php echo esc_html__( 'Giorni di validità del consenso', 'fp-privacy-cookie-policy' ); ?>
+                </label>
+            </p>
+            <p class="description">
+                <?php echo esc_html__( 'Imposta 0 per chiedere il consenso a ogni sessione. Valori inferiori a 30 giorni vengono automaticamente aumentati, ma puoi modificare la soglia con il filtro fp_privacy_consent_cookie_min_days.', 'fp-privacy-cookie-policy' ); ?>
             </p>
             <?php
         }
@@ -1327,6 +1398,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     ),
                 ),
                 'retention_days'        => 365,
+                'consent_cookie_days'   => 180,
                 'google_defaults'        => array(
                     'analytics_storage'    => 'denied',
                     'ad_storage'           => 'denied',
@@ -1370,6 +1442,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 'banner'         => $localized['banner'],
                 'googleDefaults' => $options['google_defaults'],
                 'language'       => $localized['language'],
+                'cookieTtlDays'  => isset( $options['consent_cookie_days'] ) ? (int) $options['consent_cookie_days'] : 0,
                 'texts'          => array(
                     'manageConsent' => $text_values['manage_consent'],
                     'updatedAt'     => $text_values['updated_at'],
