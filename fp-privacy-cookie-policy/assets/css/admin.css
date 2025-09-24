@@ -41,3 +41,13 @@
     padding: 0.2rem 0.45rem;
     border-radius: 4px;
 }
+
+.fp-privacy-admin .fp-interface-texts .fp-texts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.fp-privacy-admin .fp-interface-texts textarea {
+    min-height: 120px;
+}

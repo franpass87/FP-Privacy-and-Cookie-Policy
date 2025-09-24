@@ -676,6 +676,14 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             );
 
             add_settings_field(
+                'frontend_texts',
+                __( 'Testi interfaccia', 'fp-privacy-cookie-policy' ),
+                array( $this, 'render_frontend_texts_field' ),
+                'fp_privacy_cookie_policy',
+                'fp_privacy_general_section'
+            );
+
+            add_settings_field(
                 'retention_days',
                 __( 'Conservazione registro consensi', 'fp-privacy-cookie-policy' ),
                 array( $this, 'render_retention_field' ),
@@ -739,11 +747,13 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $banner_input       = isset( $input['banner'] ) && is_array( $input['banner'] ) ? $input['banner'] : array();
             $categories_input   = isset( $input['categories'] ) && is_array( $input['categories'] ) ? $input['categories'] : array();
             $google_input       = isset( $input['google_defaults'] ) && is_array( $input['google_defaults'] ) ? $input['google_defaults'] : array();
+            $texts_input        = isset( $input['texts'] ) && is_array( $input['texts'] ) ? $input['texts'] : array();
             $translations_input = isset( $input['translations'] ) && is_array( $input['translations'] ) ? $input['translations'] : array();
 
             $output['banner']          = $this->sanitize_banner_settings( $banner_input, $defaults['banner'] );
             $output['categories']      = $this->sanitize_categories_settings( $categories_input, $defaults['categories'] );
             $output['google_defaults'] = $this->sanitize_google_defaults( $google_input, $defaults['google_defaults'] );
+            $output['texts']           = $this->sanitize_frontend_texts( $texts_input, $defaults['texts'] );
             $output['translations']    = $this->sanitize_translations( $translations_input, $defaults['translations'], $defaults );
             $output['retention_days']  = $this->sanitize_retention_days(
                 isset( $input['retention_days'] ) ? $input['retention_days'] : $defaults['retention_days'],
@@ -928,6 +938,63 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Sanitize frontend static texts.
+         *
+         * @param array $input    Raw input values.
+         * @param array $defaults Default texts.
+         *
+         * @return array
+         */
+        protected function sanitize_frontend_texts( array $input, array $defaults ) {
+            $sanitized = $defaults;
+
+            foreach ( $defaults as $key => $default ) {
+                if ( ! array_key_exists( $key, $input ) ) {
+                    continue;
+                }
+
+                $sanitized[ $key ] = $this->sanitize_single_frontend_text( $key, $input[ $key ], $default );
+            }
+
+            if ( isset( $sanitized['toggle_aria'] ) && false === strpos( $sanitized['toggle_aria'], '%s' ) ) {
+                $sanitized['toggle_aria'] = $defaults['toggle_aria'];
+            }
+
+            return $sanitized;
+        }
+
+        /**
+         * Sanitize a single frontend text value.
+         *
+         * @param string $key     Text key.
+         * @param mixed  $value   Incoming value.
+         * @param string $default Default value.
+         *
+         * @return string
+         */
+        protected function sanitize_single_frontend_text( $key, $value, $default ) {
+            if ( is_array( $value ) ) {
+                $value = ''; // Unexpected structure, fallback to default.
+            }
+
+            if ( 'modal_intro' === $key ) {
+                $sanitized = sanitize_textarea_field( (string) $value );
+            } else {
+                $sanitized = sanitize_text_field( (string) $value );
+            }
+
+            if ( '' === $sanitized ) {
+                return $default;
+            }
+
+            if ( 'toggle_aria' === $key && false === strpos( $sanitized, '%s' ) ) {
+                return $default;
+            }
+
+            return $sanitized;
+        }
+
+        /**
          * Sanitize Google default consent values.
          *
          * @param array $input    Raw input.
@@ -998,6 +1065,12 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     isset( $incoming['categories'] ) && is_array( $incoming['categories'] ) ? $incoming['categories'] : array(),
                     isset( $default_translation['categories'] ) && is_array( $default_translation['categories'] ) ? $default_translation['categories'] : array(),
                     $base_defaults['categories']
+                );
+                $translation['texts']      = $this->sanitize_frontend_texts(
+                    isset( $incoming['texts'] ) && is_array( $incoming['texts'] ) ? $incoming['texts'] : array(),
+                    isset( $default_translation['texts'] ) && is_array( $default_translation['texts'] )
+                        ? $default_translation['texts']
+                        : $this->get_frontend_texts_defaults( $language )
                 );
 
                 $sanitized[ $language ] = $translation;
@@ -1233,6 +1306,77 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Render frontend interface texts controls.
+         */
+        public function render_frontend_texts_field() {
+            $options            = $this->get_settings();
+            $base_texts         = isset( $options['texts'] ) && is_array( $options['texts'] ) ? $options['texts'] : array();
+            $text_defaults      = $this->get_frontend_texts_defaults( self::DEFAULT_LANGUAGE );
+            $texts              = array_merge( $text_defaults, $base_texts );
+            $translations       = isset( $options['translations'] ) ? $options['translations'] : array();
+            $english_defaults   = $this->get_frontend_texts_defaults( 'en' );
+            $english_overrides  = isset( $translations['en']['texts'] ) && is_array( $translations['en']['texts'] ) ? $translations['en']['texts'] : array();
+            $english_texts      = array_merge( $english_defaults, $english_overrides );
+            $field_labels       = array(
+                'modal_title'       => esc_html__( 'Titolo finestra', 'fp-privacy-cookie-policy' ),
+                'modal_intro'       => esc_html__( 'Messaggio introduttivo', 'fp-privacy-cookie-policy' ),
+                'modal_close'       => esc_html__( 'Etichetta pulsante chiusura', 'fp-privacy-cookie-policy' ),
+                'services_included' => esc_html__( 'Etichetta "Servizi inclusi"', 'fp-privacy-cookie-policy' ),
+                'always_active'     => esc_html__( 'Etichetta "Sempre attivo"', 'fp-privacy-cookie-policy' ),
+                'toggle_aria'       => esc_html__( 'Descrizione accessibilità toggle', 'fp-privacy-cookie-policy' ),
+                'manage_consent'    => esc_html__( 'Etichetta pulsante gestione', 'fp-privacy-cookie-policy' ),
+                'updated_at'        => esc_html__( 'Etichetta stato aggiornamento', 'fp-privacy-cookie-policy' ),
+            );
+            $textarea_fields    = array( 'modal_intro' );
+            $english_suffix     = esc_html__( '%s (Inglese)', 'fp-privacy-cookie-policy' );
+            $placeholder_notice = esc_html__( 'Ricorda di mantenere il segnaposto %s per il nome categoria.', 'fp-privacy-cookie-policy' );
+            ?>
+            <fieldset class="fp-banner-settings fp-interface-texts">
+                <h4><?php esc_html_e( 'Testi interfaccia (Italiano)', 'fp-privacy-cookie-policy' ); ?></h4>
+                <div class="fp-texts-grid">
+                    <?php foreach ( $field_labels as $key => $label ) : ?>
+                        <?php $field_id = 'fp_text_' . $key; ?>
+                        <p>
+                            <label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $label ); ?></label><br />
+                            <?php if ( in_array( $key, $textarea_fields, true ) ) : ?>
+                                <textarea class="large-text" rows="3" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[texts][<?php echo esc_attr( $key ); ?>]"><?php echo esc_textarea( isset( $texts[ $key ] ) ? $texts[ $key ] : '' ); ?></textarea>
+                            <?php else : ?>
+                                <input type="text" class="regular-text" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[texts][<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( isset( $texts[ $key ] ) ? $texts[ $key ] : '' ); ?>" />
+                            <?php endif; ?>
+                            <?php if ( 'toggle_aria' === $key ) : ?>
+                                <span class="description">
+                                    <?php printf( esc_html( $placeholder_notice ), '<code>%s</code>' ); ?>
+                                </span>
+                            <?php endif; ?>
+                        </p>
+                    <?php endforeach; ?>
+                </div>
+            </fieldset>
+            <fieldset class="fp-banner-settings fp-interface-texts">
+                <h4><?php esc_html_e( 'Testi interfaccia (Inglese)', 'fp-privacy-cookie-policy' ); ?></h4>
+                <div class="fp-texts-grid">
+                    <?php foreach ( $field_labels as $key => $label ) : ?>
+                        <?php $field_id = 'fp_text_' . $key . '_en'; ?>
+                        <p>
+                            <label for="<?php echo esc_attr( $field_id ); ?>"><?php printf( esc_html( $english_suffix ), esc_html( $label ) ); ?></label><br />
+                            <?php if ( in_array( $key, $textarea_fields, true ) ) : ?>
+                                <textarea class="large-text" rows="3" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][texts][<?php echo esc_attr( $key ); ?>]"><?php echo esc_textarea( isset( $english_texts[ $key ] ) ? $english_texts[ $key ] : '' ); ?></textarea>
+                            <?php else : ?>
+                                <input type="text" class="regular-text" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][texts][<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( isset( $english_texts[ $key ] ) ? $english_texts[ $key ] : '' ); ?>" />
+                            <?php endif; ?>
+                            <?php if ( 'toggle_aria' === $key ) : ?>
+                                <span class="description">
+                                    <?php printf( esc_html( $placeholder_notice ), '<code>%s</code>' ); ?>
+                                </span>
+                            <?php endif; ?>
+                        </p>
+                    <?php endforeach; ?>
+                </div>
+            </fieldset>
+            <?php
+        }
+
+        /**
          * Render retention field.
          */
         public function render_retention_field() {
@@ -1438,6 +1582,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                         'enabled'     => true,
                     ),
                 ),
+                'texts'                  => $this->get_frontend_texts_defaults( self::DEFAULT_LANGUAGE ),
                 'translations'          => array(
                     'en' => array(
                         'privacy_policy_content' => '<h2>Privacy Notice</h2><p>Provide the text of your GDPR-compliant privacy notice here, including data subject rights, controller contact details and the purposes of processing.</p>',
@@ -1472,6 +1617,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                                 'services'    => 'Google Ads, Meta Pixel, TikTok Pixel.',
                             ),
                         ),
+                        'texts'                 => $this->get_frontend_texts_defaults( 'en' ),
                     ),
                 ),
                 'retention_days'        => 365,
@@ -1502,9 +1648,11 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * Enqueue frontend assets.
          */
         public function enqueue_frontend_assets() {
-            $options    = $this->get_settings();
-            $localized  = $this->get_localized_settings();
-            $text_values = $this->get_frontend_texts( $localized['language'] );
+            $options        = $this->get_settings();
+            $localized      = $this->get_localized_settings();
+            $text_values    = isset( $localized['texts'] ) && is_array( $localized['texts'] )
+                ? $localized['texts']
+                : $this->get_frontend_texts( $localized['language'], $options );
             $cookie_options = $this->get_frontend_cookie_options( $options );
 
             wp_enqueue_style( 'fp-privacy-frontend', plugin_dir_url( __FILE__ ) . 'assets/css/banner.css', array(), self::VERSION );
@@ -1615,6 +1763,8 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     }
                 }
             }
+
+            $localized['texts'] = $this->get_frontend_texts( $language, $settings );
 
             $this->localized_cache[ $language ] = $localized;
 
@@ -1727,56 +1877,130 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
-         * Frontend static texts by language.
+         * Retrieve the frontend text definitions for supported languages.
+         *
+         * @return array
+         */
+        protected function get_frontend_text_definitions() {
+            return array(
+                'modal_close'       => array(
+                    self::DEFAULT_LANGUAGE => __( 'Chiudi', 'fp-privacy-cookie-policy' ),
+                    'en'                   => 'Close',
+                ),
+                'modal_title'       => array(
+                    self::DEFAULT_LANGUAGE => __( 'Gestisci le preferenze', 'fp-privacy-cookie-policy' ),
+                    'en'                   => 'Manage preferences',
+                ),
+                'modal_intro'       => array(
+                    self::DEFAULT_LANGUAGE => __( 'Decidi quali categorie di cookie attivare. Puoi modificare la tua scelta in qualsiasi momento.', 'fp-privacy-cookie-policy' ),
+                    'en'                   => 'Choose which categories of cookies to enable. You can change your preferences at any time.',
+                ),
+                'services_included' => array(
+                    self::DEFAULT_LANGUAGE => __( 'Servizi inclusi', 'fp-privacy-cookie-policy' ),
+                    'en'                   => 'Included services',
+                ),
+                'always_active'     => array(
+                    self::DEFAULT_LANGUAGE => __( 'Sempre attivo', 'fp-privacy-cookie-policy' ),
+                    'en'                   => 'Always active',
+                ),
+                'toggle_aria'       => array(
+                    self::DEFAULT_LANGUAGE => __( 'Attiva o disattiva i cookie %s', 'fp-privacy-cookie-policy' ),
+                    'en'                   => 'Enable or disable %s cookies',
+                ),
+                'manage_consent'    => array(
+                    self::DEFAULT_LANGUAGE => __( 'Gestisci preferenze cookie', 'fp-privacy-cookie-policy' ),
+                    'en'                   => 'Manage cookie preferences',
+                ),
+                'updated_at'        => array(
+                    self::DEFAULT_LANGUAGE => __( 'Ultimo aggiornamento', 'fp-privacy-cookie-policy' ),
+                    'en'                   => 'Last updated',
+                ),
+            );
+        }
+
+        /**
+         * Retrieve default frontend texts for a specific language.
          *
          * @param string $language Language code.
          *
          * @return array
          */
-        protected function get_frontend_texts( $language ) {
-            $language = $this->normalize_language_code( $language );
-            $texts    = array(
-                'modal_close'       => array(
-                    'it' => 'Chiudi',
-                    'en' => 'Close',
-                ),
-                'modal_title'       => array(
-                    'it' => 'Gestisci le preferenze',
-                    'en' => 'Manage preferences',
-                ),
-                'modal_intro'       => array(
-                    'it' => 'Decidi quali categorie di cookie attivare. Puoi modificare la tua scelta in qualsiasi momento.',
-                    'en' => 'Choose which categories of cookies to enable. You can change your preferences at any time.',
-                ),
-                'services_included' => array(
-                    'it' => 'Servizi inclusi',
-                    'en' => 'Included services',
-                ),
-                'always_active'     => array(
-                    'it' => 'Sempre attivo',
-                    'en' => 'Always active',
-                ),
-                'toggle_aria'       => array(
-                    'it' => 'Attiva o disattiva i cookie %s',
-                    'en' => 'Enable or disable %s cookies',
-                ),
-                'manage_consent'    => array(
-                    'it' => 'Gestisci preferenze cookie',
-                    'en' => 'Manage cookie preferences',
-                ),
-                'updated_at'        => array(
-                    'it' => 'Ultimo aggiornamento',
-                    'en' => 'Last updated',
-                ),
-            );
+        protected function get_frontend_texts_defaults( $language ) {
+            $language     = $this->normalize_language_code( $language );
+            $definitions  = $this->get_frontend_text_definitions();
+            $defaults     = array();
 
-            $result = array();
-
-            foreach ( $texts as $key => $values ) {
-                $result[ $key ] = isset( $values[ $language ] ) ? $values[ $language ] : $values[ self::DEFAULT_LANGUAGE ];
+            foreach ( $definitions as $key => $values ) {
+                if ( isset( $values[ $language ] ) ) {
+                    $defaults[ $key ] = $values[ $language ];
+                } elseif ( isset( $values[ self::DEFAULT_LANGUAGE ] ) ) {
+                    $defaults[ $key ] = $values[ self::DEFAULT_LANGUAGE ];
+                } else {
+                    $defaults[ $key ] = '';
+                }
             }
 
-            return $result;
+            if ( isset( $defaults['toggle_aria'] ) && false === strpos( $defaults['toggle_aria'], '%s' ) ) {
+                $defaults['toggle_aria'] = $definitions['toggle_aria'][ self::DEFAULT_LANGUAGE ];
+            }
+
+            return $defaults;
+        }
+
+        /**
+         * Frontend static texts by language, including settings overrides.
+         *
+         * @param string     $language Language code.
+         * @param array|null $settings Optional settings to reuse.
+         *
+         * @return array
+         */
+        protected function get_frontend_texts( $language, $settings = null ) {
+            if ( null === $settings ) {
+                $settings = $this->get_settings();
+            }
+
+            if ( ! is_array( $settings ) ) {
+                $settings = $this->get_default_settings();
+            }
+
+            $language          = $this->normalize_language_code( $language );
+            $base_defaults     = $this->get_frontend_texts_defaults( self::DEFAULT_LANGUAGE );
+            $language_defaults = $this->get_frontend_texts_defaults( $language );
+            $base_texts        = isset( $settings['texts'] ) && is_array( $settings['texts'] ) ? $settings['texts'] : array();
+            $texts             = array_merge( $base_defaults, $base_texts );
+
+            if ( $language !== self::DEFAULT_LANGUAGE ) {
+                $translation = $this->get_translation_for_language(
+                    isset( $settings['translations'] ) && is_array( $settings['translations'] ) ? $settings['translations'] : array(),
+                    $language
+                );
+
+                if ( isset( $translation['texts'] ) && is_array( $translation['texts'] ) ) {
+                    $texts = array_merge( $texts, $translation['texts'] );
+                } else {
+                    $texts = $language_defaults;
+                }
+            }
+
+            foreach ( $language_defaults as $key => $value ) {
+                if ( ! isset( $texts[ $key ] ) || '' === $texts[ $key ] ) {
+                    $texts[ $key ] = $value;
+                }
+            }
+
+            if ( isset( $texts['toggle_aria'] ) && false === strpos( $texts['toggle_aria'], '%s' ) ) {
+                $texts['toggle_aria'] = $language_defaults['toggle_aria'];
+            }
+
+            /**
+             * Filter the frontend interface texts for the consent banner.
+             *
+             * @param array  $texts    Prepared texts.
+             * @param string $language Normalized language code.
+             * @param array  $settings Plugin settings.
+             */
+            return (array) apply_filters( 'fp_privacy_frontend_texts', $texts, $language, $settings );
         }
 
         /**
@@ -1786,7 +2010,9 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $localized     = $this->get_localized_settings();
             $banner        = $localized['banner'];
             $categories    = $localized['categories'];
-            $texts         = $this->get_frontend_texts( $localized['language'] );
+            $texts         = isset( $localized['texts'] ) && is_array( $localized['texts'] )
+                ? $localized['texts']
+                : $this->get_frontend_texts( $localized['language'] );
             $has_preferred = ! empty( array_filter( $categories, static function ( $category ) {
                 return ! empty( $category['enabled'] ) && empty( $category['required'] );
             } ) );
