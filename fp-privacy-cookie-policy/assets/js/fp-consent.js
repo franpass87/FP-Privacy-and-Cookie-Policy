@@ -22,6 +22,7 @@
     });
     var bannerElement;
     var modalElement;
+    var manageButton;
     var currentConsent = null;
 
     document.addEventListener('DOMContentLoaded', initialize);
@@ -29,6 +30,7 @@
     function initialize() {
         bannerElement = document.querySelector('.fp-consent-banner');
         modalElement = document.querySelector('.fp-consent-modal');
+        manageButton = document.querySelector('[data-consent-manage]');
 
         if (settings.language) {
             document.documentElement.setAttribute('data-fp-consent-lang', settings.language);
@@ -46,9 +48,11 @@
             var mapped = updateGoogleConsent(currentConsent, true);
             pushDataLayer(currentConsent, mapped);
             hideBanner();
+            toggleManageButton(true);
         } else {
             currentConsent = buildDefaultConsent();
             showBanner();
+            toggleManageButton(false);
         }
 
         bindActions();
@@ -171,6 +175,7 @@
         closeModal();
         dispatchConsentEvent(state, eventType);
         sendConsentToServer(state, eventType);
+        toggleManageButton(true);
     }
 
     function applyConsentToInterface(state) {
@@ -313,6 +318,9 @@
         modalElement.hidden = false;
         modalElement.classList.add('is-visible');
         document.body.classList.add('fp-consent-modal-open');
+        if (manageButton) {
+            manageButton.setAttribute('aria-expanded', 'true');
+        }
     }
 
     function closeModal() {
@@ -322,6 +330,9 @@
         modalElement.hidden = true;
         modalElement.classList.remove('is-visible');
         document.body.classList.remove('fp-consent-modal-open');
+        if (manageButton) {
+            manageButton.setAttribute('aria-expanded', 'false');
+        }
     }
 
     function showBanner() {
@@ -331,6 +342,7 @@
         if (bannerElement) {
             bannerElement.classList.add('is-visible');
         }
+        toggleManageButton(false);
     }
 
     function hideBanner() {
@@ -339,6 +351,9 @@
         }
         if (bannerElement) {
             bannerElement.classList.remove('is-visible');
+        }
+        if (currentConsent) {
+            toggleManageButton(true);
         }
     }
 
@@ -364,6 +379,24 @@
             window.gtag = function () {
                 window.dataLayer.push(arguments);
             };
+        }
+    }
+
+    function toggleManageButton(visible) {
+        if (!manageButton) {
+            return;
+        }
+
+        if (visible) {
+            manageButton.hidden = false;
+            manageButton.classList.add('is-visible');
+            manageButton.setAttribute('aria-hidden', 'false');
+            manageButton.setAttribute('aria-expanded', 'false');
+        } else {
+            manageButton.classList.remove('is-visible');
+            manageButton.hidden = true;
+            manageButton.setAttribute('aria-hidden', 'true');
+            manageButton.setAttribute('aria-expanded', 'false');
         }
     }
 })();
