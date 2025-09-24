@@ -24,6 +24,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';
         const NONCE_ACTION      = 'fp_privacy_nonce';
+        const DEFAULT_LANGUAGE  = 'it';
 
         /**
          * Singleton instance.
@@ -31,6 +32,13 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * @var FP_Privacy_Cookie_Policy|null
          */
         protected static $instance = null;
+
+        /**
+         * Cache for localized settings.
+         *
+         * @var array
+         */
+        protected $localized_cache = array();
 
         /**
          * Get singleton instance.
@@ -217,74 +225,264 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          */
         public function sanitize_settings( $input ) {
             $defaults = $this->get_default_settings();
-            $output   = wp_parse_args( $input, $defaults );
+            $output   = $defaults;
 
             $output['privacy_policy_content'] = isset( $input['privacy_policy_content'] ) ? wp_kses_post( $input['privacy_policy_content'] ) : $defaults['privacy_policy_content'];
             $output['cookie_policy_content']  = isset( $input['cookie_policy_content'] ) ? wp_kses_post( $input['cookie_policy_content'] ) : $defaults['cookie_policy_content'];
 
-            $banner_fields = array(
+            $banner_input       = isset( $input['banner'] ) && is_array( $input['banner'] ) ? $input['banner'] : array();
+            $categories_input   = isset( $input['categories'] ) && is_array( $input['categories'] ) ? $input['categories'] : array();
+            $google_input       = isset( $input['google_defaults'] ) && is_array( $input['google_defaults'] ) ? $input['google_defaults'] : array();
+            $translations_input = isset( $input['translations'] ) && is_array( $input['translations'] ) ? $input['translations'] : array();
+
+            $output['banner']          = $this->sanitize_banner_settings( $banner_input, $defaults['banner'] );
+            $output['categories']      = $this->sanitize_categories_settings( $categories_input, $defaults['categories'] );
+            $output['google_defaults'] = $this->sanitize_google_defaults( $google_input, $defaults['google_defaults'] );
+            $output['translations']    = $this->sanitize_translations( $translations_input, $defaults['translations'], $defaults );
+
+            return $output;
+        }
+
+        /**
+         * Sanitize banner settings.
+         *
+         * @param array $input    Raw input.
+         * @param array $defaults Default banner settings.
+         *
+         * @return array
+         */
+        protected function sanitize_banner_settings( array $input, array $defaults ) {
+            $sanitized = array_merge( $defaults, $this->sanitize_banner_texts( $input, $defaults ) );
+
+            $sanitized['show_reject']      = ! empty( $input['show_reject'] );
+            $sanitized['show_preferences'] = ! empty( $input['show_preferences'] );
+
+            return $sanitized;
+        }
+
+        /**
+         * Sanitize banner translation fields.
+         *
+         * @param array $input          Raw translation input.
+         * @param array $defaults       Translation defaults for the banner.
+         * @param array $base_defaults  Base banner defaults.
+         *
+         * @return array
+         */
+        protected function sanitize_banner_translation( array $input, array $defaults, array $base_defaults ) {
+            $fallback = ! empty( $defaults ) ? $defaults : $this->extract_banner_text_defaults( $base_defaults );
+
+            return $this->sanitize_banner_texts( $input, $fallback );
+        }
+
+        /**
+         * Sanitize textual banner fields.
+         *
+         * @param array $input    Raw input.
+         * @param array $defaults Default values.
+         *
+         * @return array
+         */
+        protected function sanitize_banner_texts( array $input, array $defaults ) {
+            $fields    = array(
                 'banner_title'          => 'sanitize_text_field',
                 'accept_all_label'      => 'sanitize_text_field',
                 'reject_all_label'      => 'sanitize_text_field',
                 'preferences_label'     => 'sanitize_text_field',
                 'save_preferences_label'=> 'sanitize_text_field',
             );
+            $sanitized = array();
 
-            foreach ( $banner_fields as $field => $callback ) {
-                $output['banner'][ $field ] = isset( $input['banner'][ $field ] ) ? call_user_func( $callback, $input['banner'][ $field ] ) : $defaults['banner'][ $field ];
-            }
-
-            $output['banner']['banner_message'] = isset( $input['banner']['banner_message'] ) ? wp_kses_post( $input['banner']['banner_message'] ) : $defaults['banner']['banner_message'];
-
-            if ( isset( $input['banner']['show_reject'] ) ) {
-                $output['banner']['show_reject'] = (bool) $input['banner']['show_reject'];
-            } else {
-                $output['banner']['show_reject'] = false;
-            }
-
-            if ( isset( $input['banner']['show_preferences'] ) ) {
-                $output['banner']['show_preferences'] = (bool) $input['banner']['show_preferences'];
-            } else {
-                $output['banner']['show_preferences'] = false;
-            }
-
-            $categories = $defaults['categories'];
-
-            if ( isset( $input['categories'] ) && is_array( $input['categories'] ) ) {
-                foreach ( $categories as $key => $category ) {
-                    if ( isset( $input['categories'][ $key ]['enabled'] ) ) {
-                        $categories[ $key ]['enabled'] = (bool) $input['categories'][ $key ]['enabled'];
-                    } else {
-                        $categories[ $key ]['enabled'] = false;
-                    }
-
-                    if ( isset( $input['categories'][ $key ]['required'] ) ) {
-                        $categories[ $key ]['required'] = (bool) $input['categories'][ $key ]['required'];
-                    }
-
-                    if ( isset( $input['categories'][ $key ]['description'] ) ) {
-                        $categories[ $key ]['description'] = wp_kses_post( $input['categories'][ $key ]['description'] );
-                    }
-
-                    if ( isset( $input['categories'][ $key ]['services'] ) ) {
-                        $categories[ $key ]['services'] = sanitize_textarea_field( $input['categories'][ $key ]['services'] );
-                    }
+            foreach ( $fields as $field => $callback ) {
+                if ( array_key_exists( $field, $input ) ) {
+                    $sanitized[ $field ] = call_user_func( $callback, $input[ $field ] );
+                } elseif ( array_key_exists( $field, $defaults ) ) {
+                    $sanitized[ $field ] = $defaults[ $field ];
                 }
             }
 
-            $output['categories'] = $categories;
+            if ( array_key_exists( 'banner_message', $input ) ) {
+                $sanitized['banner_message'] = wp_kses_post( $input['banner_message'] );
+            } elseif ( array_key_exists( 'banner_message', $defaults ) ) {
+                $sanitized['banner_message'] = $defaults['banner_message'];
+            }
 
-            $google_defaults = $defaults['google_defaults'];
+            return $sanitized;
+        }
 
-            if ( isset( $input['google_defaults'] ) && is_array( $input['google_defaults'] ) ) {
-                foreach ( $google_defaults as $key => $value ) {
-                    $google_defaults[ $key ] = isset( $input['google_defaults'][ $key ] ) ? sanitize_text_field( $input['google_defaults'][ $key ] ) : $value;
+        /**
+         * Extract textual defaults from banner array.
+         *
+         * @param array $banner Banner defaults.
+         *
+         * @return array
+         */
+        protected function extract_banner_text_defaults( array $banner ) {
+            $keys     = array( 'banner_title', 'banner_message', 'accept_all_label', 'reject_all_label', 'preferences_label', 'save_preferences_label' );
+            $defaults = array();
+
+            foreach ( $keys as $key ) {
+                if ( array_key_exists( $key, $banner ) ) {
+                    $defaults[ $key ] = $banner[ $key ];
                 }
             }
 
-            $output['google_defaults'] = $google_defaults;
+            return $defaults;
+        }
 
-            return $output;
+        /**
+         * Sanitize categories settings.
+         *
+         * @param array $input    Raw input.
+         * @param array $defaults Default categories.
+         *
+         * @return array
+         */
+        protected function sanitize_categories_settings( array $input, array $defaults ) {
+            $categories = $defaults;
+
+            foreach ( $categories as $key => $category ) {
+                $item = isset( $input[ $key ] ) && is_array( $input[ $key ] ) ? $input[ $key ] : array();
+
+                $categories[ $key ]['enabled'] = ! empty( $item['enabled'] );
+
+                if ( array_key_exists( 'required', $item ) ) {
+                    $categories[ $key ]['required'] = (bool) $item['required'];
+                }
+
+                if ( array_key_exists( 'description', $item ) ) {
+                    $categories[ $key ]['description'] = wp_kses_post( $item['description'] );
+                }
+
+                if ( array_key_exists( 'services', $item ) ) {
+                    $categories[ $key ]['services'] = sanitize_textarea_field( $item['services'] );
+                }
+            }
+
+            return $categories;
+        }
+
+        /**
+         * Sanitize category translations.
+         *
+         * @param array $input         Raw input.
+         * @param array $defaults      Translation defaults.
+         * @param array $base_defaults Base categories defaults.
+         *
+         * @return array
+         */
+        protected function sanitize_category_translations( array $input, array $defaults, array $base_defaults ) {
+            $sanitized = array();
+            $keys      = array_unique( array_merge( array_keys( $base_defaults ), array_keys( $defaults ), array_keys( $input ) ) );
+
+            foreach ( $keys as $key ) {
+                $incoming = isset( $input[ $key ] ) && is_array( $input[ $key ] ) ? $input[ $key ] : array();
+                $default  = array();
+
+                if ( isset( $defaults[ $key ] ) && is_array( $defaults[ $key ] ) ) {
+                    $default = $defaults[ $key ];
+                } elseif ( isset( $base_defaults[ $key ] ) && is_array( $base_defaults[ $key ] ) ) {
+                    $default = array(
+                        'label'       => $base_defaults[ $key ]['label'],
+                        'description' => $base_defaults[ $key ]['description'],
+                        'services'    => $base_defaults[ $key ]['services'],
+                    );
+                }
+
+                $sanitized[ $key ] = array();
+
+                if ( array_key_exists( 'label', $incoming ) ) {
+                    $sanitized[ $key ]['label'] = sanitize_text_field( $incoming['label'] );
+                } elseif ( array_key_exists( 'label', $default ) ) {
+                    $sanitized[ $key ]['label'] = sanitize_text_field( $default['label'] );
+                }
+
+                if ( array_key_exists( 'description', $incoming ) ) {
+                    $sanitized[ $key ]['description'] = wp_kses_post( $incoming['description'] );
+                } elseif ( array_key_exists( 'description', $default ) ) {
+                    $sanitized[ $key ]['description'] = wp_kses_post( $default['description'] );
+                }
+
+                if ( array_key_exists( 'services', $incoming ) ) {
+                    $sanitized[ $key ]['services'] = sanitize_textarea_field( $incoming['services'] );
+                } elseif ( array_key_exists( 'services', $default ) ) {
+                    $sanitized[ $key ]['services'] = sanitize_textarea_field( $default['services'] );
+                }
+            }
+
+            return $sanitized;
+        }
+
+        /**
+         * Sanitize Google default consent values.
+         *
+         * @param array $input    Raw input.
+         * @param array $defaults Default values.
+         *
+         * @return array
+         */
+        protected function sanitize_google_defaults( array $input, array $defaults ) {
+            $sanitized = $defaults;
+
+            foreach ( $defaults as $key => $value ) {
+                if ( array_key_exists( $key, $input ) ) {
+                    $sanitized[ $key ] = sanitize_text_field( $input[ $key ] );
+                }
+            }
+
+            return $sanitized;
+        }
+
+        /**
+         * Sanitize translations array.
+         *
+         * @param array $translations   Raw translation input.
+         * @param array $defaults       Translation defaults.
+         * @param array $base_defaults  Base defaults.
+         *
+         * @return array
+         */
+        protected function sanitize_translations( array $translations, array $defaults, array $base_defaults ) {
+            $sanitized = array();
+            $languages = array_unique( array_merge( array_keys( $defaults ), array_keys( $translations ) ) );
+
+            foreach ( $languages as $language ) {
+                $default_translation = isset( $defaults[ $language ] ) && is_array( $defaults[ $language ] ) ? $defaults[ $language ] : array();
+                $incoming            = isset( $translations[ $language ] ) && is_array( $translations[ $language ] ) ? $translations[ $language ] : array();
+
+                $translation = array();
+
+                if ( array_key_exists( 'privacy_policy_content', $incoming ) ) {
+                    $translation['privacy_policy_content'] = wp_kses_post( $incoming['privacy_policy_content'] );
+                } elseif ( array_key_exists( 'privacy_policy_content', $default_translation ) ) {
+                    $translation['privacy_policy_content'] = $default_translation['privacy_policy_content'];
+                } else {
+                    $translation['privacy_policy_content'] = $base_defaults['privacy_policy_content'];
+                }
+
+                if ( array_key_exists( 'cookie_policy_content', $incoming ) ) {
+                    $translation['cookie_policy_content'] = wp_kses_post( $incoming['cookie_policy_content'] );
+                } elseif ( array_key_exists( 'cookie_policy_content', $default_translation ) ) {
+                    $translation['cookie_policy_content'] = $default_translation['cookie_policy_content'];
+                } else {
+                    $translation['cookie_policy_content'] = $base_defaults['cookie_policy_content'];
+                }
+
+                $translation['banner']     = $this->sanitize_banner_translation(
+                    isset( $incoming['banner'] ) && is_array( $incoming['banner'] ) ? $incoming['banner'] : array(),
+                    isset( $default_translation['banner'] ) && is_array( $default_translation['banner'] ) ? $default_translation['banner'] : array(),
+                    $base_defaults['banner']
+                );
+                $translation['categories'] = $this->sanitize_category_translations(
+                    isset( $incoming['categories'] ) && is_array( $incoming['categories'] ) ? $incoming['categories'] : array(),
+                    isset( $default_translation['categories'] ) && is_array( $default_translation['categories'] ) ? $default_translation['categories'] : array(),
+                    $base_defaults['categories']
+                );
+
+                $sanitized[ $language ] = $translation;
+            }
+
+            return $sanitized;
         }
 
         /**
@@ -292,12 +490,26 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          */
         public function render_privacy_editor() {
             $options = $this->get_settings();
+            $translations = isset( $options['translations'] ) ? $options['translations'] : array();
+            $english      = isset( $translations['en'] ) ? $translations['en'] : array();
+            $english_text = isset( $english['privacy_policy_content'] ) ? $english['privacy_policy_content'] : '';
 
+            echo '<h4>' . esc_html__( 'Italiano', 'fp-privacy-cookie-policy' ) . '</h4>';
             wp_editor(
                 $options['privacy_policy_content'],
                 'fp_privacy_policy_content',
                 array(
                     'textarea_name' => self::OPTION_KEY . '[privacy_policy_content]',
+                    'textarea_rows' => 10,
+                )
+            );
+
+            echo '<h4>' . esc_html__( 'Inglese', 'fp-privacy-cookie-policy' ) . '</h4>';
+            wp_editor(
+                $english_text,
+                'fp_privacy_policy_content_en',
+                array(
+                    'textarea_name' => self::OPTION_KEY . '[translations][en][privacy_policy_content]',
                     'textarea_rows' => 10,
                 )
             );
@@ -308,12 +520,26 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          */
         public function render_cookie_editor() {
             $options = $this->get_settings();
+            $translations = isset( $options['translations'] ) ? $options['translations'] : array();
+            $english      = isset( $translations['en'] ) ? $translations['en'] : array();
+            $english_text = isset( $english['cookie_policy_content'] ) ? $english['cookie_policy_content'] : '';
 
+            echo '<h4>' . esc_html__( 'Italiano', 'fp-privacy-cookie-policy' ) . '</h4>';
             wp_editor(
                 $options['cookie_policy_content'],
                 'fp_cookie_policy_content',
                 array(
                     'textarea_name' => self::OPTION_KEY . '[cookie_policy_content]',
+                    'textarea_rows' => 10,
+                )
+            );
+
+            echo '<h4>' . esc_html__( 'Inglese', 'fp-privacy-cookie-policy' ) . '</h4>';
+            wp_editor(
+                $english_text,
+                'fp_cookie_policy_content_en',
+                array(
+                    'textarea_name' => self::OPTION_KEY . '[translations][en][cookie_policy_content]',
                     'textarea_rows' => 10,
                 )
             );
@@ -325,8 +551,11 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         public function render_banner_settings() {
             $options = $this->get_settings();
             $banner  = $options['banner'];
+            $translations   = isset( $options['translations'] ) ? $options['translations'] : array();
+            $english_banner = isset( $translations['en']['banner'] ) ? $translations['en']['banner'] : array();
             ?>
             <fieldset class="fp-banner-settings">
+                <h4><?php echo esc_html__( 'Testo banner (Italiano)', 'fp-privacy-cookie-policy' ); ?></h4>
                 <p>
                     <label for="fp_banner_title"><strong><?php echo esc_html__( 'Titolo', 'fp-privacy-cookie-policy' ); ?></strong></label><br />
                     <input type="text" class="regular-text" id="fp_banner_title" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][banner_title]" value="<?php echo esc_attr( $banner['banner_title'] ); ?>" />
@@ -368,6 +597,37 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     </label>
                 </p>
             </fieldset>
+            <fieldset class="fp-banner-settings">
+                <h4><?php echo esc_html__( 'Testo banner (Inglese)', 'fp-privacy-cookie-policy' ); ?></h4>
+                <p>
+                    <label for="fp_banner_title_en"><strong><?php echo esc_html__( 'Titolo', 'fp-privacy-cookie-policy' ); ?></strong></label><br />
+                    <input type="text" class="regular-text" id="fp_banner_title_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][banner_title]" value="<?php echo esc_attr( isset( $english_banner['banner_title'] ) ? $english_banner['banner_title'] : '' ); ?>" />
+                </p>
+                <p>
+                    <label for="fp_banner_message_en"><strong><?php echo esc_html__( 'Messaggio', 'fp-privacy-cookie-policy' ); ?></strong></label><br />
+                    <textarea class="large-text" rows="4" id="fp_banner_message_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][banner_message]"><?php echo esc_textarea( isset( $english_banner['banner_message'] ) ? $english_banner['banner_message'] : '' ); ?></textarea>
+                </p>
+                <div class="fp-banner-grid">
+                    <p>
+                        <label for="fp_accept_all_label_en"><?php echo esc_html__( 'Etichetta "Accetta tutti"', 'fp-privacy-cookie-policy' ); ?></label><br />
+                        <input type="text" class="regular-text" id="fp_accept_all_label_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][accept_all_label]" value="<?php echo esc_attr( isset( $english_banner['accept_all_label'] ) ? $english_banner['accept_all_label'] : '' ); ?>" />
+                    </p>
+                    <p>
+                        <label for="fp_reject_all_label_en"><?php echo esc_html__( 'Etichetta "Rifiuta"', 'fp-privacy-cookie-policy' ); ?></label><br />
+                        <input type="text" class="regular-text" id="fp_reject_all_label_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][reject_all_label]" value="<?php echo esc_attr( isset( $english_banner['reject_all_label'] ) ? $english_banner['reject_all_label'] : '' ); ?>" />
+                    </p>
+                </div>
+                <div class="fp-banner-grid">
+                    <p>
+                        <label for="fp_preferences_label_en"><?php echo esc_html__( 'Etichetta "Preferenze"', 'fp-privacy-cookie-policy' ); ?></label><br />
+                        <input type="text" class="regular-text" id="fp_preferences_label_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][preferences_label]" value="<?php echo esc_attr( isset( $english_banner['preferences_label'] ) ? $english_banner['preferences_label'] : '' ); ?>" />
+                    </p>
+                    <p>
+                        <label for="fp_save_preferences_label_en"><?php echo esc_html__( 'Etichetta "Salva"', 'fp-privacy-cookie-policy' ); ?></label><br />
+                        <input type="text" class="regular-text" id="fp_save_preferences_label_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][save_preferences_label]" value="<?php echo esc_attr( isset( $english_banner['save_preferences_label'] ) ? $english_banner['save_preferences_label'] : '' ); ?>" />
+                    </p>
+                </div>
+            </fieldset>
             <?php
         }
 
@@ -377,9 +637,12 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         public function render_categories_fields() {
             $options    = $this->get_settings();
             $categories = $options['categories'];
+            $translations = isset( $options['translations'] ) ? $options['translations'] : array();
+            $english_categories = isset( $translations['en']['categories'] ) ? $translations['en']['categories'] : array();
             ?>
             <div class="fp-categories">
                 <?php foreach ( $categories as $key => $category ) : ?>
+                    <?php $english = isset( $english_categories[ $key ] ) ? $english_categories[ $key ] : array(); ?>
                     <fieldset class="fp-category" id="fp_category_<?php echo esc_attr( $key ); ?>">
                         <legend><strong><?php echo esc_html( $category['label'] ); ?></strong></legend>
                         <p>
@@ -402,6 +665,19 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                             <label for="fp_category_<?php echo esc_attr( $key ); ?>_services"><?php echo esc_html__( 'Servizi e cookie inclusi', 'fp-privacy-cookie-policy' ); ?></label><br />
                             <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_services" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[categories][<?php echo esc_attr( $key ); ?>][services]"><?php echo esc_textarea( $category['services'] ); ?></textarea>
                             <span class="description"><?php echo esc_html__( 'Indica ad esempio strumenti di analytics, pixel e durata dei cookie per agevolare la documentazione.', 'fp-privacy-cookie-policy' ); ?></span>
+                        </p>
+                        <hr />
+                        <p>
+                            <label for="fp_category_<?php echo esc_attr( $key ); ?>_label_en"><?php echo esc_html__( 'Nome categoria (inglese)', 'fp-privacy-cookie-policy' ); ?></label><br />
+                            <input type="text" class="regular-text" id="fp_category_<?php echo esc_attr( $key ); ?>_label_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][categories][<?php echo esc_attr( $key ); ?>][label]" value="<?php echo esc_attr( isset( $english['label'] ) ? $english['label'] : '' ); ?>" />
+                        </p>
+                        <p>
+                            <label for="fp_category_<?php echo esc_attr( $key ); ?>_description_en"><?php echo esc_html__( 'Descrizione (inglese)', 'fp-privacy-cookie-policy' ); ?></label><br />
+                            <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_description_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][categories][<?php echo esc_attr( $key ); ?>][description]"><?php echo esc_textarea( isset( $english['description'] ) ? $english['description'] : '' ); ?></textarea>
+                        </p>
+                        <p>
+                            <label for="fp_category_<?php echo esc_attr( $key ); ?>_services_en"><?php echo esc_html__( 'Servizi e cookie inclusi (inglese)', 'fp-privacy-cookie-policy' ); ?></label><br />
+                            <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_services_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][categories][<?php echo esc_attr( $key ); ?>][services]"><?php echo esc_textarea( isset( $english['services'] ) ? $english['services'] : '' ); ?></textarea>
                         </p>
                     </fieldset>
                 <?php endforeach; ?>
@@ -523,6 +799,42 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                         'enabled'     => true,
                     ),
                 ),
+                'translations'          => array(
+                    'en' => array(
+                        'privacy_policy_content' => '<h2>Privacy Notice</h2><p>Provide the text of your GDPR-compliant privacy notice here, including data subject rights, controller contact details and the purposes of processing.</p>',
+                        'cookie_policy_content'  => '<h2>Cookie Policy</h2><p>Describe the cookies used by the site, their purposes and the legal basis for processing. Remember to keep this list up to date.</p>',
+                        'banner'                 => array(
+                            'banner_title'           => 'We respect your privacy',
+                            'banner_message'         => 'We use technical cookies and, subject to consent, profiling and third-party cookies to improve your browsing experience. You can manage your preferences at any time.',
+                            'accept_all_label'       => 'Accept all',
+                            'reject_all_label'       => 'Reject',
+                            'preferences_label'      => 'Preferences',
+                            'save_preferences_label' => 'Save preferences',
+                        ),
+                        'categories'             => array(
+                            'necessary'   => array(
+                                'label'       => 'Necessary',
+                                'description' => 'Cookies that are essential for the website to function and to deliver the requested service.',
+                                'services'    => 'WordPress (session), authentication cookies, preference storage.',
+                            ),
+                            'preferences' => array(
+                                'label'       => 'Preferences',
+                                'description' => 'Allow the site to remember the choices made by the user, such as language or region.',
+                                'services'    => '',
+                            ),
+                            'statistics'  => array(
+                                'label'       => 'Statistics',
+                                'description' => 'Help us understand how visitors interact with the site by collecting and transmitting information anonymously.',
+                                'services'    => 'Google Analytics 4 (2 years), Matomo (13 months).',
+                            ),
+                            'marketing'   => array(
+                                'label'       => 'Marketing',
+                                'description' => 'Used to track visitors and deliver personalised advertisements.',
+                                'services'    => 'Google Ads, Meta Pixel, TikTok Pixel.',
+                            ),
+                        ),
+                    ),
+                ),
                 'google_defaults'        => array(
                     'analytics_storage'    => 'denied',
                     'ad_storage'           => 'denied',
@@ -549,7 +861,9 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * Enqueue frontend assets.
          */
         public function enqueue_frontend_assets() {
-            $options = $this->get_settings();
+            $options    = $this->get_settings();
+            $localized  = $this->get_localized_settings();
+            $text_values = $this->get_frontend_texts( $localized['language'] );
 
             wp_enqueue_style( 'fp-privacy-frontend', plugin_dir_url( __FILE__ ) . 'assets/css/banner.css', array(), self::VERSION );
 
@@ -560,12 +874,13 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 'nonce'          => wp_create_nonce( self::NONCE_ACTION ),
                 'cookieName'     => self::CONSENT_COOKIE,
                 'consentId'      => $this->get_consent_id(),
-                'categories'     => $this->prepare_categories_for_frontend( $options['categories'] ),
-                'banner'         => $options['banner'],
+                'categories'     => $this->prepare_categories_for_frontend( $localized['categories'] ),
+                'banner'         => $localized['banner'],
                 'googleDefaults' => $options['google_defaults'],
+                'language'       => $localized['language'],
                 'texts'          => array(
-                    'manageConsent' => __( 'Gestisci preferenze cookie', 'fp-privacy-cookie-policy' ),
-                    'updatedAt'     => __( 'Ultimo aggiornamento', 'fp-privacy-cookie-policy' ),
+                    'manageConsent' => $text_values['manage_consent'],
+                    'updatedAt'     => $text_values['updated_at'],
                 ),
             );
 
@@ -597,18 +912,242 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Retrieve the plugin settings localized for the current language.
+         *
+         * @param string|null $language Preferred language code.
+         *
+         * @return array
+         */
+        protected function get_localized_settings( $language = null ) {
+            $settings            = $this->get_settings();
+            $available_languages = $this->get_available_languages( $settings );
+            $default_language    = self::DEFAULT_LANGUAGE;
+
+            if ( null === $language ) {
+                $language = $this->determine_user_language( $available_languages, $default_language );
+            }
+
+            if ( ! in_array( $language, $available_languages, true ) ) {
+                $language = $default_language;
+            }
+
+            if ( isset( $this->localized_cache[ $language ] ) ) {
+                return $this->localized_cache[ $language ];
+            }
+
+            $localized = array(
+                'language'               => $language,
+                'privacy_policy_content' => $settings['privacy_policy_content'],
+                'cookie_policy_content'  => $settings['cookie_policy_content'],
+                'banner'                 => $settings['banner'],
+                'categories'             => $settings['categories'],
+            );
+
+            if ( $language !== $default_language ) {
+                $translation = $this->get_translation_for_language(
+                    isset( $settings['translations'] ) && is_array( $settings['translations'] ) ? $settings['translations'] : array(),
+                    $language
+                );
+
+                if ( ! empty( $translation ) ) {
+                    if ( isset( $translation['privacy_policy_content'] ) ) {
+                        $localized['privacy_policy_content'] = $translation['privacy_policy_content'];
+                    }
+
+                    if ( isset( $translation['cookie_policy_content'] ) ) {
+                        $localized['cookie_policy_content'] = $translation['cookie_policy_content'];
+                    }
+
+                    if ( ! empty( $translation['banner'] ) && is_array( $translation['banner'] ) ) {
+                        $localized['banner'] = array_merge( $localized['banner'], $translation['banner'] );
+                    }
+
+                    if ( ! empty( $translation['categories'] ) && is_array( $translation['categories'] ) ) {
+                        foreach ( $localized['categories'] as $key => $category ) {
+                            if ( isset( $translation['categories'][ $key ] ) && is_array( $translation['categories'][ $key ] ) ) {
+                                $localized['categories'][ $key ] = array_merge( $category, $translation['categories'][ $key ] );
+                            }
+                        }
+                    }
+                }
+            }
+
+            $this->localized_cache[ $language ] = $localized;
+
+            return $localized;
+        }
+
+        /**
+         * Retrieve available languages from settings.
+         *
+         * @param array $settings Plugin settings.
+         *
+         * @return array
+         */
+        protected function get_available_languages( array $settings ) {
+            $languages = array( self::DEFAULT_LANGUAGE );
+
+            if ( ! empty( $settings['translations'] ) && is_array( $settings['translations'] ) ) {
+                foreach ( array_keys( $settings['translations'] ) as $language ) {
+                    $code = $this->normalize_language_code( $language );
+                    if ( ! in_array( $code, $languages, true ) ) {
+                        $languages[] = $code;
+                    }
+                }
+            }
+
+            return $languages;
+        }
+
+        /**
+         * Determine user preferred language based on browser and WordPress locale.
+         *
+         * @param array  $available_languages Available languages.
+         * @param string $default_language    Default language code.
+         *
+         * @return string
+         */
+        protected function determine_user_language( array $available_languages = array(), $default_language = self::DEFAULT_LANGUAGE ) {
+            if ( empty( $available_languages ) ) {
+                $available_languages = array( $default_language );
+            }
+
+            if ( ! in_array( $default_language, $available_languages, true ) ) {
+                $available_languages[] = $default_language;
+            }
+
+            if ( ! empty( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
+                $accepted = explode( ',', wp_unslash( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) );
+
+                foreach ( $accepted as $locale ) {
+                    $locale = trim( $locale );
+                    if ( empty( $locale ) ) {
+                        continue;
+                    }
+
+                    $parts = explode( ';', $locale );
+                    $code  = $this->normalize_language_code( $parts[0] );
+
+                    if ( in_array( $code, $available_languages, true ) ) {
+                        return $code;
+                    }
+                }
+            }
+
+            $wp_locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+
+            if ( $wp_locale ) {
+                $code = $this->normalize_language_code( $wp_locale );
+                if ( in_array( $code, $available_languages, true ) ) {
+                    return $code;
+                }
+            }
+
+            return $default_language;
+        }
+
+        /**
+         * Normalize language code to ISO 639-1 (two letters).
+         *
+         * @param string $language Language identifier.
+         *
+         * @return string
+         */
+        protected function normalize_language_code( $language ) {
+            $language = strtolower( str_replace( '_', '-', (string) $language ) );
+            $parts    = explode( '-', $language );
+
+            return isset( $parts[0] ) && $parts[0] ? $parts[0] : self::DEFAULT_LANGUAGE;
+        }
+
+        /**
+         * Retrieve translation data for a specific language.
+         *
+         * @param array  $translations Translations array.
+         * @param string $language     Language code.
+         *
+         * @return array
+         */
+        protected function get_translation_for_language( array $translations, $language ) {
+            if ( isset( $translations[ $language ] ) && is_array( $translations[ $language ] ) ) {
+                return $translations[ $language ];
+            }
+
+            foreach ( $translations as $key => $translation ) {
+                if ( strpos( $this->normalize_language_code( $key ), $language ) === 0 && is_array( $translation ) ) {
+                    return $translation;
+                }
+            }
+
+            return array();
+        }
+
+        /**
+         * Frontend static texts by language.
+         *
+         * @param string $language Language code.
+         *
+         * @return array
+         */
+        protected function get_frontend_texts( $language ) {
+            $language = $this->normalize_language_code( $language );
+            $texts    = array(
+                'modal_close'       => array(
+                    'it' => 'Chiudi',
+                    'en' => 'Close',
+                ),
+                'modal_title'       => array(
+                    'it' => 'Gestisci le preferenze',
+                    'en' => 'Manage preferences',
+                ),
+                'modal_intro'       => array(
+                    'it' => 'Decidi quali categorie di cookie attivare. Puoi modificare la tua scelta in qualsiasi momento.',
+                    'en' => 'Choose which categories of cookies to enable. You can change your preferences at any time.',
+                ),
+                'services_included' => array(
+                    'it' => 'Servizi inclusi',
+                    'en' => 'Included services',
+                ),
+                'always_active'     => array(
+                    'it' => 'Sempre attivo',
+                    'en' => 'Always active',
+                ),
+                'toggle_aria'       => array(
+                    'it' => 'Attiva o disattiva i cookie %s',
+                    'en' => 'Enable or disable %s cookies',
+                ),
+                'manage_consent'    => array(
+                    'it' => 'Gestisci preferenze cookie',
+                    'en' => 'Manage cookie preferences',
+                ),
+                'updated_at'        => array(
+                    'it' => 'Ultimo aggiornamento',
+                    'en' => 'Last updated',
+                ),
+            );
+
+            $result = array();
+
+            foreach ( $texts as $key => $values ) {
+                $result[ $key ] = isset( $values[ $language ] ) ? $values[ $language ] : $values[ self::DEFAULT_LANGUAGE ];
+            }
+
+            return $result;
+        }
+
+        /**
          * Render consent banner markup.
          */
         public function render_consent_banner() {
-            $options = $this->get_settings();
-
-            $banner        = $options['banner'];
-            $categories    = $options['categories'];
+            $localized     = $this->get_localized_settings();
+            $banner        = $localized['banner'];
+            $categories    = $localized['categories'];
+            $texts         = $this->get_frontend_texts( $localized['language'] );
             $has_preferred = ! empty( array_filter( $categories, static function ( $category ) {
                 return ! empty( $category['enabled'] ) && empty( $category['required'] );
             } ) );
             ?>
-            <div class="fp-consent-banner" role="dialog" aria-live="polite" aria-modal="true" data-cookie-name="<?php echo esc_attr( self::CONSENT_COOKIE ); ?>">
+            <div class="fp-consent-banner" role="dialog" aria-live="polite" aria-modal="true" data-cookie-name="<?php echo esc_attr( self::CONSENT_COOKIE ); ?>" data-language="<?php echo esc_attr( $localized['language'] ); ?>">
                 <div class="fp-consent-container">
                     <div class="fp-consent-content">
                         <h3 class="fp-consent-title"><?php echo esc_html( $banner['banner_title'] ); ?></h3>
@@ -625,12 +1164,12 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     </div>
                 </div>
             </div>
-            <div class="fp-consent-modal" role="dialog" aria-modal="true" aria-labelledby="fp-consent-modal-title" hidden>
+            <div class="fp-consent-modal" role="dialog" aria-modal="true" aria-labelledby="fp-consent-modal-title" data-language="<?php echo esc_attr( $localized['language'] ); ?>" hidden>
                 <div class="fp-consent-modal__overlay" data-consent-action="close"></div>
                 <div class="fp-consent-modal__dialog" role="document">
-                    <button class="fp-consent-modal__close" type="button" aria-label="<?php echo esc_attr__( 'Chiudi', 'fp-privacy-cookie-policy' ); ?>" data-consent-action="close">&times;</button>
-                    <h3 id="fp-consent-modal-title"><?php echo esc_html__( 'Gestisci le preferenze', 'fp-privacy-cookie-policy' ); ?></h3>
-                    <p class="fp-consent-modal__intro"><?php esc_html_e( 'Decidi quali categorie di cookie attivare. Puoi modificare la tua scelta in qualsiasi momento.', 'fp-privacy-cookie-policy' ); ?></p>
+                    <button class="fp-consent-modal__close" type="button" aria-label="<?php echo esc_attr( $texts['modal_close'] ); ?>" data-consent-action="close">&times;</button>
+                    <h3 id="fp-consent-modal-title"><?php echo esc_html( $texts['modal_title'] ); ?></h3>
+                    <p class="fp-consent-modal__intro"><?php echo esc_html( $texts['modal_intro'] ); ?></p>
                     <div class="fp-consent-categories">
                         <?php foreach ( $categories as $key => $category ) : ?>
                             <?php if ( empty( $category['enabled'] ) && empty( $category['required'] ) ) : ?>
@@ -643,19 +1182,19 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                                         <p><?php echo esc_html( wp_strip_all_tags( $category['description'] ) ); ?></p>
                                         <?php if ( ! empty( $category['services'] ) ) : ?>
                                             <details>
-                                                <summary><?php esc_html_e( 'Servizi inclusi', 'fp-privacy-cookie-policy' ); ?></summary>
+                                                <summary><?php echo esc_html( $texts['services_included'] ); ?></summary>
                                                 <p><?php echo esc_html( $category['services'] ); ?></p>
                                             </details>
                                         <?php endif; ?>
                                     </div>
                                     <div class="fp-consent-toggle">
                                         <?php if ( ! empty( $category['required'] ) ) : ?>
-                                            <span class="fp-consent-required"><?php esc_html_e( 'Sempre attivo', 'fp-privacy-cookie-policy' ); ?></span>
+                                            <span class="fp-consent-required"><?php echo esc_html( $texts['always_active'] ); ?></span>
                                         <?php else : ?>
                                             <label class="fp-switch">
                                                 <input type="checkbox" value="1" data-category-toggle="<?php echo esc_attr( $key ); ?>" />
                                                 <span class="fp-slider" aria-hidden="true"></span>
-                                                <span class="screen-reader-text"><?php echo esc_html( sprintf( __( 'Attiva o disattiva i cookie %s', 'fp-privacy-cookie-policy' ), $category['label'] ) ); ?></span>
+                                                <span class="screen-reader-text"><?php echo esc_html( sprintf( $texts['toggle_aria'], $category['label'] ) ); ?></span>
                                             </label>
                                         <?php endif; ?>
                                     </div>
@@ -689,9 +1228,9 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * @return string
          */
         public function shortcode_privacy_policy() {
-            $options = $this->get_settings();
+            $localized = $this->get_localized_settings();
 
-            return '<div class="fp-privacy-policy">' . wp_kses_post( $options['privacy_policy_content'] ) . '</div>';
+            return '<div class="fp-privacy-policy">' . wp_kses_post( $localized['privacy_policy_content'] ) . '</div>';
         }
 
         /**
@@ -700,9 +1239,9 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * @return string
          */
         public function shortcode_cookie_policy() {
-            $options = $this->get_settings();
+            $localized = $this->get_localized_settings();
 
-            return '<div class="fp-cookie-policy">' . wp_kses_post( $options['cookie_policy_content'] ) . '</div>';
+            return '<div class="fp-cookie-policy">' . wp_kses_post( $localized['cookie_policy_content'] ) . '</div>';
         }
 
         /**
@@ -711,8 +1250,8 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * @return string
          */
         public function shortcode_cookie_preferences() {
-            $options = $this->get_settings();
-            $banner  = $options['banner'];
+            $localized = $this->get_localized_settings();
+            $banner     = $localized['banner'];
 
             return '<button class="fp-btn fp-btn-preferences" data-consent-action="open-preferences">' . esc_html( $banner['preferences_label'] ) . '</button>';
         }

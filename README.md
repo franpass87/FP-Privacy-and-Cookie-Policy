@@ -5,6 +5,7 @@ Plugin WordPress progettato per gestire privacy policy, cookie policy e consenso
 ## Funzionalità principali
 
 - Banner cookie responsive con pulsanti "Accetta", "Rifiuta" e accesso rapido alle preferenze.
+- Localizzazione automatica italiano/inglese del banner e delle categorie in base alla lingua del browser.
 - Gestione delle categorie di cookie (necessari, preferenze, statistiche, marketing) e descrizione dei servizi utilizzati.
 - Editor WYSIWYG per i testi di privacy e cookie policy e shortcodes dedicati.
 - Registro consensi con anonimizzazione IP, esportazione in CSV e conservazione degli eventi di scelta.
@@ -24,7 +25,7 @@ Plugin WordPress progettato per gestire privacy policy, cookie policy e consenso
    - `[fp_privacy_policy]`
    - `[fp_cookie_policy]`
    - `[fp_cookie_preferences]` (pulsante per riaprire le preferenze)
-3. Configura il banner cookie (titolo, messaggio, etichette pulsanti) e decidi se mostrare il pulsante di rifiuto e quello delle preferenze.
+3. Configura il banner cookie (titolo, messaggio, etichette pulsanti) e decidi se mostrare il pulsante di rifiuto e quello delle preferenze. Compila anche i testi in inglese per offrire un'esperienza bilingue.
 4. Per ciascuna categoria indica descrizione, servizi e durata dei cookie utilizzati. Le categorie obbligatorie sono marcate come "Sempre attivo" nel front-end.
 5. Imposta i valori di default del Google Consent Mode v2 scegliendo tra `granted` o `denied` per ciascun segnale.
 
