@@ -4,7 +4,7 @@ Tags: gdpr, cookie banner, consent management, privacy policy, google consent mo
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,10 @@ Usa la tab "Registro consensi" per consultare gli eventi registrati ed esportare
 3. Registro consensi con esportazione CSV e informazioni anonimizzate.
 
 == Changelog ==
+= 1.3.2 =
+* Aligned the consent identifier cookie lifetime with the configured consent duration and exposed filters for advanced tuning.
+* Ensured the consent identifier cookie inherits secure defaults, including the SameSite=Lax directive.
+
 = 1.3.1 =
 * Optimised the consent log CSV export to stream large datasets in configurable batches, preventing memory exhaustion on production environments.
 * Added the `fp_privacy_csv_export_batch_size` filter to fine-tune the number of rows exported per batch when needed.
