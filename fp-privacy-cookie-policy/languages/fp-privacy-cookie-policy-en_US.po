@@ -1,0 +1,473 @@
+# English translations for FP Privacy and Cookie Policy package.
+# Copyright (C) 2025 THE FP Privacy and Cookie Policy'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the FP Privacy and Cookie Policy package.
+# Automatically generated, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: FP Privacy and Cookie Policy 1.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-05-30 00:00+0000\n"
+"PO-Revision-Date: 2024-05-30 00:00+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:137
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:138
+msgid "Privacy & Cookie"
+msgstr "Privacy & Cookie"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:159
+msgid "Impostazioni generali"
+msgstr "General settings"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:166
+msgid "Privacy Policy"
+msgstr "Privacy Policy"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:174
+msgid "Cookie Policy"
+msgstr "Cookie Policy"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:182
+msgid "Banner Cookie"
+msgstr "Cookie banner"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:190
+msgid "Categorie di cookie"
+msgstr "Cookie categories"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:197
+msgid "Dettagli categorie"
+msgstr "Category details"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:205
+msgid "Google Consent Mode v2"
+msgstr "Google Consent Mode v2"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:212
+msgid "Stato di default"
+msgstr "Default state"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:497
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:527
+msgid "Italiano"
+msgstr "Italian"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:507
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:537
+msgid "Inglese"
+msgstr "English"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:558
+msgid "Testo banner (Italiano)"
+msgstr "Banner text (Italian)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:560
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:603
+msgid "Titolo"
+msgstr "Title"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:564
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:607
+msgid "Messaggio"
+msgstr "Message"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:569
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:612
+msgid "Etichetta \"Accetta tutti\""
+msgstr "\"Accept all\" label"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:573
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:616
+msgid "Etichetta \"Rifiuta\""
+msgstr "\"Reject\" label"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:579
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:622
+msgid "Etichetta \"Preferenze\""
+msgstr "\"Preferences\" label"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:583
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:626
+msgid "Etichetta \"Salva\""
+msgstr "\"Save\" label"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:590
+msgid "Mostra il pulsante \"Rifiuta\" nel banner principale"
+msgstr "Show the \"Reject\" button in the main banner"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:596
+msgid "Mostra il pulsante per aprire le preferenze direttamente nel banner"
+msgstr "Show the button to open preferences directly in the banner"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:601
+msgid "Testo banner (Inglese)"
+msgstr "Banner text (English)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:651
+msgid "Mostra categoria nelle preferenze"
+msgstr "Show category in preferences"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:657
+msgid "Necessario (non disattivabile)"
+msgstr "Required (cannot be disabled)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:661
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:700
+msgid "Descrizione"
+msgstr "Description"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:665
+msgid "Servizi e cookie inclusi"
+msgstr "Included services and cookies"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:667
+msgid ""
+"Indica ad esempio strumenti di analytics, pixel e durata dei cookie per "
+"agevolare la documentazione."
+msgstr ""
+"For example list analytics tools, pixels and cookie duration to support "
+"documentation."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:671
+msgid "Nome categoria (inglese)"
+msgstr "Category name (English)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:675
+msgid "Descrizione (inglese)"
+msgstr "Description (English)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:679
+msgid "Servizi e cookie inclusi (inglese)"
+msgstr "Included services and cookies (English)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:698
+msgid "Segnale"
+msgstr "Signal"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:699
+msgid "Valore di default"
+msgstr "Default value"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:709
+msgid "Granted"
+msgstr "Granted"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:710
+msgid "Denied"
+msgstr "Denied"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:730
+msgid ""
+"Abilita la memorizzazione dei cookie per Google Analytics e servizi di "
+"misurazione."
+msgstr "Enables cookie storage for Google Analytics and measurement services."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:731
+msgid ""
+"Abilita i cookie pubblicitari e il retargeting (ad esempio Google Ads)."
+msgstr "Enables advertising cookies and retargeting (for example Google Ads)."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:732
+msgid "Permette di inviare dati utente a Google per finalità pubblicitarie."
+msgstr "Allows sending user data to Google for advertising purposes."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:733
+msgid "Consente la personalizzazione degli annunci in base al comportamento."
+msgstr "Allows personalisation of ads based on behaviour."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:734
+msgid "Cookie per ricordare preferenze, lingua e altre funzionalità."
+msgstr "Cookies used to remember preferences, language and other features."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:735
+msgid "Cookie destinati alla prevenzione delle frodi e alla sicurezza."
+msgstr "Cookies aimed at fraud prevention and security."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:760
+msgid ""
+"<h2>Informativa Privacy</h2><p>Inserisci qui il testo della tua informativa "
+"privacy conforme al GDPR, includendo i diritti dell'interessato, i dati di "
+"contatto del titolare e le finalità del trattamento.</p>"
+msgstr ""
+"<h2>Privacy Notice</h2><p>Enter the text of your GDPR-compliant privacy "
+"notice here, including data subject rights, controller contact details and "
+"the purposes of processing.</p>"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:761
+msgid ""
+"<h2>Informativa Cookie</h2><p>Descrivi i cookie utilizzati dal sito, le "
+"finalità e la base giuridica del trattamento. Ricorda di aggiornare "
+"periodicamente questo elenco.</p>"
+msgstr ""
+"<h2>Cookie Policy</h2><p>Describe the cookies used on the site, their "
+"purposes and the legal basis for processing. Remember to update this list "
+"regularly.</p>"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:763
+msgid "Rispettiamo la tua privacy"
+msgstr "We respect your privacy"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:764
+msgid ""
+"Utilizziamo cookie tecnici e, previo consenso, cookie di profilazione e di "
+"terze parti per migliorare l'esperienza di navigazione. Puoi gestire le tue "
+"preferenze in qualsiasi momento."
+msgstr ""
+"We use technical cookies and, subject to consent, profiling and third-party "
+"cookies to improve the browsing experience. You can manage your preferences "
+"at any time."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:765
+msgid "Accetta tutto"
+msgstr "Accept all"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:766
+msgid "Rifiuta"
+msgstr "Reject"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:767
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:781
+msgid "Preferenze"
+msgstr "Preferences"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:768
+msgid "Salva preferenze"
+msgstr "Save preferences"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:774
+msgid "Necessari"
+msgstr "Necessary"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:775
+msgid ""
+"Cookie indispensabili per il funzionamento del sito e la fornitura del "
+"servizio."
+msgstr "Cookies essential for the site to work and to provide the service."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:776
+msgid ""
+"WordPress (sessione), cookie di autenticazione, salvataggio preferenze."
+msgstr "WordPress (session), authentication cookies, preference storage."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:782
+msgid ""
+"Consentono al sito di ricordare le scelte effettuate dall'utente, come la "
+"lingua o la regione."
+msgstr ""
+"Allow the site to remember the choices made by the user, such as language or"
+" region."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:788
+msgid "Statistiche"
+msgstr "Statistics"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:789
+msgid ""
+"Aiutano a capire come i visitatori interagiscono con il sito raccogliendo e "
+"trasmettendo informazioni in forma anonima."
+msgstr ""
+"Help us understand how visitors interact with the site by collecting and "
+"transmitting information anonymously."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:790
+msgid "Google Analytics 4 (2 anni), Matomo (13 mesi)."
+msgstr "Google Analytics 4 (2 years), Matomo (13 months)."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:795
+msgid "Marketing"
+msgstr "Marketing"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:796
+msgid ""
+"Vengono utilizzati per tracciare i visitatori e proporre annunci "
+"personalizzati."
+msgstr "Used to track visitors and deliver personalised advertisements."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:797
+msgid "Google Ads, Meta Pixel, TikTok Pixel."
+msgstr "Google Ads, Meta Pixel, TikTok Pixel."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1270
+msgid "Privacy e Cookie Policy"
+msgstr "Privacy and Cookie Policy"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1272
+msgid "Impostazioni"
+msgstr "Settings"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1273
+msgid "Registro consensi"
+msgstr "Consent log"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1274
+msgid "Guida rapida"
+msgstr "Quick guide"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1321
+msgid "Esporta CSV"
+msgstr "Export CSV"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1328
+msgid "Data"
+msgstr "Date"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1329
+msgid "ID consenso"
+msgstr "Consent ID"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1330
+msgid "Utente"
+msgstr "User"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1331
+msgid "Evento"
+msgstr "Event"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1332
+msgid "Stato"
+msgstr "Status"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1333
+msgid "IP"
+msgstr "IP"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1344
+msgid "Anonimo"
+msgstr "Anonymous"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1363
+msgid "Nessun consenso registrato al momento."
+msgstr "No consent recorded at the moment."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1377
+msgid "&laquo;"
+msgstr "&laquo;"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1378
+msgid "&raquo;"
+msgstr "&raquo;"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1398
+msgid "Checklist di conformità"
+msgstr "Compliance checklist"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1400
+msgid ""
+"Aggiorna i testi di privacy e cookie policy con il supporto del tuo "
+"consulente legale."
+msgstr ""
+"Update the privacy and cookie policy texts with support from your legal "
+"advisor."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1401
+msgid ""
+"Configura le categorie e collega i servizi realmente utilizzati sul sito."
+msgstr ""
+"Configure the categories and link the services actually used on the site."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1402
+msgid ""
+"Imposta i valori predefiniti del Google Consent Mode in base al principio di"
+" minimizzazione."
+msgstr ""
+"Set the default Google Consent Mode values according to the minimisation "
+"principle."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1403
+msgid ""
+"Inserisci nei template il codice di Google tag manager/gtag.js condizionato "
+"dagli eventi di consenso."
+msgstr ""
+"Add the Google Tag Manager/gtag.js code to your templates and condition it "
+"with the consent events."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1404
+msgid ""
+"Conserva il registro dei consensi per almeno 12 mesi o secondo le policy del"
+" cliente."
+msgstr ""
+"Keep the consent log for at least 12 months or according to the client's "
+"policies."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1406
+msgid "Shortcode disponibili"
+msgstr "Available shortcodes"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1408
+msgid "Mostra il testo della privacy policy configurato."
+msgstr "Displays the configured privacy policy text."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1409
+msgid "Mostra il testo della cookie policy."
+msgstr "Displays the cookie policy text."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1410
+msgid "Inserisce un pulsante per riaprire le preferenze di consenso."
+msgstr "Adds a button to reopen the consent preferences."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1412
+msgid "Come collegare Google Consent Mode v2"
+msgstr "How to connect Google Consent Mode v2"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1413
+msgid ""
+"Questo plugin aggiorna automaticamente i segnali del Consent Mode "
+"(analytics_storage, ad_storage, ad_personalization, ad_user_data, "
+"functionality_storage, security_storage). Assicurati che il tag gtag o "
+"Google Tag Manager sia caricato dopo il banner e che ascolti l'evento "
+"fp_consent_update se utilizzi configurazioni personalizzate."
+msgstr ""
+"This plugin automatically updates the Consent Mode signals "
+"(analytics_storage, ad_storage, ad_personalization, ad_user_data, "
+"functionality_storage, security_storage). Make sure the gtag or Google Tag "
+"Manager tag is loaded after the banner and listens to the fp_consent_update "
+"event if you use custom configurations."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1424
+msgid ""
+"Ricorda di richiedere nuovamente il consenso ogni 12 mesi o quando cambiano "
+"le finalità del trattamento."
+msgstr ""
+"Remember to request consent again every 12 months or whenever the processing"
+" purposes change."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1429
+#, php-format
+msgid "Ultimo aggiornamento contenuti: %s"
+msgstr "Last content update: %s"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1449
+msgid "Dati non validi."
+msgstr "Invalid data."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1460
+msgid "Consenso aggiornato."
+msgstr "Consent updated."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1500
+msgid "Non autorizzato."
+msgstr "Not allowed."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1670
+msgid "Agente utente"
+msgstr "User agent"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1716
+msgid "Impossibile rimuovere i registri di consenso al momento."
+msgstr "Unable to remove consent logs at the moment."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1724
+#, php-format
+msgid "Rimossi %d eventi di consenso associati all'utente."
+msgstr "Removed %d consent events associated with the user."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1728
+msgid "Nessun registro di consenso associato all'utente."
+msgstr "No consent logs associated with the user."

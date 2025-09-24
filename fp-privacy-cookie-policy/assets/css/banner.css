@@ -107,6 +107,10 @@
     display: none;
 }
 
+body.fp-consent-modal-open {
+    overflow: hidden;
+}
+
 .fp-consent-modal.is-visible {
     display: block;
 }
