@@ -634,3 +634,86 @@ msgstr "Consent log cleanup is not scheduled"
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2322
 msgid "The consent log cleanup task is not scheduled. Old consent records may accumulate over time."
 msgstr "The consent log cleanup task is not scheduled. Old consent records may accumulate over time."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:680
+msgid "Testi interfaccia"
+msgstr "Interface texts"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1335
+msgid "Testi interfaccia (Italiano)"
+msgstr "Interface texts (Italian)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1356
+msgid "Testi interfaccia (Inglese)"
+msgstr "Interface texts (English)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1321
+msgid "Titolo finestra"
+msgstr "Modal title"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1322
+msgid "Messaggio introduttivo"
+msgstr "Introductory message"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1323
+msgid "Etichetta \"Servizi inclusi\""
+msgstr "\"Included services\" label"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1324
+msgid "Etichetta \"Sempre attivo\""
+msgstr "\"Always active\" label"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1325
+msgid "Descrizione accessibilità toggle"
+msgstr "Toggle accessibility description"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1326
+msgid "Etichetta pulsante gestione"
+msgstr "Manage button label"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1327
+msgid "Etichetta stato aggiornamento"
+msgstr "Last update status label"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1332
+#, php-format
+msgid "%s (Inglese)"
+msgstr "%s (English)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1333
+#, php-format
+msgid "Ricorda di mantenere il segnaposto %s per il nome categoria."
+msgstr "Remember to keep the %s placeholder for the category name."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1887
+msgid "Chiudi"
+msgstr "Close"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1891
+msgid "Gestisci le preferenze"
+msgstr "Manage preferences"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1895
+msgid "Decidi quali categorie di cookie attivare. Puoi modificare la tua scelta in qualsiasi momento."
+msgstr "Choose which categories of cookies to enable. You can change your preferences at any time."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1899
+msgid "Servizi inclusi"
+msgstr "Included services"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1903
+msgid "Sempre attivo"
+msgstr "Always active"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1907
+#, php-format
+msgid "Attiva o disattiva i cookie %s"
+msgstr "Enable or disable %s cookies"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1911
+msgid "Gestisci preferenze cookie"
+msgstr "Manage cookie preferences"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1915
+msgid "Ultimo aggiornamento"
+msgstr "Last updated"
