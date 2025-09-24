@@ -847,11 +847,18 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * @return array
          */
         protected function sanitize_google_defaults( array $input, array $defaults ) {
-            $sanitized = $defaults;
+            $sanitized      = $defaults;
+            $allowed_values = array( 'granted', 'denied' );
 
             foreach ( $defaults as $key => $value ) {
                 if ( array_key_exists( $key, $input ) ) {
-                    $sanitized[ $key ] = sanitize_text_field( $input[ $key ] );
+                    $incoming = sanitize_text_field( $input[ $key ] );
+
+                    if ( ! in_array( $incoming, $allowed_values, true ) ) {
+                        $incoming = $value;
+                    }
+
+                    $sanitized[ $key ] = $incoming;
                 }
             }
 
@@ -1933,11 +1940,19 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             check_ajax_referer( self::NONCE_ACTION, 'nonce' );
 
             $consent_id = isset( $_POST['consentId'] ) ? sanitize_text_field( wp_unslash( $_POST['consentId'] ) ) : '';
-            $event      = isset( $_POST['event'] ) ? sanitize_key( wp_unslash( $_POST['event'] ) ) : 'save';
+            $event      = isset( $_POST['event'] ) ? sanitize_key( wp_unslash( $_POST['event'] ) ) : 'save_preferences';
             $consent    = isset( $_POST['consent'] ) ? wp_unslash( $_POST['consent'] ) : array();
 
-            if ( empty( $consent_id ) || empty( $consent ) || ! is_array( $consent ) ) {
+            $consent_id = substr( $consent_id, 0, 64 );
+
+            if ( empty( $consent_id ) || ! is_array( $consent ) ) {
                 wp_send_json_error( array( 'message' => __( 'Dati non validi.', 'fp-privacy-cookie-policy' ) ), 400 );
+            }
+
+            $allowed_events = $this->get_allowed_consent_events();
+
+            if ( ! in_array( $event, $allowed_events, true ) ) {
+                $event = 'save_preferences';
             }
 
             $sanitized = array();
@@ -1946,9 +1961,75 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 $sanitized[ sanitize_key( $key ) ] = rest_sanitize_boolean( $value );
             }
 
-            $this->log_consent( $consent_id, $event, $sanitized );
+            $normalized = $this->normalize_consent_state( $sanitized );
+
+            if ( empty( $normalized ) ) {
+                wp_send_json_error( array( 'message' => __( 'Impossibile registrare il consenso. Riprova.', 'fp-privacy-cookie-policy' ) ), 400 );
+            }
+
+            if ( ! $this->log_consent( $consent_id, $event, $normalized ) ) {
+                wp_send_json_error( array( 'message' => __( 'Impossibile registrare il consenso. Riprova.', 'fp-privacy-cookie-policy' ) ), 500 );
+            }
 
             wp_send_json_success( array( 'message' => __( 'Consenso aggiornato.', 'fp-privacy-cookie-policy' ) ) );
+        }
+
+        /**
+         * Retrieve the allowed consent event identifiers.
+         *
+         * @return array
+         */
+        protected function get_allowed_consent_events() {
+            $events = array( 'accept_all', 'reject_all', 'save_preferences', 'save' );
+
+            /**
+             * Filter the list of allowed consent events accepted via AJAX.
+             *
+             * @param array $events Allowed events.
+             */
+            return (array) apply_filters( 'fp_privacy_allowed_consent_events', $events );
+        }
+
+        /**
+         * Normalize the consent state before logging it.
+         *
+         * @param array $consent Raw consent payload.
+         *
+         * @return array
+         */
+        protected function normalize_consent_state( array $consent ) {
+            $settings   = $this->get_settings();
+            $categories = isset( $settings['categories'] ) && is_array( $settings['categories'] ) ? $settings['categories'] : array();
+
+            if ( empty( $categories ) ) {
+                return array();
+            }
+
+            $normalized = array();
+
+            foreach ( $categories as $key => $category ) {
+                $key        = sanitize_key( $key );
+                $is_required = ! empty( $category['required'] );
+
+                if ( $is_required ) {
+                    $normalized[ $key ] = true;
+                    continue;
+                }
+
+                if ( array_key_exists( $key, $consent ) ) {
+                    $normalized[ $key ] = (bool) $consent[ $key ];
+                } else {
+                    $normalized[ $key ] = false;
+                }
+            }
+
+            /**
+             * Filter the normalized consent state before it is persisted.
+             *
+             * @param array $normalized Normalized consent data.
+             * @param array $categories Plugin categories configuration.
+             */
+            return apply_filters( 'fp_privacy_normalized_consent_state', $normalized, $categories );
         }
 
         /**
@@ -1957,6 +2038,8 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * @param string $consent_id Consent ID.
          * @param string $event      Event type.
          * @param array  $consent    Consent data.
+         *
+         * @return bool
          */
         protected function log_consent( $consent_id, $event, $consent ) {
             if ( ! $this->consent_table_exists() ) {
@@ -1972,19 +2055,24 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
             $user_id    = get_current_user_id();
 
-            $wpdb->insert(
-                $table_name,
-                array(
-                    'consent_id'    => $consent_id,
-                    'user_id'       => $user_id ? $user_id : null,
-                    'event_type'    => $event,
-                    'consent_state' => wp_json_encode( $consent ),
-                    'ip_address'    => $ip_address,
-                    'user_agent'    => $user_agent,
-                    'created_at'    => current_time( 'mysql' ),
-                ),
-                array( '%s', '%d', '%s', '%s', '%s', '%s', '%s' )
+            $data = array(
+                'consent_id'    => $consent_id,
+                'event_type'    => $event,
+                'consent_state' => wp_json_encode( $consent ),
+                'ip_address'    => $ip_address,
+                'user_agent'    => $user_agent,
+                'created_at'    => current_time( 'mysql' ),
             );
+            $format = array( '%s', '%s', '%s', '%s', '%s', '%s' );
+
+            if ( $user_id ) {
+                $data['user_id'] = (int) $user_id;
+                $format[]        = '%d';
+            }
+
+            $result = $wpdb->insert( $table_name, $data, $format );
+
+            return false !== $result;
         }
 
         /**
