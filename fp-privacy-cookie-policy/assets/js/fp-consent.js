@@ -19,10 +19,20 @@
     var bannerElement;
     var modalElement;
     var currentConsent = null;
+    var hasInitialised = false;
 
-    document.addEventListener('DOMContentLoaded', initialize);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+        initialize();
+    }
 
     function initialize() {
+        if (hasInitialised) {
+            return;
+        }
+        hasInitialised = true;
+
         bannerElement = document.querySelector('.fp-consent-banner');
         modalElement = document.querySelector('.fp-consent-modal');
 
@@ -248,16 +258,28 @@
             params.append('consent[' + key + ']', state[key] ? '1' : '0');
         });
 
-        fetch(settings.ajaxUrl, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-            },
-            body: params.toString()
-        }).catch(function (error) {
+        if (typeof window.fetch === 'function') {
+            fetch(settings.ajaxUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: params.toString()
+            }).catch(function (error) {
+                console.warn('[FP Privacy] Unable to log consent', error);
+            });
+            return;
+        }
+
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', settings.ajaxUrl, true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+            xhr.send(params.toString());
+        } catch (error) {
             console.warn('[FP Privacy] Unable to log consent', error);
-        });
+        }
     }
 
     function storeConsentCookie(state) {
