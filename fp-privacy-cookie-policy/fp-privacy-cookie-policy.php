@@ -81,6 +81,27 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_privacy_exporter' ) );
             add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_privacy_eraser' ) );
             add_action( 'admin_notices', array( $this, 'maybe_render_admin_notices' ) );
+            add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
+            add_filter( 'site_status_tests', array( $this, 'register_site_health_tests' ) );
+        }
+
+        /**
+         * Add quick links to the plugin entry inside the plugins list.
+         *
+         * @param string[] $links Existing action links.
+         *
+         * @return string[]
+         */
+        public function add_plugin_action_links( $links ) {
+            $settings_link = sprintf(
+                '<a href="%s">%s</a>',
+                esc_url( admin_url( 'admin.php?page=fp-privacy-cookie-policy' ) ),
+                esc_html__( 'Settings', 'fp-privacy-cookie-policy' )
+            );
+
+            array_unshift( $links, $settings_link );
+
+            return $links;
         }
 
         /**
@@ -2176,6 +2197,134 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
              * @param array $categories Plugin categories configuration.
              */
             return apply_filters( 'fp_privacy_normalized_consent_state', $normalized, $categories );
+        }
+
+        /**
+         * Register custom Site Health tests.
+         *
+         * @param array $tests Existing Site Health tests.
+         *
+         * @return array
+         */
+        public function register_site_health_tests( $tests ) {
+            if ( ! is_array( $tests ) ) {
+                $tests = array();
+            }
+
+            if ( ! isset( $tests['direct'] ) || ! is_array( $tests['direct'] ) ) {
+                $tests['direct'] = array();
+            }
+
+            $tests['direct']['fp_privacy_consent_table'] = array(
+                'label' => __( 'FP Privacy & Cookie Policy consent log table', 'fp-privacy-cookie-policy' ),
+                'test'  => array( $this, 'site_health_test_consent_table' ),
+            );
+
+            $tests['direct']['fp_privacy_cleanup_schedule'] = array(
+                'label' => __( 'FP Privacy & Cookie Policy consent cleanup schedule', 'fp-privacy-cookie-policy' ),
+                'test'  => array( $this, 'site_health_test_cleanup_schedule' ),
+            );
+
+            return $tests;
+        }
+
+        /**
+         * Site Health test that verifies the consent log table exists.
+         *
+         * @return array
+         */
+        public function site_health_test_consent_table() {
+            $badge = array(
+                'label' => __( 'FP Privacy & Cookie Policy', 'fp-privacy-cookie-policy' ),
+                'color' => 'blue',
+            );
+
+            if ( $this->consent_table_exists() ) {
+                return array(
+                    'status'      => 'good',
+                    'label'       => __( 'Consent log table is operational', 'fp-privacy-cookie-policy' ),
+                    'description' => sprintf(
+                        '<p>%s</p>',
+                        esc_html__( 'The consent log table is available and ready to store new consent events.', 'fp-privacy-cookie-policy' )
+                    ),
+                    'badge'       => $badge,
+                    'test'        => 'fp_privacy_consent_table',
+                );
+            }
+
+            $actions = sprintf(
+                '<p><a href="%1$s" class="button button-primary">%2$s</a></p>',
+                esc_url( admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=logs' ) ),
+                esc_html__( 'Open consent tools', 'fp-privacy-cookie-policy' )
+            );
+
+            return array(
+                'status'      => 'critical',
+                'label'       => __( 'Consent log table is missing', 'fp-privacy-cookie-policy' ),
+                'description' => sprintf(
+                    '<p>%s</p>',
+                    esc_html__( 'The consent log table could not be found. Consents will not be tracked until the table is recreated.', 'fp-privacy-cookie-policy' )
+                ),
+                'actions'     => $actions,
+                'badge'       => $badge,
+                'test'        => 'fp_privacy_consent_table',
+            );
+        }
+
+        /**
+         * Site Health test that checks whether the cleanup cron event is scheduled.
+         *
+         * @return array
+         */
+        public function site_health_test_cleanup_schedule() {
+            $badge = array(
+                'label' => __( 'FP Privacy & Cookie Policy', 'fp-privacy-cookie-policy' ),
+                'color' => 'blue',
+            );
+
+            $timestamp = wp_next_scheduled( self::CLEANUP_HOOK );
+
+            if ( ! $timestamp ) {
+                self::schedule_cleanup_event();
+                $timestamp = wp_next_scheduled( self::CLEANUP_HOOK );
+            }
+
+            if ( $timestamp ) {
+                $diff = human_time_diff( time(), $timestamp );
+
+                return array(
+                    'status'      => 'good',
+                    'label'       => __( 'Consent log cleanup is scheduled', 'fp-privacy-cookie-policy' ),
+                    'description' => sprintf(
+                        '<p>%s</p>',
+                        sprintf(
+                            /* translators: %s is a human readable time interval. */
+                            esc_html__( 'The consent log cleanup event is scheduled to run in %s.', 'fp-privacy-cookie-policy' ),
+                            esc_html( $diff )
+                        )
+                    ),
+                    'badge'       => $badge,
+                    'test'        => 'fp_privacy_cleanup_schedule',
+                );
+            }
+
+            $actions = sprintf(
+                '<p><a href="%1$s" class="button">%2$s</a></p>',
+                esc_url( admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=logs' ) ),
+                esc_html__( 'Review retention settings', 'fp-privacy-cookie-policy' )
+            );
+
+            return array(
+                'status'      => 'recommended',
+                'label'       => __( 'Consent log cleanup is not scheduled', 'fp-privacy-cookie-policy' ),
+                'description' => sprintf(
+                    '<p>%s</p>',
+                    esc_html__( 'The consent log cleanup task is not scheduled. Old consent records may accumulate over time.', 'fp-privacy-cookie-policy' )
+                ),
+                'actions'     => $actions,
+                'badge'       => $badge,
+                'test'        => 'fp_privacy_cleanup_schedule',
+            );
         }
 
         /**
