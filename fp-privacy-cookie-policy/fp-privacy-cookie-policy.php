@@ -3,7 +3,7 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://example.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.3.1
+ * Version:     1.3.2
  * Author:      FP Digital Assistant
  * Author URI:  https://example.com/
  * License:     GPL2
@@ -24,7 +24,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
     class FP_Privacy_Cookie_Policy {
 
         const OPTION_KEY        = 'fp_privacy_cookie_settings';
-        const VERSION           = '1.3.1';
+        const VERSION           = '1.3.2';
         const VERSION_OPTION    = 'fp_privacy_cookie_version';
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';
@@ -2291,15 +2291,94 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             }
 
             $consent_id = wp_generate_uuid4();
+            $settings   = $this->get_settings();
+            $lifetime   = $this->get_consent_cookie_lifetime( $settings );
+            $options    = $this->get_consent_cookie_options( $lifetime, $settings );
 
-            $path   = defined( 'COOKIEPATH' ) ? COOKIEPATH : '/';
-            $domain = defined( 'COOKIE_DOMAIN' ) ? COOKIE_DOMAIN : '';
-
-            setcookie( self::CONSENT_COOKIE . '_id', $consent_id, time() + YEAR_IN_SECONDS, $path, $domain, is_ssl(), true );
+            if ( ! headers_sent() ) {
+                setcookie( self::CONSENT_COOKIE . '_id', $consent_id, $options );
+            }
 
             $_COOKIE[ self::CONSENT_COOKIE . '_id' ] = $consent_id;
 
             return $consent_id;
+        }
+
+        /**
+         * Retrieve the consent cookie lifetime in seconds.
+         *
+         * @param array $settings Plugin settings.
+         *
+         * @return int
+         */
+        protected function get_consent_cookie_lifetime( array $settings ) {
+            $days = isset( $settings['consent_cookie_days'] ) ? (int) $settings['consent_cookie_days'] : 0;
+
+            if ( $days <= 0 ) {
+                return 0;
+            }
+
+            $lifetime = (int) $days * DAY_IN_SECONDS;
+
+            /**
+             * Filter the lifetime (in seconds) of the consent identifier cookie.
+             *
+             * @param int   $lifetime Lifetime in seconds.
+             * @param int   $days     Lifetime expressed in days.
+             * @param array $settings Plugin settings.
+             */
+            $lifetime = (int) apply_filters( 'fp_privacy_consent_cookie_max_age', $lifetime, $days, $settings );
+
+            if ( $lifetime < 0 ) {
+                $lifetime = 0;
+            }
+
+            return $lifetime;
+        }
+
+        /**
+         * Build the options array used to set the consent identifier cookie.
+         *
+         * @param int   $lifetime Lifetime in seconds.
+         * @param array $settings Plugin settings.
+         *
+         * @return array
+         */
+        protected function get_consent_cookie_options( $lifetime, array $settings ) {
+            $expires      = 0;
+            $current_time = time();
+
+            if ( $lifetime > 0 ) {
+                $expires = $current_time + $lifetime;
+
+                if ( $expires <= $current_time ) {
+                    $expires = 0;
+                }
+            }
+
+            $options = array(
+                'expires'  => $expires,
+                'path'     => defined( 'COOKIEPATH' ) ? COOKIEPATH : '/',
+                'domain'   => defined( 'COOKIE_DOMAIN' ) ? COOKIE_DOMAIN : '',
+                'secure'   => is_ssl(),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            );
+
+            /**
+             * Filter the options used when setting the consent identifier cookie.
+             *
+             * @param array $options  Cookie options.
+             * @param int   $lifetime Lifetime in seconds.
+             * @param array $settings Plugin settings.
+             */
+            $options = apply_filters( 'fp_privacy_consent_cookie_options', $options, $lifetime, $settings );
+
+            if ( ! isset( $options['expires'] ) || ! is_int( $options['expires'] ) || $options['expires'] < 0 ) {
+                $options['expires'] = 0;
+            }
+
+            return $options;
         }
     }
 
