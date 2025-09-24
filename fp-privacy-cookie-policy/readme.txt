@@ -4,7 +4,7 @@ Tags: gdpr, cookie banner, consent management, privacy policy, google consent mo
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.3.2
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,6 +18,7 @@ FP Privacy and Cookie Policy helps agencies and professionals implement a comple
 * Granular cookie categories (necessary, preferences, statistics, marketing) with description of services used.
 * Visual editor for privacy and cookie policy texts and dedicated shortcodes.
 * Consent registry with anonymised IP address, AJAX logging and CSV export.
+* Contextual indicator showing the last consent update directly next to the manage button.
 * Native Google Consent Mode v2 integration and `dataLayer` events to orchestrate your tracking setup.
 * Configurable consent log retention with automatic cleanup and integration with the WordPress privacy export/erase tools.
 * Adjustable consent cookie duration to align banner re-consent with your legal requirements.
@@ -44,6 +45,11 @@ Usa la tab "Registro consensi" per consultare gli eventi registrati ed esportare
 3. Registro consensi con esportazione CSV e informazioni anonimizzate.
 
 == Changelog ==
+= 1.4.0 =
+* Added a live consent update indicator with tooltip and time metadata stored alongside the consent state.
+* Improved dataLayer pushes and custom events by reusing the recorded timestamp for analytics consistency.
+* Enhanced accessibility by exposing the last update time via `aria-describedby` on the manage preferences button.
+
 = 1.3.2 =
 * Aligned the consent identifier cookie lifetime with the configured consent duration and exposed filters for advanced tuning.
 * Ensured the consent identifier cookie inherits secure defaults, including the SameSite=Lax directive.
@@ -70,6 +76,8 @@ Usa la tab "Registro consensi" per consultare gli eventi registrati ed esportare
 * Initial release.
 
 == Upgrade Notice ==
+= 1.4.0 =
+Refresh any cached banner markup to surface the new consent status badge and timestamp metadata.
 = 1.2.0 =
 Review the new consent log retention setting and schedule to align it with your data governance policies.
 
