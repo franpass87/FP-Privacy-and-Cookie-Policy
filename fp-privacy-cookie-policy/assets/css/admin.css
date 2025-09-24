@@ -32,6 +32,8 @@
     margin: 1rem 0;
     display: flex;
     justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .fp-help-tab code {

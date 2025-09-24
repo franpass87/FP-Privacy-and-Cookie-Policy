@@ -296,8 +296,29 @@ msgstr ""
 msgid "Guida rapida"
 msgstr ""
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:558
+#, php-format
+msgid "Pulizia completata. %d registrazioni sono state rimosse."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:585
+msgid "Non ci sono registrazioni più vecchie del periodo di conservazione configurato."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:587
+msgid "Imposta un periodo di conservazione per attivare la pulizia del registro consensi."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:589
+msgid "Impossibile pulire il registro perché la tabella dei consensi non è disponibile."
+msgstr ""
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1325
 msgid "Esporta CSV"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1958
+msgid "Pulisci registro"
 msgstr ""
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1332

@@ -75,6 +75,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             add_action( 'wp_ajax_nopriv_fp_save_consent', array( $this, 'ajax_save_consent' ) );
             add_action( 'admin_post_fp_export_consent', array( $this, 'export_consent_logs' ) );
             add_action( 'admin_post_fp_recreate_consent_table', array( $this, 'handle_recreate_consent_table' ) );
+            add_action( 'admin_post_fp_cleanup_consent_logs', array( $this, 'handle_cleanup_consent_logs' ) );
             add_action( self::CLEANUP_HOOK, array( $this, 'cleanup_consent_logs' ) );
             add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_privacy_exporter' ) );
             add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_privacy_eraser' ) );
@@ -233,18 +234,24 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
         /**
          * Cleanup old consent logs based on retention settings.
+         *
+         * @param array|null $settings Optional settings override.
+         *
+         * @return int Number of deleted rows.
          */
-        public function cleanup_consent_logs() {
+        public function cleanup_consent_logs( ?array $settings = null ) {
             if ( ! $this->consent_table_exists() ) {
-                return;
+                return 0;
             }
 
-            $settings        = $this->get_settings();
-            $retention_days  = isset( $settings['retention_days'] ) ? (int) $settings['retention_days'] : 0;
-            $retention_days  = (int) apply_filters( 'fp_privacy_consent_retention_days', $retention_days, $settings );
+            if ( null === $settings ) {
+                $settings = $this->get_settings();
+            }
+
+            $retention_days = $this->get_effective_retention_days( $settings );
 
             if ( $retention_days < 1 ) {
-                return;
+                return 0;
             }
 
             $cutoff = gmdate( 'Y-m-d H:i:s', time() - ( $retention_days * DAY_IN_SECONDS ) );
@@ -253,12 +260,36 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
             $table_name = self::get_consent_table_name();
 
-            $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+            $deleted = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->prepare(
                     "DELETE FROM {$table_name} WHERE created_at < %s",
                     $cutoff
                 )
             );
+
+            if ( false === $deleted ) {
+                return 0;
+            }
+
+            return (int) $deleted;
+        }
+
+        /**
+         * Retrieve the effective retention period for the consent log in days.
+         *
+         * @param array $settings Plugin settings.
+         *
+         * @return int
+         */
+        protected function get_effective_retention_days( array $settings ) {
+            $retention_days = isset( $settings['retention_days'] ) ? (int) $settings['retention_days'] : 0;
+            $retention_days = (int) apply_filters( 'fp_privacy_consent_retention_days', $retention_days, $settings );
+
+            if ( $retention_days < 0 ) {
+                $retention_days = 0;
+            }
+
+            return $retention_days;
         }
 
         /**
@@ -522,6 +553,9 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $is_plugin_screen  = $screen && isset( $screen->id ) && 'toplevel_page_fp-privacy-cookie-policy' === $screen->id;
             $status            = isset( $_GET['fp_consent_table_status'] ) ? sanitize_key( wp_unslash( $_GET['fp_consent_table_status'] ) ) : '';
             $allowed_statuses  = array( 'success', 'error' );
+            $cleanup_status    = isset( $_GET['fp_cleanup_status'] ) ? sanitize_key( wp_unslash( $_GET['fp_cleanup_status'] ) ) : '';
+            $cleanup_removed   = isset( $_GET['fp_cleanup_removed'] ) ? absint( $_GET['fp_cleanup_removed'] ) : 0;
+            $cleanup_allowed   = array( 'success', 'empty', 'disabled', 'missing' );
 
             if ( $status && in_array( $status, $allowed_statuses, true ) ) {
                 if ( ! $is_plugin_screen ) {
@@ -532,6 +566,27 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'La tabella del registro consensi è stata ricreata correttamente.', 'fp-privacy-cookie-policy' ) . '</p></div>';
                 } elseif ( 'error' === $status ) {
                     echo '<div class="notice notice-error"><p>' . esc_html__( 'Impossibile creare la tabella del registro consensi. Verifica i permessi del database.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+                }
+            }
+
+            if ( $cleanup_status && in_array( $cleanup_status, $cleanup_allowed, true ) ) {
+                if ( ! $is_plugin_screen ) {
+                    return;
+                }
+
+                if ( 'success' === $cleanup_status ) {
+                    $message = sprintf(
+                        /* translators: %d is the number of removed consent log entries. */
+                        __( 'Pulizia completata. %d registrazioni sono state rimosse.', 'fp-privacy-cookie-policy' ),
+                        $cleanup_removed
+                    );
+                    echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+                } elseif ( 'empty' === $cleanup_status ) {
+                    echo '<div class="notice notice-info is-dismissible"><p>' . esc_html__( 'Non ci sono registrazioni più vecchie del periodo di conservazione configurato.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+                } elseif ( 'disabled' === $cleanup_status ) {
+                    echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Imposta un periodo di conservazione per attivare la pulizia del registro consensi.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+                } elseif ( 'missing' === $cleanup_status ) {
+                    echo '<div class="notice notice-error"><p>' . esc_html__( 'Impossibile pulire il registro perché la tabella dei consensi non è disponibile.', 'fp-privacy-cookie-policy' ) . '</p></div>';
                 }
             }
 
@@ -1895,6 +1950,14 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                         <?php esc_html_e( 'Esporta CSV', 'fp-privacy-cookie-policy' ); ?>
                     </button>
                 </form>
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                    <?php wp_nonce_field( 'fp_cleanup_consent_logs', 'fp_cleanup_consent_logs_nonce' ); ?>
+                    <input type="hidden" name="action" value="fp_cleanup_consent_logs" />
+                    <input type="hidden" name="redirect_to" value="<?php echo esc_attr( admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=logs' ) ); ?>" />
+                    <button type="submit" class="button">
+                        <?php esc_html_e( 'Pulisci registro', 'fp-privacy-cookie-policy' ); ?>
+                    </button>
+                </form>
             </div>
             <table class="widefat striped fp-consent-log-table">
                 <thead>
@@ -2278,6 +2341,53 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $fallback = admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=logs' );
             $redirect = $redirect ? wp_validate_redirect( $redirect, $fallback ) : $fallback;
             $redirect = add_query_arg( 'fp_consent_table_status', $status, $redirect );
+
+            wp_safe_redirect( $redirect );
+            exit;
+        }
+
+        /**
+         * Handle manual consent log cleanup requests.
+         */
+        public function handle_cleanup_consent_logs() {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_die( esc_html__( 'Non autorizzato.', 'fp-privacy-cookie-policy' ) );
+            }
+
+            check_admin_referer( 'fp_cleanup_consent_logs', 'fp_cleanup_consent_logs_nonce' );
+
+            $redirect = isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '';
+            $fallback = admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=logs' );
+            $redirect = $redirect ? wp_validate_redirect( $redirect, $fallback ) : $fallback;
+
+            if ( ! $this->consent_table_exists() ) {
+                $redirect = add_query_arg( 'fp_cleanup_status', 'missing', $redirect );
+                wp_safe_redirect( $redirect );
+                exit;
+            }
+
+            $settings       = $this->get_settings();
+            $retention_days = $this->get_effective_retention_days( $settings );
+
+            if ( $retention_days < 1 ) {
+                $redirect = add_query_arg( 'fp_cleanup_status', 'disabled', $redirect );
+                wp_safe_redirect( $redirect );
+                exit;
+            }
+
+            $removed = $this->cleanup_consent_logs( $settings );
+
+            if ( $removed > 0 ) {
+                $redirect = add_query_arg(
+                    array(
+                        'fp_cleanup_status'  => 'success',
+                        'fp_cleanup_removed' => (int) $removed,
+                    ),
+                    $redirect
+                );
+            } else {
+                $redirect = add_query_arg( 'fp_cleanup_status', 'empty', $redirect );
+            }
 
             wp_safe_redirect( $redirect );
             exit;
