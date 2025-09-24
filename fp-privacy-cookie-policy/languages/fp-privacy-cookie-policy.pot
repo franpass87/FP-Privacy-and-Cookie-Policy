@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: FP Privacy and Cookie Policy 1.1.0\n"
+"Project-Id-Version: FP Privacy and Cookie Policy 1.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-09-24 16:28+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -419,4 +419,54 @@ msgstr ""
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1504
 msgid "Non autorizzato."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:523
+msgid "Conservazione registro consensi"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1029
+msgid "Giorni di conservazione del registro"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1033
+msgid "Imposta 0 per disattivare la pulizia automatica. Valori inferiori a 30 giorni vengono automaticamente aumentati."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:240
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:256
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:312
+msgid "Registro consensi FP Privacy & Cookie Policy"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:339
+msgid "Registrato il"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:351
+msgid "Stato del consenso"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:356
+msgid "IP anonimizzato"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:361
+msgid "User agent"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1706
+msgid "La tabella del registro consensi non è disponibile. Riattiva il plugin per ricrearla."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1923
+msgid "La tabella del registro consensi non è disponibile."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:452
+msgid "Alcune voci del registro non sono state rimosse e richiedono un intervento manuale."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1815
+msgid "Definisci il periodo di conservazione del registro e utilizza gli strumenti di esportazione/cancellazione dati integrati in WordPress."
 msgstr ""
