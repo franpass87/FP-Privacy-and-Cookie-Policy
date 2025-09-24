@@ -4,7 +4,7 @@ Tags: gdpr, cookie banner, consent management, privacy policy, google consent mo
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,6 +22,7 @@ FP Privacy and Cookie Policy helps agencies and professionals implement a comple
 * Native Google Consent Mode v2 integration and `dataLayer` events to orchestrate your tracking setup.
 * Configurable consent log retention with automatic cleanup and integration with the WordPress privacy export/erase tools.
 * Adjustable consent cookie duration to align banner re-consent with your legal requirements.
+* First-class WP-CLI commands to monitor the consent log, trigger cleanups and export CSV snapshots.
 
 == Installation ==
 1. Upload the `fp-privacy-cookie-policy` folder to the `/wp-content/plugins/` directory, or install the plugin from the WordPress plugin screen.
@@ -39,12 +40,23 @@ Certo. Il banner imposta i valori di default, aggiorna automaticamente i segnali
 = Come posso dimostrare il consenso? =
 Usa la tab "Registro consensi" per consultare gli eventi registrati ed esportare l'intero archivio in formato CSV. Puoi inoltre sfruttare gli strumenti di esportazione/cancellazione dati di WordPress per rispondere alle richieste degli interessati.
 
+== WP-CLI ==
+The plugin ships with a dedicated command namespace to automate maintenance tasks:
+
+* `wp fp-privacy status` — displays the consent table health, stored events and the next scheduled cleanup.
+* `wp fp-privacy cleanup` — runs the retention cleanup immediately while respecting your configuration.
+* `wp fp-privacy export --file=consents.csv` — saves the entire consent log to a CSV file optimised for large datasets.
+
 == Screenshots ==
 1. Banner cookie responsive con pulsanti principali e link alle preferenze.
 2. Modal delle preferenze con categorie e descrizioni personalizzabili.
 3. Registro consensi con esportazione CSV e informazioni anonimizzate.
 
 == Changelog ==
+= 1.5.0 =
+* Added WP-CLI commands to check the consent table health, trigger manual cleanups and export CSV snapshots without accessing the admin panel.
+* Documented the new automation workflow and bumped internal version metadata for the next stable release.
+
 = 1.4.0 =
 * Added a live consent update indicator with tooltip and time metadata stored alongside the consent state.
 * Improved dataLayer pushes and custom events by reusing the recorded timestamp for analytics consistency.
@@ -76,6 +88,8 @@ Usa la tab "Registro consensi" per consultare gli eventi registrati ed esportare
 * Initial release.
 
 == Upgrade Notice ==
+= 1.5.0 =
+Automate maintenance from the terminal with the new WP-CLI commands to monitor, export and clean consent logs.
 = 1.4.0 =
 Refresh any cached banner markup to surface the new consent status badge and timestamp metadata.
 = 1.2.0 =
