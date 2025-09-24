@@ -74,9 +74,11 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             add_action( 'wp_ajax_fp_save_consent', array( $this, 'ajax_save_consent' ) );
             add_action( 'wp_ajax_nopriv_fp_save_consent', array( $this, 'ajax_save_consent' ) );
             add_action( 'admin_post_fp_export_consent', array( $this, 'export_consent_logs' ) );
+            add_action( 'admin_post_fp_recreate_consent_table', array( $this, 'handle_recreate_consent_table' ) );
             add_action( self::CLEANUP_HOOK, array( $this, 'cleanup_consent_logs' ) );
             add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_privacy_exporter' ) );
             add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_privacy_eraser' ) );
+            add_action( 'admin_notices', array( $this, 'maybe_render_admin_notices' ) );
         }
 
         /**
@@ -506,6 +508,53 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 'dashicons-shield-alt',
                 82
             );
+        }
+
+        /**
+         * Render admin notices for consent table health.
+         */
+        public function maybe_render_admin_notices() {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+            }
+
+            $screen            = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+            $is_plugin_screen  = $screen && isset( $screen->id ) && 'toplevel_page_fp-privacy-cookie-policy' === $screen->id;
+            $status            = isset( $_GET['fp_consent_table_status'] ) ? sanitize_key( wp_unslash( $_GET['fp_consent_table_status'] ) ) : '';
+            $allowed_statuses  = array( 'success', 'error' );
+
+            if ( $status && in_array( $status, $allowed_statuses, true ) ) {
+                if ( ! $is_plugin_screen ) {
+                    return;
+                }
+
+                if ( 'success' === $status ) {
+                    echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'La tabella del registro consensi è stata ricreata correttamente.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+                } elseif ( 'error' === $status ) {
+                    echo '<div class="notice notice-error"><p>' . esc_html__( 'Impossibile creare la tabella del registro consensi. Verifica i permessi del database.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+                }
+            }
+
+            if ( ! $is_plugin_screen ) {
+                return;
+            }
+
+            if ( $this->consent_table_exists() ) {
+                return;
+            }
+
+            $action_url  = admin_url( 'admin-post.php' );
+            $redirect_to = admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=logs' );
+
+            echo '<div class="notice notice-error">';
+            echo '<p>' . esc_html__( 'La tabella del registro consensi è mancante o danneggiata. Ricreala per continuare a salvare i consensi.', 'fp-privacy-cookie-policy' ) . '</p>';
+            echo '<form method="post" action="' . esc_url( $action_url ) . '">';
+            wp_nonce_field( 'fp_recreate_consent_table', 'fp_recreate_consent_table_nonce' );
+            echo '<input type="hidden" name="action" value="fp_recreate_consent_table" />';
+            echo '<input type="hidden" name="redirect_to" value="' . esc_attr( $redirect_to ) . '" />';
+            echo '<p class="submit"><button type="submit" class="button button-primary">' . esc_html__( 'Ricrea tabella registro consensi', 'fp-privacy-cookie-policy' ) . '</button></p>';
+            echo '</form>';
+            echo '</div>';
         }
 
         /**
@@ -1972,6 +2021,31 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
             fclose( $output );
 
+            exit;
+        }
+
+        /**
+         * Handle consent table recreation requests.
+         */
+        public function handle_recreate_consent_table() {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_die( esc_html__( 'Non autorizzato.', 'fp-privacy-cookie-policy' ) );
+            }
+
+            check_admin_referer( 'fp_recreate_consent_table', 'fp_recreate_consent_table_nonce' );
+
+            self::create_consent_table();
+            self::schedule_cleanup_event();
+            update_option( self::VERSION_OPTION, self::VERSION );
+
+            $status = $this->consent_table_exists() ? 'success' : 'error';
+
+            $redirect = isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '';
+            $fallback = admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=logs' );
+            $redirect = $redirect ? wp_validate_redirect( $redirect, $fallback ) : $fallback;
+            $redirect = add_query_arg( 'fp_consent_table_status', $status, $redirect );
+
+            wp_safe_redirect( $redirect );
             exit;
         }
 

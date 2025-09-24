@@ -470,3 +470,19 @@ msgstr ""
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1815
 msgid "Definisci il periodo di conservazione del registro e utilizza gli strumenti di esportazione/cancellazione dati integrati in WordPress."
 msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:532
+msgid "La tabella del registro consensi è stata ricreata correttamente."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:534
+msgid "Impossibile creare la tabella del registro consensi. Verifica i permessi del database."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:550
+msgid "La tabella del registro consensi è mancante o danneggiata. Ricreala per continuare a salvare i consensi."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:555
+msgid "Ricrea tabella registro consensi"
+msgstr ""
