@@ -25,6 +25,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
         const OPTION_KEY        = 'fp_privacy_cookie_settings';
         const VERSION           = '1.2.0';
+        const VERSION_OPTION    = 'fp_privacy_cookie_version';
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';
         const NONCE_ACTION      = 'fp_privacy_nonce';
@@ -62,6 +63,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * FP_Privacy_Cookie_Policy constructor.
          */
         private function __construct() {
+            add_action( 'plugins_loaded', array( $this, 'maybe_upgrade' ) );
             add_action( 'init', array( $this, 'load_textdomain' ) );
             add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
             add_action( 'admin_init', array( $this, 'register_settings' ) );
@@ -121,10 +123,8 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          */
         public static function activate() {
             self::create_consent_table();
-
-            if ( ! wp_next_scheduled( self::CLEANUP_HOOK ) ) {
-                wp_schedule_event( time(), 'daily', self::CLEANUP_HOOK );
-            }
+            self::schedule_cleanup_event();
+            update_option( self::VERSION_OPTION, self::VERSION );
         }
 
         /**
@@ -166,6 +166,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          */
         public static function uninstall() {
             delete_option( self::OPTION_KEY );
+            delete_option( self::VERSION_OPTION );
             wp_clear_scheduled_hook( self::CLEANUP_HOOK );
 
             global $wpdb;
@@ -183,6 +184,36 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             global $wpdb;
 
             return $wpdb->prefix . self::CONSENT_TABLE;
+        }
+
+        /**
+         * Ensure the scheduled cleanup event exists.
+         */
+        protected static function schedule_cleanup_event() {
+            if ( ! wp_next_scheduled( self::CLEANUP_HOOK ) ) {
+                wp_schedule_event( time(), 'daily', self::CLEANUP_HOOK );
+            }
+        }
+
+        /**
+         * Run upgrade routines when the plugin version changes.
+         */
+        public function maybe_upgrade() {
+            self::schedule_cleanup_event();
+
+            $installed_version = get_option( self::VERSION_OPTION, '' );
+
+            if ( empty( $installed_version ) ) {
+                $installed_version = '0';
+            }
+
+            if ( version_compare( $installed_version, self::VERSION, '>=' ) ) {
+                return;
+            }
+
+            self::create_consent_table();
+
+            update_option( self::VERSION_OPTION, self::VERSION );
         }
 
         /**
