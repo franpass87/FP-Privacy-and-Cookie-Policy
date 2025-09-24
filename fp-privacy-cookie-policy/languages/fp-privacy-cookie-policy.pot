@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: FP Privacy and Cookie Policy 1.3.0\n"
+"Project-Id-Version: FP Privacy and Cookie Policy 1.3.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-24 16:28+0000\n"
+"POT-Creation-Date: 2024-05-30 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -423,6 +423,10 @@ msgstr ""
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1504
 msgid "Non autorizzato."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2187
+msgid "Impossibile aprire lo stream di esportazione."
 msgstr ""
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:523

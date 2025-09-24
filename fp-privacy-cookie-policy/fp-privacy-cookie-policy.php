@@ -3,7 +3,7 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://example.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.3.0
+ * Version:     1.3.1
  * Author:      FP Digital Assistant
  * Author URI:  https://example.com/
  * License:     GPL2
@@ -24,7 +24,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
     class FP_Privacy_Cookie_Policy {
 
         const OPTION_KEY        = 'fp_privacy_cookie_settings';
-        const VERSION           = '1.3.0';
+        const VERSION           = '1.3.1';
         const VERSION_OPTION    = 'fp_privacy_cookie_version';
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';
@@ -2164,9 +2164,18 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 wp_die( esc_html__( 'La tabella del registro consensi non è disponibile.', 'fp-privacy-cookie-policy' ) );
             }
 
-            $table_name = self::get_consent_table_name();
+            if ( function_exists( 'wp_raise_memory_limit' ) ) {
+                wp_raise_memory_limit( 'admin' );
+            }
 
-            $logs = $wpdb->get_results( "SELECT * FROM {$table_name} ORDER BY created_at DESC" );
+            ignore_user_abort( true );
+
+            if ( function_exists( 'set_time_limit' ) ) {
+                @set_time_limit( 0 );
+            }
+
+            $table_name = self::get_consent_table_name();
+            $batch_size = $this->get_export_batch_size();
 
             nocache_headers();
             header( 'Content-Type: text/csv; charset=utf-8' );
@@ -2174,15 +2183,76 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
             $output = fopen( 'php://output', 'w' );
 
-            fputcsv( $output, array( 'created_at', 'consent_id', 'user_id', 'event_type', 'consent_state', 'ip_address', 'user_agent' ) );
+            if ( false === $output ) {
+                wp_die( esc_html__( 'Impossibile aprire lo stream di esportazione.', 'fp-privacy-cookie-policy' ) );
+            }
 
-            foreach ( $logs as $log ) {
-                fputcsv( $output, array( $log->created_at, $log->consent_id, $log->user_id, $log->event_type, $log->consent_state, $log->ip_address, $log->user_agent ) );
+            fputcsv(
+                $output,
+                array( 'created_at', 'consent_id', 'user_id', 'event_type', 'consent_state', 'ip_address', 'user_agent' )
+            );
+
+            $last_id = (int) $wpdb->get_var( "SELECT MAX(id) FROM {$table_name}" );
+
+            while ( $last_id > 0 ) {
+                $logs = $wpdb->get_results(
+                    $wpdb->prepare(
+                        "SELECT * FROM {$table_name} WHERE id <= %d ORDER BY id DESC LIMIT %d",
+                        $last_id,
+                        $batch_size
+                    )
+                );
+
+                if ( empty( $logs ) ) {
+                    break;
+                }
+
+                foreach ( $logs as $log ) {
+                    fputcsv(
+                        $output,
+                        array(
+                            $log->created_at,
+                            $log->consent_id,
+                            $log->user_id,
+                            $log->event_type,
+                            $log->consent_state,
+                            $log->ip_address,
+                            $log->user_agent,
+                        )
+                    );
+                }
+
+                fflush( $output );
+                flush();
+
+                $last_row = end( $logs );
+                $last_id  = $last_row ? ( (int) $last_row->id ) - 1 : 0;
+
+                if ( $last_id <= 0 || count( $logs ) < $batch_size ) {
+                    break;
+                }
             }
 
             fclose( $output );
 
             exit;
+        }
+
+        /**
+         * Retrieve the batch size used during CSV export.
+         *
+         * The value can be customised via the {@see 'fp_privacy_csv_export_batch_size'} filter.
+         *
+         * @return int
+         */
+        protected function get_export_batch_size() {
+            $batch_size = (int) apply_filters( 'fp_privacy_csv_export_batch_size', 500 );
+
+            if ( $batch_size < 1 ) {
+                $batch_size = 500;
+            }
+
+            return $batch_size;
         }
 
         /**
