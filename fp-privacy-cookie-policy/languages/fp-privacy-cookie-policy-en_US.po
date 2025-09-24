@@ -314,9 +314,30 @@ msgstr "Consent log"
 msgid "Guida rapida"
 msgstr "Quick guide"
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:558
+#, php-format
+msgid "Pulizia completata. %d registrazioni sono state rimosse."
+msgstr "Cleanup completed. %d entries were removed."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:585
+msgid "Non ci sono registrazioni più vecchie del periodo di conservazione configurato."
+msgstr "There are no records older than the configured retention window."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:587
+msgid "Imposta un periodo di conservazione per attivare la pulizia del registro consensi."
+msgstr "Set a retention period to enable the consent log cleanup."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:589
+msgid "Impossibile pulire il registro perché la tabella dei consensi non è disponibile."
+msgstr "Unable to clean up the log because the consent table is not available."
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1321
 msgid "Esporta CSV"
 msgstr "Export CSV"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1958
+msgid "Pulisci registro"
+msgstr "Clean up log"
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1328
 msgid "Data"
