@@ -564,6 +564,55 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Retrieve the configuration for the admin tabs.
+         *
+         * @return array[]
+         */
+        protected function get_admin_tabs() {
+            $base_url = admin_url( 'admin.php' );
+
+            $tabs = array(
+                'settings' => array(
+                    'label' => __( 'Impostazioni', 'fp-privacy-cookie-policy' ),
+                    'url'   => add_query_arg(
+                        array(
+                            'page' => 'fp-privacy-cookie-policy',
+                            'tab'  => 'settings',
+                        ),
+                        $base_url
+                    ),
+                ),
+                'logs' => array(
+                    'label' => __( 'Registro consensi', 'fp-privacy-cookie-policy' ),
+                    'url'   => add_query_arg(
+                        array(
+                            'page' => 'fp-privacy-cookie-policy',
+                            'tab'  => 'logs',
+                        ),
+                        $base_url
+                    ),
+                ),
+                'help' => array(
+                    'label' => __( 'Guida rapida', 'fp-privacy-cookie-policy' ),
+                    'url'   => add_query_arg(
+                        array(
+                            'page' => 'fp-privacy-cookie-policy',
+                            'tab'  => 'help',
+                        ),
+                        $base_url
+                    ),
+                ),
+            );
+
+            /**
+             * Filter the list of admin tabs displayed in the plugin settings.
+             *
+             * @param array[] $tabs Tab configuration.
+             */
+            return apply_filters( 'fp_privacy_admin_tabs', $tabs );
+        }
+
+        /**
          * Render admin notices for consent table health.
          */
         public function maybe_render_admin_notices() {
@@ -2141,14 +2190,36 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 return;
             }
 
+            $tabs       = $this->get_admin_tabs();
             $active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'settings';
+
+            if ( ! isset( $tabs[ $active_tab ] ) ) {
+                $active_tab = 'settings';
+            }
             ?>
             <div class="wrap fp-privacy-admin">
                 <h1><?php esc_html_e( 'Privacy e Cookie Policy', 'fp-privacy-cookie-policy' ); ?></h1>
                 <h2 class="nav-tab-wrapper">
-                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=settings' ) ); ?>" class="nav-tab <?php echo 'settings' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Impostazioni', 'fp-privacy-cookie-policy' ); ?></a>
-                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=logs' ) ); ?>" class="nav-tab <?php echo 'logs' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Registro consensi', 'fp-privacy-cookie-policy' ); ?></a>
-                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=help' ) ); ?>" class="nav-tab <?php echo 'help' === $active_tab ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Guida rapida', 'fp-privacy-cookie-policy' ); ?></a>
+                    <?php foreach ( $tabs as $tab_key => $tab ) :
+                        $classes = array( 'nav-tab' );
+
+                        if ( $tab_key === $active_tab ) {
+                            $classes[] = 'nav-tab-active';
+                        }
+
+                        $classes = array_map( 'sanitize_html_class', $classes );
+                        $class   = implode( ' ', array_filter( $classes ) );
+                        $label   = isset( $tab['label'] ) ? $tab['label'] : $tab_key;
+                        $url     = isset( $tab['url'] ) ? $tab['url'] : add_query_arg(
+                            array(
+                                'page' => 'fp-privacy-cookie-policy',
+                                'tab'  => $tab_key,
+                            ),
+                            admin_url( 'admin.php' )
+                        );
+                        ?>
+                        <a href="<?php echo esc_url( $url ); ?>" class="<?php echo esc_attr( $class ); ?>"><?php echo esc_html( $label ); ?></a>
+                    <?php endforeach; ?>
                 </h2>
 
                 <?php if ( 'logs' === $active_tab ) : ?>
