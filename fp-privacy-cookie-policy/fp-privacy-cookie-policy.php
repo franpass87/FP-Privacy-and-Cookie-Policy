@@ -3667,12 +3667,9 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 </div>
             </div>
             <button class="fp-btn fp-btn-preferences fp-consent-manage" type="button" data-consent-manage data-consent-action="open-preferences" aria-haspopup="dialog" aria-controls="fp-consent-modal" aria-hidden="true" aria-expanded="false" hidden>
+                <span class="fp-consent-manage__icon" aria-hidden="true">⚙</span>
                 <span class="fp-consent-manage__label"><?php echo esc_html( $texts['manage_consent'] ); ?></span>
             </button>
-            <div class="fp-consent-status" id="fp-consent-status" data-consent-status role="status" aria-live="polite" aria-atomic="true" hidden>
-                <span class="fp-consent-status__label"><?php echo esc_html( $texts['updated_at'] ); ?>:</span>
-                <time class="fp-consent-status__value" data-consent-updated datetime=""></time>
-            </div>
             <?php
         }
 
