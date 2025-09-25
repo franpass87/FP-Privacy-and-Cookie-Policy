@@ -4,7 +4,7 @@ Tags: gdpr, cookie banner, consent management, privacy policy, google consent mo
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.6.0
+Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,6 +17,7 @@ FP Privacy and Cookie Policy helps agencies and professionals implement a comple
 * Responsive cookie banner with "Accept", "Reject" and "Preferences" actions.
 * Automatic language detection (Italian/English) based on browser and site locale.
 * Granular cookie categories (necessary, preferences, statistics, marketing) with description of services used.
+* Automatic generation and updates of dedicated privacy and cookie policy pages based on the plugins and services detected on your site.
 * Visual editor for privacy and cookie policy texts and dedicated shortcodes (`[fp_privacy_policy]`, `[fp_cookie_policy]`, `[fp_cookie_preferences]`).
 * Consent registry with anonymised IP address, AJAX logging and CSV export.
 * Contextual indicator showing the last consent update directly next to the manage button.
@@ -34,7 +35,7 @@ FP Privacy and Cookie Policy helps agencies and professionals implement a comple
 == Installation ==
 1. Upload the `fp-privacy-cookie-policy` folder to the `/wp-content/plugins/` directory, or install the plugin from the WordPress plugin screen.
 2. Activate the plugin through the "Plugins" screen in WordPress.
-3. Upon activation the consent log table is created automatically.
+3. Upon activation the plugin creates the consent log table, dedicated policy pages and pre-populates their content automatically.
 
 == Frequently Asked Questions ==
 
@@ -64,6 +65,10 @@ Il plugin è mantenuto da [Francesco Passeri](https://francescopasseri.com/). Pe
 3. Registro consensi con esportazione CSV e informazioni anonimizzate.
 
 == Changelog ==
+= 1.7.0 =
+* Introduced automatic privacy and cookie policy generation that keeps content in sync with detected plugins and services.
+* Created dedicated policy pages on activation and ensured they stay linked to the plugin shortcodes.
+
 = 1.6.0 =
 * Added full multisite support with network-aware activation, cleanup and uninstall routines.
 * Automatically bootstrap the consent registry when new sites are created on a network.
@@ -113,6 +118,9 @@ Il plugin è mantenuto da [Francesco Passeri](https://francescopasseri.com/). Pe
 * Initial release.
 
 == Upgrade Notice ==
+= 1.7.0 =
+Attiva di nuovo le pagine dedicate o verifica che esistano già per beneficiare della generazione automatica dei contenuti legali.
+
 = 1.6.0 =
 Se attivi il plugin a livello di network, le tabelle e gli eventi di pulizia vengono ora creati automaticamente per ogni sito, incluse le nuove installazioni.
 

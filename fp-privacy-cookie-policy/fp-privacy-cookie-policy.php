@@ -3,7 +3,7 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://francescopasseri.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.6.0
+ * Version:     1.7.0
  * Author:      Francesco Passeri
  * Author URI:  https://francescopasseri.com/
  * License:     GPL2
@@ -100,14 +100,20 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
     class FP_Privacy_Cookie_Policy {
 
-        const OPTION_KEY        = 'fp_privacy_cookie_settings';
-        const VERSION           = '1.6.0';
-        const VERSION_OPTION    = 'fp_privacy_cookie_version';
-        const CONSENT_COOKIE    = 'fp_consent_state';
-        const CONSENT_TABLE     = 'fp_consent_logs';
-        const NONCE_ACTION      = 'fp_privacy_nonce';
-        const DEFAULT_LANGUAGE  = 'it';
-        const CLEANUP_HOOK      = 'fp_privacy_cleanup_logs';
+        const OPTION_KEY                 = 'fp_privacy_cookie_settings';
+        const VERSION                    = '1.7.0';
+        const VERSION_OPTION             = 'fp_privacy_cookie_version';
+        const CONSENT_COOKIE             = 'fp_consent_state';
+        const CONSENT_TABLE              = 'fp_consent_logs';
+        const NONCE_ACTION               = 'fp_privacy_nonce';
+        const DEFAULT_LANGUAGE           = 'it';
+        const CLEANUP_HOOK               = 'fp_privacy_cleanup_logs';
+        const GENERATION_HASH_OPTION     = 'fp_privacy_cookie_generation_hash';
+        const GENERATION_SNAPSHOT_OPTION = 'fp_privacy_cookie_generation_snapshot';
+        const GENERATION_TIME_OPTION     = 'fp_privacy_cookie_generation_time';
+        const PRIVACY_PAGE_OPTION        = 'fp_privacy_cookie_privacy_page_id';
+        const COOKIE_PAGE_OPTION         = 'fp_privacy_cookie_cookie_page_id';
+        const POLICY_PAGE_META_KEY       = '_fp_privacy_generated';
 
         /**
          * Singleton instance.
@@ -142,6 +148,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         private function __construct() {
             add_action( 'plugins_loaded', array( $this, 'maybe_upgrade' ) );
             add_action( 'init', array( $this, 'load_textdomain' ) );
+            add_action( 'init', array( $this, 'maybe_generate_legal_documents' ), 20 );
             add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
             add_action( 'admin_init', array( $this, 'register_settings' ) );
             add_action( 'admin_init', array( $this, 'add_privacy_policy_content' ) );
@@ -165,6 +172,1259 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 add_action( 'wp_initialize_site', array( $this, 'handle_new_site_initialization' ), 10, 2 );
                 add_action( 'wpmu_new_blog', array( $this, 'handle_new_site_legacy' ), 10, 6 );
             }
+        }
+
+        /**
+         * Maybe regenerate the privacy and cookie policies when the site changes.
+         *
+         * @param bool $force Whether to force regeneration even if no changes are detected.
+         */
+        public function maybe_generate_legal_documents( $force = false ) {
+            if ( ! is_blog_installed() ) {
+                return;
+            }
+
+            if ( ! apply_filters( 'fp_privacy_enable_auto_generation', true ) ) {
+                return;
+            }
+
+            if ( ! $force && function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() ) {
+                return;
+            }
+
+            $settings = $this->get_settings();
+
+            if ( isset( $settings['auto_generate'] ) && ! $settings['auto_generate'] && ! $force ) {
+                return;
+            }
+
+            $snapshot      = $this->get_site_snapshot( $settings );
+            $snapshot_hash = md5( wp_json_encode( $snapshot ) );
+            $previous_hash = get_option( self::GENERATION_HASH_OPTION, '' );
+
+            if ( ! $force && $snapshot_hash === $previous_hash ) {
+                return;
+            }
+
+            $previous_snapshot = get_option( self::GENERATION_SNAPSHOT_OPTION, array() );
+
+            if ( ! is_array( $previous_snapshot ) ) {
+                $previous_snapshot = array();
+            }
+
+            $changes   = $this->diff_snapshots( $previous_snapshot, $snapshot );
+            $timestamp = current_time( 'timestamp' );
+
+            $documents = $this->generate_legal_documents( $snapshot, $changes, $timestamp );
+
+            if ( empty( $documents['privacy']['it'] ) || empty( $documents['cookie']['it'] ) ) {
+                return;
+            }
+
+            $settings['privacy_policy_content'] = $documents['privacy']['it'];
+            $settings['cookie_policy_content']  = $documents['cookie']['it'];
+            $settings['auto_generate']          = true;
+
+            if ( ! isset( $settings['translations'] ) || ! is_array( $settings['translations'] ) ) {
+                $settings['translations'] = array();
+            }
+
+            if ( ! isset( $settings['translations']['en'] ) || ! is_array( $settings['translations']['en'] ) ) {
+                $settings['translations']['en'] = array();
+            }
+
+            $settings['translations']['en']['privacy_policy_content'] = $documents['privacy']['en'];
+            $settings['translations']['en']['cookie_policy_content']  = $documents['cookie']['en'];
+
+            update_option( self::OPTION_KEY, $settings );
+            update_option( self::GENERATION_HASH_OPTION, $snapshot_hash );
+            update_option( self::GENERATION_SNAPSHOT_OPTION, $snapshot );
+            update_option( self::GENERATION_TIME_OPTION, $timestamp );
+
+            $this->localized_cache = array();
+
+            $this->ensure_policy_pages_exist();
+
+            do_action( 'fp_privacy_documents_regenerated', $snapshot, $changes, $timestamp );
+        }
+
+        /**
+         * Generate the privacy and cookie policy documents for supported languages.
+         *
+         * @param array $snapshot  Snapshot of the current site configuration.
+         * @param array $changes   Differences detected since the previous snapshot.
+         * @param int   $timestamp Generation timestamp.
+         *
+         * @return array{
+         *     privacy: array<string,string>,
+         *     cookie: array<string,string>
+         * }
+         */
+        protected function generate_legal_documents( array $snapshot, array $changes, $timestamp ) {
+            $privacy_it = $this->generate_privacy_policy_document( $snapshot, $changes, $timestamp, self::DEFAULT_LANGUAGE );
+            $privacy_en = $this->generate_privacy_policy_document( $snapshot, $changes, $timestamp, 'en' );
+            $cookie_it  = $this->generate_cookie_policy_document( $snapshot, $changes, $timestamp, self::DEFAULT_LANGUAGE );
+            $cookie_en  = $this->generate_cookie_policy_document( $snapshot, $changes, $timestamp, 'en' );
+
+            $privacy_it = apply_filters( 'fp_privacy_generated_privacy_policy', $privacy_it, $snapshot, $changes, $timestamp, self::DEFAULT_LANGUAGE );
+            $privacy_en = apply_filters( 'fp_privacy_generated_privacy_policy', $privacy_en, $snapshot, $changes, $timestamp, 'en' );
+            $cookie_it  = apply_filters( 'fp_privacy_generated_cookie_policy', $cookie_it, $snapshot, $changes, $timestamp, self::DEFAULT_LANGUAGE );
+            $cookie_en  = apply_filters( 'fp_privacy_generated_cookie_policy', $cookie_en, $snapshot, $changes, $timestamp, 'en' );
+
+            return array(
+                'privacy' => array(
+                    'it' => $this->sanitize_generated_html( $privacy_it ),
+                    'en' => $this->sanitize_generated_html( $privacy_en ),
+                ),
+                'cookie'  => array(
+                    'it' => $this->sanitize_generated_html( $cookie_it ),
+                    'en' => $this->sanitize_generated_html( $cookie_en ),
+                ),
+            );
+        }
+
+        /**
+         * Build the privacy policy document for a specific language.
+         *
+         * @param array  $snapshot  Site snapshot.
+         * @param array  $changes   Detected changes.
+         * @param int    $timestamp Generation timestamp.
+         * @param string $language  Target language code.
+         *
+         * @return string
+         */
+        protected function generate_privacy_policy_document( array $snapshot, array $changes, $timestamp, $language ) {
+            $strings        = $this->get_auto_policy_strings( $language );
+            $shared         = isset( $strings['shared'] ) ? $strings['shared'] : array();
+            $privacy        = isset( $strings['privacy'] ) ? $strings['privacy'] : array();
+            $change_items   = $this->build_changes_list( $changes, $strings );
+            $datetime_parts = $this->get_generation_datetime_parts( $timestamp );
+            $site           = isset( $snapshot['site'] ) && is_array( $snapshot['site'] ) ? $snapshot['site'] : array();
+            $theme          = isset( $snapshot['theme'] ) && is_array( $snapshot['theme'] ) ? $snapshot['theme'] : array();
+            $content        = isset( $snapshot['content'] ) && is_array( $snapshot['content'] ) ? $snapshot['content'] : array();
+            $plugins        = isset( $snapshot['plugins'] ) && is_array( $snapshot['plugins'] ) ? $snapshot['plugins'] : array();
+            $consent        = isset( $snapshot['consent'] ) && is_array( $snapshot['consent'] ) ? $snapshot['consent'] : array();
+
+            $html = '';
+
+            if ( ! empty( $privacy['title'] ) ) {
+                $html .= '<h2>' . esc_html( $privacy['title'] ) . '</h2>';
+            }
+
+            $generated_template = isset( $shared['generated_on'] ) ? $shared['generated_on'] : '%1$s %2$s';
+            $generated_text     = sprintf( $generated_template, $datetime_parts['date'], $datetime_parts['time'] );
+            $html              .= '<p><em>' . esc_html( $generated_text ) . '</em></p>';
+
+            if ( ! empty( $privacy['data_intro'] ) ) {
+                $html .= '<p>' . esc_html( $privacy['data_intro'] ) . '</p>';
+            }
+
+            $controller_items = array();
+            $controller_labels = isset( $shared['controller_labels'] ) && is_array( $shared['controller_labels'] ) ? $shared['controller_labels'] : array();
+
+            if ( ! empty( $site['name'] ) && ! empty( $controller_labels['name'] ) ) {
+                $controller_items[] = '<li><strong>' . esc_html( $controller_labels['name'] ) . ':</strong> ' . esc_html( $site['name'] ) . '</li>';
+            }
+
+            if ( ! empty( $site['url'] ) && ! empty( $controller_labels['url'] ) ) {
+                $controller_items[] = '<li><strong>' . esc_html( $controller_labels['url'] ) . ':</strong> ' . esc_html( $site['url'] ) . '</li>';
+            }
+
+            if ( ! empty( $site['admin_email'] ) && ! empty( $controller_labels['email'] ) ) {
+                $controller_items[] = '<li><strong>' . esc_html( $controller_labels['email'] ) . ':</strong> ' . esc_html( $site['admin_email'] ) . '</li>';
+            }
+
+            if ( ! empty( $site['description'] ) && ! empty( $controller_labels['description'] ) ) {
+                $controller_items[] = '<li><strong>' . esc_html( $controller_labels['description'] ) . ':</strong> ' . esc_html( $site['description'] ) . '</li>';
+            }
+
+            if ( ! empty( $site['language'] ) && ! empty( $controller_labels['language'] ) ) {
+                $controller_items[] = '<li><strong>' . esc_html( $controller_labels['language'] ) . ':</strong> ' . esc_html( $site['language'] ) . '</li>';
+            }
+
+            if ( ! empty( $site['timezone'] ) && ! empty( $controller_labels['timezone'] ) ) {
+                $controller_items[] = '<li><strong>' . esc_html( $controller_labels['timezone'] ) . ':</strong> ' . esc_html( $this->format_timezone_value( $site['timezone'] ) ) . '</li>';
+            }
+
+            if ( ! empty( $shared['controller_heading'] ) ) {
+                $html .= '<h3>' . esc_html( $shared['controller_heading'] ) . '</h3>';
+            }
+
+            if ( ! empty( $shared['controller_intro'] ) ) {
+                $html .= '<p>' . esc_html( $shared['controller_intro'] ) . '</p>';
+            }
+
+            if ( ! empty( $controller_items ) ) {
+                $html .= '<ul>' . implode( '', $controller_items ) . '</ul>';
+            }
+
+            if ( ! empty( $change_items ) && ! empty( $strings['changes']['heading'] ) ) {
+                $html .= '<h3>' . esc_html( $strings['changes']['heading'] ) . '</h3>';
+                $changes_markup = array();
+
+                foreach ( $change_items as $item ) {
+                    $text            = vsprintf( $item['text'], $item['args'] );
+                    $changes_markup[] = '<li>' . esc_html( $text ) . '</li>';
+                }
+
+                if ( $changes_markup ) {
+                    $html .= '<ul>' . implode( '', $changes_markup ) . '</ul>';
+                }
+            }
+
+            if ( ! empty( $shared['theme_heading'] ) ) {
+                $html .= '<h3>' . esc_html( $shared['theme_heading'] ) . '</h3>';
+            }
+
+            $theme_items = array();
+
+            if ( ! empty( $theme['name'] ) && ! empty( $shared['theme_active'] ) ) {
+                $theme_items[] = '<li>' . sprintf( esc_html( $shared['theme_active'] ), esc_html( $theme['name'] ) ) . '</li>';
+            }
+
+            if ( ! empty( $theme['version'] ) && ! empty( $shared['theme_version'] ) ) {
+                $theme_items[] = '<li>' . sprintf( esc_html( $shared['theme_version'] ), esc_html( $theme['version'] ) ) . '</li>';
+            }
+
+            if ( ! empty( $theme['parent'] ) && ! empty( $shared['theme_child_of'] ) ) {
+                $theme_items[] = '<li>' . sprintf( esc_html( $shared['theme_child_of'] ), esc_html( $theme['parent'] ) ) . '</li>';
+            }
+
+            if ( $theme_items ) {
+                $html .= '<ul>' . implode( '', $theme_items ) . '</ul>';
+            }
+
+            if ( ! empty( $shared['content_heading'] ) ) {
+                $html .= '<h3>' . esc_html( $shared['content_heading'] ) . '</h3>';
+            }
+
+            if ( ! empty( $shared['content_intro'] ) ) {
+                $html .= '<p>' . esc_html( $shared['content_intro'] ) . '</p>';
+            }
+
+            $content_items  = array();
+            $content_counts = isset( $content['counts'] ) && is_array( $content['counts'] ) ? $content['counts'] : array();
+            $content_labels = isset( $shared['content_labels'] ) && is_array( $shared['content_labels'] ) ? $shared['content_labels'] : array();
+
+            foreach ( $content_labels as $key => $label ) {
+                if ( isset( $content_counts[ $key ] ) ) {
+                    $content_items[] = '<li><strong>' . esc_html( $label ) . ':</strong> ' . esc_html( number_format_i18n( (int) $content_counts[ $key ] ) ) . '</li>';
+                }
+            }
+
+            if ( ! empty( $content['custom_post_types'] ) && ! empty( $shared['content_custom_post_types_label'] ) ) {
+                $custom_types = implode( ', ', array_map( 'sanitize_text_field', array_values( $content['custom_post_types'] ) ) );
+                if ( $custom_types ) {
+                    $content_items[] = '<li><strong>' . esc_html( $shared['content_custom_post_types_label'] ) . ':</strong> ' . esc_html( $custom_types ) . '</li>';
+                }
+            }
+
+            if ( $content_items ) {
+                $html .= '<ul>' . implode( '', $content_items ) . '</ul>';
+            }
+
+            if ( ! empty( $privacy['plugin_heading'] ) ) {
+                $html .= '<h3>' . esc_html( $privacy['plugin_heading'] ) . '</h3>';
+            }
+
+            if ( ! empty( $privacy['plugin_intro'] ) ) {
+                $html .= '<p>' . esc_html( $privacy['plugin_intro'] ) . '</p>';
+            }
+
+            if ( ! empty( $plugins ) ) {
+                $plugin_markup = array();
+
+                foreach ( $plugins as $plugin ) {
+                    $entry  = '<li><strong>' . esc_html( isset( $plugin['name'] ) ? $plugin['name'] : '' ) . '</strong>';
+
+                    if ( ! empty( $plugin['version'] ) && ! empty( $shared['plugin_version_format'] ) ) {
+                        $version_text = sprintf( $shared['plugin_version_format'], $plugin['version'] );
+                        $entry       .= ' <em>' . esc_html( $version_text ) . '</em>';
+                    }
+
+                    if ( ! empty( $plugin['description'] ) ) {
+                        $entry .= '<br />' . esc_html( $plugin['description'] );
+                    }
+
+                    if ( ! empty( $plugin['url'] ) && ! empty( $shared['plugins_link_label'] ) ) {
+                        $entry .= '<br /><a href="' . esc_url( $plugin['url'] ) . '" target="_blank" rel="noopener noreferrer nofollow">' . esc_html( $shared['plugins_link_label'] ) . '</a>';
+                    }
+
+                    $tag_text = '';
+                    if ( ! empty( $plugin['tags'] ) && ! empty( $strings['tags'] ) && is_array( $strings['tags'] ) ) {
+                        $tag_text = $this->format_plugin_tags( $plugin['tags'], $strings['tags'] );
+                    }
+
+                    if ( $tag_text && ! empty( $shared['plugins_tags_format'] ) && ! empty( $shared['plugins_tags_label'] ) ) {
+                        $tag_sentence = sprintf( $shared['plugins_tags_format'], $shared['plugins_tags_label'], $tag_text );
+                        $entry       .= '<br /><em>' . esc_html( $tag_sentence ) . '</em>';
+                    }
+
+                    $entry          .= '</li>';
+                    $plugin_markup[] = $entry;
+                }
+
+                if ( $plugin_markup ) {
+                    $html .= '<ul>' . implode( '', $plugin_markup ) . '</ul>';
+                }
+            }
+
+            if ( ! empty( $shared['plugins_review_hint'] ) ) {
+                $html .= '<p><em>' . esc_html( $shared['plugins_review_hint'] ) . '</em></p>';
+            }
+
+            if ( ! empty( $privacy['rights'] ) ) {
+                $html .= '<p><em>' . esc_html( $privacy['rights'] ) . '</em></p>';
+            }
+
+            if ( ! empty( $privacy['consent_heading'] ) ) {
+                $html .= '<h3>' . esc_html( $privacy['consent_heading'] ) . '</h3>';
+            }
+
+            $retention_days = isset( $consent['retention_days'] ) ? (int) $consent['retention_days'] : 0;
+            $retention_text = $retention_days > 0 ? number_format_i18n( $retention_days ) : ( isset( $shared['consent_unlimited'] ) ? $shared['consent_unlimited'] : '0' );
+
+            if ( ! empty( $privacy['consent_description'] ) ) {
+                $html .= '<p>' . sprintf( esc_html( $privacy['consent_description'] ), esc_html( self::CONSENT_COOKIE ), esc_html( $retention_text ) ) . '</p>';
+            }
+
+            return $html;
+        }
+
+        /**
+         * Build the cookie policy document for a specific language.
+         *
+         * @param array  $snapshot  Site snapshot.
+         * @param array  $changes   Detected changes.
+         * @param int    $timestamp Generation timestamp.
+         * @param string $language  Target language code.
+         *
+         * @return string
+         */
+        protected function generate_cookie_policy_document( array $snapshot, array $changes, $timestamp, $language ) {
+            $strings        = $this->get_auto_policy_strings( $language );
+            $shared         = isset( $strings['shared'] ) ? $strings['shared'] : array();
+            $cookie         = isset( $strings['cookie'] ) ? $strings['cookie'] : array();
+            $change_items   = $this->build_changes_list( $changes, $strings );
+            $datetime_parts = $this->get_generation_datetime_parts( $timestamp );
+            $categories     = isset( $snapshot['cookie_categories'] ) && is_array( $snapshot['cookie_categories'] ) ? $snapshot['cookie_categories'] : array();
+            $plugins        = isset( $snapshot['plugins'] ) && is_array( $snapshot['plugins'] ) ? $snapshot['plugins'] : array();
+            $consent        = isset( $snapshot['consent'] ) && is_array( $snapshot['consent'] ) ? $snapshot['consent'] : array();
+
+            $relevant_tags  = array( 'analytics', 'marketing', 'cookie', 'form', 'social', 'ecommerce' );
+            $cookie_plugins = array();
+
+            foreach ( $plugins as $plugin_key => $plugin ) {
+                $plugin_tags = isset( $plugin['tags'] ) && is_array( $plugin['tags'] ) ? $plugin['tags'] : array();
+
+                if ( array_intersect( $plugin_tags, $relevant_tags ) ) {
+                    $cookie_plugins[ $plugin_key ] = $plugin;
+                }
+            }
+
+            if ( empty( $cookie_plugins ) ) {
+                $cookie_plugins = $plugins;
+            }
+
+            $html = '';
+
+            if ( ! empty( $cookie['title'] ) ) {
+                $html .= '<h2>' . esc_html( $cookie['title'] ) . '</h2>';
+            }
+
+            $generated_template = isset( $shared['generated_on'] ) ? $shared['generated_on'] : '%1$s %2$s';
+            $generated_text     = sprintf( $generated_template, $datetime_parts['date'], $datetime_parts['time'] );
+            $html              .= '<p><em>' . esc_html( $generated_text ) . '</em></p>';
+
+            if ( ! empty( $cookie['intro'] ) ) {
+                $html .= '<p>' . esc_html( $cookie['intro'] ) . '</p>';
+            }
+
+            if ( ! empty( $change_items ) && ! empty( $strings['changes']['heading'] ) ) {
+                $html .= '<h3>' . esc_html( $strings['changes']['heading'] ) . '</h3>';
+                $changes_markup = array();
+
+                foreach ( $change_items as $item ) {
+                    $text            = vsprintf( $item['text'], $item['args'] );
+                    $changes_markup[] = '<li>' . esc_html( $text ) . '</li>';
+                }
+
+                if ( $changes_markup ) {
+                    $html .= '<ul>' . implode( '', $changes_markup ) . '</ul>';
+                }
+            }
+
+            if ( ! empty( $cookie['categories_heading'] ) ) {
+                $html .= '<h3>' . esc_html( $cookie['categories_heading'] ) . '</h3>';
+            }
+
+            if ( ! empty( $cookie['categories_intro'] ) ) {
+                $html .= '<p>' . esc_html( $cookie['categories_intro'] ) . '</p>';
+            }
+
+            if ( ! empty( $categories ) ) {
+                $category_markup = array();
+
+                foreach ( $categories as $category ) {
+                    $entry = '<li><strong>' . esc_html( isset( $category['label'] ) ? $category['label'] : '' ) . '</strong>';
+
+                    if ( ! empty( $category['description'] ) ) {
+                        $entry .= '<br />' . esc_html( $category['description'] );
+                    }
+
+                    if ( ! empty( $category['services'] ) && ! empty( $cookie['category_services_label'] ) ) {
+                        $entry .= '<br /><em>' . esc_html( $cookie['category_services_label'] ) . ':</em> ' . wp_kses( nl2br( esc_html( $category['services'] ) ), array( 'br' => array() ) );
+                    }
+
+                    if ( ! empty( $category['required'] ) && ! empty( $cookie['category_required_label'] ) ) {
+                        $entry .= '<br /><em>' . esc_html( $cookie['category_required_label'] ) . '</em>';
+                    }
+
+                    $entry             .= '</li>';
+                    $category_markup[] = $entry;
+                }
+
+                if ( $category_markup ) {
+                    $html .= '<ul>' . implode( '', $category_markup ) . '</ul>';
+                }
+            }
+
+            if ( ! empty( $cookie['plugin_heading'] ) ) {
+                $html .= '<h3>' . esc_html( $cookie['plugin_heading'] ) . '</h3>';
+            }
+
+            if ( ! empty( $cookie['plugin_intro'] ) ) {
+                $html .= '<p>' . esc_html( $cookie['plugin_intro'] ) . '</p>';
+            }
+
+            if ( ! empty( $cookie_plugins ) ) {
+                $plugin_markup = array();
+
+                foreach ( $cookie_plugins as $plugin ) {
+                    $entry = '<li><strong>' . esc_html( isset( $plugin['name'] ) ? $plugin['name'] : '' ) . '</strong>';
+
+                    if ( ! empty( $plugin['description'] ) ) {
+                        $entry .= '<br />' . esc_html( $plugin['description'] );
+                    }
+
+                    $tag_text = '';
+                    if ( ! empty( $plugin['tags'] ) && ! empty( $strings['tags'] ) && is_array( $strings['tags'] ) ) {
+                        $tag_text = $this->format_plugin_tags( $plugin['tags'], $strings['tags'] );
+                    }
+
+                    if ( $tag_text && ! empty( $shared['plugins_tags_format'] ) && ! empty( $shared['plugins_tags_label'] ) ) {
+                        $tag_sentence = sprintf( $shared['plugins_tags_format'], $shared['plugins_tags_label'], $tag_text );
+                        $entry       .= '<br /><em>' . esc_html( $tag_sentence ) . '</em>';
+                    }
+
+                    $entry          .= '</li>';
+                    $plugin_markup[] = $entry;
+                }
+
+                if ( $plugin_markup ) {
+                    $html .= '<ul>' . implode( '', $plugin_markup ) . '</ul>';
+                }
+            }
+
+            if ( ! empty( $shared['plugins_review_hint'] ) ) {
+                $html .= '<p><em>' . esc_html( $shared['plugins_review_hint'] ) . '</em></p>';
+            }
+
+            if ( ! empty( $cookie['consent_heading'] ) ) {
+                $html .= '<h3>' . esc_html( $cookie['consent_heading'] ) . '</h3>';
+            }
+
+            $cookie_days      = isset( $consent['cookie_days'] ) ? (int) $consent['cookie_days'] : 0;
+            $cookie_days_text = $cookie_days > 0 ? number_format_i18n( $cookie_days ) : ( isset( $shared['cookie_duration_unlimited'] ) ? $shared['cookie_duration_unlimited'] : '0' );
+
+            if ( ! empty( $cookie['consent_description'] ) ) {
+                $html .= '<p>' . sprintf( esc_html( $cookie['consent_description'] ), esc_html( self::CONSENT_COOKIE ), esc_html( $cookie_days_text ) ) . '</p>';
+            }
+
+            return $html;
+        }
+
+        /**
+         * Build the list of textual changes to display in the generated documents.
+         *
+         * @param array $changes Detected changes.
+         * @param array $strings Localised strings.
+         *
+         * @return array<int, array{text:string,args:array<int,string>}>
+         */
+        protected function build_changes_list( array $changes, array $strings ) {
+            $items          = array();
+            $change_strings = isset( $strings['changes'] ) && is_array( $strings['changes'] ) ? $strings['changes'] : array();
+
+            if ( empty( $changes ) || empty( $change_strings ) ) {
+                return $items;
+            }
+
+            if ( ! empty( $changes['plugins_added'] ) && ! empty( $change_strings['plugins_added'] ) ) {
+                $names = $this->extract_plugin_names( $changes['plugins_added'] );
+                if ( ! empty( $names ) ) {
+                    $items[] = array(
+                        'text' => $change_strings['plugins_added'],
+                        'args' => array( implode( ', ', $names ) ),
+                    );
+                }
+            }
+
+            if ( ! empty( $changes['plugins_removed'] ) && ! empty( $change_strings['plugins_removed'] ) ) {
+                $names = $this->extract_plugin_names( $changes['plugins_removed'] );
+                if ( ! empty( $names ) ) {
+                    $items[] = array(
+                        'text' => $change_strings['plugins_removed'],
+                        'args' => array( implode( ', ', $names ) ),
+                    );
+                }
+            }
+
+            if ( ! empty( $changes['theme'] ) && ! empty( $change_strings['theme'] ) ) {
+                $previous_theme = isset( $changes['theme']['previous'] ) && is_array( $changes['theme']['previous'] ) ? $changes['theme']['previous'] : array();
+                $current_theme  = isset( $changes['theme']['current'] ) && is_array( $changes['theme']['current'] ) ? $changes['theme']['current'] : array();
+
+                $items[] = array(
+                    'text' => $change_strings['theme'],
+                    'args' => array(
+                        $this->format_theme_name( $previous_theme ),
+                        $this->format_theme_name( $current_theme ),
+                    ),
+                );
+            }
+
+            if ( ! empty( $changes['custom_post_types_added'] ) && ! empty( $change_strings['post_types_added'] ) ) {
+                $items[] = array(
+                    'text' => $change_strings['post_types_added'],
+                    'args' => array( implode( ', ', array_map( 'sanitize_text_field', $changes['custom_post_types_added'] ) ) ),
+                );
+            }
+
+            if ( ! empty( $changes['custom_post_types_removed'] ) && ! empty( $change_strings['post_types_removed'] ) ) {
+                $items[] = array(
+                    'text' => $change_strings['post_types_removed'],
+                    'args' => array( implode( ', ', array_map( 'sanitize_text_field', $changes['custom_post_types_removed'] ) ) ),
+                );
+            }
+
+            if ( ! empty( $changes['counts'] ) && ! empty( $change_strings['counts'] ) ) {
+                $labels = isset( $strings['shared']['content_labels'] ) && is_array( $strings['shared']['content_labels'] ) ? $strings['shared']['content_labels'] : array();
+
+                foreach ( $changes['counts'] as $key => $data ) {
+                    $label = isset( $labels[ $key ] ) ? $labels[ $key ] : ucfirst( (string) $key );
+                    $prev  = isset( $data['previous'] ) ? number_format_i18n( (int) $data['previous'] ) : '0';
+                    $curr  = isset( $data['current'] ) ? number_format_i18n( (int) $data['current'] ) : '0';
+
+                    $items[] = array(
+                        'text' => $change_strings['counts'],
+                        'args' => array( $label, $prev, $curr ),
+                    );
+                }
+            }
+
+            if ( ! empty( $changes['consent'] ) ) {
+                if ( ! empty( $changes['consent']['cookie_days'] ) && ! empty( $change_strings['consent_cookie'] ) ) {
+                    $items[] = array(
+                        'text' => $change_strings['consent_cookie'],
+                        'args' => array(
+                            number_format_i18n( (int) $changes['consent']['cookie_days']['previous'] ),
+                            number_format_i18n( (int) $changes['consent']['cookie_days']['current'] ),
+                        ),
+                    );
+                }
+
+                if ( ! empty( $changes['consent']['retention_days'] ) && ! empty( $change_strings['consent_retention'] ) ) {
+                    $items[] = array(
+                        'text' => $change_strings['consent_retention'],
+                        'args' => array(
+                            number_format_i18n( (int) $changes['consent']['retention_days']['previous'] ),
+                            number_format_i18n( (int) $changes['consent']['retention_days']['current'] ),
+                        ),
+                    );
+                }
+            }
+
+            return $items;
+        }
+
+        /**
+         * Extract plugin names from the given entries.
+         *
+         * @param array $plugins Plugin entries.
+         *
+         * @return array
+         */
+        protected function extract_plugin_names( array $plugins ) {
+            $names = array();
+
+            foreach ( $plugins as $plugin ) {
+                if ( isset( $plugin['name'] ) ) {
+                    $names[] = sanitize_text_field( $plugin['name'] );
+                }
+            }
+
+            return $names;
+        }
+
+        /**
+         * Format a theme label with version information when available.
+         *
+         * @param array $theme Theme data.
+         *
+         * @return string
+         */
+        protected function format_theme_name( array $theme ) {
+            $name    = isset( $theme['name'] ) ? sanitize_text_field( $theme['name'] ) : '';
+            $version = isset( $theme['version'] ) ? sanitize_text_field( $theme['version'] ) : '';
+
+            if ( $name && $version ) {
+                return sprintf( '%1$s (%2$s)', $name, $version );
+            }
+
+            if ( $name ) {
+                return $name;
+            }
+
+            if ( $version ) {
+                return $version;
+            }
+
+            return '';
+        }
+
+        /**
+         * Build a snapshot of the current site configuration.
+         *
+         * @param array|null $settings Optional plugin settings.
+         *
+         * @return array
+         */
+        protected function get_site_snapshot( ?array $settings = null ) {
+            if ( null === $settings ) {
+                $settings = $this->get_settings();
+            }
+
+            $site = array(
+                'name'        => get_bloginfo( 'name' ),
+                'description' => get_bloginfo( 'description' ),
+                'url'         => home_url(),
+                'admin_email' => get_bloginfo( 'admin_email' ),
+                'language'    => get_bloginfo( 'language' ),
+                'timezone'    => get_option( 'timezone_string', get_option( 'gmt_offset', 'UTC' ) ),
+            );
+
+            $theme      = wp_get_theme();
+            $parent     = $theme->parent();
+            $theme_data = array(
+                'name'       => $theme->get( 'Name' ),
+                'version'    => $theme->get( 'Version' ),
+                'stylesheet' => $theme->get_stylesheet(),
+                'template'   => $theme->get_template(),
+                'parent'     => $parent ? $parent->get( 'Name' ) : '',
+                'parent_ver' => $parent ? $parent->get( 'Version' ) : '',
+            );
+
+            $post_counts    = wp_count_posts( 'post' );
+            $page_counts    = wp_count_posts( 'page' );
+            $comment_counts = wp_count_comments();
+            $user_totals    = count_users();
+            $custom_post_map = array();
+            $custom_posts    = get_post_types(
+                array(
+                    'public'   => true,
+                    '_builtin' => false,
+                ),
+                'objects'
+            );
+
+            foreach ( $custom_posts as $post_type ) {
+                if ( class_exists( 'WP_Post_Type' ) && $post_type instanceof WP_Post_Type ) {
+                    $label = $post_type->labels && ! empty( $post_type->labels->name ) ? $post_type->labels->name : $post_type->name;
+                    $custom_post_map[ $post_type->name ] = $label;
+                }
+            }
+
+            ksort( $custom_post_map );
+
+            $content = array(
+                'counts' => array(
+                    'posts'    => isset( $post_counts->publish ) ? (int) $post_counts->publish : 0,
+                    'pages'    => isset( $page_counts->publish ) ? (int) $page_counts->publish : 0,
+                    'comments' => isset( $comment_counts['approved'] ) ? (int) $comment_counts['approved'] : 0,
+                    'users'    => isset( $user_totals['total_users'] ) ? (int) $user_totals['total_users'] : 0,
+                ),
+                'custom_post_types' => $custom_post_map,
+            );
+
+            $categories = array();
+
+            if ( isset( $settings['categories'] ) && is_array( $settings['categories'] ) ) {
+                foreach ( $settings['categories'] as $key => $category ) {
+                    $categories[ $key ] = array(
+                        'label'       => isset( $category['label'] ) ? sanitize_text_field( $category['label'] ) : '',
+                        'description' => isset( $category['description'] ) ? wp_strip_all_tags( $category['description'] ) : '',
+                        'services'    => isset( $category['services'] ) ? sanitize_textarea_field( $category['services'] ) : '',
+                        'required'    => ! empty( $category['required'] ),
+                        'enabled'     => ! empty( $category['enabled'] ),
+                    );
+                }
+
+                ksort( $categories );
+            }
+
+            $consent = array(
+                'cookie_days'    => isset( $settings['consent_cookie_days'] ) ? (int) $settings['consent_cookie_days'] : 0,
+                'retention_days' => isset( $settings['retention_days'] ) ? (int) $settings['retention_days'] : 0,
+            );
+
+            $snapshot = array(
+                'site'              => $site,
+                'theme'             => $theme_data,
+                'content'           => $content,
+                'plugins'           => $this->gather_active_plugins(),
+                'cookie_categories' => $categories,
+                'consent'           => $consent,
+            );
+
+            return apply_filters( 'fp_privacy_site_snapshot', $snapshot, $settings );
+        }
+
+        /**
+         * Determine the differences between two snapshots.
+         *
+         * @param array $previous Previous snapshot.
+         * @param array $current  Current snapshot.
+         *
+         * @return array
+         */
+        protected function diff_snapshots( array $previous, array $current ) {
+            $changes          = array();
+            $previous_plugins = isset( $previous['plugins'] ) && is_array( $previous['plugins'] ) ? $previous['plugins'] : array();
+            $current_plugins  = isset( $current['plugins'] ) && is_array( $current['plugins'] ) ? $current['plugins'] : array();
+
+            $added_plugins = array_diff_key( $current_plugins, $previous_plugins );
+            if ( ! empty( $added_plugins ) ) {
+                $changes['plugins_added'] = array_values( $added_plugins );
+            }
+
+            $removed_plugins = array_diff_key( $previous_plugins, $current_plugins );
+            if ( ! empty( $removed_plugins ) ) {
+                $changes['plugins_removed'] = array_values( $removed_plugins );
+            }
+
+            $previous_theme = isset( $previous['theme'] ) && is_array( $previous['theme'] ) ? $previous['theme'] : array();
+            $current_theme  = isset( $current['theme'] ) && is_array( $current['theme'] ) ? $current['theme'] : array();
+
+            if ( $previous_theme !== $current_theme && ( ! empty( $previous_theme ) || ! empty( $current_theme ) ) ) {
+                $changes['theme'] = array(
+                    'previous' => $previous_theme,
+                    'current'  => $current_theme,
+                );
+            }
+
+            $previous_cpts = isset( $previous['content']['custom_post_types'] ) && is_array( $previous['content']['custom_post_types'] ) ? $previous['content']['custom_post_types'] : array();
+            $current_cpts  = isset( $current['content']['custom_post_types'] ) && is_array( $current['content']['custom_post_types'] ) ? $current['content']['custom_post_types'] : array();
+
+            $added_cpts = array_diff_key( $current_cpts, $previous_cpts );
+            if ( ! empty( $added_cpts ) ) {
+                $changes['custom_post_types_added'] = array_values( $added_cpts );
+            }
+
+            $removed_cpts = array_diff_key( $previous_cpts, $current_cpts );
+            if ( ! empty( $removed_cpts ) ) {
+                $changes['custom_post_types_removed'] = array_values( $removed_cpts );
+            }
+
+            $previous_counts = isset( $previous['content']['counts'] ) && is_array( $previous['content']['counts'] ) ? $previous['content']['counts'] : array();
+            $current_counts  = isset( $current['content']['counts'] ) && is_array( $current['content']['counts'] ) ? $current['content']['counts'] : array();
+
+            foreach ( $current_counts as $key => $value ) {
+                $prev = isset( $previous_counts[ $key ] ) ? (int) $previous_counts[ $key ] : 0;
+                $curr = (int) $value;
+
+                if ( $prev !== $curr ) {
+                    if ( ! isset( $changes['counts'] ) ) {
+                        $changes['counts'] = array();
+                    }
+
+                    $changes['counts'][ $key ] = array(
+                        'previous' => $prev,
+                        'current'  => $curr,
+                    );
+                }
+            }
+
+            $previous_consent = isset( $previous['consent'] ) && is_array( $previous['consent'] ) ? $previous['consent'] : array();
+            $current_consent  = isset( $current['consent'] ) && is_array( $current['consent'] ) ? $current['consent'] : array();
+
+            foreach ( array( 'cookie_days', 'retention_days' ) as $key ) {
+                $prev = isset( $previous_consent[ $key ] ) ? (int) $previous_consent[ $key ] : 0;
+                $curr = isset( $current_consent[ $key ] ) ? (int) $current_consent[ $key ] : 0;
+
+                if ( $prev !== $curr ) {
+                    if ( ! isset( $changes['consent'] ) ) {
+                        $changes['consent'] = array();
+                    }
+
+                    $changes['consent'][ $key ] = array(
+                        'previous' => $prev,
+                        'current'  => $curr,
+                    );
+                }
+            }
+
+            return $changes;
+        }
+
+        /**
+         * Gather metadata about active plugins.
+         *
+         * @return array
+         */
+        protected function gather_active_plugins() {
+            if ( ! function_exists( 'get_plugin_data' ) ) {
+                require_once ABSPATH . 'wp-admin/includes/plugin.php';
+            }
+
+            $active_plugins = (array) get_option( 'active_plugins', array() );
+
+            if ( is_multisite() ) {
+                $network_plugins = (array) get_site_option( 'active_sitewide_plugins', array() );
+                $active_plugins  = array_merge( $active_plugins, array_keys( $network_plugins ) );
+            }
+
+            $active_plugins = array_unique( $active_plugins );
+            sort( $active_plugins );
+
+            $plugins = array();
+
+            foreach ( $active_plugins as $plugin_file ) {
+                $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_file;
+
+                if ( ! file_exists( $plugin_path ) ) {
+                    continue;
+                }
+
+                $data = get_plugin_data( $plugin_path, false, false );
+
+                $plugins[ $plugin_file ] = array(
+                    'name'        => isset( $data['Name'] ) ? $data['Name'] : $plugin_file,
+                    'version'     => isset( $data['Version'] ) ? $data['Version'] : '',
+                    'description' => isset( $data['Description'] ) ? wp_strip_all_tags( $data['Description'] ) : '',
+                    'url'         => isset( $data['PluginURI'] ) ? $data['PluginURI'] : '',
+                    'tags'        => $this->classify_plugin_tags( $data ),
+                );
+            }
+
+            return apply_filters( 'fp_privacy_detected_plugins', $plugins );
+        }
+
+        /**
+         * Heuristically classify plugins to help contextualise their role in the legal documents.
+         *
+         * @param array $plugin_data Plugin metadata returned by get_plugin_data().
+         *
+         * @return array
+         */
+        protected function classify_plugin_tags( array $plugin_data ) {
+            $text = strtolower( implode( ' ', array(
+                isset( $plugin_data['Name'] ) ? $plugin_data['Name'] : '',
+                isset( $plugin_data['Description'] ) ? $plugin_data['Description'] : '',
+            ) ) );
+
+            $map = array(
+                'analytics'   => array( 'analytics', 'statistic', 'tracking', 'matomo', 'ga4', 'gtag', 'measure' ),
+                'marketing'   => array( 'ads', 'advert', 'remarketing', 'pixel', 'conversion', 'campaign', 'adsense', 'facebook', 'meta', 'tiktok' ),
+                'form'        => array( 'form', 'newsletter', 'mail', 'contact', 'gravity forms', 'mailchimp', 'survey' ),
+                'security'    => array( 'security', 'captcha', 'antispam', 'firewall', 'protection' ),
+                'ecommerce'   => array( 'commerce', 'woocommerce', 'shop', 'store', 'cart', 'checkout', 'payment' ),
+                'social'      => array( 'social', 'share', 'instagram', 'facebook', 'twitter', 'linkedin', 'whatsapp' ),
+                'performance' => array( 'cache', 'performance', 'speed', 'optimize', 'cdn' ),
+                'cookie'      => array( 'cookie', 'consent', 'gdpr' ),
+            );
+
+            $detected = array();
+
+            foreach ( $map as $tag => $keywords ) {
+                foreach ( $keywords as $keyword ) {
+                    if ( false !== strpos( $text, $keyword ) ) {
+                        $detected[] = $tag;
+                        break;
+                    }
+                }
+            }
+
+            $detected = array_values( array_unique( $detected ) );
+
+            return apply_filters( 'fp_privacy_detected_plugin_tags', $detected, $plugin_data );
+        }
+
+        /**
+         * Format plugin tag labels using the provided dictionary.
+         *
+         * @param array $tags   Detected tags.
+         * @param array $labels Tag labels keyed by tag name.
+         *
+         * @return string
+         */
+        protected function format_plugin_tags( array $tags, array $labels ) {
+            $resolved = array();
+
+            foreach ( $tags as $tag ) {
+                if ( isset( $labels[ $tag ] ) ) {
+                    $resolved[] = $labels[ $tag ];
+                } else {
+                    $resolved[] = ucfirst( sanitize_text_field( $tag ) );
+                }
+            }
+
+            $resolved = array_unique( array_filter( $resolved ) );
+
+            return implode( ', ', $resolved );
+        }
+
+        /**
+         * Retrieve the dictionary of auto-generated policy strings.
+         *
+         * @param string $language Target language code.
+         *
+         * @return array
+         */
+        protected function get_auto_policy_strings( $language ) {
+            $language = $this->normalize_language_code( $language );
+
+            $strings = array(
+                'it' => array(
+                    'shared'  => array(
+                        'generated_on'                 => 'Documento aggiornato automaticamente il %1$s alle %2$s.',
+                        'controller_heading'           => 'Titolare del trattamento',
+                        'controller_intro'             => 'Il sistema ha ricavato automaticamente le seguenti informazioni dal sito WordPress.',
+                        'controller_labels'            => array(
+                            'name'        => 'Denominazione',
+                            'url'         => 'Sito web',
+                            'email'       => 'Email di contatto',
+                            'description' => 'Descrizione',
+                            'language'    => 'Lingua principale',
+                            'timezone'    => 'Fuso orario',
+                        ),
+                        'theme_heading'                => 'Tema attivo e infrastruttura',
+                        'theme_active'                 => 'Tema attivo: %1$s',
+                        'theme_version'                => 'Versione: %1$s',
+                        'theme_child_of'               => 'Tema child di %1$s',
+                        'content_heading'              => 'Struttura dei contenuti',
+                        'content_intro'                => 'Panoramica dei contenuti pubblicati che potrebbero comportare il trattamento di dati personali.',
+                        'content_labels'               => array(
+                            'pages'    => 'Pagine pubblicate',
+                            'posts'    => 'Articoli pubblicati',
+                            'comments' => 'Commenti approvati',
+                            'users'    => 'Utenti registrati',
+                        ),
+                        'content_custom_post_types_label' => 'Tipologie di contenuto personalizzate',
+                        'plugins_link_label'            => 'Documentazione ufficiale',
+                        'plugins_tags_label'            => 'Ambiti interessati',
+                        'plugins_tags_format'           => '%1$s: %2$s',
+                        'plugin_version_format'         => 'Versione %s',
+                        'plugins_review_hint'           => 'Verifica con il tuo consulente legale le finalità e le basi giuridiche di ciascun componente.',
+                        'consent_unlimited'             => 'non impostato (nessuna cancellazione automatica)',
+                        'cookie_duration_unlimited'     => 'fino alla cancellazione manuale',
+                    ),
+                    'changes' => array(
+                        'heading'           => 'Ultime modifiche rilevate',
+                        'plugins_added'     => 'Nuovi plugin attivati: %s.',
+                        'plugins_removed'   => 'Plugin disattivati o rimossi: %s.',
+                        'theme'             => 'Tema aggiornato da %1$s a %2$s.',
+                        'counts'            => 'Aggiornamento %1$s: da %2$s a %3$s.',
+                        'post_types_added'  => 'Nuove tipologie di contenuto: %s.',
+                        'post_types_removed'=> 'Tipologie di contenuto rimosse: %s.',
+                        'consent_cookie'    => 'Durata del cookie di consenso aggiornata da %1$s giorni a %2$s giorni.',
+                        'consent_retention' => 'Periodo di conservazione del registro consensi aggiornato da %1$s giorni a %2$s giorni.',
+                    ),
+                    'privacy' => array(
+                        'title'               => 'Informativa Privacy automatica',
+                        'data_intro'          => 'Questa informativa viene generata automaticamente analizzando la configurazione del sito WordPress e i componenti attivi.',
+                        'plugin_heading'      => 'Plugin e servizi che richiedono attenzione',
+                        'plugin_intro'        => 'Sono stati rilevati i seguenti plugin che potrebbero comportare il trattamento di dati personali o il trasferimento di dati verso terze parti.',
+                        'rights'              => 'Ricorda che gli interessati possono esercitare i diritti previsti dagli articoli 15-22 GDPR contattando il titolare tramite i recapiti indicati.',
+                        'consent_heading'     => 'Registro dei consensi e tracciamento interno',
+                        'consent_description' => 'Il plugin memorizza le preferenze nel cookie tecnico %1$s e conserva gli eventi nel database per %2$s giorni, con indirizzo IP anonimizzato e user agent.',
+                    ),
+                    'cookie'  => array(
+                        'title'                    => 'Cookie Policy automatica',
+                        'intro'                    => 'Il documento elenca le categorie di cookie utilizzate dal sito e i servizi collegati così come risultano dall\'ultima scansione automatica.',
+                        'categories_heading'       => 'Categorie di cookie configurate',
+                        'categories_intro'         => 'Ogni categoria può includere servizi di terze parti. Aggiorna le descrizioni se integri nuovi strumenti.',
+                        'category_services_label'  => 'Servizi e cookie censiti',
+                        'category_required_label'  => 'Categoria sempre attiva',
+                        'plugin_heading'           => 'Plugin che potrebbero installare cookie',
+                        'plugin_intro'             => 'Analizzando i plugin attivi sono state individuate le seguenti integrazioni potenzialmente rilevanti per la cookie policy.',
+                        'consent_heading'          => 'Gestione del consenso',
+                        'consent_description'      => 'Le preferenze vengono archiviate nel cookie tecnico %1$s per %2$s giorni. Puoi riaprire il banner in qualsiasi momento tramite il pulsante di gestione delle preferenze.',
+                    ),
+                    'tags'    => array(
+                        'analytics'   => 'analisi e misurazione',
+                        'marketing'   => 'marketing e advertising',
+                        'form'        => 'moduli e raccolta contatti',
+                        'security'    => 'sicurezza e protezione',
+                        'ecommerce'   => 'e-commerce e pagamenti',
+                        'social'      => 'integrazioni social',
+                        'performance' => 'prestazioni e cache',
+                        'cookie'      => 'gestione cookie e consenso',
+                    ),
+                ),
+                'en' => array(
+                    'shared'  => array(
+                        'generated_on'                 => 'Document automatically updated on %1$s at %2$s.',
+                        'controller_heading'           => 'Data controller',
+                        'controller_intro'             => 'The system automatically retrieved the following WordPress configuration details.',
+                        'controller_labels'            => array(
+                            'name'        => 'Organisation',
+                            'url'         => 'Website',
+                            'email'       => 'Contact email',
+                            'description' => 'Public description',
+                            'language'    => 'Primary language',
+                            'timezone'    => 'Timezone',
+                        ),
+                        'theme_heading'                => 'Theme and technical stack',
+                        'theme_active'                 => 'Active theme: %1$s',
+                        'theme_version'                => 'Version: %1$s',
+                        'theme_child_of'               => 'Child theme of %1$s',
+                        'content_heading'              => 'Content overview',
+                        'content_intro'                => 'Overview of the published content that may involve personal data processing.',
+                        'content_labels'               => array(
+                            'pages'    => 'Published pages',
+                            'posts'    => 'Published posts',
+                            'comments' => 'Approved comments',
+                            'users'    => 'Registered users',
+                        ),
+                        'content_custom_post_types_label' => 'Custom post types',
+                        'plugins_link_label'            => 'Official documentation',
+                        'plugins_tags_label'            => 'Impacted areas',
+                        'plugins_tags_format'           => '%1$s: %2$s',
+                        'plugin_version_format'         => 'Version %s',
+                        'plugins_review_hint'           => 'Review each integration with your legal advisor to document purposes and lawful bases.',
+                        'consent_unlimited'             => 'not configured (no automatic cleanup)',
+                        'cookie_duration_unlimited'     => 'until manually cleared',
+                    ),
+                    'changes' => array(
+                        'heading'           => 'Latest detected changes',
+                        'plugins_added'     => 'New plugins activated: %s.',
+                        'plugins_removed'   => 'Plugins deactivated or removed: %s.',
+                        'theme'             => 'Theme updated from %1$s to %2$s.',
+                        'counts'            => '%1$s updated from %2$s to %3$s.',
+                        'post_types_added'  => 'New custom post types: %s.',
+                        'post_types_removed'=> 'Removed custom post types: %s.',
+                        'consent_cookie'    => 'Consent cookie duration changed from %1$s days to %2$s days.',
+                        'consent_retention' => 'Consent log retention period changed from %1$s days to %2$s days.',
+                    ),
+                    'privacy' => array(
+                        'title'               => 'Automated Privacy Notice',
+                        'data_intro'          => 'This notice is generated automatically by analysing the active WordPress components.',
+                        'plugin_heading'      => 'Detected plugins and third-party services',
+                        'plugin_intro'        => 'The following plugins may process personal data or transfer information to third parties.',
+                        'rights'              => 'Data subjects can exercise their GDPR rights (articles 15-22) by contacting the controller through the channels listed above.',
+                        'consent_heading'     => 'Consent log and technical storage',
+                        'consent_description' => 'The plugin stores preferences inside the technical cookie %1$s and keeps consent events in the database for %2$s days, including an anonymised IP address and the user agent.',
+                    ),
+                    'cookie'  => array(
+                        'title'                    => 'Automated Cookie Policy',
+                        'intro'                    => 'This document lists the configured cookie categories and related services based on the latest automatic scan.',
+                        'categories_heading'       => 'Configured cookie categories',
+                        'categories_intro'         => 'Each category may include third-party services. Keep descriptions up to date when onboarding new tools.',
+                        'category_services_label'  => 'Services and cookies detected',
+                        'category_required_label'  => 'Always active category',
+                        'plugin_heading'           => 'Plugins that may set cookies',
+                        'plugin_intro'             => 'The following active plugins may interact with cookies or tracking technologies.',
+                        'consent_heading'          => 'Consent management',
+                        'consent_description'      => 'Preferences are stored inside the technical cookie %1$s for %2$s days. Visitors can reopen the banner at any time through the manage preferences button.',
+                    ),
+                    'tags'    => array(
+                        'analytics'   => 'analytics and measurement',
+                        'marketing'   => 'marketing and advertising',
+                        'form'        => 'forms and lead capture',
+                        'security'    => 'security and protection',
+                        'ecommerce'   => 'e-commerce and payments',
+                        'social'      => 'social integrations',
+                        'performance' => 'performance and caching',
+                        'cookie'      => 'cookie and consent management',
+                    ),
+                ),
+            );
+
+            if ( isset( $strings[ $language ] ) ) {
+                return $strings[ $language ];
+            }
+
+            return $strings[ self::DEFAULT_LANGUAGE ];
+        }
+
+        /**
+         * Sanitize the generated HTML, keeping only a curated set of tags.
+         *
+         * @param string $html Raw HTML.
+         *
+         * @return string
+         */
+        protected function sanitize_generated_html( $html ) {
+            $allowed_tags = array(
+                'h2' => array(),
+                'h3' => array(),
+                'p'  => array(),
+                'em' => array(),
+                'strong' => array(),
+                'ul' => array(),
+                'li' => array(),
+                'a'  => array(
+                    'href'   => array(),
+                    'target' => array(),
+                    'rel'    => array(),
+                ),
+                'br' => array(),
+            );
+
+            return wp_kses( $html, $allowed_tags );
+        }
+
+        /**
+         * Format the generation timestamp according to the site settings.
+         *
+         * @param int $timestamp Timestamp to format.
+         *
+         * @return array{date:string,time:string}
+         */
+        protected function get_generation_datetime_parts( $timestamp ) {
+            $date_format = get_option( 'date_format', 'Y-m-d' );
+            $time_format = get_option( 'time_format', 'H:i' );
+
+            return array(
+                'date' => wp_date( $date_format, $timestamp ),
+                'time' => wp_date( $time_format, $timestamp ),
+            );
+        }
+
+        /**
+         * Format timezone values for display.
+         *
+         * @param string $timezone Timezone string or offset.
+         *
+         * @return string
+         */
+        protected function format_timezone_value( $timezone ) {
+            if ( is_numeric( $timezone ) ) {
+                $offset = (float) $timezone;
+                $sign   = $offset >= 0 ? '+' : '';
+
+                return 'UTC' . $sign . $offset;
+            }
+
+            return (string) $timezone;
+        }
+
+        /**
+         * Ensure the dedicated privacy and cookie policy pages exist.
+         */
+        protected function ensure_policy_pages_exist() {
+            if ( ! post_type_exists( 'page' ) ) {
+                return;
+            }
+
+            $privacy_page_id = (int) get_option( self::PRIVACY_PAGE_OPTION, 0 );
+            $cookie_page_id  = (int) get_option( self::COOKIE_PAGE_OPTION, 0 );
+
+            $privacy_page_id = $this->ensure_single_policy_page( 'privacy', $privacy_page_id );
+            $cookie_page_id  = $this->ensure_single_policy_page( 'cookie', $cookie_page_id );
+
+            if ( $privacy_page_id ) {
+                update_option( self::PRIVACY_PAGE_OPTION, $privacy_page_id );
+            }
+
+            if ( $cookie_page_id ) {
+                update_option( self::COOKIE_PAGE_OPTION, $cookie_page_id );
+            }
+        }
+
+        /**
+         * Create or update a single policy page with the correct shortcode.
+         *
+         * @param string $type    Policy type (privacy|cookie).
+         * @param int    $page_id Existing page identifier.
+         *
+         * @return int Page identifier.
+         */
+        protected function ensure_single_policy_page( $type, $page_id = 0 ) {
+            $type      = 'cookie' === $type ? 'cookie' : 'privacy';
+            $shortcode = 'cookie' === $type ? '[fp_cookie_policy]' : '[fp_privacy_policy]';
+
+            if ( $page_id && 'page' === get_post_type( $page_id ) && 'trash' !== get_post_status( $page_id ) ) {
+                $content = get_post_field( 'post_content', $page_id );
+
+                if ( false === strpos( (string) $content, $shortcode ) ) {
+                    wp_update_post(
+                        array(
+                            'ID'           => $page_id,
+                            'post_content' => $shortcode,
+                        )
+                    );
+                }
+
+                update_post_meta( $page_id, self::POLICY_PAGE_META_KEY, $type );
+
+                return $page_id;
+            }
+
+            $existing = get_posts(
+                array(
+                    'post_type'      => 'page',
+                    'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
+                    'posts_per_page' => 1,
+                    'meta_key'       => self::POLICY_PAGE_META_KEY,
+                    'meta_value'     => $type,
+                    'fields'         => 'ids',
+                )
+            );
+
+            if ( $existing ) {
+                $page_id = (int) $existing[0];
+
+                if ( 'trash' !== get_post_status( $page_id ) ) {
+                    $content = get_post_field( 'post_content', $page_id );
+
+                    if ( false === strpos( (string) $content, $shortcode ) ) {
+                        wp_update_post(
+                            array(
+                                'ID'           => $page_id,
+                                'post_content' => $shortcode,
+                            )
+                        );
+                    }
+
+                    update_post_meta( $page_id, self::POLICY_PAGE_META_KEY, $type );
+
+                    return $page_id;
+                }
+            }
+
+            $strings = $this->get_auto_policy_strings( self::DEFAULT_LANGUAGE );
+            $title   = 'cookie' === $type
+                ? ( isset( $strings['cookie']['title'] ) ? $strings['cookie']['title'] : 'Cookie Policy' )
+                : ( isset( $strings['privacy']['title'] ) ? $strings['privacy']['title'] : 'Privacy Policy' );
+
+            $page_id = wp_insert_post(
+                array(
+                    'post_title'   => sanitize_text_field( $title ),
+                    'post_content' => $shortcode,
+                    'post_status'  => 'publish',
+                    'post_type'    => 'page',
+                ),
+                true
+            );
+
+            if ( is_wp_error( $page_id ) ) {
+                return 0;
+            }
+
+            update_post_meta( $page_id, self::POLICY_PAGE_META_KEY, $type );
+
+            return (int) $page_id;
         }
 
         /**
@@ -265,6 +1525,13 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             self::create_consent_table();
             self::schedule_cleanup_event();
             update_option( self::VERSION_OPTION, self::VERSION );
+
+            $instance = self::instance();
+
+            if ( $instance instanceof self ) {
+                $instance->ensure_policy_pages_exist();
+                $instance->maybe_generate_legal_documents( true );
+            }
         }
 
         /**
@@ -1049,6 +2316,8 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 $defaults['consent_cookie_days']
             );
 
+            $output['auto_generate'] = isset( $input['auto_generate'] ) ? (bool) $input['auto_generate'] : $defaults['auto_generate'];
+
             return $output;
         }
 
@@ -1453,6 +2722,20 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $english      = isset( $translations['en'] ) ? $translations['en'] : array();
             $english_text = isset( $english['privacy_policy_content'] ) ? $english['privacy_policy_content'] : '';
 
+            if ( ! empty( $options['auto_generate'] ) ) {
+                $last_generated = (int) get_option( self::GENERATION_TIME_OPTION, 0 );
+                $message        = __( 'Questo contenuto viene generato automaticamente sulla base della configurazione del sito. Le modifiche manuali potrebbero essere sovrascritte al prossimo aggiornamento.', 'fp-privacy-cookie-policy' );
+
+                if ( $last_generated ) {
+                    $message .= ' ' . sprintf(
+                        __( 'Ultima generazione: %s.', 'fp-privacy-cookie-policy' ),
+                        wp_date( get_option( 'date_format', 'Y-m-d' ) . ' ' . get_option( 'time_format', 'H:i' ), $last_generated )
+                    );
+                }
+
+                echo '<p class="description">' . esc_html( $message ) . '</p>';
+            }
+
             echo '<h4>' . esc_html__( 'Italiano', 'fp-privacy-cookie-policy' ) . '</h4>';
             wp_editor(
                 $options['privacy_policy_content'],
@@ -1482,6 +2765,20 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $translations = isset( $options['translations'] ) ? $options['translations'] : array();
             $english      = isset( $translations['en'] ) ? $translations['en'] : array();
             $english_text = isset( $english['cookie_policy_content'] ) ? $english['cookie_policy_content'] : '';
+
+            if ( ! empty( $options['auto_generate'] ) ) {
+                $last_generated = (int) get_option( self::GENERATION_TIME_OPTION, 0 );
+                $message        = __( 'Questo contenuto viene generato automaticamente sulla base della configurazione del sito. Le modifiche manuali potrebbero essere sovrascritte al prossimo aggiornamento.', 'fp-privacy-cookie-policy' );
+
+                if ( $last_generated ) {
+                    $message .= ' ' . sprintf(
+                        __( 'Ultima generazione: %s.', 'fp-privacy-cookie-policy' ),
+                        wp_date( get_option( 'date_format', 'Y-m-d' ) . ' ' . get_option( 'time_format', 'H:i' ), $last_generated )
+                    );
+                }
+
+                echo '<p class="description">' . esc_html( $message ) . '</p>';
+            }
 
             echo '<h4>' . esc_html__( 'Italiano', 'fp-privacy-cookie-policy' ) . '</h4>';
             wp_editor(
@@ -1827,6 +3124,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             return array(
                 'privacy_policy_content' => __( '<h2>Informativa Privacy</h2><p>Inserisci qui il testo della tua informativa privacy conforme al GDPR, includendo i diritti dell\'interessato, i dati di contatto del titolare e le finalità del trattamento.</p>', 'fp-privacy-cookie-policy' ),
                 'cookie_policy_content'  => __( '<h2>Informativa Cookie</h2><p>Descrivi i cookie utilizzati dal sito, le finalità e la base giuridica del trattamento. Ricorda di aggiornare periodicamente questo elenco.</p>', 'fp-privacy-cookie-policy' ),
+                'auto_generate'          => true,
                 'banner'                 => array(
                     'banner_title'          => __( 'Rispettiamo la tua privacy', 'fp-privacy-cookie-policy' ),
                     'banner_message'        => __( 'Utilizziamo cookie tecnici e, previo consenso, cookie di profilazione e di terze parti per migliorare l\'esperienza di navigazione. Puoi gestire le tue preferenze in qualsiasi momento.', 'fp-privacy-cookie-policy' ),
