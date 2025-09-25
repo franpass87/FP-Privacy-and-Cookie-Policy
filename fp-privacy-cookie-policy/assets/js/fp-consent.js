@@ -32,13 +32,47 @@
     var statusElement;
     var statusValueElement;
     var preferredLocales = [];
+
+    function addPreferredLocale(locale) {
+        if (!locale || typeof locale !== 'string') {
+            return;
+        }
+
+        var normalized = locale.trim().replace(/_/g, '-');
+
+        if (!normalized) {
+            return;
+        }
+
+        if (preferredLocales.indexOf(normalized) === -1) {
+            preferredLocales.push(normalized);
+        }
+    }
+
     if (settings.language) {
-        preferredLocales.push(settings.language);
+        addPreferredLocale(settings.language);
     }
-    if (typeof navigator !== 'undefined' && navigator.language) {
-        preferredLocales.push(navigator.language);
+
+    if (typeof navigator !== 'undefined') {
+        if (Array.isArray(navigator.languages)) {
+            navigator.languages.forEach(function (locale) {
+                addPreferredLocale(locale);
+            });
+        }
+
+        if (navigator.language) {
+            addPreferredLocale(navigator.language);
+        }
     }
-    preferredLocales.push('en-GB');
+
+    if (typeof document !== 'undefined' && document.documentElement) {
+        var documentLang = document.documentElement.getAttribute('lang') || document.documentElement.lang;
+        if (documentLang) {
+            addPreferredLocale(documentLang);
+        }
+    }
+
+    addPreferredLocale('en-GB');
     if (isNaN(cookieTtlDays)) {
         cookieTtlDays = null;
     }
