@@ -2065,12 +2065,15 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $has_preferred = ! empty( array_filter( $categories, static function ( $category ) {
                 return ! empty( $category['enabled'] ) && empty( $category['required'] );
             } ) );
+            $banner_title_id   = 'fp-consent-banner-title';
+            $banner_message_id = 'fp-consent-banner-message';
+            $modal_intro_id    = 'fp-consent-modal-description';
             ?>
-            <div class="fp-consent-banner" role="dialog" aria-live="polite" aria-modal="true" data-cookie-name="<?php echo esc_attr( self::CONSENT_COOKIE ); ?>" data-language="<?php echo esc_attr( $localized['language'] ); ?>">
+            <div class="fp-consent-banner" role="dialog" aria-live="polite" aria-modal="true" aria-labelledby="<?php echo esc_attr( $banner_title_id ); ?>" aria-describedby="<?php echo esc_attr( $banner_message_id ); ?>" data-cookie-name="<?php echo esc_attr( self::CONSENT_COOKIE ); ?>" data-language="<?php echo esc_attr( $localized['language'] ); ?>">
                 <div class="fp-consent-container">
                     <div class="fp-consent-content">
-                        <h3 class="fp-consent-title"><?php echo esc_html( $banner['banner_title'] ); ?></h3>
-                        <div class="fp-consent-text"><?php echo wpautop( wp_kses_post( $banner['banner_message'] ) ); ?></div>
+                        <h3 id="<?php echo esc_attr( $banner_title_id ); ?>" class="fp-consent-title"><?php echo esc_html( $banner['banner_title'] ); ?></h3>
+                        <div id="<?php echo esc_attr( $banner_message_id ); ?>" class="fp-consent-text"><?php echo wpautop( wp_kses_post( $banner['banner_message'] ) ); ?></div>
                     </div>
                     <div class="fp-consent-actions">
                         <button class="fp-btn fp-btn-primary" data-consent-action="accept-all"><?php echo esc_html( $banner['accept_all_label'] ); ?></button>
@@ -2083,12 +2086,12 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     </div>
                 </div>
             </div>
-            <div id="fp-consent-modal" class="fp-consent-modal" role="dialog" aria-modal="true" aria-labelledby="fp-consent-modal-title" data-language="<?php echo esc_attr( $localized['language'] ); ?>" aria-hidden="true" tabindex="-1" hidden>
+            <div id="fp-consent-modal" class="fp-consent-modal" role="dialog" aria-modal="true" aria-labelledby="fp-consent-modal-title" aria-describedby="<?php echo esc_attr( $modal_intro_id ); ?>" data-language="<?php echo esc_attr( $localized['language'] ); ?>" aria-hidden="true" tabindex="-1" hidden>
                 <div class="fp-consent-modal__overlay" data-consent-action="close"></div>
                 <div class="fp-consent-modal__dialog" role="document">
                     <button class="fp-consent-modal__close" type="button" aria-label="<?php echo esc_attr( $texts['modal_close'] ); ?>" data-consent-action="close">&times;</button>
                     <h3 id="fp-consent-modal-title"><?php echo esc_html( $texts['modal_title'] ); ?></h3>
-                    <p class="fp-consent-modal__intro"><?php echo esc_html( $texts['modal_intro'] ); ?></p>
+                    <p id="<?php echo esc_attr( $modal_intro_id ); ?>" class="fp-consent-modal__intro"><?php echo esc_html( $texts['modal_intro'] ); ?></p>
                     <div class="fp-consent-categories">
                         <?php foreach ( $categories as $key => $category ) : ?>
                             <?php if ( empty( $category['enabled'] ) && empty( $category['required'] ) ) : ?>
@@ -2132,7 +2135,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             <button class="fp-btn fp-btn-preferences fp-consent-manage" type="button" data-consent-manage data-consent-action="open-preferences" aria-haspopup="dialog" aria-controls="fp-consent-modal" aria-hidden="true" aria-expanded="false" hidden>
                 <span class="fp-consent-manage__label"><?php echo esc_html( $texts['manage_consent'] ); ?></span>
             </button>
-            <div class="fp-consent-status" id="fp-consent-status" data-consent-status hidden>
+            <div class="fp-consent-status" id="fp-consent-status" data-consent-status role="status" aria-live="polite" aria-atomic="true" hidden>
                 <span class="fp-consent-status__label"><?php echo esc_html( $texts['updated_at'] ); ?>:</span>
                 <time class="fp-consent-status__value" data-consent-updated datetime=""></time>
             </div>
