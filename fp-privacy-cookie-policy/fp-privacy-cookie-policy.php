@@ -3,7 +3,7 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://francescopasseri.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.5.2
+ * Version:     1.5.3
  * Author:      Francesco Passeri
  * Author URI:  https://francescopasseri.com/
  * License:     GPL2
@@ -19,12 +19,89 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+if ( ! defined( 'FP_PRIVACY_COOKIE_POLICY_MIN_PHP' ) ) {
+    define( 'FP_PRIVACY_COOKIE_POLICY_MIN_PHP', '7.4' );
+}
+
+if ( ! defined( 'FP_PRIVACY_COOKIE_POLICY_MIN_WP' ) ) {
+    define( 'FP_PRIVACY_COOKIE_POLICY_MIN_WP', '6.0' );
+}
+
+$fp_privacy_cookie_policy_requirement_error = '';
+
+if ( version_compare( PHP_VERSION, FP_PRIVACY_COOKIE_POLICY_MIN_PHP, '<' ) ) {
+    $fp_privacy_cookie_policy_requirement_error = sprintf(
+        /* translators: %s is the minimum required PHP version. */
+        __( 'FP Privacy and Cookie Policy richiede PHP %s o superiore. Il plugin è stato disattivato.', 'fp-privacy-cookie-policy' ),
+        FP_PRIVACY_COOKIE_POLICY_MIN_PHP
+    );
+} elseif ( isset( $GLOBALS['wp_version'] ) && version_compare( $GLOBALS['wp_version'], FP_PRIVACY_COOKIE_POLICY_MIN_WP, '<' ) ) {
+    $fp_privacy_cookie_policy_requirement_error = sprintf(
+        /* translators: %s is the minimum required WordPress version. */
+        __( 'FP Privacy and Cookie Policy richiede WordPress %s o superiore. Il plugin è stato disattivato.', 'fp-privacy-cookie-policy' ),
+        FP_PRIVACY_COOKIE_POLICY_MIN_WP
+    );
+}
+
+if ( $fp_privacy_cookie_policy_requirement_error ) {
+    if ( ! function_exists( 'fp_privacy_cookie_policy_render_requirement_notice' ) ) {
+        /**
+         * Render environment requirement notices when the plugin cannot run.
+         */
+        function fp_privacy_cookie_policy_render_requirement_notice() {
+            global $fp_privacy_cookie_policy_requirement_error;
+
+            if ( empty( $fp_privacy_cookie_policy_requirement_error ) ) {
+                return;
+            }
+
+            printf(
+                '<div class="notice notice-error"><p>%s</p></div>',
+                esc_html( $fp_privacy_cookie_policy_requirement_error )
+            );
+        }
+    }
+
+    add_action( 'admin_notices', 'fp_privacy_cookie_policy_render_requirement_notice' );
+    add_action( 'network_admin_notices', 'fp_privacy_cookie_policy_render_requirement_notice' );
+
+    add_action(
+        'admin_init',
+        static function () {
+            if ( ! current_user_can( 'activate_plugins' ) ) {
+                return;
+            }
+
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+            deactivate_plugins( plugin_basename( __FILE__ ) );
+        }
+    );
+
+    register_activation_hook(
+        __FILE__,
+        static function () use ( $fp_privacy_cookie_policy_requirement_error ) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+            deactivate_plugins( plugin_basename( __FILE__ ) );
+
+            wp_die(
+                esc_html( $fp_privacy_cookie_policy_requirement_error ),
+                esc_html__( 'FP Privacy and Cookie Policy', 'fp-privacy-cookie-policy' ),
+                array( 'back_link' => true )
+            );
+        }
+    );
+
+    return;
+}
+
 if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
     class FP_Privacy_Cookie_Policy {
 
         const OPTION_KEY        = 'fp_privacy_cookie_settings';
-        const VERSION           = '1.5.2';
+        const VERSION           = '1.5.3';
         const VERSION_OPTION    = 'fp_privacy_cookie_version';
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';

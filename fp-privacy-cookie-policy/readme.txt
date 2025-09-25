@@ -4,7 +4,7 @@ Tags: gdpr, cookie banner, consent management, privacy policy, google consent mo
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.5.2
+Stable tag: 1.5.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,9 @@ Il plugin è mantenuto da [Francesco Passeri](https://francescopasseri.com/). Pe
 3. Registro consensi con esportazione CSV e informazioni anonimizzate.
 
 == Changelog ==
+= 1.5.3 =
+* Added proactive environment checks to disable the plugin when PHP or WordPress do not meet the minimum requirements.
+
 = 1.5.2 =
 * Updated all documentation (README, readme.txt, changelog) to provide a complete timeline of the changes shipped across releases.
 * Set Francesco Passeri as the official maintainer with updated contact details.
@@ -106,6 +109,9 @@ Il plugin è mantenuto da [Francesco Passeri](https://francescopasseri.com/). Pe
 * Initial release.
 
 == Upgrade Notice ==
+= 1.5.3 =
+Assicurati che l'installazione soddisfi i requisiti minimi (PHP 7.4, WordPress 6.0) per evitare la disattivazione automatica del plugin.
+
 = 1.5.2 =
 Rivedi la documentazione aggiornata e sostituisci eventuali riferimenti al vecchio maintainer con i nuovi contatti.
 
