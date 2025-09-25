@@ -2184,18 +2184,91 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $per_page   = 50;
             $paged      = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1;
             $offset     = ( $paged - 1 ) * $per_page;
+            $search     = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+            $event      = isset( $_GET['event'] ) ? sanitize_key( wp_unslash( $_GET['event'] ) ) : '';
 
-            $logs = $wpdb->get_results(
-                $wpdb->prepare(
-                    "SELECT * FROM {$table_name} ORDER BY created_at DESC LIMIT %d OFFSET %d",
-                    $per_page,
-                    $offset
-                )
+            $where_clauses = array();
+            $params        = array();
+
+            if ( $search ) {
+                $like            = '%' . $wpdb->esc_like( $search ) . '%';
+                $where_clauses[] = '(consent_id LIKE %s OR consent_state LIKE %s OR ip_address LIKE %s)';
+                $params[]        = $like;
+                $params[]        = $like;
+                $params[]        = $like;
+            }
+
+            $allowed_events = $this->get_allowed_consent_events();
+            $event_labels   = $this->get_consent_event_labels();
+
+            if ( $event && in_array( $event, $allowed_events, true ) ) {
+                $where_clauses[] = 'event_type = %s';
+                $params[]        = $event;
+            } else {
+                $event = '';
+            }
+
+            $where_sql = '';
+
+            if ( ! empty( $where_clauses ) ) {
+                $where_sql = ' WHERE ' . implode( ' AND ', $where_clauses );
+            }
+
+            $logs_sql   = "SELECT * FROM {$table_name}{$where_sql} ORDER BY created_at DESC LIMIT %d OFFSET %d";
+            $logs_query = $wpdb->prepare( $logs_sql, array_merge( $params, array( $per_page, $offset ) ) );
+            $logs       = $wpdb->get_results( $logs_query );
+
+            $count_sql   = "SELECT COUNT(*) FROM {$table_name}{$where_sql}";
+            $count_query = ! empty( $params ) ? $wpdb->prepare( $count_sql, $params ) : $count_sql;
+            $total       = (int) $wpdb->get_var( $count_query );
+            $pages       = (int) ceil( $total / $per_page );
+
+            $logs_url = add_query_arg(
+                array(
+                    'page' => 'fp-privacy-cookie-policy',
+                    'tab'  => 'logs',
+                ),
+                admin_url( 'admin.php' )
             );
 
-            $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table_name}" );
-            $pages = (int) ceil( $total / $per_page );
+            $filter_args = array();
+
+            if ( $search ) {
+                $filter_args['s'] = $search;
+            }
+
+            if ( $event ) {
+                $filter_args['event'] = $event;
+            }
+
+            if ( ! empty( $filter_args ) ) {
+                $logs_url = add_query_arg( $filter_args, $logs_url );
+            }
+
             ?>
+            <form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="fp-consent-log-filters">
+                <input type="hidden" name="page" value="fp-privacy-cookie-policy" />
+                <input type="hidden" name="tab" value="logs" />
+                <p class="search-box">
+                    <label class="screen-reader-text" for="fp-consent-search"><?php esc_html_e( 'Cerca consensi', 'fp-privacy-cookie-policy' ); ?></label>
+                    <input type="search" id="fp-consent-search" name="s" value="<?php echo esc_attr( $search ); ?>" placeholder="<?php esc_attr_e( 'Cerca per ID, IP o stato', 'fp-privacy-cookie-policy' ); ?>" />
+                </p>
+                <p>
+                    <label for="fp-consent-event-filter" class="screen-reader-text"><?php esc_html_e( 'Filtra per evento', 'fp-privacy-cookie-policy' ); ?></label>
+                    <select id="fp-consent-event-filter" name="event">
+                        <option value=""><?php esc_html_e( 'Tutti gli eventi', 'fp-privacy-cookie-policy' ); ?></option>
+                        <?php foreach ( $event_labels as $event_key => $label ) : ?>
+                            <option value="<?php echo esc_attr( $event_key ); ?>" <?php selected( $event_key, $event ); ?>><?php echo esc_html( $label ); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </p>
+                <p class="submit">
+                    <button type="submit" class="button button-primary"><?php esc_html_e( 'Filtra', 'fp-privacy-cookie-policy' ); ?></button>
+                    <?php if ( $search || $event ) : ?>
+                        <a class="button" href="<?php echo esc_url( add_query_arg( array( 'page' => 'fp-privacy-cookie-policy', 'tab' => 'logs' ), admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Reimposta', 'fp-privacy-cookie-policy' ); ?></a>
+                    <?php endif; ?>
+                </p>
+            </form>
             <div class="fp-consent-log-actions">
                 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
                     <?php wp_nonce_field( 'fp_export_consent', 'fp_export_consent_nonce' ); ?>
@@ -2207,7 +2280,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
                     <?php wp_nonce_field( 'fp_cleanup_consent_logs', 'fp_cleanup_consent_logs_nonce' ); ?>
                     <input type="hidden" name="action" value="fp_cleanup_consent_logs" />
-                    <input type="hidden" name="redirect_to" value="<?php echo esc_attr( admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=logs' ) ); ?>" />
+                    <input type="hidden" name="redirect_to" value="<?php echo esc_attr( $logs_url ); ?>" />
                     <button type="submit" class="button">
                         <?php esc_html_e( 'Pulisci registro', 'fp-privacy-cookie-policy' ); ?>
                     </button>
@@ -2244,14 +2317,28 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                                     echo esc_html( $user_label );
                                     ?>
                                 </td>
-                                <td><?php echo esc_html( $log->event_type ); ?></td>
+                                <td>
+                                    <?php
+                                    $event_key   = sanitize_key( $log->event_type );
+                                    $event_label = isset( $event_labels[ $event_key ] ) ? $event_labels[ $event_key ] : $log->event_type;
+                                    echo esc_html( $event_label );
+                                    ?>
+                                </td>
                                 <td><code><?php echo esc_html( $log->consent_state ); ?></code></td>
                                 <td><?php echo esc_html( $log->ip_address ); ?></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="6"><?php esc_html_e( 'Nessun consenso registrato al momento.', 'fp-privacy-cookie-policy' ); ?></td>
+                            <td colspan="6">
+                                <?php
+                                if ( $search || $event ) {
+                                    esc_html_e( 'Nessun consenso corrisponde ai criteri di ricerca.', 'fp-privacy-cookie-policy' );
+                                } else {
+                                    esc_html_e( 'Nessun consenso registrato al momento.', 'fp-privacy-cookie-policy' );
+                                }
+                                ?>
+                            </td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -2263,12 +2350,13 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                         echo wp_kses_post(
                             paginate_links(
                                 array(
-                                    'base'      => add_query_arg( array( 'paged' => '%#%', 'tab' => 'logs' ) ),
-                                    'format'    => '',
+                                    'base'      => $logs_url . '%_%',
+                                    'format'    => '&paged=%#%',
                                     'prev_text' => __( '&laquo;', 'fp-privacy-cookie-policy' ),
                                     'next_text' => __( '&raquo;', 'fp-privacy-cookie-policy' ),
                                     'total'     => $pages,
                                     'current'   => $paged,
+                                    'add_args'  => array(),
                                 )
                             )
                         );
@@ -2277,6 +2365,20 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 </div>
             <?php endif; ?>
             <?php
+        }
+
+        /**
+         * Retrieve human readable labels for consent events.
+         *
+         * @return array
+         */
+        protected function get_consent_event_labels() {
+            return array(
+                'accept_all'       => __( 'Accetta tutto', 'fp-privacy-cookie-policy' ),
+                'reject_all'       => __( 'Rifiuta tutto', 'fp-privacy-cookie-policy' ),
+                'save_preferences' => __( 'Salva preferenze', 'fp-privacy-cookie-policy' ),
+                'save'             => __( 'Salva', 'fp-privacy-cookie-policy' ),
+            );
         }
 
         /**
