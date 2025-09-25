@@ -247,6 +247,10 @@ msgstr ""
 msgid "Rifiuta"
 msgstr ""
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2378
+msgid "Rifiuta tutto"
+msgstr ""
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:771
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:785
 msgid "Preferenze"
@@ -254,6 +258,10 @@ msgstr ""
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:772
 msgid "Salva preferenze"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2380
+msgid "Salva"
 msgstr ""
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:778
@@ -345,6 +353,30 @@ msgstr ""
 msgid "Pulisci registro"
 msgstr ""
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2253
+msgid "Cerca consensi"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2254
+msgid "Cerca per ID, IP o stato"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2257
+msgid "Filtra per evento"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2259
+msgid "Tutti gli eventi"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2266
+msgid "Filtra"
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2268
+msgid "Reimposta"
+msgstr ""
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1332
 msgid "Data"
 msgstr ""
@@ -375,6 +407,10 @@ msgstr ""
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1367
 msgid "Nessun consenso registrato al momento."
+msgstr ""
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2336
+msgid "Nessun consenso corrisponde ai criteri di ricerca."
 msgstr ""
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1381

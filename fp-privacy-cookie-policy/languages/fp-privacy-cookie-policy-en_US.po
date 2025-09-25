@@ -260,6 +260,10 @@ msgstr "Accept all"
 msgid "Rifiuta"
 msgstr "Reject"
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2378
+msgid "Rifiuta tutto"
+msgstr "Reject all"
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:767
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:781
 msgid "Preferenze"
@@ -268,6 +272,10 @@ msgstr "Preferences"
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:768
 msgid "Salva preferenze"
 msgstr "Save preferences"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2380
+msgid "Salva"
+msgstr "Save"
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:774
 msgid "Necessari"
@@ -363,6 +371,30 @@ msgstr "Export CSV"
 msgid "Pulisci registro"
 msgstr "Clean up log"
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2253
+msgid "Cerca consensi"
+msgstr "Search consents"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2254
+msgid "Cerca per ID, IP o stato"
+msgstr "Search by ID, IP or state"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2257
+msgid "Filtra per evento"
+msgstr "Filter by event"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2259
+msgid "Tutti gli eventi"
+msgstr "All events"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2266
+msgid "Filtra"
+msgstr "Filter"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2268
+msgid "Reimposta"
+msgstr "Reset"
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1328
 msgid "Data"
 msgstr "Date"
@@ -394,6 +426,10 @@ msgstr "Anonymous"
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1363
 msgid "Nessun consenso registrato al momento."
 msgstr "No consent recorded at the moment."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2336
+msgid "Nessun consenso corrisponde ai criteri di ricerca."
+msgstr "No consent matches the selected filters."
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1377
 msgid "&laquo;"

@@ -36,6 +36,22 @@
     flex-wrap: wrap;
 }
 
+.fp-consent-log-filters {
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.fp-consent-log-filters .search-box {
+    margin: 0;
+}
+
+.fp-consent-log-filters .submit {
+    margin: 0;
+}
+
 .fp-help-tab code {
     background: #f3f4f6;
     padding: 0.2rem 0.45rem;
