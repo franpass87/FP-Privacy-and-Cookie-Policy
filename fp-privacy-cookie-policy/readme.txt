@@ -4,7 +4,7 @@ Tags: gdpr, cookie banner, consent management, privacy policy, google consent mo
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ FP Privacy and Cookie Policy helps agencies and professionals implement a comple
 * Native Google Consent Mode v2 integration and `dataLayer` events to orchestrate your tracking setup.
 * Configurable consent log retention with automatic cleanup and integration with the WordPress privacy export/erase tools.
 * Adjustable consent cookie duration to align banner re-consent with your legal requirements.
-* First-class WP-CLI commands to monitor the consent log, trigger cleanups and export CSV snapshots.
+* First-class WP-CLI commands to monitor the consent log, recreate the table, trigger cleanups and export CSV snapshots.
 
 == Installation ==
 1. Upload the `fp-privacy-cookie-policy` folder to the `/wp-content/plugins/` directory, or install the plugin from the WordPress plugin screen.
@@ -44,6 +44,7 @@ Usa la tab "Registro consensi" per consultare gli eventi registrati ed esportare
 The plugin ships with a dedicated command namespace to automate maintenance tasks:
 
 * `wp fp-privacy status` — displays the consent table health, stored events and the next scheduled cleanup.
+* `wp fp-privacy recreate [--force]` — recreates the consent log table and restores the cleanup schedule without accessing wp-admin.
 * `wp fp-privacy cleanup` — runs the retention cleanup immediately while respecting your configuration.
 * `wp fp-privacy export --file=consents.csv` — saves the entire consent log to a CSV file optimised for large datasets.
 
@@ -53,6 +54,9 @@ The plugin ships with a dedicated command namespace to automate maintenance task
 3. Registro consensi con esportazione CSV e informazioni anonimizzate.
 
 == Changelog ==
+= 1.5.1 =
+* Added the `wp fp-privacy recreate` command to rebuild the consent log table and reschedule the cleanup cron job from the terminal.
+
 = 1.5.0 =
 * Added WP-CLI commands to check the consent table health, trigger manual cleanups and export CSV snapshots without accessing the admin panel.
 * Documented the new automation workflow and bumped internal version metadata for the next stable release.
@@ -88,6 +92,8 @@ The plugin ships with a dedicated command namespace to automate maintenance task
 * Initial release.
 
 == Upgrade Notice ==
+= 1.5.1 =
+Recreate the consent table from the terminal with `wp fp-privacy recreate` if you need to restore the consent registry after database maintenance.
 = 1.5.0 =
 Automate maintenance from the terminal with the new WP-CLI commands to monitor, export and clean consent logs.
 = 1.4.0 =

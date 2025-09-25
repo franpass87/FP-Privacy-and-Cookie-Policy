@@ -14,7 +14,7 @@ Plugin WordPress progettato per gestire privacy policy, cookie policy e consenso
 - Supporto per Google Tag Manager/eventi personalizzati via `dataLayer` e custom event `fp-consent-change`.
 - Traduzioni `en_US` pronte all'uso e file `.pot` per localizzazioni aggiuntive.
 - Impostazione del periodo di conservazione del registro con pulizia pianificata e integrazione con gli strumenti privacy di WordPress.
-- Comandi WP-CLI per verificare lo stato del registro, esportare i log e avviare la pulizia manuale.
+- Comandi WP-CLI per verificare lo stato del registro, ricreare la tabella dei consensi, esportare i log e avviare la pulizia manuale.
 
 ## Installazione
 
@@ -52,6 +52,7 @@ Plugin WordPress progettato per gestire privacy policy, cookie policy e consenso
 ## Comandi WP-CLI
 
 - `wp fp-privacy status` mostra se la tabella del registro è disponibile, quanti eventi sono memorizzati e quando è prevista la prossima pulizia pianificata.
+- `wp fp-privacy recreate [--force]` ricrea la tabella del registro consensi e ripristina la pianificazione della pulizia.
 - `wp fp-privacy cleanup` avvia la pulizia manuale del registro rispettando il periodo di conservazione configurato.
 - `wp fp-privacy export --file=percorso/file.csv` esporta i consensi in un file CSV, utile per audit e archiviazione offline.
 
@@ -66,3 +67,11 @@ Questo plugin fornisce strumenti tecnici ma non sostituisce la consulenza legale
 ## Supporto
 
 Il plugin è pensato per sviluppatori e web agency. Puoi estenderlo registrando nuovi hook su `fp-consent-change` o leggendo il cookie `fp_consent_state` per gestire script personalizzati.
+
+## Changelog
+
+### 1.5.1
+- Aggiunto il comando WP-CLI `wp fp-privacy recreate` per ricreare rapidamente la tabella del registro e ripristinare la pianificazione della pulizia.
+
+### 1.5.0
+- Added WP-CLI commands to check the consent table health, trigger manual cleanups and export CSV snapshots without accessing the admin panel.
