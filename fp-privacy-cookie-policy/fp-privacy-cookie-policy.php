@@ -3,7 +3,7 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://francescopasseri.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.5.3
+ * Version:     1.6.0
  * Author:      Francesco Passeri
  * Author URI:  https://francescopasseri.com/
  * License:     GPL2
@@ -101,7 +101,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
     class FP_Privacy_Cookie_Policy {
 
         const OPTION_KEY        = 'fp_privacy_cookie_settings';
-        const VERSION           = '1.5.3';
+        const VERSION           = '1.6.0';
         const VERSION_OPTION    = 'fp_privacy_cookie_version';
         const CONSENT_COOKIE    = 'fp_consent_state';
         const CONSENT_TABLE     = 'fp_consent_logs';
@@ -160,6 +160,35 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             add_action( 'admin_notices', array( $this, 'maybe_render_admin_notices' ) );
             add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
             add_filter( 'site_status_tests', array( $this, 'register_site_health_tests' ) );
+
+            if ( is_multisite() ) {
+                add_action( 'wp_initialize_site', array( $this, 'handle_new_site_initialization' ), 10, 2 );
+                add_action( 'wpmu_new_blog', array( $this, 'handle_new_site_legacy' ), 10, 6 );
+            }
+        }
+
+        /**
+         * Retrieve the plugin basename.
+         *
+         * @return string
+         */
+        protected static function get_plugin_basename() {
+            return plugin_basename( __FILE__ );
+        }
+
+        /**
+         * Determine whether the plugin is network-activated.
+         *
+         * @return bool
+         */
+        protected static function is_network_active() {
+            if ( ! is_multisite() ) {
+                return false;
+            }
+
+            $active = (array) get_site_option( 'active_sitewide_plugins', array() );
+
+            return isset( $active[ self::get_plugin_basename() ] );
         }
 
         /**
@@ -223,7 +252,16 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         /**
          * Register activation hook.
          */
-        public static function activate() {
+        public static function activate( $network_wide = false ) {
+            self::run_for_each_site( $network_wide, array( __CLASS__, 'activate_single_site' ) );
+        }
+
+        /**
+         * Execute activation tasks for a single site.
+         *
+         * @param int|null $site_id Optional site identifier.
+         */
+        protected static function activate_single_site( $site_id = null ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
             self::create_consent_table();
             self::schedule_cleanup_event();
             update_option( self::VERSION_OPTION, self::VERSION );
@@ -259,7 +297,16 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         /**
          * Register deactivation hook.
          */
-        public static function deactivate() {
+        public static function deactivate( $network_wide = false ) {
+            self::run_for_each_site( $network_wide, array( __CLASS__, 'deactivate_single_site' ) );
+        }
+
+        /**
+         * Execute deactivation tasks for a single site.
+         *
+         * @param int|null $site_id Optional site identifier.
+         */
+        protected static function deactivate_single_site( $site_id = null ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
             wp_clear_scheduled_hook( self::CLEANUP_HOOK );
         }
 
@@ -267,6 +314,15 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * Register uninstall hook.
          */
         public static function uninstall() {
+            self::run_for_each_site( true, array( __CLASS__, 'uninstall_single_site' ) );
+        }
+
+        /**
+         * Execute uninstall tasks for a single site.
+         *
+         * @param int|null $site_id Optional site identifier.
+         */
+        protected static function uninstall_single_site( $site_id = null ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
             delete_option( self::OPTION_KEY );
             delete_option( self::VERSION_OPTION );
             wp_clear_scheduled_hook( self::CLEANUP_HOOK );
@@ -275,6 +331,66 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
             $table_name = self::get_consent_table_name();
             $wpdb->query( "DROP TABLE IF EXISTS {$table_name}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        }
+
+        /**
+         * Execute a callback for each site when running in multisite environments.
+         *
+         * @param bool     $network_wide Whether the current operation targets the entire network.
+         * @param callable $callback     Callback executed for each site.
+         */
+        protected static function run_for_each_site( $network_wide, $callback ) {
+            if ( ! is_multisite() || ! $network_wide ) {
+                call_user_func( $callback, get_current_blog_id() );
+
+                return;
+            }
+
+            $site_ids = get_sites(
+                array(
+                    'fields' => 'ids',
+                    'number' => 0,
+                )
+            );
+
+            if ( empty( $site_ids ) ) {
+                return;
+            }
+
+            foreach ( $site_ids as $site_id ) {
+                self::with_blog( (int) $site_id, $callback );
+            }
+        }
+
+        /**
+         * Execute a callback within the context of a given site.
+         *
+         * @param int      $site_id  Site identifier.
+         * @param callable $callback Callback to execute.
+         */
+        protected static function with_blog( $site_id, $callback ) {
+            $site_id = (int) $site_id;
+
+            if ( ! is_multisite() || $site_id < 1 ) {
+                call_user_func( $callback, $site_id );
+
+                return;
+            }
+
+            $current_blog_id = get_current_blog_id();
+            $switched        = false;
+
+            if ( $site_id !== $current_blog_id ) {
+                $switched = switch_to_blog( $site_id );
+            }
+
+            try {
+                call_user_func( $callback, $site_id );
+            } finally {
+                if ( $switched ) {
+                    restore_current_blog();
+                }
+            }
         }
 
         /**
@@ -316,6 +432,49 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             self::create_consent_table();
 
             update_option( self::VERSION_OPTION, self::VERSION );
+        }
+
+        /**
+         * Prepare a newly created site when the plugin is network activated.
+         *
+         * @param WP_Site $new_site New site object.
+         * @param array   $args     Initialization arguments.
+         */
+        public function handle_new_site_initialization( $new_site, $args = array() ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedParameter
+            if ( ! $new_site instanceof WP_Site ) {
+                return;
+            }
+
+            $this->maybe_bootstrap_new_site( (int) $new_site->blog_id );
+        }
+
+        /**
+         * Prepare a newly created site (legacy hook compatibility).
+         *
+         * @param int    $blog_id Blog identifier.
+         * @param int    $user_id User identifier.
+         * @param string $domain  Site domain.
+         * @param string $path    Site path.
+         * @param int    $site_id Network site identifier.
+         * @param array  $meta    Site meta arguments.
+         */
+        public function handle_new_site_legacy( $blog_id, $user_id = 0, $domain = '', $path = '', $site_id = 0, $meta = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+            unset( $user_id, $domain, $path, $site_id, $meta );
+
+            $this->maybe_bootstrap_new_site( (int) $blog_id );
+        }
+
+        /**
+         * Bootstrap plugin data for a new site when network activated.
+         *
+         * @param int $site_id Site identifier.
+         */
+        protected function maybe_bootstrap_new_site( $site_id ) {
+            if ( $site_id < 1 || ! self::is_network_active() ) {
+                return;
+            }
+
+            self::with_blog( $site_id, array( __CLASS__, 'activate_single_site' ) );
         }
 
         /**

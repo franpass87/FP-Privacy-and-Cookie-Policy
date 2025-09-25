@@ -20,6 +20,7 @@ FP Privacy and Cookie Policy offre un flusso di raccolta consensi completo, dall
 - Integrazione automatica con Google Consent Mode v2 (`analytics_storage`, `ad_storage`, `ad_user_data`, `ad_personalization`, `functionality_storage`, `security_storage`).
 - Supporto per Google Tag Manager/eventi personalizzati via `dataLayer` e custom event `fp-consent-change`.
 - Traduzioni `en_US` pronte e file `.pot` per localizzazioni aggiuntive.
+- Supporto multisite con provisioning automatico delle tabelle e della pianificazione del cleanup.
 - Comandi WP-CLI per verificare lo stato del registro, ricreare la tabella dei consensi, esportare i log e avviare la pulizia manuale.
 
 ## Componenti principali
@@ -92,7 +93,11 @@ Il plugin è pensato per sviluppatori e web agency. Puoi estenderlo registrando 
 
 ## Changelog
 
--### 1.5.3
+### 1.6.0
+- Abilitato il supporto multisite: l'attivazione a livello di network crea la tabella del registro e pianifica la pulizia su ogni sito.
+- Le nuove installazioni di siti in un network ricevono automaticamente la tabella e le opzioni necessarie per registrare i consensi.
+
+### 1.5.3
 - Aggiunto un controllo preventivo dei requisiti minimi (PHP e WordPress) con disattivazione automatica e avvisi in bacheca.
 
 ### 1.5.2
