@@ -110,6 +110,51 @@ class FP_Privacy_CLI {
     }
 
     /**
+     * Recreate the consent log table if missing or when forced.
+     *
+     * ## OPTIONS
+     *
+     * [--force]
+     * : Recreate the table even if it already exists.
+     *
+     * ## EXAMPLES
+     *
+     *     wp fp-privacy recreate
+     *
+     * @subcommand recreate
+     *
+     * @param array $args       Positional arguments.
+     * @param array $assoc_args Associative arguments.
+     */
+    public function recreate( $args, $assoc_args ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedParameter
+        global $wpdb;
+
+        $table_name   = $this->get_consent_table_name( $wpdb );
+        $table_exists = $this->table_exists( $wpdb, $table_name );
+        $force        = ! empty( $assoc_args['force'] );
+
+        if ( $table_exists && ! $force ) {
+            \WP_CLI::success( __( 'Consent log table is operational.', 'fp-privacy-cookie-policy' ) );
+            return;
+        }
+
+        FP_Privacy_Cookie_Policy::create_consent_table();
+
+        if ( ! wp_next_scheduled( FP_Privacy_Cookie_Policy::CLEANUP_HOOK ) ) {
+            wp_schedule_event( time(), 'daily', FP_Privacy_Cookie_Policy::CLEANUP_HOOK );
+        }
+
+        update_option( FP_Privacy_Cookie_Policy::VERSION_OPTION, FP_Privacy_Cookie_Policy::VERSION );
+
+        if ( $this->table_exists( $wpdb, $table_name ) ) {
+            \WP_CLI::success( __( 'La tabella del registro consensi è stata ricreata correttamente.', 'fp-privacy-cookie-policy' ) );
+            return;
+        }
+
+        \WP_CLI::error( __( 'Impossibile creare la tabella del registro consensi. Verifica i permessi del database.', 'fp-privacy-cookie-policy' ) );
+    }
+
+    /**
      * Export the consent log to a CSV file.
      *
      * ## OPTIONS
