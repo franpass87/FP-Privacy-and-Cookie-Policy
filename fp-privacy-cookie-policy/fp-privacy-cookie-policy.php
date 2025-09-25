@@ -2034,7 +2034,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     </div>
                 </div>
             </div>
-            <div id="fp-consent-modal" class="fp-consent-modal" role="dialog" aria-modal="true" aria-labelledby="fp-consent-modal-title" data-language="<?php echo esc_attr( $localized['language'] ); ?>" hidden>
+            <div id="fp-consent-modal" class="fp-consent-modal" role="dialog" aria-modal="true" aria-labelledby="fp-consent-modal-title" data-language="<?php echo esc_attr( $localized['language'] ); ?>" aria-hidden="true" tabindex="-1" hidden>
                 <div class="fp-consent-modal__overlay" data-consent-action="close"></div>
                 <div class="fp-consent-modal__dialog" role="document">
                     <button class="fp-consent-modal__close" type="button" aria-label="<?php echo esc_attr( $texts['modal_close'] ); ?>" data-consent-action="close">&times;</button>
