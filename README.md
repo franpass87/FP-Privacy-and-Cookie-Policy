@@ -92,6 +92,9 @@ Il plugin è pensato per sviluppatori e web agency. Puoi estenderlo registrando 
 
 ## Changelog
 
+-### 1.5.3
+- Aggiunto un controllo preventivo dei requisiti minimi (PHP e WordPress) con disattivazione automatica e avvisi in bacheca.
+
 ### 1.5.2
 - Aggiornata la documentazione ufficiale (README, readme.txt e changelog) con la cronologia completa delle release.
 - Allineati i riferimenti all'autore al nuovo maintainer Francesco Passeri.
