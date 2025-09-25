@@ -1,10 +1,10 @@
 === FP Privacy and Cookie Policy ===
-Contributors: fpdigitalassistant
+Contributors: francescopasseri
 Tags: gdpr, cookie banner, consent management, privacy policy, google consent mode
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,16 +13,23 @@ A modern GDPR-ready consent management platform for WordPress, with automatic Go
 == Description ==
 FP Privacy and Cookie Policy helps agencies and professionals implement a complete consent workflow while keeping the editorial experience inside WordPress. The plugin ships with a responsive cookie banner, multilingual texts (Italian/English), granular categories, consent logging and CSV export to stay compliant with GDPR and Google requirements.
 
+= Highlights =
 * Responsive cookie banner with "Accept", "Reject" and "Preferences" actions.
 * Automatic language detection (Italian/English) based on browser and site locale.
 * Granular cookie categories (necessary, preferences, statistics, marketing) with description of services used.
-* Visual editor for privacy and cookie policy texts and dedicated shortcodes.
+* Visual editor for privacy and cookie policy texts and dedicated shortcodes (`[fp_privacy_policy]`, `[fp_cookie_policy]`, `[fp_cookie_preferences]`).
 * Consent registry with anonymised IP address, AJAX logging and CSV export.
 * Contextual indicator showing the last consent update directly next to the manage button.
 * Native Google Consent Mode v2 integration and `dataLayer` events to orchestrate your tracking setup.
 * Configurable consent log retention with automatic cleanup and integration with the WordPress privacy export/erase tools.
 * Adjustable consent cookie duration to align banner re-consent with your legal requirements.
 * First-class WP-CLI commands to monitor the consent log, recreate the table, trigger cleanups and export CSV snapshots.
+
+= Why it matters =
+* Keep the entire consent lifecycle inside WordPress without relying on external dashboards.
+* Offer bilingual experiences for Italian and international audiences out of the box.
+* Demonstrate accountability through a searchable log and scheduled retention policies.
+* Integrate with Google Tag Manager, gtag.js and custom scripts using consent events and hooks.
 
 == Installation ==
 1. Upload the `fp-privacy-cookie-policy` folder to the `/wp-content/plugins/` directory, or install the plugin from the WordPress plugin screen.
@@ -48,12 +55,19 @@ The plugin ships with a dedicated command namespace to automate maintenance task
 * `wp fp-privacy cleanup` — runs the retention cleanup immediately while respecting your configuration.
 * `wp fp-privacy export --file=consents.csv` — saves the entire consent log to a CSV file optimised for large datasets.
 
+== Supporto e contatti ==
+Il plugin è mantenuto da [Francesco Passeri](https://francescopasseri.com/). Per richieste professionali, personalizzazioni o supporto contatta [info@francescopasseri.com](mailto:info@francescopasseri.com).
+
 == Screenshots ==
 1. Banner cookie responsive con pulsanti principali e link alle preferenze.
 2. Modal delle preferenze con categorie e descrizioni personalizzabili.
 3. Registro consensi con esportazione CSV e informazioni anonimizzate.
 
 == Changelog ==
+= 1.5.2 =
+* Updated all documentation (README, readme.txt, changelog) to provide a complete timeline of the changes shipped across releases.
+* Set Francesco Passeri as the official maintainer with updated contact details.
+
 = 1.5.1 =
 * Added the `wp fp-privacy recreate` command to rebuild the consent log table and reschedule the cleanup cron job from the terminal.
 
@@ -92,12 +106,18 @@ The plugin ships with a dedicated command namespace to automate maintenance task
 * Initial release.
 
 == Upgrade Notice ==
+= 1.5.2 =
+Rivedi la documentazione aggiornata e sostituisci eventuali riferimenti al vecchio maintainer con i nuovi contatti.
+
 = 1.5.1 =
 Recreate the consent table from the terminal with `wp fp-privacy recreate` if you need to restore the consent registry after database maintenance.
+
 = 1.5.0 =
 Automate maintenance from the terminal with the new WP-CLI commands to monitor, export and clean consent logs.
+
 = 1.4.0 =
 Refresh any cached banner markup to surface the new consent status badge and timestamp metadata.
+
 = 1.2.0 =
 Review the new consent log retention setting and schedule to align it with your data governance policies.
 
