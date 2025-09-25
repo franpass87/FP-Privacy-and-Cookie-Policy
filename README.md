@@ -14,6 +14,7 @@ FP Privacy and Cookie Policy offre un flusso di raccolta consensi completo, dall
 - Banner cookie responsive con pulsanti **Accetta**, **Rifiuta** e accesso rapido alle preferenze.
 - Localizzazione automatica italiano/inglese del banner e delle categorie in base alla lingua del browser.
 - Gestione granulare delle categorie di cookie (necessari, preferenze, statistiche, marketing) con descrizione dei servizi utilizzati.
+- Generazione automatica e aggiornamento continuo delle pagine dedicate a privacy e cookie policy in base ai plugin e ai servizi rilevati.
 - Editor WYSIWYG per i testi di privacy e cookie policy e shortcode pronti all'uso.
 - Registro consensi con anonimizzazione IP, esportazione in CSV e conservazione configurabile degli eventi.
 - Indicatore contestuale della data dell'ultimo consenso con aggiornamento automatico del pulsante di gestione.
@@ -37,12 +38,12 @@ FP Privacy and Cookie Policy offre un flusso di raccolta consensi completo, dall
 
 1. Copia la cartella `fp-privacy-cookie-policy` all'interno di `wp-content/plugins/` oppure carica l'archivio dal pannello di WordPress.
 2. Attiva **FP Privacy and Cookie Policy** dalla voce "Plugin".
-3. Alla prima attivazione viene creata automaticamente la tabella del registro consensi.
+3. Alla prima attivazione vengono create automaticamente la tabella del registro consensi e le pagine delle informative con i relativi contenuti.
 
 ## Configurazione rapida
 
 1. Vai su **Privacy & Cookie** nel menu laterale della bacheca.
-2. Aggiorna i testi di Privacy e Cookie Policy con l'editor visuale. Gli shortcode disponibili sono:
+2. Aggiorna i testi di Privacy e Cookie Policy con l'editor visuale, partendo dai contenuti generati automaticamente. Gli shortcode disponibili sono:
    - `[fp_privacy_policy]`
    - `[fp_cookie_policy]`
    - `[fp_cookie_preferences]`
@@ -92,6 +93,10 @@ Questo plugin fornisce strumenti tecnici ma non sostituisce la consulenza legale
 Il plugin è pensato per sviluppatori e web agency. Puoi estenderlo registrando nuovi hook su `fp-consent-change` o leggendo il cookie `fp_consent_state` per gestire script personalizzati. Per informazioni professionali o richieste su misura contatta [info@francescopasseri.com](mailto:info@francescopasseri.com).
 
 ## Changelog
+
+### 1.7.0
+- Introdotta la generazione automatica delle informative, con pagine dedicate create e mantenute aggiornate in base alle integrazioni attive sul sito.
+- Aggiunti avvisi e controlli per rigenerare rapidamente i contenuti quando vengono rilevate modifiche rilevanti.
 
 ### 1.6.0
 - Abilitato il supporto multisite: l'attivazione a livello di network crea la tabella del registro e pianifica la pulizia su ogni sito.
