@@ -131,6 +131,27 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         protected $localized_cache = array();
 
         /**
+         * Cache plugin settings for the current request.
+         *
+         * @var array|null
+         */
+        protected $settings_cache = null;
+
+        /**
+         * Cache asset availability lookups for the current request.
+         *
+         * @var array<string, bool>
+         */
+        protected $asset_status = array();
+
+        /**
+         * Track missing assets that should surface an administrator notice.
+         *
+         * @var array<string, array<string, mixed>>
+         */
+        protected $missing_assets = array();
+
+        /**
          * Track the hook currently used to render the banner so it can be swapped dynamically.
          *
          * @var string|null
@@ -150,6 +171,212 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * @var array|null
          */
         protected $consent_log_categories = null;
+
+        /**
+         * Build an absolute URL for a plugin asset.
+         *
+         * @param string $relative_path Asset path relative to the plugin root.
+         *
+         * @return string
+         */
+        protected function get_asset_url( $relative_path ) {
+            $relative_path = $this->normalize_asset_path( $relative_path );
+
+            return plugins_url( $relative_path, __FILE__ );
+        }
+
+        /**
+         * Retrieve an asset version string based on the file modification time.
+         *
+         * Falls back to the plugin version when the file cannot be read.
+         *
+         * @param string $relative_path Asset path relative to the plugin root.
+         *
+         * @return string
+         */
+        protected function get_asset_version( $relative_path ) {
+            $relative_path = $this->normalize_asset_path( $relative_path );
+            $file_path     = $this->get_asset_file_path( $relative_path );
+
+            if ( is_readable( $file_path ) ) {
+                $timestamp = filemtime( $file_path );
+
+                if ( $timestamp ) {
+                    return (string) $timestamp;
+                }
+            }
+
+            return self::VERSION;
+        }
+
+        /**
+         * Normalize relative asset paths.
+         *
+         * @param string $relative_path Raw relative path.
+         *
+         * @return string
+         */
+        protected function normalize_asset_path( $relative_path ) {
+            return ltrim( (string) $relative_path, '/' );
+        }
+
+        /**
+         * Resolve the absolute filesystem path for an asset.
+         *
+         * @param string $relative_path Normalized relative path.
+         *
+         * @return string
+         */
+        protected function get_asset_file_path( $relative_path ) {
+            return plugin_dir_path( __FILE__ ) . $this->normalize_asset_path( $relative_path );
+        }
+
+        /**
+         * Determine whether an asset is available on disk.
+         *
+         * @param string $relative_path Asset path relative to the plugin root.
+         *
+         * @return bool
+         */
+        protected function asset_exists( $relative_path ) {
+            $relative_path = $this->normalize_asset_path( $relative_path );
+
+            if ( isset( $this->asset_status[ $relative_path ] ) ) {
+                return $this->asset_status[ $relative_path ];
+            }
+
+            $file_path = $this->get_asset_file_path( $relative_path );
+            $exists    = is_readable( $file_path );
+
+            $this->asset_status[ $relative_path ] = $exists;
+
+            return $exists;
+        }
+
+        /**
+         * Flag a missing asset so administrators can be notified.
+         *
+         * @param string $relative_path Asset path relative to the plugin root.
+         * @param array  $context       Extra context for the notice.
+         */
+        protected function flag_missing_asset( $relative_path, array $context = array() ) {
+            $relative_path = $this->normalize_asset_path( $relative_path );
+
+            if ( $this->asset_exists( $relative_path ) ) {
+                return;
+            }
+
+            if ( isset( $this->missing_assets[ $relative_path ] ) ) {
+                $this->missing_assets[ $relative_path ] = array_merge( $this->missing_assets[ $relative_path ], $context );
+
+                return;
+            }
+
+            $this->missing_assets[ $relative_path ] = $context;
+        }
+
+        /**
+         * Validate critical plugin assets to surface actionable notices.
+         */
+        public function validate_required_assets() {
+            $assets = array(
+                'assets/js/fp-consent.js' => array(
+                    'label'       => __( 'Script principale del banner cookie', 'fp-privacy-cookie-policy' ),
+                    'scope'       => 'frontend',
+                    'severity'    => 'error',
+                    'description' => __( 'Rigenera gli asset JavaScript (ad esempio con npm run build) e carica nuovamente il file per ripristinare il funzionamento del banner.', 'fp-privacy-cookie-policy' ),
+                ),
+                'assets/css/banner.css'   => array(
+                    'label'       => __( 'Stili del banner cookie', 'fp-privacy-cookie-policy' ),
+                    'scope'       => 'frontend',
+                    'severity'    => 'warning',
+                    'description' => __( 'Il banner rimarrà funzionale ma privo di stile finché il foglio di stile non sarà disponibile.', 'fp-privacy-cookie-policy' ),
+                ),
+                'assets/css/admin.css'    => array(
+                    'label'       => __( 'Stili dell’interfaccia di amministrazione', 'fp-privacy-cookie-policy' ),
+                    'scope'       => 'admin',
+                    'severity'    => 'warning',
+                    'description' => __( 'Ricompila o ripristina il foglio di stile per visualizzare correttamente le pagine di configurazione del plugin.', 'fp-privacy-cookie-policy' ),
+                ),
+                'assets/js/admin.js'      => array(
+                    'label'       => __( 'Script dell’interfaccia di amministrazione', 'fp-privacy-cookie-policy' ),
+                    'scope'       => 'admin',
+                    'severity'    => 'info',
+                    'description' => __( 'Alcune funzioni avanzate della schermata impostazioni potrebbero non essere disponibili senza questo file.', 'fp-privacy-cookie-policy' ),
+                ),
+            );
+
+            foreach ( $assets as $path => $context ) {
+                $this->flag_missing_asset( $path, $context );
+            }
+        }
+
+        /**
+         * Render warnings for missing assets in the plugin admin screens.
+         */
+        public function render_asset_warnings() {
+            if ( empty( $this->missing_assets ) ) {
+                return;
+            }
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+            }
+
+            $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+            if ( ! $screen || 'toplevel_page_fp-privacy-cookie-policy' !== $screen->id ) {
+                return;
+            }
+
+            $messages     = array();
+            $highest_type = 'info';
+
+            foreach ( $this->missing_assets as $path => $context ) {
+                $label       = isset( $context['label'] ) ? $context['label'] : $path;
+                $description = isset( $context['description'] ) ? $context['description'] : '';
+                $severity    = isset( $context['severity'] ) ? $context['severity'] : 'warning';
+
+                if ( 'error' === $severity ) {
+                    $highest_type = 'error';
+                } elseif ( 'warning' === $severity && 'error' !== $highest_type ) {
+                    $highest_type = 'warning';
+                }
+
+                $message = sprintf(
+                    /* translators: 1: asset label, 2: relative file path */
+                    __( '%1$s (%2$s) non è disponibile.', 'fp-privacy-cookie-policy' ),
+                    $label,
+                    $path
+                );
+
+                if ( $description ) {
+                    $message .= ' ' . $description;
+                }
+
+                $messages[] = esc_html( $message );
+            }
+
+            if ( empty( $messages ) ) {
+                return;
+            }
+
+            $class = 'notice notice-info';
+
+            if ( 'error' === $highest_type ) {
+                $class = 'notice notice-error';
+            } elseif ( 'warning' === $highest_type ) {
+                $class = 'notice notice-warning';
+            }
+
+            echo '<div class="' . esc_attr( $class ) . '"><p><strong>' . esc_html__( 'Asset richiesti mancanti', 'fp-privacy-cookie-policy' ) . '</strong></p><ul>';
+
+            foreach ( $messages as $message ) {
+                echo '<li>' . $message . '</li>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            }
+
+            echo '</ul></div>';
+        }
 
         /**
          * Get singleton instance.
@@ -176,8 +403,10 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             add_action( 'admin_init', array( $this, 'add_privacy_policy_content' ) );
             add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
             add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_assets' ) );
+            add_action( 'admin_notices', array( $this, 'render_asset_warnings' ) );
             add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widgets' ) );
             add_action( 'init', array( $this, 'setup_banner_render_hook' ), 9 );
+            add_action( 'init', array( $this, 'validate_required_assets' ), 5 );
             add_action( 'init', array( $this, 'register_blocks' ) );
             add_action( 'init', array( $this, 'register_shortcodes' ) );
             add_action( 'wp_ajax_fp_save_consent', array( $this, 'ajax_save_consent' ) );
@@ -194,6 +423,10 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             add_action( 'admin_notices', array( $this, 'maybe_render_admin_notices' ) );
             add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
             add_filter( 'site_status_tests', array( $this, 'register_site_health_tests' ) );
+
+            add_action( 'add_option_' . self::OPTION_KEY, array( $this, 'flush_settings_cache' ), 10, 0 );
+            add_action( 'update_option_' . self::OPTION_KEY, array( $this, 'flush_settings_cache' ), 10, 0 );
+            add_action( 'delete_option_' . self::OPTION_KEY, array( $this, 'flush_settings_cache' ), 10, 0 );
 
             if ( is_multisite() ) {
                 add_action( 'wp_initialize_site', array( $this, 'handle_new_site_initialization' ), 10, 2 );
@@ -268,7 +501,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             update_option( self::GENERATION_SNAPSHOT_OPTION, $snapshot );
             update_option( self::GENERATION_TIME_OPTION, $timestamp );
 
-            $this->localized_cache = array();
+            $this->flush_settings_cache();
 
             $this->ensure_policy_pages_exist();
 
@@ -1750,6 +1983,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     $options['active_languages'] = array_values( array_unique( $languages ) );
 
                     update_option( self::OPTION_KEY, $options );
+                    $this->flush_settings_cache();
                 }
             }
 
@@ -4184,15 +4418,31 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Flush cached settings and localized data.
+         */
+        public function flush_settings_cache() {
+            $this->settings_cache         = null;
+            $this->localized_cache        = array();
+            $this->language_labels        = array();
+            $this->consent_log_categories = null;
+        }
+
+        /**
          * Get plugin settings.
          *
          * @return array
          */
         public function get_settings() {
+            if ( null !== $this->settings_cache ) {
+                return $this->settings_cache;
+            }
+
             $defaults = $this->get_default_settings();
             $options  = get_option( self::OPTION_KEY, array() );
 
-            return wp_parse_args( $options, $defaults );
+            $this->settings_cache = wp_parse_args( $options, $defaults );
+
+            return $this->settings_cache;
         }
 
         /**
@@ -4319,21 +4569,53 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 return;
             }
 
-            wp_enqueue_style( 'fp-privacy-admin', plugin_dir_url( __FILE__ ) . 'assets/css/admin.css', array(), self::VERSION );
+            $admin_style = 'assets/css/admin.css';
+
+            if ( $this->asset_exists( $admin_style ) ) {
+                wp_enqueue_style(
+                    'fp-privacy-admin',
+                    $this->get_asset_url( $admin_style ),
+                    array(),
+                    $this->get_asset_version( $admin_style )
+                );
+            } else {
+                $this->flag_missing_asset( $admin_style, array(
+                    'label'    => __( 'Stili dell’interfaccia di amministrazione', 'fp-privacy-cookie-policy' ),
+                    'scope'    => 'admin',
+                    'severity' => 'warning',
+                ) );
+            }
 
             if ( ! $is_plugin_screen ) {
                 return;
             }
 
-            wp_enqueue_script( 'fp-privacy-admin', plugin_dir_url( __FILE__ ) . 'assets/js/admin.js', array(), self::VERSION, true );
+            $admin_script = 'assets/js/admin.js';
+            if ( $this->asset_exists( $admin_script ) ) {
+                wp_enqueue_script(
+                    'fp-privacy-admin',
+                    $this->get_asset_url( $admin_script ),
+                    array(),
+                    $this->get_asset_version( $admin_script ),
+                    true
+                );
+            } else {
+                $this->flag_missing_asset( $admin_script, array(
+                    'label'    => __( 'Script dell’interfaccia di amministrazione', 'fp-privacy-cookie-policy' ),
+                    'scope'    => 'admin',
+                    'severity' => 'info',
+                ) );
+            }
 
-            wp_localize_script(
-                'fp-privacy-admin',
-                'fpPrivacyAdmin',
-                array(
-                    'wizardSteps' => $this->get_onboarding_steps(),
-                )
-            );
+            if ( wp_script_is( 'fp-privacy-admin', 'registered' ) || wp_script_is( 'fp-privacy-admin', 'enqueued' ) ) {
+                wp_localize_script(
+                    'fp-privacy-admin',
+                    'fpPrivacyAdmin',
+                    array(
+                        'wizardSteps' => $this->get_onboarding_steps(),
+                    )
+                );
+            }
         }
 
         /**
@@ -4348,9 +4630,42 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $cookie_options = $this->get_frontend_cookie_options( $options );
             $preview_mode   = $this->is_preview_mode_active();
 
-            wp_enqueue_style( 'fp-privacy-frontend', plugin_dir_url( __FILE__ ) . 'assets/css/banner.css', array(), self::VERSION );
+            $frontend_style  = 'assets/css/banner.css';
+            $frontend_script = 'assets/js/fp-consent.js';
 
-            wp_register_script( 'fp-privacy-frontend', plugin_dir_url( __FILE__ ) . 'assets/js/fp-consent.js', array(), self::VERSION, true );
+            if ( $this->asset_exists( $frontend_style ) ) {
+                wp_enqueue_style(
+                    'fp-privacy-frontend',
+                    $this->get_asset_url( $frontend_style ),
+                    array(),
+                    $this->get_asset_version( $frontend_style )
+                );
+            } else {
+                $this->flag_missing_asset( $frontend_style, array(
+                    'label'    => __( 'Stili del banner cookie', 'fp-privacy-cookie-policy' ),
+                    'scope'    => 'frontend',
+                    'severity' => 'warning',
+                ) );
+            }
+
+            if ( ! $this->asset_exists( $frontend_script ) ) {
+                $this->flag_missing_asset( $frontend_script, array(
+                    'label'       => __( 'Script principale del banner cookie', 'fp-privacy-cookie-policy' ),
+                    'scope'       => 'frontend',
+                    'severity'    => 'error',
+                    'description' => __( 'Il consenso non può essere raccolto senza il file JavaScript compilato. Ricompila gli asset e riprova.', 'fp-privacy-cookie-policy' ),
+                ) );
+
+                return;
+            }
+
+            wp_register_script(
+                'fp-privacy-frontend',
+                $this->get_asset_url( $frontend_script ),
+                array(),
+                $this->get_asset_version( $frontend_script ),
+                true
+            );
 
             $localize = array(
                 'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
@@ -5256,16 +5571,32 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 return;
             }
 
-            $handle   = 'fp-privacy-blocks';
-            $base_url = plugin_dir_url( __FILE__ );
+            $handle          = 'fp-privacy-blocks';
+            $blocks_script   = 'assets/js/blocks.js';
+            $has_editor_code = $this->asset_exists( $blocks_script );
 
-            wp_register_script(
-                $handle,
-                $base_url . 'assets/js/blocks.js',
-                array( 'wp-blocks', 'wp-element', 'wp-i18n' ),
-                self::VERSION,
-                true
-            );
+            if ( ! $has_editor_code ) {
+                $this->flag_missing_asset( $blocks_script, array(
+                    'label'       => __( 'Script dei blocchi per l’editor', 'fp-privacy-cookie-policy' ),
+                    'scope'       => 'editor',
+                    'severity'    => 'info',
+                    'description' => __( 'I blocchi Gutenberg resteranno disponibili solo in front-end finché non ricompili gli asset dell’editor.', 'fp-privacy-cookie-policy' ),
+                ) );
+            }
+
+            if ( $has_editor_code ) {
+                wp_register_script(
+                    $handle,
+                    $this->get_asset_url( $blocks_script ),
+                    array( 'wp-blocks', 'wp-element', 'wp-i18n' ),
+                    $this->get_asset_version( $blocks_script ),
+                    true
+                );
+
+                if ( function_exists( 'wp_set_script_translations' ) ) {
+                    wp_set_script_translations( $handle, 'fp-privacy-cookie-policy', plugin_dir_path( __FILE__ ) . 'languages' );
+                }
+            }
 
             $blocks = array(
                 'fp/privacy-policy'     => array( $this, 'render_privacy_policy_block' ),
@@ -5275,13 +5606,15 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             );
 
             foreach ( $blocks as $name => $callback ) {
-                register_block_type(
-                    $name,
-                    array(
-                        'editor_script'   => $handle,
-                        'render_callback' => $callback,
-                    )
+                $args = array(
+                    'render_callback' => $callback,
                 );
+
+                if ( $has_editor_code ) {
+                    $args['editor_script'] = $handle;
+                }
+
+                register_block_type( $name, $args );
             }
         }
 
@@ -6881,7 +7214,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             update_option( self::OPTION_KEY, $sanitized );
             update_option( self::VERSION_OPTION, self::VERSION );
 
-            $this->localized_cache = array();
+            $this->flush_settings_cache();
 
             /**
              * Fires after plugin settings have been imported programmatically.
@@ -7010,7 +7343,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             update_option( self::OPTION_KEY, $settings );
             update_option( self::VERSION_OPTION, self::VERSION );
 
-            $this->localized_cache = array();
+            $this->flush_settings_cache();
 
             $redirect = add_query_arg( 'fp_consent_revision', 'reset', $redirect );
 
