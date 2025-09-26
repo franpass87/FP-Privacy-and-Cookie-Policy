@@ -3,7 +3,7 @@
  * Plugin Name: FP Privacy and Cookie Policy
  * Plugin URI:  https://francescopasseri.com/
  * Description: Gestisci privacy policy, cookie policy e consenso informato in modo conforme al GDPR e al Google Consent Mode v2.
- * Version:     1.7.0
+ * Version:     1.14.0
  * Author:      Francesco Passeri
  * Author URI:  https://francescopasseri.com/
  * License:     GPL2
@@ -101,7 +101,8 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
     class FP_Privacy_Cookie_Policy {
 
         const OPTION_KEY                 = 'fp_privacy_cookie_settings';
-        const VERSION                    = '1.7.0';
+        const VERSION                    = '1.14.0';
+        const PREVIEW_QUERY_KEY          = 'fp_cookie_preview';
         const VERSION_OPTION             = 'fp_privacy_cookie_version';
         const CONSENT_COOKIE             = 'fp_consent_state';
         const CONSENT_TABLE              = 'fp_consent_logs';
@@ -130,6 +131,27 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         protected $localized_cache = array();
 
         /**
+         * Track the hook currently used to render the banner so it can be swapped dynamically.
+         *
+         * @var string|null
+         */
+        protected $current_banner_hook = null;
+
+        /**
+         * Cached list of human readable language labels.
+         *
+         * @var array
+         */
+        protected $language_labels = array();
+
+        /**
+         * Cached categories metadata for the consent log display.
+         *
+         * @var array|null
+         */
+        protected $consent_log_categories = null;
+
+        /**
          * Get singleton instance.
          *
          * @return FP_Privacy_Cookie_Policy
@@ -154,13 +176,18 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             add_action( 'admin_init', array( $this, 'add_privacy_policy_content' ) );
             add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
             add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_assets' ) );
-            add_action( 'wp_footer', array( $this, 'render_consent_banner' ) );
+            add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widgets' ) );
+            add_action( 'init', array( $this, 'setup_banner_render_hook' ), 9 );
+            add_action( 'init', array( $this, 'register_blocks' ) );
             add_action( 'init', array( $this, 'register_shortcodes' ) );
             add_action( 'wp_ajax_fp_save_consent', array( $this, 'ajax_save_consent' ) );
             add_action( 'wp_ajax_nopriv_fp_save_consent', array( $this, 'ajax_save_consent' ) );
             add_action( 'admin_post_fp_export_consent', array( $this, 'export_consent_logs' ) );
+            add_action( 'admin_post_fp_export_settings', array( $this, 'handle_export_settings' ) );
+            add_action( 'admin_post_fp_import_settings', array( $this, 'handle_import_settings' ) );
             add_action( 'admin_post_fp_recreate_consent_table', array( $this, 'handle_recreate_consent_table' ) );
             add_action( 'admin_post_fp_cleanup_consent_logs', array( $this, 'handle_cleanup_consent_logs' ) );
+            add_action( 'admin_post_fp_reset_consent_revision', array( $this, 'handle_reset_consent_revision' ) );
             add_action( self::CLEANUP_HOOK, array( $this, 'cleanup_consent_logs' ) );
             add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_privacy_exporter' ) );
             add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_privacy_eraser' ) );
@@ -1698,6 +1725,34 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
             self::create_consent_table();
 
+            if ( version_compare( $installed_version, '1.8.0', '<' ) ) {
+                $options = get_option( self::OPTION_KEY, array() );
+
+                if ( ! isset( $options['active_languages'] ) || ! is_array( $options['active_languages'] ) ) {
+                    $languages = array();
+
+                    if ( isset( $options['translations'] ) && is_array( $options['translations'] ) ) {
+                        foreach ( array_keys( $options['translations'] ) as $language ) {
+                            $language = $this->normalize_language_code( $language );
+
+                            if ( self::DEFAULT_LANGUAGE === $language ) {
+                                continue;
+                            }
+
+                            $languages[] = $language;
+                        }
+                    }
+
+                    if ( empty( $languages ) ) {
+                        $languages[] = 'en';
+                    }
+
+                    $options['active_languages'] = array_values( array_unique( $languages ) );
+
+                    update_option( self::OPTION_KEY, $options );
+                }
+            }
+
             update_option( self::VERSION_OPTION, self::VERSION );
         }
 
@@ -2130,6 +2185,9 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $cleanup_status    = isset( $_GET['fp_cleanup_status'] ) ? sanitize_key( wp_unslash( $_GET['fp_cleanup_status'] ) ) : '';
             $cleanup_removed   = isset( $_GET['fp_cleanup_removed'] ) ? absint( $_GET['fp_cleanup_removed'] ) : 0;
             $cleanup_allowed   = array( 'success', 'empty', 'disabled', 'missing' );
+            $settings_import   = isset( $_GET['fp_settings_import'] ) ? sanitize_key( wp_unslash( $_GET['fp_settings_import'] ) ) : '';
+            $settings_export   = isset( $_GET['fp_settings_export'] ) ? sanitize_key( wp_unslash( $_GET['fp_settings_export'] ) ) : '';
+            $revision_status   = isset( $_GET['fp_consent_revision'] ) ? sanitize_key( wp_unslash( $_GET['fp_consent_revision'] ) ) : '';
 
             if ( $status && in_array( $status, $allowed_statuses, true ) ) {
                 if ( ! $is_plugin_screen ) {
@@ -2140,6 +2198,30 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'La tabella del registro consensi è stata ricreata correttamente.', 'fp-privacy-cookie-policy' ) . '</p></div>';
                 } elseif ( 'error' === $status ) {
                     echo '<div class="notice notice-error"><p>' . esc_html__( 'Impossibile creare la tabella del registro consensi. Verifica i permessi del database.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+                }
+            }
+
+            if ( $settings_export && 'error' === $settings_export ) {
+                if ( ! $is_plugin_screen ) {
+                    return;
+                }
+
+                echo '<div class="notice notice-error"><p>' . esc_html__( 'Impossibile generare il file di esportazione delle impostazioni. Riprova.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+            }
+
+            if ( $settings_import ) {
+                if ( ! $is_plugin_screen ) {
+                    return;
+                }
+
+                if ( 'success' === $settings_import ) {
+                    echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Le impostazioni sono state importate correttamente.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+                } elseif ( 'invalid' === $settings_import ) {
+                    echo '<div class="notice notice-error"><p>' . esc_html__( 'Il file selezionato non contiene impostazioni valide.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+                } elseif ( 'missing' === $settings_import ) {
+                    echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Seleziona un file JSON generato dal plugin prima di procedere con l\'import.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+                } elseif ( 'error' === $settings_import ) {
+                    echo '<div class="notice notice-error"><p>' . esc_html__( 'Impossibile importare le impostazioni. Riprova.', 'fp-privacy-cookie-policy' ) . '</p></div>';
                 }
             }
 
@@ -2161,6 +2243,12 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Imposta un periodo di conservazione per attivare la pulizia del registro consensi.', 'fp-privacy-cookie-policy' ) . '</p></div>';
                 } elseif ( 'missing' === $cleanup_status ) {
                     echo '<div class="notice notice-error"><p>' . esc_html__( 'Impossibile pulire il registro perché la tabella dei consensi non è disponibile.', 'fp-privacy-cookie-policy' ) . '</p></div>';
+                }
+            }
+
+            if ( $revision_status && $is_plugin_screen ) {
+                if ( 'reset' === $revision_status ) {
+                    echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Il consenso verrà richiesto nuovamente a tutti i visitatori.', 'fp-privacy-cookie-policy' ) . '</p></div>';
                 }
             }
 
@@ -2223,6 +2311,30 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 'banner_settings',
                 __( 'Banner Cookie', 'fp-privacy-cookie-policy' ),
                 array( $this, 'render_banner_settings' ),
+                'fp_privacy_cookie_policy',
+                'fp_privacy_general_section'
+            );
+
+            add_settings_field(
+                'render_hook',
+                __( 'Posizionamento banner', 'fp-privacy-cookie-policy' ),
+                array( $this, 'render_banner_hook_field' ),
+                'fp_privacy_cookie_policy',
+                'fp_privacy_general_section'
+            );
+
+            add_settings_field(
+                'preview_mode',
+                __( 'Modalità anteprima', 'fp-privacy-cookie-policy' ),
+                array( $this, 'render_preview_mode_field' ),
+                'fp_privacy_cookie_policy',
+                'fp_privacy_general_section'
+            );
+
+            add_settings_field(
+                'active_languages',
+                __( 'Lingue aggiuntive', 'fp-privacy-cookie-policy' ),
+                array( $this, 'render_language_manager_field' ),
                 'fp_privacy_cookie_policy',
                 'fp_privacy_general_section'
             );
@@ -2291,22 +2403,31 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          */
         public function sanitize_settings( $input ) {
             $defaults = $this->get_default_settings();
+            $existing = get_option( self::OPTION_KEY, array() );
             $output   = $defaults;
 
             $output['privacy_policy_content'] = isset( $input['privacy_policy_content'] ) ? wp_kses_post( $input['privacy_policy_content'] ) : $defaults['privacy_policy_content'];
             $output['cookie_policy_content']  = isset( $input['cookie_policy_content'] ) ? wp_kses_post( $input['cookie_policy_content'] ) : $defaults['cookie_policy_content'];
 
-            $banner_input       = isset( $input['banner'] ) && is_array( $input['banner'] ) ? $input['banner'] : array();
-            $categories_input   = isset( $input['categories'] ) && is_array( $input['categories'] ) ? $input['categories'] : array();
-            $google_input       = isset( $input['google_defaults'] ) && is_array( $input['google_defaults'] ) ? $input['google_defaults'] : array();
-            $texts_input        = isset( $input['texts'] ) && is_array( $input['texts'] ) ? $input['texts'] : array();
-            $translations_input = isset( $input['translations'] ) && is_array( $input['translations'] ) ? $input['translations'] : array();
+            $banner_input        = isset( $input['banner'] ) && is_array( $input['banner'] ) ? $input['banner'] : array();
+            $categories_input    = isset( $input['categories'] ) && is_array( $input['categories'] ) ? $input['categories'] : array();
+            $google_input        = isset( $input['google_defaults'] ) && is_array( $input['google_defaults'] ) ? $input['google_defaults'] : array();
+            $texts_input         = isset( $input['texts'] ) && is_array( $input['texts'] ) ? $input['texts'] : array();
+            $translations_input  = isset( $input['translations'] ) && is_array( $input['translations'] ) ? $input['translations'] : array();
+            $active_languages_in = isset( $input['active_languages'] ) ? $input['active_languages'] : array();
+            $custom_languages_in = isset( $input['custom_languages'] ) ? $input['custom_languages'] : '';
 
-            $output['banner']          = $this->sanitize_banner_settings( $banner_input, $defaults['banner'] );
-            $output['categories']      = $this->sanitize_categories_settings( $categories_input, $defaults['categories'] );
-            $output['google_defaults'] = $this->sanitize_google_defaults( $google_input, $defaults['google_defaults'] );
-            $output['texts']           = $this->sanitize_frontend_texts( $texts_input, $defaults['texts'] );
-            $output['translations']    = $this->sanitize_translations( $translations_input, $defaults['translations'], $defaults );
+            $output['banner']           = $this->sanitize_banner_settings( $banner_input, $defaults['banner'] );
+            $output['categories']       = $this->sanitize_categories_settings( $categories_input, $defaults['categories'] );
+            $output['google_defaults']  = $this->sanitize_google_defaults( $google_input, $defaults['google_defaults'] );
+            $output['texts']            = $this->sanitize_frontend_texts( $texts_input, $defaults['texts'] );
+            $output['active_languages'] = $this->sanitize_active_languages( $active_languages_in, $custom_languages_in );
+            $output['translations']     = $this->sanitize_translations( $translations_input, $defaults['translations'], $defaults, $output['active_languages'] );
+            $output['render_hook']     = $this->sanitize_render_hook(
+                isset( $input['render_hook'] ) ? $input['render_hook'] : $defaults['render_hook'],
+                $defaults['render_hook']
+            );
+            $output['preview_mode']    = ! empty( $input['preview_mode'] );
             $output['retention_days']  = $this->sanitize_retention_days(
                 isset( $input['retention_days'] ) ? $input['retention_days'] : $defaults['retention_days'],
                 $defaults['retention_days']
@@ -2315,6 +2436,20 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 isset( $input['consent_cookie_days'] ) ? $input['consent_cookie_days'] : $defaults['consent_cookie_days'],
                 $defaults['consent_cookie_days']
             );
+
+            $existing_revision = isset( $existing['consent_revision'] ) ? (int) $existing['consent_revision'] : $defaults['consent_revision'];
+            if ( isset( $input['consent_revision'] ) ) {
+                $existing_revision = max( 1, (int) $input['consent_revision'] );
+            }
+
+            $output['consent_revision'] = max( 1, $existing_revision );
+
+            $existing_revision_date = isset( $existing['consent_revision_updated_at'] ) ? $existing['consent_revision_updated_at'] : $defaults['consent_revision_updated_at'];
+            if ( isset( $input['consent_revision_updated_at'] ) ) {
+                $existing_revision_date = $this->sanitize_mysql_datetime( $input['consent_revision_updated_at'] );
+            }
+
+            $output['consent_revision_updated_at'] = $this->sanitize_mysql_datetime( $existing_revision_date );
 
             $output['auto_generate'] = isset( $input['auto_generate'] ) ? (bool) $input['auto_generate'] : $defaults['auto_generate'];
 
@@ -2335,7 +2470,231 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $sanitized['show_reject']      = ! empty( $input['show_reject'] );
             $sanitized['show_preferences'] = ! empty( $input['show_preferences'] );
 
+            $default_layout = isset( $defaults['layout'] ) ? $defaults['layout'] : 'floating';
+            $sanitized['layout'] = $this->sanitize_banner_layout(
+                isset( $input['layout'] ) ? $input['layout'] : $default_layout,
+                $default_layout
+            );
+
+            $sanitized['background_color'] = $this->sanitize_hex_color_default(
+                isset( $input['background_color'] ) ? $input['background_color'] : '',
+                isset( $defaults['background_color'] ) ? $defaults['background_color'] : '#ffffff'
+            );
+
+            $sanitized['text_color'] = $this->sanitize_hex_color_default(
+                isset( $input['text_color'] ) ? $input['text_color'] : '',
+                isset( $defaults['text_color'] ) ? $defaults['text_color'] : '#1f2933'
+            );
+
+            $sanitized['accent_color'] = $this->sanitize_hex_color_default(
+                isset( $input['accent_color'] ) ? $input['accent_color'] : '',
+                isset( $defaults['accent_color'] ) ? $defaults['accent_color'] : '#2563eb'
+            );
+
+            $sanitized['secondary_color'] = $this->sanitize_hex_color_default(
+                isset( $input['secondary_color'] ) ? $input['secondary_color'] : '',
+                isset( $defaults['secondary_color'] ) ? $defaults['secondary_color'] : '#eef2ff'
+            );
+
+            $sanitized['secondary_text_color'] = $this->sanitize_hex_color_default(
+                isset( $input['secondary_text_color'] ) ? $input['secondary_text_color'] : '',
+                isset( $defaults['secondary_text_color'] ) ? $defaults['secondary_text_color'] : '#1e3a8a'
+            );
+
+            $sanitized['border_color'] = $this->sanitize_hex_color_default(
+                isset( $input['border_color'] ) ? $input['border_color'] : '',
+                isset( $defaults['border_color'] ) ? $defaults['border_color'] : '#dbeafe'
+            );
+
             return $sanitized;
+        }
+
+        /**
+         * Sanitize a hex color value with fallback.
+         *
+         * @param string $value   Raw value.
+         * @param string $default Default value.
+         *
+         * @return string
+         */
+        protected function sanitize_hex_color_default( $value, $default ) {
+            if ( is_string( $value ) ) {
+                $value = trim( $value );
+            }
+
+            $sanitized = sanitize_hex_color( $value );
+
+            if ( $sanitized ) {
+                return $sanitized;
+            }
+
+            $fallback = sanitize_hex_color( $default );
+
+            return $fallback ? $fallback : '#000000';
+        }
+
+        /**
+         * Sanitize banner layout.
+         *
+         * @param string $value   Raw layout value.
+         * @param string $default Default layout.
+         *
+         * @return string
+         */
+        protected function sanitize_banner_layout( $value, $default ) {
+            $value    = is_string( $value ) ? trim( strtolower( $value ) ) : '';
+            $allowed  = $this->get_banner_layout_options();
+            $selected = in_array( $value, $allowed, true ) ? $value : $default;
+
+            if ( ! in_array( $selected, $allowed, true ) ) {
+                $selected = 'floating';
+            }
+
+            return $selected;
+        }
+
+        /**
+         * Retrieve the available banner layout options.
+         *
+         * @return array
+         */
+        protected function get_banner_layout_options() {
+            return array( 'floating', 'floating_top', 'bar_bottom', 'bar_top' );
+        }
+
+        /**
+         * Sanitize the banner render hook setting.
+         *
+         * @param string $value   Raw value.
+         * @param string $default Default value.
+         *
+         * @return string
+         */
+        protected function sanitize_render_hook( $value, $default ) {
+            $value    = sanitize_key( $value );
+            $allowed  = array( 'footer', 'body_open', 'manual' );
+            $selected = in_array( $value, $allowed, true ) ? $value : $default;
+
+            return $selected;
+        }
+
+        /**
+         * Sanitize consent log date filters coming from the admin UI.
+         *
+         * @param string $value Raw date value.
+         *
+         * @return string
+         */
+        protected function sanitize_log_filter_date( $value ) {
+            if ( ! is_string( $value ) ) {
+                return '';
+            }
+
+            $value = trim( $value );
+
+            if ( '' === $value ) {
+                return '';
+            }
+
+            try {
+                $timezone = wp_timezone();
+                $date     = DateTimeImmutable::createFromFormat( 'Y-m-d', $value, $timezone );
+
+                if ( false === $date ) {
+                    return '';
+                }
+
+                $errors = DateTimeImmutable::getLastErrors();
+
+                if ( ! empty( $errors['warning_count'] ) || ! empty( $errors['error_count'] ) ) {
+                    return '';
+                }
+
+                return $date->format( 'Y-m-d' );
+            } catch ( Exception $exception ) {
+                return '';
+            }
+        }
+
+        /**
+         * Normalize consent log filters and build SQL fragments for queries.
+         *
+         * @param array $filters Raw filter arguments.
+         *
+         * @return array
+         */
+        protected function prepare_consent_log_filters( array $filters ) {
+            global $wpdb;
+
+            $search_raw = isset( $filters['search'] ) && ! is_array( $filters['search'] ) ? $filters['search'] : '';
+            $event_raw  = isset( $filters['event'] ) && ! is_array( $filters['event'] ) ? $filters['event'] : '';
+            $from_raw   = isset( $filters['from'] ) && ! is_array( $filters['from'] ) ? $filters['from'] : '';
+            $to_raw     = isset( $filters['to'] ) && ! is_array( $filters['to'] ) ? $filters['to'] : '';
+
+            $search = sanitize_text_field( (string) $search_raw );
+            $event  = sanitize_key( (string) $event_raw );
+            $from   = $this->sanitize_log_filter_date( (string) $from_raw );
+            $to     = $this->sanitize_log_filter_date( (string) $to_raw );
+
+            if ( '' !== $from && '' !== $to ) {
+                try {
+                    $timezone = wp_timezone();
+                    $from_dt  = new DateTimeImmutable( $from, $timezone );
+                    $to_dt    = new DateTimeImmutable( $to, $timezone );
+
+                    if ( $from_dt > $to_dt ) {
+                        $temp = $from;
+                        $from = $to;
+                        $to   = $temp;
+                    }
+                } catch ( Exception $exception ) {
+                    $from = '';
+                    $to   = '';
+                }
+            }
+
+            $where_clauses = array();
+            $params        = array();
+
+            if ( '' !== $search ) {
+                $like            = '%' . $wpdb->esc_like( $search ) . '%';
+                $where_clauses[] = '(consent_id LIKE %s OR consent_state LIKE %s OR ip_address LIKE %s)';
+                $params[]        = $like;
+                $params[]        = $like;
+                $params[]        = $like;
+            }
+
+            $allowed_events = $this->get_allowed_consent_events();
+
+            if ( '' !== $event && in_array( $event, $allowed_events, true ) ) {
+                $where_clauses[] = 'event_type = %s';
+                $params[]        = $event;
+            } else {
+                $event = '';
+            }
+
+            if ( '' !== $from ) {
+                $where_clauses[] = 'created_at >= %s';
+                $params[]        = $from . ' 00:00:00';
+            } else {
+                $from = '';
+            }
+
+            if ( '' !== $to ) {
+                $where_clauses[] = 'created_at <= %s';
+                $params[]        = $to . ' 23:59:59';
+            } else {
+                $to = '';
+            }
+
+            return array(
+                'search' => $search,
+                'event'  => $event,
+                'from'   => $from,
+                'to'     => $to,
+                'where'  => $where_clauses,
+                'params' => $params,
+            );
         }
 
         /**
@@ -2406,6 +2765,281 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             }
 
             return $defaults;
+        }
+
+        /**
+         * Retrieve the sanitized banner layout key.
+         *
+         * @param array $banner Banner settings.
+         *
+         * @return string
+         */
+        protected function get_banner_layout_key( array $banner ) {
+            $layout = isset( $banner['layout'] ) ? $banner['layout'] : 'floating';
+
+            return $this->sanitize_banner_layout( $layout, 'floating' );
+        }
+
+        /**
+         * Retrieve the suffix used for layout-based class names.
+         *
+         * @param array $banner Banner settings.
+         *
+         * @return string
+         */
+        protected function get_banner_layout_suffix( array $banner ) {
+            return str_replace( '_', '-', $this->get_banner_layout_key( $banner ) );
+        }
+
+        /**
+         * Retrieve the class applied to the front-end banner for layout variations.
+         *
+         * @param array $banner Banner settings.
+         *
+         * @return string
+         */
+        protected function get_banner_layout_class( array $banner ) {
+            return 'fp-consent-banner--' . $this->get_banner_layout_suffix( $banner );
+        }
+
+        /**
+         * Retrieve the preview class applied for layout variations.
+         *
+         * @param array $banner Banner settings.
+         *
+         * @return string
+         */
+        protected function get_preview_layout_class( array $banner ) {
+            return 'fp-preview-layout--' . $this->get_banner_layout_suffix( $banner );
+        }
+
+        /**
+         * Build the CSS custom properties used to style the banner.
+         *
+         * @param array $banner Banner settings.
+         *
+         * @return array
+         */
+        protected function get_banner_theme_variables( array $banner ) {
+            $background = isset( $banner['background_color'] )
+                ? $this->sanitize_hex_color_default( $banner['background_color'], '#ffffff' )
+                : '#ffffff';
+            $text = isset( $banner['text_color'] )
+                ? $this->sanitize_hex_color_default( $banner['text_color'], '#1f2933' )
+                : '#1f2933';
+            $accent = isset( $banner['accent_color'] )
+                ? $this->sanitize_hex_color_default( $banner['accent_color'], '#2563eb' )
+                : '#2563eb';
+            $secondary = isset( $banner['secondary_color'] )
+                ? $this->sanitize_hex_color_default( $banner['secondary_color'], '#eef2ff' )
+                : '#eef2ff';
+            $secondary_text = isset( $banner['secondary_text_color'] )
+                ? $this->sanitize_hex_color_default( $banner['secondary_text_color'], '#1e3a8a' )
+                : '#1e3a8a';
+            $border = isset( $banner['border_color'] )
+                ? $this->sanitize_hex_color_default( $banner['border_color'], '#dbeafe' )
+                : '#dbeafe';
+
+            $accent_active = $this->adjust_color_luminance( $accent, -0.15 );
+            $accent_soft   = $this->build_rgba( $accent, 0.12 );
+            $accent_softer = $this->build_rgba( $accent, 0.18 );
+
+            $secondary_border = $this->mix_hex_colors( $secondary, '#000000', 0.12 );
+            $secondary_hover  = $this->mix_hex_colors( $secondary, '#ffffff', 0.2 );
+            $card_bg          = $this->mix_hex_colors( $background, '#ffffff', 0.92 );
+            $card_border      = $this->mix_hex_colors( $background, '#000000', 0.08 );
+            $muted_text       = $this->mix_hex_colors( $text, $background, 0.4 );
+            $switch_off       = $this->mix_hex_colors( $accent, '#ffffff', 0.65 );
+            $manage_bg        = $this->mix_hex_colors( $background, '#ffffff', 0.75 );
+            $manage_border    = $this->mix_hex_colors( $background, '#000000', 0.12 );
+            $manage_hover     = $this->mix_hex_colors( $manage_bg, '#ffffff', 0.12 );
+            $manage_text      = $this->mix_hex_colors( $text, '#ffffff', 0.08 );
+
+            return array(
+                '--fp-banner-background'        => $background,
+                '--fp-banner-text'              => $text,
+                '--fp-banner-border'            => $border,
+                '--fp-banner-muted-text'        => $muted_text,
+                '--fp-banner-accent'            => $accent,
+                '--fp-banner-accent-contrast'   => $this->calculate_contrast_color( $accent ),
+                '--fp-banner-accent-active'     => $accent_active,
+                '--fp-banner-accent-soft'       => $accent_soft,
+                '--fp-banner-accent-softer'     => $accent_softer,
+                '--fp-banner-secondary-bg'      => $secondary,
+                '--fp-banner-secondary-text'    => $secondary_text,
+                '--fp-banner-secondary-border'  => $secondary_border,
+                '--fp-banner-secondary-hover'   => $secondary_hover,
+                '--fp-banner-card-bg'           => $card_bg,
+                '--fp-banner-card-border'       => $card_border,
+                '--fp-banner-switch-off'        => $switch_off,
+                '--fp-banner-manage-bg'         => $manage_bg,
+                '--fp-banner-manage-border'     => $manage_border,
+                '--fp-banner-manage-hover-bg'   => $manage_hover,
+                '--fp-banner-manage-text'       => $manage_text,
+            );
+        }
+
+        /**
+         * Build a CSS declaration string from custom properties.
+         *
+         * @param array $variables Map of property => value.
+         *
+         * @return string
+         */
+        protected function build_css_custom_properties( array $variables ) {
+            $declarations = array();
+
+            foreach ( $variables as $property => $value ) {
+                if ( ! is_string( $property ) || '' === $property || null === $value || '' === $value ) {
+                    continue;
+                }
+
+                $property = trim( $property );
+                $value    = is_string( $value ) ? trim( $value ) : $value;
+
+                if ( '' === $property || '' === $value ) {
+                    continue;
+                }
+
+                $declarations[] = $property . ': ' . $value;
+            }
+
+            if ( empty( $declarations ) ) {
+                return '';
+            }
+
+            return implode( '; ', $declarations );
+        }
+
+        /**
+         * Blend two hexadecimal colours by the provided amount.
+         *
+         * @param string $first   Base colour.
+         * @param string $second  Secondary colour.
+         * @param float  $amount  Amount between 0 and 1.
+         *
+         * @return string
+         */
+        protected function mix_hex_colors( $first, $second, $amount ) {
+            $amount = max( 0, min( 1, (float) $amount ) );
+
+            $first_rgb  = $this->hex_to_rgb( $first );
+            $second_rgb = $this->hex_to_rgb( $second );
+
+            if ( empty( $first_rgb ) || empty( $second_rgb ) ) {
+                return $first;
+            }
+
+            $result = array(
+                'r' => (int) round( $first_rgb['r'] * ( 1 - $amount ) + $second_rgb['r'] * $amount ),
+                'g' => (int) round( $first_rgb['g'] * ( 1 - $amount ) + $second_rgb['g'] * $amount ),
+                'b' => (int) round( $first_rgb['b'] * ( 1 - $amount ) + $second_rgb['b'] * $amount ),
+            );
+
+            return $this->rgb_to_hex( $result );
+        }
+
+        /**
+         * Adjust the luminance of a hexadecimal colour.
+         *
+         * @param string $hex      Base colour.
+         * @param float  $percent  Percentage between -1 and 1.
+         *
+         * @return string
+         */
+        protected function adjust_color_luminance( $hex, $percent ) {
+            $percent = max( -1, min( 1, (float) $percent ) );
+
+            if ( $percent === 0.0 ) {
+                return $this->sanitize_hex_color_default( $hex, '#000000' );
+            }
+
+            if ( $percent > 0 ) {
+                return $this->mix_hex_colors( $hex, '#ffffff', $percent );
+            }
+
+            return $this->mix_hex_colors( $hex, '#000000', abs( $percent ) );
+        }
+
+        /**
+         * Convert a hexadecimal colour to an associative RGB array.
+         *
+         * @param string $hex Hexadecimal colour.
+         *
+         * @return array|null
+         */
+        protected function hex_to_rgb( $hex ) {
+            $hex = is_string( $hex ) ? trim( $hex ) : '';
+            $hex = ltrim( $hex, '#' );
+
+            if ( 3 === strlen( $hex ) ) {
+                $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+            }
+
+            if ( 6 !== strlen( $hex ) || ! ctype_xdigit( $hex ) ) {
+                return null;
+            }
+
+            $int = hexdec( $hex );
+
+            return array(
+                'r' => ( $int >> 16 ) & 255,
+                'g' => ( $int >> 8 ) & 255,
+                'b' => $int & 255,
+            );
+        }
+
+        /**
+         * Convert RGB components to hexadecimal notation.
+         *
+         * @param array $rgb RGB array.
+         *
+         * @return string
+         */
+        protected function rgb_to_hex( $rgb ) {
+            $r = isset( $rgb['r'] ) ? max( 0, min( 255, (int) $rgb['r'] ) ) : 0;
+            $g = isset( $rgb['g'] ) ? max( 0, min( 255, (int) $rgb['g'] ) ) : 0;
+            $b = isset( $rgb['b'] ) ? max( 0, min( 255, (int) $rgb['b'] ) ) : 0;
+
+            return sprintf( '#%02x%02x%02x', $r, $g, $b );
+        }
+
+        /**
+         * Convert a hexadecimal colour into an rgba() string with the given alpha.
+         *
+         * @param string $hex   Base colour.
+         * @param float  $alpha Alpha channel value between 0 and 1.
+         *
+         * @return string
+         */
+        protected function build_rgba( $hex, $alpha ) {
+            $alpha = max( 0, min( 1, (float) $alpha ) );
+            $rgb   = $this->hex_to_rgb( $hex );
+
+            if ( empty( $rgb ) ) {
+                $rgb = $this->hex_to_rgb( '#000000' );
+            }
+
+            return sprintf( 'rgba(%d, %d, %d, %.2f)', $rgb['r'], $rgb['g'], $rgb['b'], $alpha );
+        }
+
+        /**
+         * Determine an accessible contrast colour (black or white) for the provided base colour.
+         *
+         * @param string $hex Base colour.
+         *
+         * @return string
+         */
+        protected function calculate_contrast_color( $hex ) {
+            $rgb = $this->hex_to_rgb( $hex );
+
+            if ( empty( $rgb ) ) {
+                return '#ffffff';
+            }
+
+            $luminance = ( 0.2126 * $rgb['r'] + 0.7152 * $rgb['g'] + 0.0722 * $rgb['b'] ) / 255;
+
+            return ( $luminance > 0.55 ) ? '#000000' : '#ffffff';
         }
 
         /**
@@ -2576,21 +3210,98 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Sanitize the list of active languages submitted via the settings form.
+         *
+         * @param mixed $selected Selected languages from the multi select.
+         * @param mixed $custom   Custom languages provided manually.
+         *
+         * @return array
+         */
+        protected function sanitize_active_languages( $selected, $custom ) {
+            $languages = array();
+
+            if ( is_array( $selected ) ) {
+                foreach ( $selected as $language ) {
+                    $languages[] = $this->normalize_language_code( $language );
+                }
+            }
+
+            if ( is_string( $custom ) && $custom ) {
+                $parts = array_map( 'trim', explode( ',', $custom ) );
+
+                foreach ( $parts as $language ) {
+                    if ( '' === $language ) {
+                        continue;
+                    }
+
+                    $languages[] = $this->normalize_language_code( $language );
+                }
+            }
+
+            $languages = array_filter(
+                $languages,
+                array( $this, 'filter_non_default_language' )
+            );
+
+            $languages = array_values( array_unique( $languages ) );
+            sort( $languages );
+
+            return $languages;
+        }
+
+        /**
          * Sanitize translations array.
          *
          * @param array $translations   Raw translation input.
          * @param array $defaults       Translation defaults.
          * @param array $base_defaults  Base defaults.
+         * @param array $active_languages Languages enabled in the settings.
          *
          * @return array
          */
-        protected function sanitize_translations( array $translations, array $defaults, array $base_defaults ) {
+        protected function sanitize_translations( array $translations, array $defaults, array $base_defaults, array $active_languages = array() ) {
             $sanitized = array();
-            $languages = array_unique( array_merge( array_keys( $defaults ), array_keys( $translations ) ) );
+            $allowed   = array();
 
-            foreach ( $languages as $language ) {
-                $default_translation = isset( $defaults[ $language ] ) && is_array( $defaults[ $language ] ) ? $defaults[ $language ] : array();
-                $incoming            = isset( $translations[ $language ] ) && is_array( $translations[ $language ] ) ? $translations[ $language ] : array();
+            foreach ( $active_languages as $language ) {
+                $language = $this->normalize_language_code( $language );
+
+                if ( self::DEFAULT_LANGUAGE === $language ) {
+                    continue;
+                }
+
+                $allowed[] = $language;
+            }
+
+            if ( empty( $allowed ) ) {
+                $allowed = array_keys( $defaults );
+                $allowed = array_merge( $allowed, array_keys( $translations ) );
+            }
+
+            $candidates = array_unique( $allowed );
+
+            foreach ( $candidates as $candidate ) {
+                $language = $this->normalize_language_code( $candidate );
+
+                if ( self::DEFAULT_LANGUAGE === $language ) {
+                    continue;
+                }
+
+                $incoming = array();
+                foreach ( $translations as $key => $value ) {
+                    if ( $this->normalize_language_code( $key ) === $language && is_array( $value ) ) {
+                        $incoming = $value;
+                        break;
+                    }
+                }
+
+                $default_translation = array();
+                foreach ( $defaults as $key => $value ) {
+                    if ( $this->normalize_language_code( $key ) === $language && is_array( $value ) ) {
+                        $default_translation = $value;
+                        break;
+                    }
+                }
 
                 $translation = array();
 
@@ -2714,13 +3425,37 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Sanitize MySQL datetime strings.
+         *
+         * @param mixed $value Raw value.
+         *
+         * @return string
+         */
+        protected function sanitize_mysql_datetime( $value ) {
+            if ( ! is_string( $value ) ) {
+                return '';
+            }
+
+            $value = trim( $value );
+
+            if ( '' === $value ) {
+                return '';
+            }
+
+            if ( preg_match( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $value ) ) {
+                return $value;
+            }
+
+            return '';
+        }
+
+        /**
          * Render privacy policy editor.
          */
         public function render_privacy_editor() {
             $options = $this->get_settings();
             $translations = isset( $options['translations'] ) ? $options['translations'] : array();
-            $english      = isset( $translations['en'] ) ? $translations['en'] : array();
-            $english_text = isset( $english['privacy_policy_content'] ) ? $english['privacy_policy_content'] : '';
+            $languages    = $this->get_translation_languages( $options );
 
             if ( ! empty( $options['auto_generate'] ) ) {
                 $last_generated = (int) get_option( self::GENERATION_TIME_OPTION, 0 );
@@ -2736,7 +3471,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 echo '<p class="description">' . esc_html( $message ) . '</p>';
             }
 
-            echo '<h4>' . esc_html__( 'Italiano', 'fp-privacy-cookie-policy' ) . '</h4>';
+            echo '<h4>' . esc_html( $this->get_language_label( self::DEFAULT_LANGUAGE ) ) . '</h4>';
             wp_editor(
                 $options['privacy_policy_content'],
                 'fp_privacy_policy_content',
@@ -2746,15 +3481,22 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 )
             );
 
-            echo '<h4>' . esc_html__( 'Inglese', 'fp-privacy-cookie-policy' ) . '</h4>';
-            wp_editor(
-                $english_text,
-                'fp_privacy_policy_content_en',
-                array(
-                    'textarea_name' => self::OPTION_KEY . '[translations][en][privacy_policy_content]',
-                    'textarea_rows' => 10,
-                )
-            );
+            foreach ( $languages as $language ) {
+                $translation = $this->get_translation_for_language( $translations, $language );
+                $content     = isset( $translation['privacy_policy_content'] ) ? $translation['privacy_policy_content'] : '';
+                $editor_id   = 'fp_privacy_policy_content_' . sanitize_key( $language );
+                $field_name  = self::OPTION_KEY . '[translations][' . $language . '][privacy_policy_content]';
+
+                echo '<h4>' . esc_html( $this->get_language_label( $language ) ) . '</h4>';
+                wp_editor(
+                    $content,
+                    $editor_id,
+                    array(
+                        'textarea_name' => $field_name,
+                        'textarea_rows' => 10,
+                    )
+                );
+            }
         }
 
         /**
@@ -2763,8 +3505,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         public function render_cookie_editor() {
             $options = $this->get_settings();
             $translations = isset( $options['translations'] ) ? $options['translations'] : array();
-            $english      = isset( $translations['en'] ) ? $translations['en'] : array();
-            $english_text = isset( $english['cookie_policy_content'] ) ? $english['cookie_policy_content'] : '';
+            $languages    = $this->get_translation_languages( $options );
 
             if ( ! empty( $options['auto_generate'] ) ) {
                 $last_generated = (int) get_option( self::GENERATION_TIME_OPTION, 0 );
@@ -2780,7 +3521,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 echo '<p class="description">' . esc_html( $message ) . '</p>';
             }
 
-            echo '<h4>' . esc_html__( 'Italiano', 'fp-privacy-cookie-policy' ) . '</h4>';
+            echo '<h4>' . esc_html( $this->get_language_label( self::DEFAULT_LANGUAGE ) ) . '</h4>';
             wp_editor(
                 $options['cookie_policy_content'],
                 'fp_cookie_policy_content',
@@ -2790,100 +3531,397 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 )
             );
 
-            echo '<h4>' . esc_html__( 'Inglese', 'fp-privacy-cookie-policy' ) . '</h4>';
-            wp_editor(
-                $english_text,
-                'fp_cookie_policy_content_en',
-                array(
-                    'textarea_name' => self::OPTION_KEY . '[translations][en][cookie_policy_content]',
-                    'textarea_rows' => 10,
-                )
-            );
+            foreach ( $languages as $language ) {
+                $translation = $this->get_translation_for_language( $translations, $language );
+                $content     = isset( $translation['cookie_policy_content'] ) ? $translation['cookie_policy_content'] : '';
+                $editor_id   = 'fp_cookie_policy_content_' . sanitize_key( $language );
+                $field_name  = self::OPTION_KEY . '[translations][' . $language . '][cookie_policy_content]';
+
+                echo '<h4>' . esc_html( $this->get_language_label( $language ) ) . '</h4>';
+                wp_editor(
+                    $content,
+                    $editor_id,
+                    array(
+                        'textarea_name' => $field_name,
+                        'textarea_rows' => 10,
+                    )
+                );
+            }
+        }
+
+        /**
+         * Render language manager field.
+         */
+        public function render_language_manager_field() {
+            $options        = $this->get_settings();
+            $selected       = isset( $options['active_languages'] ) && is_array( $options['active_languages'] )
+                ? array_map( array( $this, 'normalize_language_code' ), $options['active_languages'] )
+                : array();
+            $translations   = isset( $options['translations'] ) && is_array( $options['translations'] )
+                ? array_map( array( $this, 'normalize_language_code' ), array_keys( $options['translations'] ) )
+                : array();
+            $choices        = $this->get_language_choices( $options, $selected );
+            $selected       = array_values( array_unique( array_filter( $selected, array( $this, 'filter_non_default_language' ) ) ) );
+            $size           = min( 10, max( 4, count( $choices ) ) );
+            ?>
+            <div class="fp-language-manager">
+                <p>
+                    <label for="fp_active_languages">
+                        <?php esc_html_e( 'Seleziona le lingue in cui vuoi gestire testi e traduzioni del banner.', 'fp-privacy-cookie-policy' ); ?>
+                    </label>
+                </p>
+                <select id="fp_active_languages" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[active_languages][]" multiple size="<?php echo esc_attr( $size ); ?>" class="fp-language-select">
+                    <?php foreach ( $choices as $code => $label ) : ?>
+                        <?php $is_selected = in_array( $code, $selected, true ) || in_array( $code, $translations, true ); ?>
+                        <option value="<?php echo esc_attr( $code ); ?>" <?php selected( $is_selected ); ?>>
+                            <?php echo esc_html( $label ); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="fp-language-manager__custom">
+                    <label for="fp_custom_languages">
+                        <?php esc_html_e( 'Aggiungi manualmente altri codici lingua (ISO 639-1) separati da virgola.', 'fp-privacy-cookie-policy' ); ?>
+                    </label><br />
+                    <input type="text" id="fp_custom_languages" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[custom_languages]" class="regular-text" placeholder="es, de, pt" />
+                </p>
+                <p class="description">
+                    <?php esc_html_e( 'La lingua principale (Italiano) è sempre disponibile. Le lingue selezionate mostreranno i campi dedicati nelle sezioni di testo.', 'fp-privacy-cookie-policy' ); ?>
+                </p>
+            </div>
+            <?php
+        }
+
+        /**
+         * Helper callback used with array_filter to remove default language.
+         *
+         * @param string $language Language code.
+         *
+         * @return bool
+         */
+        protected function filter_non_default_language( $language ) {
+            $language = $this->normalize_language_code( $language );
+
+            return $language && self::DEFAULT_LANGUAGE !== $language;
         }
 
         /**
          * Render banner settings.
          */
         public function render_banner_settings() {
-            $options = $this->get_settings();
-            $banner  = $options['banner'];
-            $translations   = isset( $options['translations'] ) ? $options['translations'] : array();
-            $english_banner = isset( $translations['en']['banner'] ) ? $translations['en']['banner'] : array();
+            $options       = $this->get_settings();
+            $banner        = $options['banner'];
+            $translations  = isset( $options['translations'] ) ? $options['translations'] : array();
+            $languages     = $this->get_translation_languages( $options );
+            $field_labels  = array(
+                'banner_title'           => esc_html__( 'Titolo', 'fp-privacy-cookie-policy' ),
+                'banner_message'         => esc_html__( 'Messaggio', 'fp-privacy-cookie-policy' ),
+                'accept_all_label'       => esc_html__( 'Etichetta "Accetta tutti"', 'fp-privacy-cookie-policy' ),
+                'reject_all_label'       => esc_html__( 'Etichetta "Rifiuta"', 'fp-privacy-cookie-policy' ),
+                'preferences_label'      => esc_html__( 'Etichetta "Preferenze"', 'fp-privacy-cookie-policy' ),
+                'save_preferences_label' => esc_html__( 'Etichetta "Salva"', 'fp-privacy-cookie-policy' ),
+            );
+            $textarea_fields = array( 'banner_message' );
             ?>
-            <fieldset class="fp-banner-settings">
-                <h4><?php echo esc_html__( 'Testo banner (Italiano)', 'fp-privacy-cookie-policy' ); ?></h4>
-                <p>
-                    <label for="fp_banner_title"><strong><?php echo esc_html__( 'Titolo', 'fp-privacy-cookie-policy' ); ?></strong></label><br />
-                    <input type="text" class="regular-text" id="fp_banner_title" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][banner_title]" value="<?php echo esc_attr( $banner['banner_title'] ); ?>" />
-                </p>
-                <p>
-                    <label for="fp_banner_message"><strong><?php echo esc_html__( 'Messaggio', 'fp-privacy-cookie-policy' ); ?></strong></label><br />
-                    <textarea class="large-text" rows="4" id="fp_banner_message" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][banner_message]"><?php echo esc_textarea( $banner['banner_message'] ); ?></textarea>
-                </p>
-                <div class="fp-banner-grid">
+            <fieldset class="fp-banner-settings" data-fp-banner-language="<?php echo esc_attr( self::DEFAULT_LANGUAGE ); ?>">
+                <h4>
+                    <?php
+                    printf(
+                        esc_html__( 'Testo banner (%s)', 'fp-privacy-cookie-policy' ),
+                        esc_html( $this->get_language_label( self::DEFAULT_LANGUAGE ) )
+                    );
+                    ?>
+                </h4>
+                <?php foreach ( $field_labels as $key => $label ) : ?>
+                    <?php $field_id = 'fp_banner_' . $key; ?>
                     <p>
-                        <label for="fp_accept_all_label"><?php echo esc_html__( 'Etichetta "Accetta tutti"', 'fp-privacy-cookie-policy' ); ?></label><br />
-                        <input type="text" class="regular-text" id="fp_accept_all_label" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][accept_all_label]" value="<?php echo esc_attr( $banner['accept_all_label'] ); ?>" />
+                        <label for="<?php echo esc_attr( $field_id ); ?>">
+                            <strong><?php echo esc_html( $label ); ?></strong>
+                        </label><br />
+                        <?php if ( in_array( $key, $textarea_fields, true ) ) : ?>
+                            <textarea class="large-text" rows="4" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][<?php echo esc_attr( $key ); ?>]" data-fp-preview-target="<?php echo esc_attr( $key ); ?>" data-fp-preview-language="<?php echo esc_attr( self::DEFAULT_LANGUAGE ); ?>"><?php echo esc_textarea( isset( $banner[ $key ] ) ? $banner[ $key ] : '' ); ?></textarea>
+                        <?php else : ?>
+                            <input type="text" class="regular-text" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( isset( $banner[ $key ] ) ? $banner[ $key ] : '' ); ?>" data-fp-preview-target="<?php echo esc_attr( $key ); ?>" data-fp-preview-language="<?php echo esc_attr( self::DEFAULT_LANGUAGE ); ?>" />
+                        <?php endif; ?>
                     </p>
-                    <p>
-                        <label for="fp_reject_all_label"><?php echo esc_html__( 'Etichetta "Rifiuta"', 'fp-privacy-cookie-policy' ); ?></label><br />
-                        <input type="text" class="regular-text" id="fp_reject_all_label" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][reject_all_label]" value="<?php echo esc_attr( $banner['reject_all_label'] ); ?>" />
-                    </p>
-                </div>
-                <div class="fp-banner-grid">
-                    <p>
-                        <label for="fp_preferences_label"><?php echo esc_html__( 'Etichetta "Preferenze"', 'fp-privacy-cookie-policy' ); ?></label><br />
-                        <input type="text" class="regular-text" id="fp_preferences_label" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][preferences_label]" value="<?php echo esc_attr( $banner['preferences_label'] ); ?>" />
-                    </p>
-                    <p>
-                        <label for="fp_save_preferences_label"><?php echo esc_html__( 'Etichetta "Salva"', 'fp-privacy-cookie-policy' ); ?></label><br />
-                        <input type="text" class="regular-text" id="fp_save_preferences_label" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][save_preferences_label]" value="<?php echo esc_attr( $banner['save_preferences_label'] ); ?>" />
-                    </p>
-                </div>
+                <?php endforeach; ?>
                 <p>
                     <label>
-                        <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][show_reject]" value="1" <?php checked( $banner['show_reject'] ); ?> />
+                        <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][show_reject]" value="1" <?php checked( $banner['show_reject'] ); ?> data-fp-preview-toggle="reject" />
                         <?php echo esc_html__( 'Mostra il pulsante "Rifiuta" nel banner principale', 'fp-privacy-cookie-policy' ); ?>
                     </label>
                 </p>
                 <p>
                     <label>
-                        <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][show_preferences]" value="1" <?php checked( $banner['show_preferences'] ); ?> />
+                        <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][show_preferences]" value="1" <?php checked( $banner['show_preferences'] ); ?> data-fp-preview-toggle="preferences" />
                         <?php echo esc_html__( 'Mostra il pulsante per aprire le preferenze direttamente nel banner', 'fp-privacy-cookie-policy' ); ?>
                     </label>
                 </p>
-            </fieldset>
-            <fieldset class="fp-banner-settings">
-                <h4><?php echo esc_html__( 'Testo banner (Inglese)', 'fp-privacy-cookie-policy' ); ?></h4>
+                <?php
+                $layout_value   = $this->sanitize_banner_layout( isset( $banner['layout'] ) ? $banner['layout'] : 'floating', 'floating' );
+                $layout_options = array(
+                    'floating'     => esc_html__( 'Riquadro fluttuante (in basso)', 'fp-privacy-cookie-policy' ),
+                    'floating_top' => esc_html__( 'Riquadro fluttuante (in alto)', 'fp-privacy-cookie-policy' ),
+                    'bar_bottom'   => esc_html__( 'Barra a tutta larghezza (in basso)', 'fp-privacy-cookie-policy' ),
+                    'bar_top'      => esc_html__( 'Barra a tutta larghezza (in alto)', 'fp-privacy-cookie-policy' ),
+                );
+                ?>
                 <p>
-                    <label for="fp_banner_title_en"><strong><?php echo esc_html__( 'Titolo', 'fp-privacy-cookie-policy' ); ?></strong></label><br />
-                    <input type="text" class="regular-text" id="fp_banner_title_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][banner_title]" value="<?php echo esc_attr( isset( $english_banner['banner_title'] ) ? $english_banner['banner_title'] : '' ); ?>" />
+                    <label for="fp_banner_layout"><strong><?php esc_html_e( 'Layout del banner', 'fp-privacy-cookie-policy' ); ?></strong></label><br />
+                    <select id="fp_banner_layout" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][layout]" data-fp-preview-layout-control>
+                        <?php foreach ( $layout_options as $layout_key => $layout_label ) : ?>
+                            <option value="<?php echo esc_attr( $layout_key ); ?>" <?php selected( $layout_key, $layout_value ); ?>><?php echo esc_html( $layout_label ); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </p>
-                <p>
-                    <label for="fp_banner_message_en"><strong><?php echo esc_html__( 'Messaggio', 'fp-privacy-cookie-policy' ); ?></strong></label><br />
-                    <textarea class="large-text" rows="4" id="fp_banner_message_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][banner_message]"><?php echo esc_textarea( isset( $english_banner['banner_message'] ) ? $english_banner['banner_message'] : '' ); ?></textarea>
-                </p>
-                <div class="fp-banner-grid">
-                    <p>
-                        <label for="fp_accept_all_label_en"><?php echo esc_html__( 'Etichetta "Accetta tutti"', 'fp-privacy-cookie-policy' ); ?></label><br />
-                        <input type="text" class="regular-text" id="fp_accept_all_label_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][accept_all_label]" value="<?php echo esc_attr( isset( $english_banner['accept_all_label'] ) ? $english_banner['accept_all_label'] : '' ); ?>" />
-                    </p>
-                    <p>
-                        <label for="fp_reject_all_label_en"><?php echo esc_html__( 'Etichetta "Rifiuta"', 'fp-privacy-cookie-policy' ); ?></label><br />
-                        <input type="text" class="regular-text" id="fp_reject_all_label_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][reject_all_label]" value="<?php echo esc_attr( isset( $english_banner['reject_all_label'] ) ? $english_banner['reject_all_label'] : '' ); ?>" />
-                    </p>
-                </div>
-                <div class="fp-banner-grid">
-                    <p>
-                        <label for="fp_preferences_label_en"><?php echo esc_html__( 'Etichetta "Preferenze"', 'fp-privacy-cookie-policy' ); ?></label><br />
-                        <input type="text" class="regular-text" id="fp_preferences_label_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][preferences_label]" value="<?php echo esc_attr( isset( $english_banner['preferences_label'] ) ? $english_banner['preferences_label'] : '' ); ?>" />
-                    </p>
-                    <p>
-                        <label for="fp_save_preferences_label_en"><?php echo esc_html__( 'Etichetta "Salva"', 'fp-privacy-cookie-policy' ); ?></label><br />
-                        <input type="text" class="regular-text" id="fp_save_preferences_label_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][banner][save_preferences_label]" value="<?php echo esc_attr( isset( $english_banner['save_preferences_label'] ) ? $english_banner['save_preferences_label'] : '' ); ?>" />
-                    </p>
+                <?php
+                $color_fields = array(
+                    'background_color'     => array(
+                        'label'    => esc_html__( 'Colore di sfondo', 'fp-privacy-cookie-policy' ),
+                        'default'  => '#ffffff',
+                        'property' => '--fp-banner-background',
+                    ),
+                    'text_color'           => array(
+                        'label'    => esc_html__( 'Colore del testo', 'fp-privacy-cookie-policy' ),
+                        'default'  => '#1f2933',
+                        'property' => '--fp-banner-text',
+                    ),
+                    'accent_color'         => array(
+                        'label'    => esc_html__( 'Colore principale (CTA)', 'fp-privacy-cookie-policy' ),
+                        'default'  => '#2563eb',
+                        'property' => '--fp-banner-accent',
+                    ),
+                    'secondary_color'      => array(
+                        'label'    => esc_html__( 'Colore pulsante secondario', 'fp-privacy-cookie-policy' ),
+                        'default'  => '#eef2ff',
+                        'property' => '--fp-banner-secondary-bg',
+                    ),
+                    'secondary_text_color' => array(
+                        'label'    => esc_html__( 'Testo pulsante secondario', 'fp-privacy-cookie-policy' ),
+                        'default'  => '#1e3a8a',
+                        'property' => '--fp-banner-secondary-text',
+                    ),
+                    'border_color'         => array(
+                        'label'    => esc_html__( 'Colore bordo', 'fp-privacy-cookie-policy' ),
+                        'default'  => '#dbeafe',
+                        'property' => '--fp-banner-border',
+                    ),
+                );
+                ?>
+                <div class="fp-banner-design">
+                    <h4><?php esc_html_e( 'Aspetto del banner', 'fp-privacy-cookie-policy' ); ?></h4>
+                    <div class="fp-banner-design__grid">
+                        <?php foreach ( $color_fields as $field_key => $field ) :
+                            $field_id    = 'fp_banner_' . $field_key;
+                            $color_value = isset( $banner[ $field_key ] ) ? sanitize_hex_color( $banner[ $field_key ] ) : '';
+                            if ( ! $color_value ) {
+                                $color_value = $field['default'];
+                            }
+                            ?>
+                            <div class="fp-color-picker">
+                                <label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $field['label'] ); ?></label>
+                                <div class="fp-color-picker__inputs">
+                                    <input type="text" class="regular-text fp-color-picker__value" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner][<?php echo esc_attr( $field_key ); ?>]" value="<?php echo esc_attr( $color_value ); ?>" data-fp-color-control data-fp-color-key="<?php echo esc_attr( $field_key ); ?>" data-fp-color-prop="<?php echo esc_attr( $field['property'] ); ?>" />
+                                    <input type="color" class="fp-color-picker__preview" id="<?php echo esc_attr( $field_id ); ?>_preview" value="<?php echo esc_attr( $color_value ); ?>" data-fp-color-picker data-fp-color-key="<?php echo esc_attr( $field_key ); ?>" data-fp-color-prop="<?php echo esc_attr( $field['property'] ); ?>" data-fp-color-target="<?php echo esc_attr( $field_id ); ?>" />
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <p class="description"><?php esc_html_e( 'Inserisci colori in formato esadecimale (es. #1F2933) o utilizza i selettori per aggiornare l’anteprima in tempo reale.', 'fp-privacy-cookie-policy' ); ?></p>
                 </div>
             </fieldset>
+
+            <?php
+            $preview_languages = array_merge( array( self::DEFAULT_LANGUAGE ), $languages );
+            $preview_languages = array_values( array_unique( array_filter( $preview_languages ) ) );
+            ?>
+            <?php if ( ! empty( $preview_languages ) ) : ?>
+                <div class="fp-banner-preview__controls">
+                    <label for="fp_preview_language"><strong><?php esc_html_e( 'Anteprima lingua', 'fp-privacy-cookie-policy' ); ?></strong></label>
+                    <select id="fp_preview_language" class="fp-preview-language-select" data-fp-preview-language-selector>
+                        <?php foreach ( $preview_languages as $language_code ) : ?>
+                            <option value="<?php echo esc_attr( $language_code ); ?>" <?php selected( $language_code, self::DEFAULT_LANGUAGE ); ?>>
+                                <?php echo esc_html( $this->get_language_label( $language_code ) ); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            <?php endif; ?>
+            <div class="fp-banner-preview" id="fp-banner-preview" aria-live="polite">
+                <?php echo $this->get_banner_preview_markup( $options ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+            </div>
+
+            <?php foreach ( $languages as $language ) :
+                $translation = $this->get_translation_for_language( $translations, $language );
+                $values      = array_merge( $this->extract_banner_text_defaults( $banner ), isset( $translation['banner'] ) ? $translation['banner'] : array() );
+                $lang_label  = $this->get_language_label( $language );
+                ?>
+                <fieldset class="fp-banner-settings" data-fp-banner-language="<?php echo esc_attr( $language ); ?>">
+                    <h4>
+                        <?php
+                        printf(
+                            esc_html__( 'Testo banner (%s)', 'fp-privacy-cookie-policy' ),
+                            esc_html( $lang_label )
+                        );
+                        ?>
+                    </h4>
+                    <?php foreach ( $field_labels as $key => $label ) : ?>
+                        <?php $field_id = 'fp_banner_' . $key . '_' . sanitize_key( $language ); ?>
+                        <p>
+                            <label for="<?php echo esc_attr( $field_id ); ?>">
+                                <strong><?php echo esc_html( $label ); ?></strong>
+                            </label><br />
+                                <?php if ( in_array( $key, $textarea_fields, true ) ) : ?>
+                                    <textarea class="large-text" rows="4" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][<?php echo esc_attr( $language ); ?>][banner][<?php echo esc_attr( $key ); ?>]" data-fp-preview-target="<?php echo esc_attr( $key ); ?>" data-fp-preview-language="<?php echo esc_attr( $language ); ?>"><?php echo esc_textarea( isset( $values[ $key ] ) ? $values[ $key ] : '' ); ?></textarea>
+                                <?php else : ?>
+                                    <input type="text" class="regular-text" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][<?php echo esc_attr( $language ); ?>][banner][<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( isset( $values[ $key ] ) ? $values[ $key ] : '' ); ?>" data-fp-preview-target="<?php echo esc_attr( $key ); ?>" data-fp-preview-language="<?php echo esc_attr( $language ); ?>" />
+                            <?php endif; ?>
+                        </p>
+                    <?php endforeach; ?>
+                </fieldset>
+            <?php endforeach; ?>
+            <?php
+        }
+
+        /**
+         * Build markup for the live banner preview in the admin area.
+         *
+         * @param array $options Current plugin options.
+         *
+         * @return string
+         */
+        protected function get_banner_preview_markup( array $options ) {
+            $banner     = isset( $options['banner'] ) ? $options['banner'] : array();
+            $categories = isset( $options['categories'] ) ? $options['categories'] : array();
+            $texts      = $this->get_frontend_texts( self::DEFAULT_LANGUAGE, $options );
+            $date       = current_time( 'timestamp' );
+            $theme_vars = $this->get_banner_theme_variables( $banner );
+            $style_attr = $this->build_css_custom_properties( $theme_vars );
+            $layout_key = $this->get_banner_layout_suffix( $banner );
+            $layout_class = $this->get_preview_layout_class( $banner );
+
+            $visible_categories = array();
+            foreach ( $categories as $key => $category ) {
+                if ( empty( $category['enabled'] ) ) {
+                    continue;
+                }
+
+                $visible_categories[ $key ] = $category;
+
+                if ( count( $visible_categories ) >= 3 ) {
+                    break;
+                }
+            }
+
+            ob_start();
+            ?>
+            <div class="fp-banner-preview__wrapper <?php echo esc_attr( $layout_class ); ?>" data-fp-preview-root data-default-language="<?php echo esc_attr( self::DEFAULT_LANGUAGE ); ?>" data-fp-preview-layout="<?php echo esc_attr( $layout_key ); ?>"<?php if ( $style_attr ) : ?> style="<?php echo esc_attr( $style_attr ); ?>"<?php endif; ?>>
+                <div class="fp-banner-preview__panel" data-fp-preview-section="banner">
+                    <div class="fp-banner-preview__content">
+                        <h4 data-fp-preview="banner_title"><?php echo esc_html( isset( $banner['banner_title'] ) ? $banner['banner_title'] : '' ); ?></h4>
+                        <div class="fp-banner-preview__message" data-fp-preview="banner_message"><?php echo wpautop( wp_kses_post( isset( $banner['banner_message'] ) ? $banner['banner_message'] : '' ) ); ?></div>
+                    </div>
+                    <div class="fp-banner-preview__actions">
+                        <button type="button" class="button button-primary" data-fp-preview="accept_all_label"><?php echo esc_html( isset( $banner['accept_all_label'] ) ? $banner['accept_all_label'] : '' ); ?></button>
+                        <button type="button" class="button<?php echo empty( $banner['show_reject'] ) ? ' is-hidden' : ''; ?>" data-fp-preview="reject_all_label" data-fp-toggle-target="reject"><?php echo esc_html( isset( $banner['reject_all_label'] ) ? $banner['reject_all_label'] : '' ); ?></button>
+                        <button type="button" class="button button-secondary<?php echo empty( $banner['show_preferences'] ) ? ' is-hidden' : ''; ?>" data-fp-preview="preferences_label" data-fp-toggle-target="preferences"><?php echo esc_html( isset( $banner['preferences_label'] ) ? $banner['preferences_label'] : '' ); ?></button>
+                    </div>
+                </div>
+
+                <div class="fp-banner-preview__modal" data-fp-preview-section="modal">
+                    <div class="fp-banner-preview__modal-header">
+                        <h4 data-fp-preview="modal_title"><?php echo esc_html( isset( $texts['modal_title'] ) ? $texts['modal_title'] : '' ); ?></h4>
+                        <button type="button" class="button-link" data-fp-preview="modal_close"><?php echo esc_html( isset( $texts['modal_close'] ) ? $texts['modal_close'] : '' ); ?></button>
+                    </div>
+                    <p data-fp-preview="modal_intro"><?php echo esc_html( isset( $texts['modal_intro'] ) ? $texts['modal_intro'] : '' ); ?></p>
+
+                    <?php if ( ! empty( $visible_categories ) ) : ?>
+                        <ul class="fp-banner-preview__categories">
+                            <?php foreach ( $visible_categories as $key => $category ) :
+                                $category_label = isset( $category['label'] ) ? $category['label'] : '';
+                                $services       = isset( $category['services'] ) ? $category['services'] : '';
+                                $is_required    = ! empty( $category['required'] );
+                                ?>
+                                <li data-fp-preview-category="<?php echo esc_attr( $key ); ?>">
+                                    <h5 data-fp-preview-category-field="label"><?php echo esc_html( $category_label ); ?></h5>
+                                    <p data-fp-preview-category-field="description"><?php echo esc_html( wp_strip_all_tags( isset( $category['description'] ) ? $category['description'] : '' ) ); ?></p>
+                                    <p class="fp-banner-preview__services<?php echo $services ? '' : ' is-hidden'; ?>" data-fp-preview-category-field="services">
+                                        <strong data-fp-preview="services_included"><?php echo esc_html( isset( $texts['services_included'] ) ? $texts['services_included'] : '' ); ?></strong>:
+                                        <span class="fp-banner-preview__services-text"><?php echo esc_html( $services ); ?></span>
+                                    </p>
+                                    <div class="fp-banner-preview__category-meta">
+                                        <span class="fp-banner-preview__badge<?php echo $is_required ? '' : ' is-hidden'; ?>" data-fp-preview="always_active" data-fp-category-element="required"><?php echo esc_html( isset( $texts['always_active'] ) ? $texts['always_active'] : '' ); ?></span>
+                                        <span class="fp-banner-preview__toggle-label<?php echo $is_required ? ' is-hidden' : ''; ?>" data-fp-preview="toggle_aria" data-fp-category-label="<?php echo esc_attr( $category_label ); ?>" data-fp-category-element="toggle"><?php echo esc_html( isset( $texts['toggle_aria'] ) ? sprintf( $texts['toggle_aria'], $category_label ) : '' ); ?></span>
+                                    </div>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php else : ?>
+                        <p class="fp-banner-preview__empty"><?php esc_html_e( 'Aggiungi almeno una categoria per vedere l\'anteprima delle preferenze.', 'fp-privacy-cookie-policy' ); ?></p>
+                    <?php endif; ?>
+
+                    <div class="fp-banner-preview__footer">
+                        <button type="button" class="button button-primary" data-fp-preview="save_preferences_label"><?php echo esc_html( isset( $banner['save_preferences_label'] ) ? $banner['save_preferences_label'] : '' ); ?></button>
+                        <span class="fp-banner-preview__updated"><strong data-fp-preview="updated_at"><?php echo esc_html( isset( $texts['updated_at'] ) ? $texts['updated_at'] : '' ); ?></strong>: <?php echo esc_html( wp_date( get_option( 'date_format', 'Y-m-d' ), $date ) ); ?></span>
+                    </div>
+                </div>
+
+                <div class="fp-banner-preview__manage">
+                    <button type="button" class="button button-link" data-fp-preview="manage_consent"><?php echo esc_html( isset( $texts['manage_consent'] ) ? $texts['manage_consent'] : '' ); ?></button>
+                </div>
+            </div>
+            <?php
+
+            return ob_get_clean();
+        }
+
+        /**
+         * Render banner position field.
+         */
+        public function render_banner_hook_field() {
+            $options  = $this->get_settings();
+            $selected = isset( $options['render_hook'] ) ? $options['render_hook'] : 'footer';
+            ?>
+            <p>
+                <label for="fp_render_hook"><strong><?php esc_html_e( 'Seleziona il punto di aggancio del banner', 'fp-privacy-cookie-policy' ); ?></strong></label><br />
+                <select id="fp_render_hook" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[render_hook]">
+                    <option value="footer" <?php selected( 'footer', $selected ); ?>><?php esc_html_e( 'Footer del tema (default)', 'fp-privacy-cookie-policy' ); ?></option>
+                    <option value="body_open" <?php selected( 'body_open', $selected ); ?>><?php esc_html_e( 'All\'apertura del tag &lt;body&gt;', 'fp-privacy-cookie-policy' ); ?></option>
+                    <option value="manual" <?php selected( 'manual', $selected ); ?>><?php esc_html_e( 'Inserimento manuale tramite blocco/shortcode', 'fp-privacy-cookie-policy' ); ?></option>
+                </select>
+            </p>
+            <p class="description">
+                <?php esc_html_e( 'Scegli "manuale" se vuoi gestire il banner in modo personalizzato con lo shortcode [fp_cookie_banner] o con il blocco Gutenberg dedicato.', 'fp-privacy-cookie-policy' ); ?>
+            </p>
+            <?php
+        }
+
+        /**
+         * Render preview mode field.
+         */
+        public function render_preview_mode_field() {
+            $options      = $this->get_settings();
+            $preview_mode = ! empty( $options['preview_mode'] );
+            $preview_url  = add_query_arg( self::PREVIEW_QUERY_KEY, '1', home_url( '/' ) );
+            ?>
+            <p>
+                <label for="fp_preview_mode">
+                    <input type="checkbox" id="fp_preview_mode" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[preview_mode]" value="1" <?php checked( $preview_mode ); ?> />
+                    <?php esc_html_e( 'Abilita la modalità anteprima per gli amministratori', 'fp-privacy-cookie-policy' ); ?>
+                </label>
+            </p>
+            <p class="description"><?php esc_html_e( 'Mostra sempre il banner agli amministratori senza salvare le scelte per verificare layout, testi e script.', 'fp-privacy-cookie-policy' ); ?></p>
+            <p class="description">
+                <?php
+                printf(
+                    /* translators: %s is the preview query string parameter. */
+                    esc_html__( 'Puoi attivare l\'anteprima anche visitando il sito con %s.', 'fp-privacy-cookie-policy' ),
+                    '<code>?' . esc_html( self::PREVIEW_QUERY_KEY ) . '=1</code>'
+                );
+                ?>
+            </p>
+            <p class="description">
+                <a href="<?php echo esc_url( $preview_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Apri il sito in modalità anteprima', 'fp-privacy-cookie-policy' ); ?></a>
+            </p>
             <?php
         }
 
@@ -2896,9 +3934,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $text_defaults      = $this->get_frontend_texts_defaults( self::DEFAULT_LANGUAGE );
             $texts              = array_merge( $text_defaults, $base_texts );
             $translations       = isset( $options['translations'] ) ? $options['translations'] : array();
-            $english_defaults   = $this->get_frontend_texts_defaults( 'en' );
-            $english_overrides  = isset( $translations['en']['texts'] ) && is_array( $translations['en']['texts'] ) ? $translations['en']['texts'] : array();
-            $english_texts      = array_merge( $english_defaults, $english_overrides );
+            $languages          = $this->get_translation_languages( $options );
             $field_labels       = array(
                 'modal_title'       => esc_html__( 'Titolo finestra', 'fp-privacy-cookie-policy' ),
                 'modal_intro'       => esc_html__( 'Messaggio introduttivo', 'fp-privacy-cookie-policy' ),
@@ -2910,20 +3946,26 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 'updated_at'        => esc_html__( 'Etichetta stato aggiornamento', 'fp-privacy-cookie-policy' ),
             );
             $textarea_fields    = array( 'modal_intro' );
-            $english_suffix     = esc_html__( '%s (Inglese)', 'fp-privacy-cookie-policy' );
             $placeholder_notice = esc_html__( 'Ricorda di mantenere il segnaposto %s per il nome categoria.', 'fp-privacy-cookie-policy' );
             ?>
             <fieldset class="fp-banner-settings fp-interface-texts">
-                <h4><?php esc_html_e( 'Testi interfaccia (Italiano)', 'fp-privacy-cookie-policy' ); ?></h4>
+                <h4>
+                    <?php
+                    printf(
+                        esc_html__( 'Testi interfaccia (%s)', 'fp-privacy-cookie-policy' ),
+                        esc_html( $this->get_language_label( self::DEFAULT_LANGUAGE ) )
+                    );
+                    ?>
+                </h4>
                 <div class="fp-texts-grid">
                     <?php foreach ( $field_labels as $key => $label ) : ?>
                         <?php $field_id = 'fp_text_' . $key; ?>
                         <p>
                             <label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $label ); ?></label><br />
                             <?php if ( in_array( $key, $textarea_fields, true ) ) : ?>
-                                <textarea class="large-text" rows="3" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[texts][<?php echo esc_attr( $key ); ?>]"><?php echo esc_textarea( isset( $texts[ $key ] ) ? $texts[ $key ] : '' ); ?></textarea>
+                                <textarea class="large-text" rows="3" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[texts][<?php echo esc_attr( $key ); ?>]" data-fp-preview-target="<?php echo esc_attr( $key ); ?>" data-fp-preview-language="<?php echo esc_attr( self::DEFAULT_LANGUAGE ); ?>"><?php echo esc_textarea( isset( $texts[ $key ] ) ? $texts[ $key ] : '' ); ?></textarea>
                             <?php else : ?>
-                                <input type="text" class="regular-text" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[texts][<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( isset( $texts[ $key ] ) ? $texts[ $key ] : '' ); ?>" />
+                                <input type="text" class="regular-text" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[texts][<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( isset( $texts[ $key ] ) ? $texts[ $key ] : '' ); ?>" data-fp-preview-target="<?php echo esc_attr( $key ); ?>" data-fp-preview-language="<?php echo esc_attr( self::DEFAULT_LANGUAGE ); ?>" />
                             <?php endif; ?>
                             <?php if ( 'toggle_aria' === $key ) : ?>
                                 <span class="description">
@@ -2934,27 +3976,43 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     <?php endforeach; ?>
                 </div>
             </fieldset>
-            <fieldset class="fp-banner-settings fp-interface-texts">
-                <h4><?php esc_html_e( 'Testi interfaccia (Inglese)', 'fp-privacy-cookie-policy' ); ?></h4>
-                <div class="fp-texts-grid">
-                    <?php foreach ( $field_labels as $key => $label ) : ?>
-                        <?php $field_id = 'fp_text_' . $key . '_en'; ?>
-                        <p>
-                            <label for="<?php echo esc_attr( $field_id ); ?>"><?php printf( esc_html( $english_suffix ), esc_html( $label ) ); ?></label><br />
-                            <?php if ( in_array( $key, $textarea_fields, true ) ) : ?>
-                                <textarea class="large-text" rows="3" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][texts][<?php echo esc_attr( $key ); ?>]"><?php echo esc_textarea( isset( $english_texts[ $key ] ) ? $english_texts[ $key ] : '' ); ?></textarea>
-                            <?php else : ?>
-                                <input type="text" class="regular-text" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][texts][<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( isset( $english_texts[ $key ] ) ? $english_texts[ $key ] : '' ); ?>" />
-                            <?php endif; ?>
-                            <?php if ( 'toggle_aria' === $key ) : ?>
-                                <span class="description">
-                                    <?php printf( esc_html( $placeholder_notice ), '<code>%s</code>' ); ?>
-                                </span>
-                            <?php endif; ?>
-                        </p>
-                    <?php endforeach; ?>
-                </div>
-            </fieldset>
+            <?php foreach ( $languages as $language ) :
+                $translation       = $this->get_translation_for_language( $translations, $language );
+                $language_defaults = $this->get_frontend_texts_defaults( $language );
+                $language_texts    = isset( $translation['texts'] ) && is_array( $translation['texts'] )
+                    ? array_merge( $language_defaults, $translation['texts'] )
+                    : $language_defaults;
+                $field_suffix      = sanitize_key( $language );
+                ?>
+                <fieldset class="fp-banner-settings fp-interface-texts" data-fp-text-language="<?php echo esc_attr( $language ); ?>">
+                    <h4>
+                        <?php
+                        printf(
+                            esc_html__( 'Testi interfaccia (%s)', 'fp-privacy-cookie-policy' ),
+                            esc_html( $this->get_language_label( $language ) )
+                        );
+                        ?>
+                    </h4>
+                    <div class="fp-texts-grid">
+                        <?php foreach ( $field_labels as $key => $label ) : ?>
+                            <?php $field_id = 'fp_text_' . $key . '_' . $field_suffix; ?>
+                            <p>
+                                <label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $label ); ?></label><br />
+                                <?php if ( in_array( $key, $textarea_fields, true ) ) : ?>
+                                    <textarea class="large-text" rows="3" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][<?php echo esc_attr( $language ); ?>][texts][<?php echo esc_attr( $key ); ?>]" data-fp-preview-target="<?php echo esc_attr( $key ); ?>" data-fp-preview-language="<?php echo esc_attr( $language ); ?>"><?php echo esc_textarea( isset( $language_texts[ $key ] ) ? $language_texts[ $key ] : '' ); ?></textarea>
+                                <?php else : ?>
+                                    <input type="text" class="regular-text" id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][<?php echo esc_attr( $language ); ?>][texts][<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( isset( $language_texts[ $key ] ) ? $language_texts[ $key ] : '' ); ?>" data-fp-preview-target="<?php echo esc_attr( $key ); ?>" data-fp-preview-language="<?php echo esc_attr( $language ); ?>" />
+                                <?php endif; ?>
+                                <?php if ( 'toggle_aria' === $key ) : ?>
+                                    <span class="description">
+                                        <?php printf( esc_html( $placeholder_notice ), '<code>%s</code>' ); ?>
+                                    </span>
+                                <?php endif; ?>
+                            </p>
+                        <?php endforeach; ?>
+                    </div>
+                </fieldset>
+            <?php endforeach; ?>
             <?php
         }
 
@@ -3003,47 +4061,69 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $options    = $this->get_settings();
             $categories = $options['categories'];
             $translations = isset( $options['translations'] ) ? $options['translations'] : array();
-            $english_categories = isset( $translations['en']['categories'] ) ? $translations['en']['categories'] : array();
+            $languages    = $this->get_translation_languages( $options );
             ?>
             <div class="fp-categories">
                 <?php foreach ( $categories as $key => $category ) : ?>
-                    <?php $english = isset( $english_categories[ $key ] ) ? $english_categories[ $key ] : array(); ?>
                     <fieldset class="fp-category" id="fp_category_<?php echo esc_attr( $key ); ?>">
                         <legend><strong><?php echo esc_html( $category['label'] ); ?></strong></legend>
                         <p>
                             <label>
-                                <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[categories][<?php echo esc_attr( $key ); ?>][enabled]" value="1" <?php checked( $category['enabled'] ); ?> <?php disabled( $category['required'] ); ?> />
+                                <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[categories][<?php echo esc_attr( $key ); ?>][enabled]" value="1" <?php checked( $category['enabled'] ); ?> <?php disabled( $category['required'] ); ?> data-fp-preview-category="<?php echo esc_attr( $key ); ?>" data-fp-preview-category-toggle="enabled" />
                                 <?php echo esc_html__( 'Mostra categoria nelle preferenze', 'fp-privacy-cookie-policy' ); ?>
                             </label>
                         </p>
                         <p>
                             <label>
-                                <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[categories][<?php echo esc_attr( $key ); ?>][required]" value="1" <?php checked( $category['required'] ); ?> <?php disabled( $category['required'] ); ?> />
+                                <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[categories][<?php echo esc_attr( $key ); ?>][required]" value="1" <?php checked( $category['required'] ); ?> <?php disabled( $category['required'] ); ?> data-fp-preview-category="<?php echo esc_attr( $key ); ?>" data-fp-preview-category-toggle="required" />
                                 <?php echo esc_html__( 'Necessario (non disattivabile)', 'fp-privacy-cookie-policy' ); ?>
                             </label>
                         </p>
                         <p>
                             <label for="fp_category_<?php echo esc_attr( $key ); ?>_description"><?php echo esc_html__( 'Descrizione', 'fp-privacy-cookie-policy' ); ?></label><br />
-                            <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_description" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[categories][<?php echo esc_attr( $key ); ?>][description]"><?php echo esc_textarea( $category['description'] ); ?></textarea>
+                            <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_description" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[categories][<?php echo esc_attr( $key ); ?>][description]" data-fp-preview-category="<?php echo esc_attr( $key ); ?>" data-fp-preview-field="description" data-fp-preview-language="<?php echo esc_attr( self::DEFAULT_LANGUAGE ); ?>"><?php echo esc_textarea( $category['description'] ); ?></textarea>
                         </p>
                         <p>
                             <label for="fp_category_<?php echo esc_attr( $key ); ?>_services"><?php echo esc_html__( 'Servizi e cookie inclusi', 'fp-privacy-cookie-policy' ); ?></label><br />
-                            <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_services" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[categories][<?php echo esc_attr( $key ); ?>][services]"><?php echo esc_textarea( $category['services'] ); ?></textarea>
+                            <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_services" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[categories][<?php echo esc_attr( $key ); ?>][services]" data-fp-preview-category="<?php echo esc_attr( $key ); ?>" data-fp-preview-field="services" data-fp-preview-language="<?php echo esc_attr( self::DEFAULT_LANGUAGE ); ?>"><?php echo esc_textarea( $category['services'] ); ?></textarea>
                             <span class="description"><?php echo esc_html__( 'Indica ad esempio strumenti di analytics, pixel e durata dei cookie per agevolare la documentazione.', 'fp-privacy-cookie-policy' ); ?></span>
                         </p>
-                        <hr />
-                        <p>
-                            <label for="fp_category_<?php echo esc_attr( $key ); ?>_label_en"><?php echo esc_html__( 'Nome categoria (inglese)', 'fp-privacy-cookie-policy' ); ?></label><br />
-                            <input type="text" class="regular-text" id="fp_category_<?php echo esc_attr( $key ); ?>_label_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][categories][<?php echo esc_attr( $key ); ?>][label]" value="<?php echo esc_attr( isset( $english['label'] ) ? $english['label'] : '' ); ?>" />
-                        </p>
-                        <p>
-                            <label for="fp_category_<?php echo esc_attr( $key ); ?>_description_en"><?php echo esc_html__( 'Descrizione (inglese)', 'fp-privacy-cookie-policy' ); ?></label><br />
-                            <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_description_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][categories][<?php echo esc_attr( $key ); ?>][description]"><?php echo esc_textarea( isset( $english['description'] ) ? $english['description'] : '' ); ?></textarea>
-                        </p>
-                        <p>
-                            <label for="fp_category_<?php echo esc_attr( $key ); ?>_services_en"><?php echo esc_html__( 'Servizi e cookie inclusi (inglese)', 'fp-privacy-cookie-policy' ); ?></label><br />
-                            <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_services_en" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][en][categories][<?php echo esc_attr( $key ); ?>][services]"><?php echo esc_textarea( isset( $english['services'] ) ? $english['services'] : '' ); ?></textarea>
-                        </p>
+                        <?php foreach ( $languages as $language ) :
+                            $translation       = $this->get_translation_for_language( $translations, $language );
+                            $translated_values = isset( $translation['categories'][ $key ] ) && is_array( $translation['categories'][ $key ] )
+                                ? $translation['categories'][ $key ]
+                                : array();
+                            $defaults = array(
+                                'label'       => isset( $category['label'] ) ? $category['label'] : '',
+                                'description' => isset( $category['description'] ) ? $category['description'] : '',
+                                'services'    => isset( $category['services'] ) ? $category['services'] : '',
+                            );
+                            $translated_values = array_merge( $defaults, $translated_values );
+                            $suffix            = sanitize_key( $language );
+                            ?>
+                            <details class="fp-category-translation">
+                                <summary>
+                                    <?php
+                                    printf(
+                                        esc_html__( 'Traduzione categoria (%s)', 'fp-privacy-cookie-policy' ),
+                                        esc_html( $this->get_language_label( $language ) )
+                                    );
+                                    ?>
+                                </summary>
+                                <p>
+                                    <label for="fp_category_<?php echo esc_attr( $key ); ?>_label_<?php echo esc_attr( $suffix ); ?>"><?php echo esc_html__( 'Nome categoria', 'fp-privacy-cookie-policy' ); ?></label><br />
+                                    <input type="text" class="regular-text" id="fp_category_<?php echo esc_attr( $key ); ?>_label_<?php echo esc_attr( $suffix ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][<?php echo esc_attr( $language ); ?>][categories][<?php echo esc_attr( $key ); ?>][label]" value="<?php echo esc_attr( isset( $translated_values['label'] ) ? $translated_values['label'] : '' ); ?>" data-fp-preview-category="<?php echo esc_attr( $key ); ?>" data-fp-preview-field="label" data-fp-preview-language="<?php echo esc_attr( $language ); ?>" />
+                                </p>
+                                <p>
+                                    <label for="fp_category_<?php echo esc_attr( $key ); ?>_description_<?php echo esc_attr( $suffix ); ?>"><?php echo esc_html__( 'Descrizione', 'fp-privacy-cookie-policy' ); ?></label><br />
+                                    <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_description_<?php echo esc_attr( $suffix ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][<?php echo esc_attr( $language ); ?>][categories][<?php echo esc_attr( $key ); ?>][description]" data-fp-preview-category="<?php echo esc_attr( $key ); ?>" data-fp-preview-field="description" data-fp-preview-language="<?php echo esc_attr( $language ); ?>"><?php echo esc_textarea( isset( $translated_values['description'] ) ? $translated_values['description'] : '' ); ?></textarea>
+                                </p>
+                                <p>
+                                    <label for="fp_category_<?php echo esc_attr( $key ); ?>_services_<?php echo esc_attr( $suffix ); ?>"><?php echo esc_html__( 'Servizi e cookie inclusi', 'fp-privacy-cookie-policy' ); ?></label><br />
+                                    <textarea class="large-text" rows="3" id="fp_category_<?php echo esc_attr( $key ); ?>_services_<?php echo esc_attr( $suffix ); ?>" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[translations][<?php echo esc_attr( $language ); ?>][categories][<?php echo esc_attr( $key ); ?>][services]" data-fp-preview-category="<?php echo esc_attr( $key ); ?>" data-fp-preview-field="services" data-fp-preview-language="<?php echo esc_attr( $language ); ?>"><?php echo esc_textarea( isset( $translated_values['services'] ) ? $translated_values['services'] : '' ); ?></textarea>
+                                </p>
+                            </details>
+                        <?php endforeach; ?>
                     </fieldset>
                 <?php endforeach; ?>
             </div>
@@ -3057,7 +4137,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $options         = $this->get_settings();
             $google_defaults = $options['google_defaults'];
             ?>
-            <table class="widefat striped">
+            <table class="widefat striped" id="fp_google_defaults">
                 <thead>
                     <tr>
                         <th><?php echo esc_html__( 'Segnale', 'fp-privacy-cookie-policy' ); ?></th>
@@ -3125,6 +4205,8 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 'privacy_policy_content' => __( '<h2>Informativa Privacy</h2><p>Inserisci qui il testo della tua informativa privacy conforme al GDPR, includendo i diritti dell\'interessato, i dati di contatto del titolare e le finalità del trattamento.</p>', 'fp-privacy-cookie-policy' ),
                 'cookie_policy_content'  => __( '<h2>Informativa Cookie</h2><p>Descrivi i cookie utilizzati dal sito, le finalità e la base giuridica del trattamento. Ricorda di aggiornare periodicamente questo elenco.</p>', 'fp-privacy-cookie-policy' ),
                 'auto_generate'          => true,
+                'render_hook'            => 'footer',
+                'preview_mode'           => false,
                 'banner'                 => array(
                     'banner_title'          => __( 'Rispettiamo la tua privacy', 'fp-privacy-cookie-policy' ),
                     'banner_message'        => __( 'Utilizziamo cookie tecnici e, previo consenso, cookie di profilazione e di terze parti per migliorare l\'esperienza di navigazione. Puoi gestire le tue preferenze in qualsiasi momento.', 'fp-privacy-cookie-policy' ),
@@ -3134,6 +4216,13 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     'save_preferences_label'=> __( 'Salva preferenze', 'fp-privacy-cookie-policy' ),
                     'show_reject'           => true,
                     'show_preferences'      => true,
+                    'layout'                => 'floating',
+                    'background_color'      => '#ffffff',
+                    'text_color'            => '#1f2933',
+                    'accent_color'          => '#2563eb',
+                    'secondary_color'       => '#eef2ff',
+                    'secondary_text_color'  => '#1e3a8a',
+                    'border_color'          => '#dbeafe',
                 ),
                 'categories'             => array(
                     'necessary'     => array(
@@ -3166,6 +4255,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                     ),
                 ),
                 'texts'                  => $this->get_frontend_texts_defaults( self::DEFAULT_LANGUAGE ),
+                'active_languages'      => array( 'en' ),
                 'translations'          => array(
                     'en' => array(
                         'privacy_policy_content' => '<h2>Privacy Notice</h2><p>Provide the text of your GDPR-compliant privacy notice here, including data subject rights, controller contact details and the purposes of processing.</p>',
@@ -3205,6 +4295,8 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 ),
                 'retention_days'        => 365,
                 'consent_cookie_days'   => 180,
+                'consent_revision'      => 1,
+                'consent_revision_updated_at' => '',
                 'google_defaults'        => array(
                     'analytics_storage'    => 'denied',
                     'ad_storage'           => 'denied',
@@ -3220,11 +4312,28 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * Enqueue admin assets.
          */
         public function enqueue_admin_assets( $hook ) {
-            if ( 'toplevel_page_fp-privacy-cookie-policy' !== $hook ) {
+            $is_plugin_screen = 'toplevel_page_fp-privacy-cookie-policy' === $hook;
+            $is_dashboard     = 'index.php' === $hook;
+
+            if ( ! $is_plugin_screen && ! $is_dashboard ) {
                 return;
             }
 
             wp_enqueue_style( 'fp-privacy-admin', plugin_dir_url( __FILE__ ) . 'assets/css/admin.css', array(), self::VERSION );
+
+            if ( ! $is_plugin_screen ) {
+                return;
+            }
+
+            wp_enqueue_script( 'fp-privacy-admin', plugin_dir_url( __FILE__ ) . 'assets/js/admin.js', array(), self::VERSION, true );
+
+            wp_localize_script(
+                'fp-privacy-admin',
+                'fpPrivacyAdmin',
+                array(
+                    'wizardSteps' => $this->get_onboarding_steps(),
+                )
+            );
         }
 
         /**
@@ -3237,6 +4346,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 ? $localized['texts']
                 : $this->get_frontend_texts( $localized['language'], $options );
             $cookie_options = $this->get_frontend_cookie_options( $options );
+            $preview_mode   = $this->is_preview_mode_active();
 
             wp_enqueue_style( 'fp-privacy-frontend', plugin_dir_url( __FILE__ ) . 'assets/css/banner.css', array(), self::VERSION );
 
@@ -3247,12 +4357,15 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 'nonce'          => wp_create_nonce( self::NONCE_ACTION ),
                 'cookieName'     => self::CONSENT_COOKIE,
                 'consentId'      => $this->get_consent_id(),
+                'consentRevision' => isset( $options['consent_revision'] ) ? max( 1, (int) $options['consent_revision'] ) : 1,
+                'consentRevisionUpdatedAt' => isset( $options['consent_revision_updated_at'] ) ? $options['consent_revision_updated_at'] : '',
                 'categories'     => $this->prepare_categories_for_frontend( $localized['categories'] ),
                 'banner'         => $localized['banner'],
                 'googleDefaults' => $options['google_defaults'],
                 'language'       => $localized['language'],
                 'cookieTtlDays'  => isset( $options['consent_cookie_days'] ) ? (int) $options['consent_cookie_days'] : 0,
                 'cookieOptions'  => $cookie_options,
+                'previewMode'    => $preview_mode,
                 'texts'          => array(
                     'manageConsent' => $text_values['manage_consent'],
                     'updatedAt'     => $text_values['updated_at'],
@@ -3261,6 +4374,29 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
 
             wp_localize_script( 'fp-privacy-frontend', 'fpPrivacySettings', $localize );
             wp_enqueue_script( 'fp-privacy-frontend' );
+        }
+
+        /**
+         * Register the hook used to render the consent banner on the front-end.
+         */
+        public function setup_banner_render_hook() {
+            $hook = $this->get_banner_render_hook();
+
+            if ( $this->current_banner_hook && $this->current_banner_hook !== $hook ) {
+                remove_action( $this->current_banner_hook, array( $this, 'render_consent_banner' ) );
+                $this->current_banner_hook = null;
+            }
+
+            if ( 'manual' === $hook || empty( $hook ) ) {
+                $this->current_banner_hook = 'manual';
+
+                return;
+            }
+
+            if ( $hook !== $this->current_banner_hook ) {
+                add_action( $hook, array( $this, 'render_consent_banner' ) );
+                $this->current_banner_hook = $hook;
+            }
         }
 
         /**
@@ -3284,6 +4420,59 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             }
 
             return $prepared;
+        }
+
+        /**
+         * Retrieve the WordPress hook that should output the consent banner.
+         *
+         * @return string
+         */
+        protected function get_banner_render_hook() {
+            $settings = $this->get_settings();
+            $mode     = isset( $settings['render_hook'] ) ? sanitize_key( $settings['render_hook'] ) : 'footer';
+
+            switch ( $mode ) {
+                case 'body_open':
+                    return 'wp_body_open';
+                case 'manual':
+                    return 'manual';
+                default:
+                    return 'wp_footer';
+            }
+        }
+
+        /**
+         * Determine if preview mode should be enabled for the current request.
+         *
+         * @return bool
+         */
+        protected function is_preview_mode_active() {
+            if ( ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) {
+                return false;
+            }
+
+            $settings    = $this->get_settings();
+            $always_on   = ! empty( $settings['preview_mode'] );
+            $query_param = false;
+
+            if ( isset( $_GET[ self::PREVIEW_QUERY_KEY ] ) ) {
+                $raw_value = wp_unslash( $_GET[ self::PREVIEW_QUERY_KEY ] );
+                $value     = strtolower( sanitize_text_field( $raw_value ) );
+                $truthy    = array( '1', 'true', 'yes', 'on' );
+
+                $query_param = in_array( $value, $truthy, true ) || '' === $value;
+            }
+
+            $enabled = $always_on || $query_param;
+
+            /**
+             * Filter whether preview mode is active for the current request.
+             *
+             * @param bool $enabled     Whether preview mode should be forced.
+             * @param bool $always_on   Whether preview mode is enabled in the settings.
+             * @param bool $query_param Whether it has been requested via query parameter.
+             */
+            return (bool) apply_filters( 'fp_privacy_preview_mode', $enabled, $always_on, $query_param );
         }
 
         /**
@@ -3363,17 +4552,210 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          */
         protected function get_available_languages( array $settings ) {
             $languages = array( self::DEFAULT_LANGUAGE );
+            $detected  = array();
+
+            if ( function_exists( 'get_available_languages' ) ) {
+                $detected = array_merge( $detected, (array) get_available_languages() );
+            }
+
+            if ( function_exists( 'get_locale' ) ) {
+                $site_locale = get_locale();
+                if ( $site_locale ) {
+                    $detected[] = $site_locale;
+                }
+            }
+
+            $site_language = get_bloginfo( 'language' );
+            if ( $site_language ) {
+                $detected[] = $site_language;
+            }
+
+            if ( ! empty( $settings['active_languages'] ) && is_array( $settings['active_languages'] ) ) {
+                $detected = array_merge( $detected, $settings['active_languages'] );
+            }
 
             if ( ! empty( $settings['translations'] ) && is_array( $settings['translations'] ) ) {
+                $detected = array_merge( $detected, array_keys( $settings['translations'] ) );
+            }
+
+            foreach ( $detected as $locale ) {
+                $code = $this->normalize_language_code( $locale );
+                if ( ! in_array( $code, $languages, true ) ) {
+                    $languages[] = $code;
+                }
+            }
+
+            $languages = array_values( array_unique( $languages ) );
+
+            $default_index = array_search( self::DEFAULT_LANGUAGE, $languages, true );
+            if ( false !== $default_index ) {
+                unset( $languages[ $default_index ] );
+                array_unshift( $languages, self::DEFAULT_LANGUAGE );
+            }
+
+            /**
+             * Filter the list of available languages supported by the plugin.
+             *
+             * @param array $languages Language codes.
+             * @param array $settings  Plugin settings.
+             */
+            return (array) apply_filters( 'fp_privacy_available_languages', $languages, $settings );
+        }
+
+        /**
+         * Retrieve the list of languages that require translation fields.
+         *
+         * @param array|null $settings Optional settings array to reuse.
+         *
+         * @return array
+         */
+        protected function get_translation_languages( $settings = null ) {
+            if ( null === $settings ) {
+                $settings = $this->get_settings();
+            }
+
+            $languages = array();
+
+            if ( isset( $settings['active_languages'] ) && is_array( $settings['active_languages'] ) ) {
+                foreach ( $settings['active_languages'] as $language ) {
+                    $language = $this->normalize_language_code( $language );
+
+                    if ( self::DEFAULT_LANGUAGE === $language ) {
+                        continue;
+                    }
+
+                    $languages[] = $language;
+                }
+            }
+
+            if ( empty( $languages ) ) {
+                $languages = array_filter(
+                    $this->get_available_languages( $settings ),
+                    array( $this, 'filter_non_default_language' )
+                );
+            }
+
+            if ( isset( $settings['translations'] ) && is_array( $settings['translations'] ) ) {
                 foreach ( array_keys( $settings['translations'] ) as $language ) {
-                    $code = $this->normalize_language_code( $language );
-                    if ( ! in_array( $code, $languages, true ) ) {
-                        $languages[] = $code;
+                    $language = $this->normalize_language_code( $language );
+
+                    if ( self::DEFAULT_LANGUAGE === $language ) {
+                        continue;
+                    }
+
+                    if ( ! in_array( $language, $languages, true ) ) {
+                        $languages[] = $language;
                     }
                 }
             }
 
+            $languages = array_values( $languages );
+            sort( $languages );
+
             return $languages;
+        }
+
+        /**
+         * Retrieve language choices for the selector.
+         *
+         * @param array|null $settings Optional settings array.
+         * @param array      $selected Languages already selected.
+         *
+         * @return array
+         */
+        protected function get_language_choices( $settings = null, array $selected = array() ) {
+            if ( null === $settings ) {
+                $settings = $this->get_settings();
+            }
+
+            $candidates = array(
+                'en',
+                'es',
+                'fr',
+                'de',
+                'pt',
+                'nl',
+                'pl',
+                'cs',
+                'da',
+                'sv',
+            );
+
+            if ( function_exists( 'get_available_languages' ) ) {
+                $candidates = array_merge( $candidates, (array) get_available_languages() );
+            }
+
+            if ( isset( $settings['active_languages'] ) && is_array( $settings['active_languages'] ) ) {
+                $candidates = array_merge( $candidates, $settings['active_languages'] );
+            }
+
+            if ( isset( $settings['translations'] ) && is_array( $settings['translations'] ) ) {
+                $candidates = array_merge( $candidates, array_keys( $settings['translations'] ) );
+            }
+
+            if ( ! empty( $selected ) ) {
+                $candidates = array_merge( $candidates, $selected );
+            }
+
+            $choices = array();
+
+            foreach ( $candidates as $candidate ) {
+                $language = $this->normalize_language_code( $candidate );
+
+                if ( self::DEFAULT_LANGUAGE === $language ) {
+                    continue;
+                }
+
+                if ( isset( $choices[ $language ] ) ) {
+                    continue;
+                }
+
+                $choices[ $language ] = $this->get_language_label( $language );
+            }
+
+            asort( $choices, SORT_NATURAL | SORT_FLAG_CASE );
+
+            return $choices;
+        }
+
+        /**
+         * Retrieve a human readable label for a language code.
+         *
+         * @param string $language Language code.
+         *
+         * @return string
+         */
+        protected function get_language_label( $language ) {
+            $language = $this->normalize_language_code( $language );
+
+            if ( empty( $this->language_labels ) ) {
+                $this->language_labels = array(
+                    self::DEFAULT_LANGUAGE => __( 'Italiano', 'fp-privacy-cookie-policy' ),
+                    'en'                   => __( 'Inglese', 'fp-privacy-cookie-policy' ),
+                );
+
+                if ( function_exists( 'wp_get_available_translations' ) ) {
+                    $available = wp_get_available_translations();
+                    if ( is_array( $available ) ) {
+                        foreach ( $available as $locale => $data ) {
+                            if ( empty( $data['native_name'] ) ) {
+                                continue;
+                            }
+
+                            $code = $this->normalize_language_code( $locale );
+                            if ( ! isset( $this->language_labels[ $code ] ) ) {
+                                $this->language_labels[ $code ] = $data['native_name'];
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ( ! isset( $this->language_labels[ $language ] ) ) {
+                $this->language_labels[ $language ] = strtoupper( $language );
+            }
+
+            return $this->language_labels[ $language ];
         }
 
         /**
@@ -3590,37 +4972,63 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * Render consent banner markup.
          */
         public function render_consent_banner() {
-            $localized     = $this->get_localized_settings();
+            $markup = $this->get_consent_banner_markup();
+
+            if ( $markup ) {
+                echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            }
+        }
+
+        /**
+         * Generate the consent banner markup for the given language.
+         *
+         * @param string|null $language Optional language code.
+         *
+         * @return string
+         */
+        public function get_consent_banner_markup( $language = null ) {
+            $localized     = $this->get_localized_settings( $language );
             $banner        = $localized['banner'];
             $categories    = $localized['categories'];
             $texts         = isset( $localized['texts'] ) && is_array( $localized['texts'] )
                 ? $localized['texts']
                 : $this->get_frontend_texts( $localized['language'] );
+            $preview_mode  = $this->is_preview_mode_active();
             $has_preferred = ! empty( array_filter( $categories, static function ( $category ) {
                 return ! empty( $category['enabled'] ) && empty( $category['required'] );
             } ) );
             $banner_title_id   = 'fp-consent-banner-title';
             $banner_message_id = 'fp-consent-banner-message';
             $modal_intro_id    = 'fp-consent-modal-description';
+            $theme_vars        = $this->get_banner_theme_variables( $banner );
+            $style_attr        = $this->build_css_custom_properties( $theme_vars );
+            $layout_class      = $this->get_banner_layout_class( $banner );
+            $layout_key        = $this->get_banner_layout_suffix( $banner );
+
+            ob_start();
             ?>
-            <div class="fp-consent-banner" role="dialog" aria-live="polite" aria-modal="true" aria-labelledby="<?php echo esc_attr( $banner_title_id ); ?>" aria-describedby="<?php echo esc_attr( $banner_message_id ); ?>" data-cookie-name="<?php echo esc_attr( self::CONSENT_COOKIE ); ?>" data-language="<?php echo esc_attr( $localized['language'] ); ?>">
-                <div class="fp-consent-container">
-                    <div class="fp-consent-content">
-                        <h3 id="<?php echo esc_attr( $banner_title_id ); ?>" class="fp-consent-title"><?php echo esc_html( $banner['banner_title'] ); ?></h3>
-                        <div id="<?php echo esc_attr( $banner_message_id ); ?>" class="fp-consent-text"><?php echo wpautop( wp_kses_post( $banner['banner_message'] ) ); ?></div>
-                    </div>
-                    <div class="fp-consent-actions">
-                        <button class="fp-btn fp-btn-primary" data-consent-action="accept-all"><?php echo esc_html( $banner['accept_all_label'] ); ?></button>
-                        <?php if ( $banner['show_reject'] ) : ?>
-                            <button class="fp-btn fp-btn-secondary" data-consent-action="reject-all"><?php echo esc_html( $banner['reject_all_label'] ); ?></button>
-                        <?php endif; ?>
-                        <?php if ( $banner['show_preferences'] && $has_preferred ) : ?>
-                            <button class="fp-btn fp-btn-tertiary" data-consent-action="open-preferences"><?php echo esc_html( $banner['preferences_label'] ); ?></button>
-                        <?php endif; ?>
+            <div class="fp-consent-wrapper" data-consent-layout="<?php echo esc_attr( $layout_key ); ?>" data-preview-mode="<?php echo esc_attr( $preview_mode ? '1' : '0' ); ?>"<?php if ( $style_attr ) : ?> style="<?php echo esc_attr( $style_attr ); ?>"<?php endif; ?>>
+                <?php if ( $preview_mode ) : ?>
+                    <p class="fp-consent-preview-notice"><?php esc_html_e( 'Modalità anteprima attiva: le scelte non vengono salvate.', 'fp-privacy-cookie-policy' ); ?></p>
+                <?php endif; ?>
+                <div class="fp-consent-banner <?php echo esc_attr( $layout_class ); ?>" role="dialog" aria-live="polite" aria-modal="true" aria-labelledby="<?php echo esc_attr( $banner_title_id ); ?>" aria-describedby="<?php echo esc_attr( $banner_message_id ); ?>" data-cookie-name="<?php echo esc_attr( self::CONSENT_COOKIE ); ?>" data-language="<?php echo esc_attr( $localized['language'] ); ?>">
+                    <div class="fp-consent-container">
+                        <div class="fp-consent-content">
+                            <h3 id="<?php echo esc_attr( $banner_title_id ); ?>" class="fp-consent-title"><?php echo esc_html( $banner['banner_title'] ); ?></h3>
+                            <div id="<?php echo esc_attr( $banner_message_id ); ?>" class="fp-consent-text"><?php echo wpautop( wp_kses_post( $banner['banner_message'] ) ); ?></div>
+                        </div>
+                        <div class="fp-consent-actions">
+                            <button class="fp-btn fp-btn-primary" data-consent-action="accept-all"><?php echo esc_html( $banner['accept_all_label'] ); ?></button>
+                            <?php if ( $banner['show_reject'] ) : ?>
+                                <button class="fp-btn fp-btn-secondary" data-consent-action="reject-all"><?php echo esc_html( $banner['reject_all_label'] ); ?></button>
+                            <?php endif; ?>
+                            <?php if ( $banner['show_preferences'] && $has_preferred ) : ?>
+                                <button class="fp-btn fp-btn-tertiary" data-consent-action="open-preferences"><?php echo esc_html( $banner['preferences_label'] ); ?></button>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div id="fp-consent-modal" class="fp-consent-modal" role="dialog" aria-modal="true" aria-labelledby="fp-consent-modal-title" aria-describedby="<?php echo esc_attr( $modal_intro_id ); ?>" data-language="<?php echo esc_attr( $localized['language'] ); ?>" aria-hidden="true" tabindex="-1" hidden>
+                <div id="fp-consent-modal" class="fp-consent-modal" role="dialog" aria-modal="true" aria-labelledby="fp-consent-modal-title" aria-describedby="<?php echo esc_attr( $modal_intro_id ); ?>" data-language="<?php echo esc_attr( $localized['language'] ); ?>" aria-hidden="true" tabindex="-1" hidden>
                 <div class="fp-consent-modal__overlay" data-consent-action="close"></div>
                 <div class="fp-consent-modal__dialog" role="document">
                     <button class="fp-consent-modal__close" type="button" aria-label="<?php echo esc_attr( $texts['modal_close'] ); ?>" data-consent-action="close">&times;</button>
@@ -3665,12 +5073,169 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                         <?php endif; ?>
                     </div>
                 </div>
+                </div>
+                <button class="fp-btn fp-btn-preferences fp-consent-manage" type="button" data-consent-manage data-consent-action="open-preferences" aria-haspopup="dialog" aria-controls="fp-consent-modal" aria-hidden="true" aria-expanded="false" aria-label="<?php echo esc_attr( $texts['manage_consent'] ); ?>" hidden>
+                    <span class="fp-consent-manage__icon" aria-hidden="true">⚙</span>
+                    <span class="fp-consent-manage__label"><?php echo esc_html( $texts['manage_consent'] ); ?></span>
+                </button>
             </div>
-            <button class="fp-btn fp-btn-preferences fp-consent-manage" type="button" data-consent-manage data-consent-action="open-preferences" aria-haspopup="dialog" aria-controls="fp-consent-modal" aria-hidden="true" aria-expanded="false" aria-label="<?php echo esc_attr( $texts['manage_consent'] ); ?>" hidden>
-                <span class="fp-consent-manage__icon" aria-hidden="true">⚙</span>
-                <span class="fp-consent-manage__label"><?php echo esc_html( $texts['manage_consent'] ); ?></span>
-            </button>
             <?php
+
+            return ob_get_clean();
+        }
+
+        /**
+         * Generate the markup for the manage preferences button.
+         *
+         * @param string|null $language Optional language code.
+         *
+         * @return string
+         */
+        protected function get_manage_preferences_button_markup( $language = null ) {
+            $localized = $this->get_localized_settings( $language );
+            $banner    = $localized['banner'];
+
+            return sprintf(
+                '<button class="fp-btn fp-btn-preferences" type="button" data-consent-action="open-preferences">%s</button>',
+                esc_html( $banner['preferences_label'] )
+            );
+        }
+
+        /**
+         * Determine whether the provided content differs from its default.
+         *
+         * @param string $value   Current value.
+         * @param string $default Default value.
+         *
+         * @return bool
+         */
+        protected function has_custom_content( $value, $default ) {
+            $value   = trim( wp_strip_all_tags( (string) $value ) );
+            $default = trim( wp_strip_all_tags( (string) $default ) );
+
+            if ( '' === $value ) {
+                return false;
+            }
+
+            return $value !== $default;
+        }
+
+        /**
+         * Build the link to the settings page with an optional anchor.
+         *
+         * @param string $anchor Anchor to append.
+         *
+         * @return string
+         */
+        protected function get_settings_link( $anchor = '' ) {
+            $url = add_query_arg( 'page', 'fp-privacy-cookie-policy', admin_url( 'admin.php' ) );
+
+            if ( $anchor ) {
+                $url .= $anchor;
+            }
+
+            return $url;
+        }
+
+        /**
+         * Build onboarding steps status for the admin checklist.
+         *
+         * @return array
+         */
+        protected function get_onboarding_steps() {
+            $options  = $this->get_settings();
+            $defaults = $this->get_default_settings();
+
+            $privacy_custom = $this->has_custom_content(
+                isset( $options['privacy_policy_content'] ) ? $options['privacy_policy_content'] : '',
+                isset( $defaults['privacy_policy_content'] ) ? $defaults['privacy_policy_content'] : ''
+            );
+
+            $cookie_custom = $this->has_custom_content(
+                isset( $options['cookie_policy_content'] ) ? $options['cookie_policy_content'] : '',
+                isset( $defaults['cookie_policy_content'] ) ? $defaults['cookie_policy_content'] : ''
+            );
+
+            $categories_custom = false;
+            $categories        = isset( $options['categories'] ) && is_array( $options['categories'] ) ? $options['categories'] : array();
+            foreach ( $categories as $key => $category ) {
+                $default_category = isset( $defaults['categories'][ $key ] ) && is_array( $defaults['categories'][ $key ] )
+                    ? $defaults['categories'][ $key ]
+                    : array( 'description' => '', 'services' => '', 'required' => false, 'enabled' => true );
+
+                $description = isset( $category['description'] ) ? $category['description'] : '';
+                $services    = isset( $category['services'] ) ? $category['services'] : '';
+
+                $required        = ! empty( $category['required'] );
+                $default_required = ! empty( $default_category['required'] );
+
+                if ( $required !== $default_required ) {
+                    $categories_custom = true;
+                    break;
+                }
+
+                if ( $this->has_custom_content( $description, isset( $default_category['description'] ) ? $default_category['description'] : '' ) ) {
+                    $categories_custom = true;
+                    break;
+                }
+
+                if ( $this->has_custom_content( $services, isset( $default_category['services'] ) ? $default_category['services'] : '' ) ) {
+                    $categories_custom = true;
+                    break;
+                }
+            }
+
+            $google_defaults   = isset( $options['google_defaults'] ) ? $options['google_defaults'] : array();
+            $google_customized = ! empty( array_diff_assoc( $google_defaults, $defaults['google_defaults'] ) );
+            $render_hook       = isset( $options['render_hook'] ) ? sanitize_key( $options['render_hook'] ) : 'footer';
+
+            return array(
+                array(
+                    'key'         => 'privacy',
+                    'title'       => __( 'Personalizza la privacy policy', 'fp-privacy-cookie-policy' ),
+                    'description' => __( 'Rivedi il testo proposto e adattalo insieme al tuo consulente legale.', 'fp-privacy-cookie-policy' ),
+                    'link'        => $this->get_settings_link( '#fp_privacy_policy_content' ),
+                    'link_label'  => __( 'Modifica privacy policy', 'fp-privacy-cookie-policy' ),
+                    'complete'    => $privacy_custom,
+                    'auto'        => true,
+                ),
+                array(
+                    'key'         => 'cookie_policy',
+                    'title'       => __( 'Aggiorna la cookie policy', 'fp-privacy-cookie-policy' ),
+                    'description' => __( 'Completa le informazioni su durata, base giuridica e responsabili del trattamento.', 'fp-privacy-cookie-policy' ),
+                    'link'        => $this->get_settings_link( '#fp_cookie_policy_content' ),
+                    'link_label'  => __( 'Modifica cookie policy', 'fp-privacy-cookie-policy' ),
+                    'complete'    => $cookie_custom,
+                    'auto'        => true,
+                ),
+                array(
+                    'key'         => 'categories',
+                    'title'       => __( 'Configura categorie e servizi', 'fp-privacy-cookie-policy' ),
+                    'description' => __( 'Definisci descrizioni e servizi per ogni categoria, includendo eventuali strumenti di terze parti.', 'fp-privacy-cookie-policy' ),
+                    'link'        => $this->get_settings_link( '#fp_category_necessary' ),
+                    'link_label'  => __( 'Apri categorie cookie', 'fp-privacy-cookie-policy' ),
+                    'complete'    => $categories_custom,
+                    'auto'        => true,
+                ),
+                array(
+                    'key'         => 'consent',
+                    'title'       => __( 'Imposta i segnali del Google Consent Mode', 'fp-privacy-cookie-policy' ),
+                    'description' => __( 'Controlla i valori predefiniti dei segnali e assicurati che riflettano le tue necessità di tracciamento.', 'fp-privacy-cookie-policy' ),
+                    'link'        => $this->get_settings_link( '#fp_google_defaults' ),
+                    'link_label'  => __( 'Modifica Consent Mode', 'fp-privacy-cookie-policy' ),
+                    'complete'    => $google_customized,
+                    'auto'        => true,
+                ),
+                array(
+                    'key'         => 'integration',
+                    'title'       => __( 'Integra il banner nel sito', 'fp-privacy-cookie-policy' ),
+                    'description' => __( 'Scegli il punto di aggancio più adatto o inserisci blocchi/shortcode dove necessario e verifica i tag di tracciamento.', 'fp-privacy-cookie-policy' ),
+                    'link'        => $this->get_settings_link( '#fp_render_hook' ),
+                    'link_label'  => __( 'Configura posizionamento banner', 'fp-privacy-cookie-policy' ),
+                    'complete'    => 'footer' !== $render_hook,
+                    'auto'        => false,
+                ),
+            );
         }
 
         /**
@@ -3680,6 +5245,44 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             add_shortcode( 'fp_privacy_policy', array( $this, 'shortcode_privacy_policy' ) );
             add_shortcode( 'fp_cookie_policy', array( $this, 'shortcode_cookie_policy' ) );
             add_shortcode( 'fp_cookie_preferences', array( $this, 'shortcode_cookie_preferences' ) );
+            add_shortcode( 'fp_cookie_banner', array( $this, 'shortcode_cookie_banner' ) );
+        }
+
+        /**
+         * Register Gutenberg blocks for the plugin.
+         */
+        public function register_blocks() {
+            if ( ! function_exists( 'register_block_type' ) ) {
+                return;
+            }
+
+            $handle   = 'fp-privacy-blocks';
+            $base_url = plugin_dir_url( __FILE__ );
+
+            wp_register_script(
+                $handle,
+                $base_url . 'assets/js/blocks.js',
+                array( 'wp-blocks', 'wp-element', 'wp-i18n' ),
+                self::VERSION,
+                true
+            );
+
+            $blocks = array(
+                'fp/privacy-policy'     => array( $this, 'render_privacy_policy_block' ),
+                'fp/cookie-policy'      => array( $this, 'render_cookie_policy_block' ),
+                'fp/cookie-preferences' => array( $this, 'render_cookie_preferences_block' ),
+                'fp/cookie-banner'      => array( $this, 'render_cookie_banner_block' ),
+            );
+
+            foreach ( $blocks as $name => $callback ) {
+                register_block_type(
+                    $name,
+                    array(
+                        'editor_script'   => $handle,
+                        'render_callback' => $callback,
+                    )
+                );
+            }
         }
 
         /**
@@ -3705,15 +5308,49 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Cookie banner shortcode callback.
+         *
+         * @return string
+         */
+        public function shortcode_cookie_banner() {
+            return $this->get_consent_banner_markup();
+        }
+
+        /**
          * Cookie preferences shortcode callback.
          *
          * @return string
          */
         public function shortcode_cookie_preferences() {
-            $localized = $this->get_localized_settings();
-            $banner     = $localized['banner'];
+            return $this->get_manage_preferences_button_markup();
+        }
 
-            return '<button class="fp-btn fp-btn-preferences" data-consent-action="open-preferences">' . esc_html( $banner['preferences_label'] ) . '</button>';
+        /**
+         * Render callback for the privacy policy block.
+         */
+        public function render_privacy_policy_block( $attributes = array(), $content = '' ) {
+            return $this->shortcode_privacy_policy();
+        }
+
+        /**
+         * Render callback for the cookie policy block.
+         */
+        public function render_cookie_policy_block( $attributes = array(), $content = '' ) {
+            return $this->shortcode_cookie_policy();
+        }
+
+        /**
+         * Render callback for the cookie preferences block.
+         */
+        public function render_cookie_preferences_block( $attributes = array(), $content = '' ) {
+            return $this->shortcode_cookie_preferences();
+        }
+
+        /**
+         * Render callback for the cookie banner block.
+         */
+        public function render_cookie_banner_block( $attributes = array(), $content = '' ) {
+            return $this->shortcode_cookie_banner();
         }
 
         /**
@@ -3774,6 +5411,145 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Register the dashboard widgets exposed by the plugin.
+         */
+        public function register_dashboard_widgets() {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+            }
+
+            /**
+             * Filter whether the dashboard widget should be registered.
+             *
+             * @since 1.13.1
+             *
+             * @param bool $enabled Whether the widget should be available.
+             */
+            $enabled = apply_filters( 'fp_privacy_enable_dashboard_widget', true );
+
+            if ( ! $enabled ) {
+                return;
+            }
+
+            wp_add_dashboard_widget(
+                'fp_privacy_consent_overview',
+                __( 'Registro consensi', 'fp-privacy-cookie-policy' ),
+                array( $this, 'render_dashboard_widget' )
+            );
+        }
+
+        /**
+         * Render the consent overview widget in the WordPress dashboard.
+         */
+        public function render_dashboard_widget() {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+            }
+
+            echo '<div class="fp-dashboard-consent">';
+
+            if ( ! $this->consent_table_exists() ) {
+                $settings_url = $this->get_settings_link( '&tab=logs' );
+
+                echo '<p>' . esc_html__( 'La tabella del registro consensi è mancante o danneggiata. Ricreala per continuare a salvare i consensi.', 'fp-privacy-cookie-policy' ) . '</p>';
+                echo '<p class="fp-dashboard-consent__actions">';
+                echo '<a class="button button-primary" href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Apri impostazioni', 'fp-privacy-cookie-policy' ) . '</a>';
+                echo '</p>';
+                echo '</div>';
+
+                return;
+            }
+
+            $summary        = $this->get_consent_log_summary();
+            $summary_labels = $this->get_consent_event_labels();
+            $summary_labels['other'] = __( 'Altri eventi', 'fp-privacy-cookie-policy' );
+            $total          = isset( $summary['total'] ) ? (int) $summary['total'] : 0;
+            $last_event     = isset( $summary['last_event'] ) ? $this->format_consent_datetime( $summary['last_event'] ) : '';
+            $recent_days    = isset( $summary['recent']['days'] ) ? (int) $summary['recent']['days'] : 30;
+            $recent_total   = isset( $summary['recent']['total'] ) ? (int) $summary['recent']['total'] : 0;
+            $logs_url       = add_query_arg(
+                array(
+                    'page' => 'fp-privacy-cookie-policy',
+                    'tab'  => 'logs',
+                ),
+                admin_url( 'admin.php' )
+            );
+
+            echo '<ul class="fp-dashboard-consent__stats">';
+            echo '<li class="fp-dashboard-consent__stat">';
+            echo '<span class="fp-dashboard-consent__label">' . esc_html__( 'Totale eventi registrati', 'fp-privacy-cookie-policy' ) . '</span>';
+            echo '<span class="fp-dashboard-consent__metric">' . esc_html( number_format_i18n( $total ) ) . '</span>';
+            echo '<span class="fp-dashboard-consent__description">';
+            if ( $last_event ) {
+                printf(
+                    esc_html__( 'Ultimo evento registrato: %s', 'fp-privacy-cookie-policy' ),
+                    esc_html( $last_event )
+                );
+            } else {
+                esc_html_e( 'Nessun evento registrato finora.', 'fp-privacy-cookie-policy' );
+            }
+            echo '</span>';
+            echo '</li>';
+
+            echo '<li class="fp-dashboard-consent__stat">';
+            $recent_label = sprintf( esc_html__( 'Ultimi %d giorni', 'fp-privacy-cookie-policy' ), max( 1, $recent_days ) );
+            echo '<span class="fp-dashboard-consent__label">' . esc_html( $recent_label ) . '</span>';
+            echo '<span class="fp-dashboard-consent__metric">' . esc_html( number_format_i18n( $recent_total ) ) . '</span>';
+            if ( 0 === $recent_total ) {
+                echo '<span class="fp-dashboard-consent__description">';
+                printf(
+                    esc_html__( 'Nessun dato registrato negli ultimi %d giorni.', 'fp-privacy-cookie-policy' ),
+                    max( 1, $recent_days )
+                );
+                echo '</span>';
+            }
+            echo '</li>';
+            echo '</ul>';
+
+            if ( $total > 0 ) {
+                echo '<h4 class="fp-dashboard-consent__subheading">' . esc_html__( 'Distribuzione totale', 'fp-privacy-cookie-policy' ) . '</h4>';
+                echo '<ul class="fp-dashboard-consent__distribution">';
+
+                foreach ( $summary_labels as $event_key => $label ) {
+                    $count = isset( $summary['events'][ $event_key ] ) ? (int) $summary['events'][ $event_key ] : 0;
+
+                    if ( 'other' === $event_key && 0 === $count ) {
+                        continue;
+                    }
+
+                    if ( 0 === $count ) {
+                        continue;
+                    }
+
+                    $percentage = $this->calculate_percentage( $count, $total );
+
+                    echo '<li class="fp-dashboard-consent__distribution-row">';
+                    echo '<div class="fp-dashboard-consent__distribution-header">';
+                    echo '<span class="fp-dashboard-consent__distribution-label">' . esc_html( $label ) . '</span>';
+                    echo '<span class="fp-dashboard-consent__distribution-value">' . esc_html( number_format_i18n( $count ) );
+                    echo '<span class="fp-dashboard-consent__distribution-percentage">' . esc_html( number_format_i18n( $percentage, 1 ) ) . '%</span>';
+                    echo '</span>';
+                    echo '</div>';
+                    echo '<div class="fp-dashboard-consent__distribution-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' . esc_attr( round( $percentage ) ) . '">';
+                    echo '<span class="fp-dashboard-consent__distribution-fill" style="width: ' . esc_attr( min( 100, max( 0, $percentage ) ) ) . '%"></span>';
+                    echo '</div>';
+                    echo '</li>';
+                }
+
+                echo '</ul>';
+            } else {
+                echo '<p class="fp-dashboard-consent__empty">' . esc_html__( 'Nessun consenso registrato al momento.', 'fp-privacy-cookie-policy' ) . '</p>';
+            }
+
+            echo '<p class="fp-dashboard-consent__actions">';
+            echo '<a class="button button-primary" href="' . esc_url( $logs_url ) . '">' . esc_html__( 'Apri registro consensi', 'fp-privacy-cookie-policy' ) . '</a>';
+            echo '<a class="button" href="' . esc_url( $this->get_settings_link() ) . '">' . esc_html__( 'Apri impostazioni', 'fp-privacy-cookie-policy' ) . '</a>';
+            echo '</p>';
+
+            echo '</div>';
+        }
+
+        /**
          * Render logs tab.
          */
         protected function render_logs_tab() {
@@ -3786,32 +5562,28 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             }
 
             $table_name = self::get_consent_table_name();
-            $per_page   = 50;
-            $paged      = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1;
-            $offset     = ( $paged - 1 ) * $per_page;
-            $search     = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-            $event      = isset( $_GET['event'] ) ? sanitize_key( wp_unslash( $_GET['event'] ) ) : '';
+            $per_page = 50;
+            $paged    = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1;
+            $offset   = ( $paged - 1 ) * $per_page;
 
-            $where_clauses = array();
-            $params        = array();
+            $filters = $this->prepare_consent_log_filters(
+                array(
+                    'search' => isset( $_GET['s'] ) ? wp_unslash( $_GET['s'] ) : '',
+                    'event'  => isset( $_GET['event'] ) ? wp_unslash( $_GET['event'] ) : '',
+                    'from'   => isset( $_GET['from'] ) ? wp_unslash( $_GET['from'] ) : '',
+                    'to'     => isset( $_GET['to'] ) ? wp_unslash( $_GET['to'] ) : '',
+                )
+            );
 
-            if ( $search ) {
-                $like            = '%' . $wpdb->esc_like( $search ) . '%';
-                $where_clauses[] = '(consent_id LIKE %s OR consent_state LIKE %s OR ip_address LIKE %s)';
-                $params[]        = $like;
-                $params[]        = $like;
-                $params[]        = $like;
-            }
+            $search        = $filters['search'];
+            $event         = $filters['event'];
+            $from_raw      = $filters['from'];
+            $to_raw        = $filters['to'];
+            $where_clauses = $filters['where'];
+            $params        = $filters['params'];
 
             $allowed_events = $this->get_allowed_consent_events();
             $event_labels   = $this->get_consent_event_labels();
-
-            if ( $event && in_array( $event, $allowed_events, true ) ) {
-                $where_clauses[] = 'event_type = %s';
-                $params[]        = $event;
-            } else {
-                $event = '';
-            }
 
             $where_sql = '';
 
@@ -3846,17 +5618,126 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 $filter_args['event'] = $event;
             }
 
+            if ( $from_raw ) {
+                $filter_args['from'] = $from_raw;
+            }
+
+            if ( $to_raw ) {
+                $filter_args['to'] = $to_raw;
+            }
+
             if ( ! empty( $filter_args ) ) {
                 $logs_url = add_query_arg( $filter_args, $logs_url );
             }
 
+            $summary         = $this->get_consent_log_summary();
+            $summary_labels  = $event_labels;
+            $summary_labels['other'] = __( 'Altri eventi', 'fp-privacy-cookie-policy' );
+            $last_event_date = isset( $summary['last_event'] ) ? $this->format_consent_datetime( $summary['last_event'] ) : '';
+
+            $recent_days  = isset( $summary['recent']['days'] ) ? (int) $summary['recent']['days'] : 30;
+            $recent_total = isset( $summary['recent']['total'] ) ? (int) $summary['recent']['total'] : 0;
+
             ?>
+            <section class="fp-consent-log-summary" aria-labelledby="fp-consent-summary-heading">
+                <h3 id="fp-consent-summary-heading"><?php esc_html_e( 'Riepilogo registro consensi', 'fp-privacy-cookie-policy' ); ?></h3>
+                <div class="fp-consent-log-summary__grid">
+                    <div class="fp-consent-log-summary__card">
+                        <span class="fp-consent-log-summary__heading"><?php esc_html_e( 'Totale eventi registrati', 'fp-privacy-cookie-policy' ); ?></span>
+                        <span class="fp-consent-log-summary__metric"><?php echo esc_html( number_format_i18n( isset( $summary['total'] ) ? (int) $summary['total'] : 0 ) ); ?></span>
+                        <p class="fp-consent-log-summary__description">
+                            <?php
+                            if ( $last_event_date ) {
+                                printf(
+                                    esc_html__( 'Ultimo evento registrato: %s', 'fp-privacy-cookie-policy' ),
+                                    esc_html( $last_event_date )
+                                );
+                            } else {
+                                esc_html_e( 'Nessun evento registrato finora.', 'fp-privacy-cookie-policy' );
+                            }
+                            ?>
+                        </p>
+                    </div>
+                    <div class="fp-consent-log-summary__card">
+                        <span class="fp-consent-log-summary__heading"><?php esc_html_e( 'Distribuzione totale', 'fp-privacy-cookie-policy' ); ?></span>
+                        <ul class="fp-consent-log-summary__list">
+                            <?php
+                            $total_events = isset( $summary['total'] ) ? (int) $summary['total'] : 0;
+
+                            foreach ( $summary_labels as $event_key => $label ) {
+                                $count = isset( $summary['events'][ $event_key ] ) ? (int) $summary['events'][ $event_key ] : 0;
+
+                                if ( 'other' === $event_key && 0 === $count ) {
+                                    continue;
+                                }
+                                ?>
+                                <li class="fp-consent-log-summary__row">
+                                    <span class="fp-consent-log-summary__label"><?php echo esc_html( $label ); ?></span>
+                                    <span class="fp-consent-log-summary__value">
+                                        <?php echo esc_html( number_format_i18n( $count ) ); ?>
+                                        <?php if ( $total_events > 0 ) : ?>
+                                            <span class="fp-consent-log-summary__muted"><?php echo esc_html( number_format_i18n( $this->calculate_percentage( $count, $total_events ), 1 ) ); ?>%</span>
+                                        <?php endif; ?>
+                                    </span>
+                                </li>
+                                <?php
+                            }
+                            ?>
+                        </ul>
+                    </div>
+                    <div class="fp-consent-log-summary__card">
+                        <span class="fp-consent-log-summary__heading"><?php printf( esc_html__( 'Ultimi %d giorni', 'fp-privacy-cookie-policy' ), max( 1, $recent_days ) ); ?></span>
+                        <?php if ( $recent_total > 0 ) : ?>
+                            <ul class="fp-consent-log-summary__list">
+                                <li class="fp-consent-log-summary__row fp-consent-log-summary__row--total">
+                                    <span class="fp-consent-log-summary__label"><?php esc_html_e( 'Totale', 'fp-privacy-cookie-policy' ); ?></span>
+                                    <span class="fp-consent-log-summary__value"><?php echo esc_html( number_format_i18n( $recent_total ) ); ?></span>
+                                </li>
+                                <?php
+                                foreach ( $summary_labels as $event_key => $label ) {
+                                    $count = isset( $summary['recent']['events'][ $event_key ] ) ? (int) $summary['recent']['events'][ $event_key ] : 0;
+
+                                    if ( 'other' === $event_key && 0 === $count ) {
+                                        continue;
+                                    }
+
+                                    if ( 0 === $count ) {
+                                        continue;
+                                    }
+                                    ?>
+                                    <li class="fp-consent-log-summary__row">
+                                        <span class="fp-consent-log-summary__label"><?php echo esc_html( $label ); ?></span>
+                                        <span class="fp-consent-log-summary__value">
+                                            <?php echo esc_html( number_format_i18n( $count ) ); ?>
+                                            <span class="fp-consent-log-summary__muted"><?php echo esc_html( number_format_i18n( $this->calculate_percentage( $count, $recent_total ), 1 ) ); ?>%</span>
+                                        </span>
+                                    </li>
+                                    <?php
+                                }
+                                ?>
+                            </ul>
+                        <?php else : ?>
+                            <p class="fp-consent-log-summary__description">
+                                <?php printf( esc_html__( 'Nessun dato registrato negli ultimi %d giorni.', 'fp-privacy-cookie-policy' ), max( 1, $recent_days ) ); ?>
+                            </p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </section>
             <form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="fp-consent-log-filters">
                 <input type="hidden" name="page" value="fp-privacy-cookie-policy" />
                 <input type="hidden" name="tab" value="logs" />
                 <p class="search-box">
                     <label class="screen-reader-text" for="fp-consent-search"><?php esc_html_e( 'Cerca consensi', 'fp-privacy-cookie-policy' ); ?></label>
                     <input type="search" id="fp-consent-search" name="s" value="<?php echo esc_attr( $search ); ?>" placeholder="<?php esc_attr_e( 'Cerca per ID, IP o stato', 'fp-privacy-cookie-policy' ); ?>" />
+                </p>
+                <p class="fp-consent-log-filters__field">
+                    <label for="fp-consent-from"><?php esc_html_e( 'Dal giorno', 'fp-privacy-cookie-policy' ); ?></label>
+                    <input type="date" id="fp-consent-from" name="from" value="<?php echo esc_attr( $from_raw ); ?>" />
+                </p>
+                <p class="fp-consent-log-filters__field">
+                    <label for="fp-consent-to"><?php esc_html_e( 'Al giorno', 'fp-privacy-cookie-policy' ); ?></label>
+                    <input type="date" id="fp-consent-to" name="to" value="<?php echo esc_attr( $to_raw ); ?>" />
                 </p>
                 <p>
                     <label for="fp-consent-event-filter" class="screen-reader-text"><?php esc_html_e( 'Filtra per evento', 'fp-privacy-cookie-policy' ); ?></label>
@@ -3869,7 +5750,7 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 </p>
                 <p class="submit">
                     <button type="submit" class="button button-primary"><?php esc_html_e( 'Filtra', 'fp-privacy-cookie-policy' ); ?></button>
-                    <?php if ( $search || $event ) : ?>
+                    <?php if ( $search || $event || $from_raw || $to_raw ) : ?>
                         <a class="button" href="<?php echo esc_url( add_query_arg( array( 'page' => 'fp-privacy-cookie-policy', 'tab' => 'logs' ), admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Reimposta', 'fp-privacy-cookie-policy' ); ?></a>
                     <?php endif; ?>
                 </p>
@@ -3878,6 +5759,10 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
                     <?php wp_nonce_field( 'fp_export_consent', 'fp_export_consent_nonce' ); ?>
                     <input type="hidden" name="action" value="fp_export_consent" />
+                    <input type="hidden" name="s" value="<?php echo esc_attr( $search ); ?>" />
+                    <input type="hidden" name="event" value="<?php echo esc_attr( $event ); ?>" />
+                    <input type="hidden" name="from" value="<?php echo esc_attr( $from_raw ); ?>" />
+                    <input type="hidden" name="to" value="<?php echo esc_attr( $to_raw ); ?>" />
                     <button type="submit" class="button button-secondary">
                         <?php esc_html_e( 'Esporta CSV', 'fp-privacy-cookie-policy' ); ?>
                     </button>
@@ -3929,7 +5814,52 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                                     echo esc_html( $event_label );
                                     ?>
                                 </td>
-                                <td><code><?php echo esc_html( $log->consent_state ); ?></code></td>
+                                <td>
+                                    <?php
+                                    $decoded_state = json_decode( $log->consent_state, true );
+                                    $state_items   = is_array( $decoded_state ) ? $this->format_consent_state_for_display( $decoded_state ) : array();
+
+                                    if ( ! empty( $state_items ) ) :
+                                        ?>
+                                        <ul class="fp-consent-log-state">
+                                            <?php foreach ( $state_items as $state_key => $state_item ) : // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable ?>
+                                                <?php
+                                                $item_classes = array( 'fp-consent-log-state__item' );
+
+                                                if ( ! empty( $state_item['required'] ) ) {
+                                                    $item_classes[] = 'is-required';
+                                                }
+
+                                                $item_classes[] = ! empty( $state_item['value'] ) ? 'is-granted' : 'is-denied';
+                                                ?>
+                                                <li class="<?php echo esc_attr( implode( ' ', $item_classes ) ); ?>">
+                                                    <span class="fp-consent-log-state__label"><?php echo esc_html( $state_item['label'] ); ?></span>
+                                                    <span class="fp-consent-log-state__status">
+                                                        <?php
+                                                        if ( ! empty( $state_item['required'] ) ) {
+                                                            esc_html_e( 'Sempre attivo', 'fp-privacy-cookie-policy' );
+                                                        } elseif ( ! empty( $state_item['value'] ) ) {
+                                                            esc_html_e( 'Consentito', 'fp-privacy-cookie-policy' );
+                                                        } else {
+                                                            esc_html_e( 'Negato', 'fp-privacy-cookie-policy' );
+                                                        }
+                                                        ?>
+                                                    </span>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                        <details class="fp-consent-log-state__raw">
+                                            <summary><?php esc_html_e( 'Mostra JSON', 'fp-privacy-cookie-policy' ); ?></summary>
+                                            <code><?php echo esc_html( $log->consent_state ); ?></code>
+                                        </details>
+                                        <?php
+                                    else :
+                                        ?>
+                                        <code><?php echo esc_html( $log->consent_state ); ?></code>
+                                        <?php
+                                    endif;
+                                    ?>
+                                </td>
                                 <td><?php echo esc_html( $log->ip_address ); ?></td>
                             </tr>
                         <?php endforeach; ?>
@@ -3973,6 +5903,266 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
         }
 
         /**
+         * Retrieve an aggregate summary of the consent log for quick insights.
+         *
+         * @param int $days Number of days to include in the recent window.
+         *
+         * @return array
+         */
+        protected function get_consent_log_summary( $days = 30 ) {
+            $recent_days = max( 1, (int) $days );
+
+            $summary = array(
+                'total'      => 0,
+                'last_event' => '',
+                'events'     => array(),
+                'recent'     => array(
+                    'days'   => $recent_days,
+                    'total'  => 0,
+                    'events' => array(),
+                ),
+            );
+
+            if ( ! $this->consent_table_exists() ) {
+                return $summary;
+            }
+
+            global $wpdb;
+
+            $table_name = self::get_consent_table_name();
+            $allowed    = array_values( array_unique( array_map( 'sanitize_key', $this->get_allowed_consent_events() ) ) );
+
+            $template = array();
+
+            foreach ( $allowed as $event ) {
+                if ( '' === $event ) {
+                    continue;
+                }
+
+                $template[ $event ] = 0;
+            }
+
+            $template['other'] = 0;
+
+            $summary['events']             = $template;
+            $summary['recent']['events']   = $template;
+            $summary['total']              = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table_name}" );
+            $summary['last_event']         = (string) $wpdb->get_var( "SELECT created_at FROM {$table_name} ORDER BY created_at DESC LIMIT 1" );
+
+            $counts = $wpdb->get_results( "SELECT event_type, COUNT(*) AS total FROM {$table_name} GROUP BY event_type" );
+
+            if ( $counts ) {
+                foreach ( $counts as $row ) {
+                    $event = sanitize_key( $row->event_type );
+                    $count = (int) $row->total;
+
+                    if ( isset( $summary['events'][ $event ] ) ) {
+                        $summary['events'][ $event ] = $count;
+                    } else {
+                        $summary['events']['other'] += $count;
+                    }
+                }
+            }
+
+            $threshold = $this->get_recent_summary_threshold( $recent_days );
+
+            if ( $threshold ) {
+                $recent_counts = $wpdb->get_results(
+                    $wpdb->prepare(
+                        "SELECT event_type, COUNT(*) AS total FROM {$table_name} WHERE created_at >= %s GROUP BY event_type",
+                        $threshold
+                    )
+                );
+
+                if ( $recent_counts ) {
+                    $recent_total = 0;
+
+                    foreach ( $recent_counts as $row ) {
+                        $event = sanitize_key( $row->event_type );
+                        $count = (int) $row->total;
+
+                        $recent_total += $count;
+
+                        if ( isset( $summary['recent']['events'][ $event ] ) ) {
+                            $summary['recent']['events'][ $event ] = $count;
+                        } else {
+                            $summary['recent']['events']['other'] += $count;
+                        }
+                    }
+
+                    $summary['recent']['total'] = $recent_total;
+                }
+            }
+
+            if ( ! isset( $summary['recent']['total'] ) ) {
+                $summary['recent']['total'] = array_sum( $summary['recent']['events'] );
+            }
+
+            return $summary;
+        }
+
+        /**
+         * Format a consent log datetime for display using the site preferences.
+         *
+         * @param string $datetime Datetime string stored in the database.
+         *
+         * @return string
+         */
+        protected function format_consent_datetime( $datetime ) {
+            if ( empty( $datetime ) ) {
+                return '';
+            }
+
+            try {
+                $timezone = wp_timezone();
+                $object   = date_create_from_format( 'Y-m-d H:i:s', $datetime, $timezone );
+
+                if ( $object instanceof DateTimeInterface ) {
+                    $format = get_option( 'date_format', 'Y-m-d' ) . ' ' . get_option( 'time_format', 'H:i' );
+
+                    return wp_date( $format, $object->getTimestamp(), $timezone );
+                }
+            } catch ( Exception $exception ) {
+                return '';
+            }
+
+            return '';
+        }
+
+        /**
+         * Prepare consent state metadata for display within the admin log.
+         *
+         * @param array $state Normalized consent state payload.
+         *
+         * @return array[]
+         */
+        protected function format_consent_state_for_display( array $state ) {
+            $categories = $this->get_consent_log_categories();
+
+            if ( empty( $categories ) ) {
+                return array();
+            }
+
+            $display = array();
+
+            foreach ( $categories as $key => $category ) {
+                $value = isset( $state[ $key ] ) ? (bool) $state[ $key ] : false;
+
+                if ( ! empty( $category['required'] ) ) {
+                    $value = true;
+                }
+
+                $display[ $key ] = array(
+                    'label'    => $category['label'],
+                    'required' => ! empty( $category['required'] ),
+                    'value'    => $value,
+                );
+            }
+
+            foreach ( $state as $key => $value ) {
+                $key = sanitize_key( $key );
+
+                if ( 0 === strpos( $key, '__' ) ) {
+                    continue;
+                }
+
+                if ( isset( $display[ $key ] ) ) {
+                    continue;
+                }
+
+                $display[ $key ] = array(
+                    'label'    => $key,
+                    'required' => false,
+                    'value'    => (bool) $value,
+                );
+            }
+
+            /**
+             * Filter the consent state display metadata before rendering it in the admin log.
+             *
+             * @param array $display   Prepared display metadata.
+             * @param array $state     Original normalized consent state.
+             * @param array $categories Category metadata sourced from the plugin settings.
+             */
+            return (array) apply_filters( 'fp_privacy_consent_state_display', $display, $state, $categories );
+        }
+
+        /**
+         * Retrieve consent categories metadata for the admin log display.
+         *
+         * @return array
+         */
+        protected function get_consent_log_categories() {
+            if ( null !== $this->consent_log_categories ) {
+                return $this->consent_log_categories;
+            }
+
+            $settings   = $this->get_settings();
+            $categories = isset( $settings['categories'] ) && is_array( $settings['categories'] ) ? $settings['categories'] : array();
+            $prepared   = array();
+
+            foreach ( $categories as $key => $category ) {
+                $key = sanitize_key( $key );
+
+                if ( '' === $key ) {
+                    continue;
+                }
+
+                $label = isset( $category['label'] ) && '' !== $category['label'] ? $category['label'] : $key;
+
+                $prepared[ $key ] = array(
+                    'label'    => $label,
+                    'required' => ! empty( $category['required'] ),
+                );
+            }
+
+            $this->consent_log_categories = $prepared;
+
+            return $this->consent_log_categories;
+        }
+
+        /**
+         * Build the lower bound datetime for the recent consent summary window.
+         *
+         * @param int $days Days to subtract from the current time.
+         *
+         * @return string
+         */
+        protected function get_recent_summary_threshold( $days ) {
+            $days = max( 1, (int) $days );
+
+            try {
+                $timezone = wp_timezone();
+                $now      = new DateTimeImmutable( 'now', $timezone );
+                $point    = $now->modify( sprintf( '-%d days', $days ) );
+
+                return $point->format( 'Y-m-d H:i:s' );
+            } catch ( Exception $exception ) {
+                return '';
+            }
+        }
+
+        /**
+         * Calculate a percentage with a single decimal precision.
+         *
+         * @param int|float $value Current value.
+         * @param int|float $total Total reference.
+         *
+         * @return float
+         */
+        protected function calculate_percentage( $value, $total ) {
+            $total = (float) $total;
+
+            if ( $total <= 0 ) {
+                return 0;
+            }
+
+            $value = (float) $value;
+
+            return round( ( $value / $total ) * 100, 1 );
+        }
+
+        /**
          * Retrieve human readable labels for consent events.
          *
          * @return array
@@ -3990,49 +6180,167 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
          * Render help tab.
          */
         protected function render_help_tab() {
-            $options = $this->get_settings();
+            $steps          = $this->get_onboarding_steps();
+            $total_steps    = count( $steps );
+            $completed_steps = array_reduce(
+                $steps,
+                static function ( $carry, $step ) {
+                    return $carry + ( ! empty( $step['complete'] ) ? 1 : 0 );
+                },
+                0
+            );
+            $progress = $total_steps > 0 ? round( ( $completed_steps / $total_steps ) * 100 ) : 0;
+            $settings = $this->get_settings();
+            $revision = isset( $settings['consent_revision'] ) ? (int) $settings['consent_revision'] : 1;
+
+            if ( $revision < 1 ) {
+                $revision = 1;
+            }
+
+            $revision_updated_at = isset( $settings['consent_revision_updated_at'] ) ? $settings['consent_revision_updated_at'] : '';
+            $revision_formatted   = $revision_updated_at ? $this->format_consent_datetime( $revision_updated_at ) : '';
+            $revision_label       = $revision_formatted ? $revision_formatted : __( 'Mai', 'fp-privacy-cookie-policy' );
+            $reset_redirect       = admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=help' );
             ?>
             <div class="fp-help-tab">
-                <h2><?php esc_html_e( 'Checklist di conformità', 'fp-privacy-cookie-policy' ); ?></h2>
-                <ol>
-                    <li><?php esc_html_e( 'Aggiorna i testi di privacy e cookie policy con il supporto del tuo consulente legale.', 'fp-privacy-cookie-policy' ); ?></li>
-                    <li><?php esc_html_e( 'Configura le categorie e collega i servizi realmente utilizzati sul sito.', 'fp-privacy-cookie-policy' ); ?></li>
-                    <li><?php esc_html_e( 'Imposta i valori predefiniti del Google Consent Mode in base al principio di minimizzazione.', 'fp-privacy-cookie-policy' ); ?></li>
-                    <li><?php esc_html_e( 'Inserisci nei template il codice di Google tag manager/gtag.js condizionato dagli eventi di consenso.', 'fp-privacy-cookie-policy' ); ?></li>
-                    <li><?php esc_html_e( 'Definisci il periodo di conservazione del registro e utilizza gli strumenti di esportazione/cancellazione dati integrati in WordPress.', 'fp-privacy-cookie-policy' ); ?></li>
-                </ol>
-                <h3><?php esc_html_e( 'Shortcode disponibili', 'fp-privacy-cookie-policy' ); ?></h3>
-                <ul>
-                    <li><code>[fp_privacy_policy]</code> &mdash; <?php esc_html_e( 'Mostra il testo della privacy policy configurato.', 'fp-privacy-cookie-policy' ); ?></li>
-                    <li><code>[fp_cookie_policy]</code> &mdash; <?php esc_html_e( 'Mostra il testo della cookie policy.', 'fp-privacy-cookie-policy' ); ?></li>
-                    <li><code>[fp_cookie_preferences]</code> &mdash; <?php esc_html_e( 'Inserisce un pulsante per riaprire le preferenze di consenso.', 'fp-privacy-cookie-policy' ); ?></li>
-                </ul>
-                <h3><?php esc_html_e( 'Come collegare Google Consent Mode v2', 'fp-privacy-cookie-policy' ); ?></h3>
-                <p><?php esc_html_e( 'Questo plugin aggiorna automaticamente i segnali del Consent Mode (analytics_storage, ad_storage, ad_personalization, ad_user_data, functionality_storage, security_storage). Assicurati che il tag gtag o Google Tag Manager sia caricato dopo il banner e che ascolti l\'evento fp_consent_update se utilizzi configurazioni personalizzate.', 'fp-privacy-cookie-policy' ); ?></p>
-                <p>
-                    <code>
-                        &lt;script&gt;
-                        window.dataLayer = window.dataLayer || [];
-                        function gtag(){dataLayer.push(arguments);}
-                        gtag('js', new Date());
-                        gtag('config', 'G-XXXXXXX');
-                        &lt;/script&gt;
-                    </code>
-                </p>
-                <p><?php esc_html_e( 'Ricorda di richiedere nuovamente il consenso ogni 12 mesi o quando cambiano le finalità del trattamento.', 'fp-privacy-cookie-policy' ); ?></p>
-                <p>
-                    <?php
-                    printf(
-                        /* translators: %s is the shortcode */
-                        esc_html__( 'Ultimo aggiornamento contenuti: %s', 'fp-privacy-cookie-policy' ),
-                        '<strong>' . esc_html( date_i18n( get_option( 'date_format' ) ) ) . '</strong>'
-                    );
-                    ?>
-                </p>
+                <section class="fp-onboarding" data-fp-onboarding>
+                    <div class="fp-onboarding__header">
+                        <h2><?php esc_html_e( 'Checklist di conformità', 'fp-privacy-cookie-policy' ); ?></h2>
+                        <p><?php esc_html_e( 'Completa i passaggi fondamentali per rendere operativo il banner e mantenere la documentazione aggiornata.', 'fp-privacy-cookie-policy' ); ?></p>
+                        <div class="fp-onboarding__progress" role="progressbar" aria-valuemin="0" aria-valuemax="<?php echo esc_attr( $total_steps ); ?>" aria-valuenow="<?php echo esc_attr( $completed_steps ); ?>">
+                            <div class="fp-onboarding__progress-bar" style="width: <?php echo esc_attr( $progress ); ?>%"></div>
+                            <span class="fp-onboarding__progress-label">
+                                <strong data-fp-progress-count><?php echo esc_html( $completed_steps ); ?></strong>
+                                /
+                                <?php echo esc_html( $total_steps ); ?>
+                            </span>
+                        </div>
+                        <button type="button" class="button button-secondary" data-fp-start-wizard><?php esc_html_e( 'Avvia checklist guidata', 'fp-privacy-cookie-policy' ); ?></button>
+                    </div>
+                    <ol class="fp-onboarding__steps" data-fp-steps>
+                        <?php foreach ( $steps as $step ) :
+                            $is_complete = ! empty( $step['complete'] );
+                            $is_auto     = ! empty( $step['auto'] );
+                            ?>
+                            <li class="fp-onboarding__step<?php echo $is_complete ? ' is-complete' : ''; ?>" data-fp-step="<?php echo esc_attr( $step['key'] ); ?>" data-fp-step-auto="<?php echo $is_auto ? '1' : '0'; ?>" data-fp-step-complete="<?php echo $is_complete ? '1' : '0'; ?>">
+                                <label>
+                                    <input type="checkbox" <?php checked( $is_complete ); ?> <?php disabled( $is_auto ); ?> data-fp-step-checkbox />
+                                    <span class="fp-onboarding__step-title"><?php echo esc_html( $step['title'] ); ?></span>
+                                </label>
+                                <p class="fp-onboarding__step-description"><?php echo esc_html( $step['description'] ); ?></p>
+                                <?php if ( ! empty( $step['link'] ) ) : ?>
+                                    <a class="button button-link fp-onboarding__step-link" href="<?php echo esc_url( $step['link'] ); ?>">
+                                        <?php echo esc_html( isset( $step['link_label'] ) ? $step['link_label'] : __( 'Apri impostazioni', 'fp-privacy-cookie-policy' ) ); ?>
+                                    </a>
+                                <?php endif; ?>
+                                <?php if ( $is_auto ) : ?>
+                                    <span class="fp-onboarding__badge"><?php esc_html_e( 'Automatico', 'fp-privacy-cookie-policy' ); ?></span>
+                                <?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ol>
+                </section>
+
+                <section class="fp-help-section" id="fp-help-shortcodes">
+                    <h3><?php esc_html_e( 'Shortcode e blocchi disponibili', 'fp-privacy-cookie-policy' ); ?></h3>
+                    <p><?php esc_html_e( 'Puoi inserire i contenuti generati utilizzando shortcode o i blocchi Gutenberg inclusi nel plugin.', 'fp-privacy-cookie-policy' ); ?></p>
+                    <ul>
+                        <li><code>[fp_privacy_policy]</code> &mdash; <?php esc_html_e( 'Mostra il testo della privacy policy configurato.', 'fp-privacy-cookie-policy' ); ?></li>
+                        <li><code>[fp_cookie_policy]</code> &mdash; <?php esc_html_e( 'Mostra il testo della cookie policy.', 'fp-privacy-cookie-policy' ); ?></li>
+                        <li><code>[fp_cookie_preferences]</code> &mdash; <?php esc_html_e( 'Inserisce un pulsante per riaprire le preferenze di consenso.', 'fp-privacy-cookie-policy' ); ?></li>
+                        <li><code>[fp_cookie_banner]</code> &mdash; <?php esc_html_e( 'Visualizza manualmente il banner nelle pagine desiderate.', 'fp-privacy-cookie-policy' ); ?></li>
+                    </ul>
+                    <p><?php esc_html_e( 'Nel blocco editor troverai le varianti “FP Privacy Policy”, “FP Cookie Policy”, “FP Gestisci preferenze cookie” e “FP Banner cookie” per integrare i contenuti senza usare shortcode.', 'fp-privacy-cookie-policy' ); ?></p>
+                </section>
+
+                <section class="fp-help-section" id="fp-help-backup">
+                    <h3><?php esc_html_e( 'Esporta o importa la configurazione', 'fp-privacy-cookie-policy' ); ?></h3>
+                    <p><?php esc_html_e( 'Salva un backup delle impostazioni o ripristina rapidamente la stessa configurazione su un altro sito.', 'fp-privacy-cookie-policy' ); ?></p>
+                    <div class="fp-settings-backup">
+                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                            <?php wp_nonce_field( 'fp_export_settings', 'fp_export_settings_nonce' ); ?>
+                            <input type="hidden" name="action" value="fp_export_settings" />
+                            <button type="submit" class="button button-primary"><?php esc_html_e( 'Esporta impostazioni', 'fp-privacy-cookie-policy' ); ?></button>
+                        </form>
+                        <form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                            <?php wp_nonce_field( 'fp_import_settings', 'fp_import_settings_nonce' ); ?>
+                            <input type="hidden" name="action" value="fp_import_settings" />
+                            <label class="screen-reader-text" for="fp_settings_file"><?php esc_html_e( 'File impostazioni', 'fp-privacy-cookie-policy' ); ?></label>
+                            <input type="file" id="fp_settings_file" name="fp_settings_file" accept="application/json" />
+                            <button type="submit" class="button"><?php esc_html_e( 'Importa impostazioni', 'fp-privacy-cookie-policy' ); ?></button>
+                        </form>
+                    </div>
+                    <p class="description"><?php esc_html_e( 'L\'importazione sovrascrive le impostazioni attuali. Utilizza solo file JSON generati da FP Privacy and Cookie Policy.', 'fp-privacy-cookie-policy' ); ?></p>
+                </section>
+
+                <section class="fp-help-section" id="fp-help-consent-reset">
+                    <h3><?php esc_html_e( 'Richiedi nuovamente il consenso', 'fp-privacy-cookie-policy' ); ?></h3>
+                    <p><?php esc_html_e( 'Aumenta la revisione del consenso per mostrare di nuovo il banner dopo modifiche rilevanti alle informative o alle impostazioni di tracking.', 'fp-privacy-cookie-policy' ); ?></p>
+                    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="fp-consent-reset">
+                        <?php wp_nonce_field( 'fp_reset_consent_revision', 'fp_reset_consent_revision_nonce' ); ?>
+                        <input type="hidden" name="action" value="fp_reset_consent_revision" />
+                        <input type="hidden" name="redirect_to" value="<?php echo esc_attr( $reset_redirect ); ?>" />
+                        <button type="submit" class="button button-secondary"><?php esc_html_e( 'Richiedi nuovo consenso', 'fp-privacy-cookie-policy' ); ?></button>
+                    </form>
+                    <p class="fp-consent-reset__meta">
+                        <?php
+                        $revision_message = sprintf(
+                            /* translators: 1: consent revision number, 2: formatted datetime or "Mai". */
+                            __( 'Revisione corrente: %1$d. Ultimo reset: %2$s.', 'fp-privacy-cookie-policy' ),
+                            (int) $revision,
+                            $revision_label
+                        );
+
+                        echo esc_html( $revision_message );
+                        ?>
+                    </p>
+                </section>
+
+                <section class="fp-help-section" id="fp-help-preview">
+                    <h3><?php esc_html_e( 'Testa il banner senza salvare consensi', 'fp-privacy-cookie-policy' ); ?></h3>
+                    <p><?php esc_html_e( 'Utilizza la modalità anteprima per mostrare il banner solo agli amministratori e verificare layout, traduzioni e integrazioni JavaScript senza registrare eventi nel log.', 'fp-privacy-cookie-policy' ); ?></p>
+                    <ul>
+                        <li><?php esc_html_e( 'Attiva la modalità anteprima dalla tab Impostazioni per forzare sempre il banner agli amministratori.', 'fp-privacy-cookie-policy' ); ?></li>
+                        <li>
+                            <?php
+                            printf(
+                                /* translators: %s is the preview query string parameter. */
+                                esc_html__( 'In alternativa aggiungi %s all\'URL del sito per abilitare l\'anteprima temporaneamente.', 'fp-privacy-cookie-policy' ),
+                                '<code>?' . esc_html( self::PREVIEW_QUERY_KEY ) . '=1</code>'
+                            );
+                            ?>
+                        </li>
+                        <li><?php esc_html_e( 'In modalità anteprima le scelte non vengono salvate in cookie né inviate al registro, ma vengono comunque emessi gli eventi per testare GTM o script personalizzati.', 'fp-privacy-cookie-policy' ); ?></li>
+                    </ul>
+                </section>
+
+                <section class="fp-help-section" id="fp-help-consent-mode">
+                    <h3><?php esc_html_e( 'Come collegare Google Consent Mode v2', 'fp-privacy-cookie-policy' ); ?></h3>
+                    <p><?php esc_html_e( 'Il plugin aggiorna automaticamente i segnali del Consent Mode (analytics_storage, ad_storage, ad_personalization, ad_user_data, functionality_storage, security_storage). Inserisci il tag gtag o Google Tag Manager dopo il banner e ascolta l\'evento fp_consent_update se utilizzi script personalizzati.', 'fp-privacy-cookie-policy' ); ?></p>
+                    <p>
+                        <code>
+                            &lt;script&gt;
+                            window.dataLayer = window.dataLayer || [];
+                            function gtag(){dataLayer.push(arguments);}
+                            gtag('js', new Date());
+                            gtag('config', 'G-XXXXXXX');
+                            &lt;/script&gt;
+                        </code>
+                    </p>
+                    <p><?php esc_html_e( 'Ricorda di programmare il richiamo del consenso ogni 12 mesi o quando cambiano le finalità del trattamento.', 'fp-privacy-cookie-policy' ); ?></p>
+                </section>
+
+                <section class="fp-help-section">
+                    <h3><?php esc_html_e( 'Suggerimenti operativi', 'fp-privacy-cookie-policy' ); ?></h3>
+                    <ul>
+                        <li><?php esc_html_e( 'Sfrutta il selettore "Posizionamento banner" per scegliere tra footer, apertura del body o inserimento manuale con blocchi/shortcode.', 'fp-privacy-cookie-policy' ); ?></li>
+                        <li><?php esc_html_e( 'Dopo aver raccolto il consenso testa il comportamento dei tag di marketing assicurandoti che rispettino le preferenze scelte.', 'fp-privacy-cookie-policy' ); ?></li>
+                        <li><?php esc_html_e( 'Programma la pulizia periodica del registro consensi in base alla durata impostata nelle impostazioni.', 'fp-privacy-cookie-policy' ); ?></li>
+                    </ul>
+                </section>
             </div>
             <?php
         }
-
         /**
          * Handle consent saving via AJAX.
          */
@@ -4138,6 +6446,18 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 } else {
                     $normalized[ $key ] = false;
                 }
+            }
+
+            $revision = isset( $settings['consent_revision'] ) ? (int) $settings['consent_revision'] : 1;
+
+            if ( $revision < 1 ) {
+                $revision = 1;
+            }
+
+            $normalized['__revision'] = $revision;
+
+            if ( ! empty( $settings['consent_revision_updated_at'] ) ) {
+                $normalized['__revision_updated_at'] = $settings['consent_revision_updated_at'];
             }
 
             /**
@@ -4355,6 +6675,21 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             $table_name = self::get_consent_table_name();
             $batch_size = $this->get_export_batch_size();
 
+            $filters = $this->prepare_consent_log_filters(
+                array(
+                    'search' => isset( $_POST['s'] ) ? wp_unslash( $_POST['s'] ) : '',
+                    'event'  => isset( $_POST['event'] ) ? wp_unslash( $_POST['event'] ) : '',
+                    'from'   => isset( $_POST['from'] ) ? wp_unslash( $_POST['from'] ) : '',
+                    'to'     => isset( $_POST['to'] ) ? wp_unslash( $_POST['to'] ) : '',
+                )
+            );
+
+            $where_sql = '';
+
+            if ( ! empty( $filters['where'] ) ) {
+                $where_sql = ' WHERE ' . implode( ' AND ', $filters['where'] );
+            }
+
             nocache_headers();
             header( 'Content-Type: text/csv; charset=utf-8' );
             header( 'Content-Disposition: attachment; filename=fp-consent-logs-' . gmdate( 'Ymd-His' ) . '.csv' );
@@ -4370,16 +6705,13 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 array( 'created_at', 'consent_id', 'user_id', 'event_type', 'consent_state', 'ip_address', 'user_agent' )
             );
 
-            $last_id = (int) $wpdb->get_var( "SELECT MAX(id) FROM {$table_name}" );
+            $offset = 0;
 
-            while ( $last_id > 0 ) {
-                $logs = $wpdb->get_results(
-                    $wpdb->prepare(
-                        "SELECT * FROM {$table_name} WHERE id <= %d ORDER BY id DESC LIMIT %d",
-                        $last_id,
-                        $batch_size
-                    )
-                );
+            do {
+                $query_args = array_merge( $filters['params'], array( $batch_size, $offset ) );
+                $query_sql  = "SELECT * FROM {$table_name}{$where_sql} ORDER BY created_at DESC LIMIT %d OFFSET %d";
+
+                $logs = $wpdb->get_results( $wpdb->prepare( $query_sql, $query_args ) );
 
                 if ( empty( $logs ) ) {
                     break;
@@ -4403,17 +6735,162 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
                 fflush( $output );
                 flush();
 
-                $last_row = end( $logs );
-                $last_id  = $last_row ? ( (int) $last_row->id ) - 1 : 0;
-
-                if ( $last_id <= 0 || count( $logs ) < $batch_size ) {
-                    break;
-                }
-            }
+                $offset += $batch_size;
+            } while ( count( $logs ) === $batch_size );
 
             fclose( $output );
 
             exit;
+        }
+
+        /**
+         * Build the payload exported when downloading plugin settings.
+         *
+         * @return array
+         */
+        public function get_settings_export_payload() {
+            return array(
+                'plugin'      => 'fp-privacy-cookie-policy',
+                'version'     => self::VERSION,
+                'exported_at' => gmdate( 'c' ),
+                'site'        => get_bloginfo( 'name' ),
+                'settings'    => $this->get_settings(),
+            );
+        }
+
+        /**
+         * Export the plugin settings as a JSON file.
+         */
+        public function handle_export_settings() {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_die( esc_html__( 'Non autorizzato.', 'fp-privacy-cookie-policy' ) );
+            }
+
+            check_admin_referer( 'fp_export_settings', 'fp_export_settings_nonce' );
+
+            $payload = $this->get_settings_export_payload();
+
+            $json = wp_json_encode( $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+
+            if ( false === $json ) {
+                $redirect = add_query_arg(
+                    'fp_settings_export',
+                    'error',
+                    admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=help' )
+                );
+
+                wp_safe_redirect( $redirect );
+                exit;
+            }
+
+            $filename = sprintf( 'fp-privacy-settings-%s.json', gmdate( 'Ymd-His' ) );
+
+            nocache_headers();
+
+            header( 'Content-Type: application/json; charset=utf-8' );
+            header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+            header( 'Content-Length: ' . strlen( $json ) );
+
+            echo $json; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            exit;
+        }
+
+        /**
+         * Import plugin settings from a JSON file.
+         */
+        public function handle_import_settings() {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_die( esc_html__( 'Non autorizzato.', 'fp-privacy-cookie-policy' ) );
+            }
+
+            check_admin_referer( 'fp_import_settings', 'fp_import_settings_nonce' );
+
+            $redirect = admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=help' );
+
+            if ( empty( $_FILES['fp_settings_file'] ) || ! is_array( $_FILES['fp_settings_file'] ) ) {
+                $redirect = add_query_arg( 'fp_settings_import', 'missing', $redirect );
+                wp_safe_redirect( $redirect );
+                exit;
+            }
+
+            $file = $_FILES['fp_settings_file']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+            if ( ! empty( $file['error'] ) && UPLOAD_ERR_OK !== (int) $file['error'] ) {
+                $redirect = add_query_arg( 'fp_settings_import', 'error', $redirect );
+                wp_safe_redirect( $redirect );
+                exit;
+            }
+
+            if ( empty( $file['tmp_name'] ) || ! is_uploaded_file( $file['tmp_name'] ) ) {
+                $redirect = add_query_arg( 'fp_settings_import', 'missing', $redirect );
+                wp_safe_redirect( $redirect );
+                exit;
+            }
+
+            $raw = file_get_contents( $file['tmp_name'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+
+            if ( false === $raw || '' === $raw ) {
+                $redirect = add_query_arg( 'fp_settings_import', 'error', $redirect );
+                wp_safe_redirect( $redirect );
+                exit;
+            }
+
+            $data = json_decode( $raw, true );
+
+            $result = $this->import_settings_from_payload( $data );
+
+            if ( is_wp_error( $result ) ) {
+                $error_code = $result->get_error_code();
+                $status     = 'error';
+
+                if ( 'fp_privacy_invalid_settings' === $error_code ) {
+                    $status = 'invalid';
+                }
+
+                $redirect = add_query_arg( 'fp_settings_import', $status, $redirect );
+                wp_safe_redirect( $redirect );
+                exit;
+            }
+
+            $redirect = add_query_arg( 'fp_settings_import', 'success', $redirect );
+
+            wp_safe_redirect( $redirect );
+            exit;
+        }
+
+        /**
+         * Import plugin settings from a payload array.
+         *
+         * @param array $data Raw data decoded from the settings JSON.
+         *
+         * @return true|WP_Error
+         */
+        public function import_settings_from_payload( $data ) {
+            if ( ! is_array( $data ) ) {
+                return new WP_Error( 'fp_privacy_invalid_settings', __( 'Il file selezionato non contiene impostazioni valide.', 'fp-privacy-cookie-policy' ) );
+            }
+
+            $settings_data = isset( $data['settings'] ) && is_array( $data['settings'] ) ? $data['settings'] : $data;
+
+            if ( ! is_array( $settings_data ) ) {
+                return new WP_Error( 'fp_privacy_invalid_settings', __( 'Il file selezionato non contiene impostazioni valide.', 'fp-privacy-cookie-policy' ) );
+            }
+
+            $sanitized = $this->sanitize_settings( $settings_data );
+
+            update_option( self::OPTION_KEY, $sanitized );
+            update_option( self::VERSION_OPTION, self::VERSION );
+
+            $this->localized_cache = array();
+
+            /**
+             * Fires after plugin settings have been imported programmatically.
+             *
+             * @param array $sanitized Sanitized settings saved in the database.
+             */
+            do_action( 'fp_privacy_settings_imported', $sanitized );
+
+            return true;
         }
 
         /**
@@ -4500,6 +6977,42 @@ if ( ! class_exists( 'FP_Privacy_Cookie_Policy' ) ) {
             } else {
                 $redirect = add_query_arg( 'fp_cleanup_status', 'empty', $redirect );
             }
+
+            wp_safe_redirect( $redirect );
+            exit;
+        }
+
+        /**
+         * Handle consent revision reset requests.
+         */
+        public function handle_reset_consent_revision() {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_die( esc_html__( 'Non autorizzato.', 'fp-privacy-cookie-policy' ) );
+            }
+
+            check_admin_referer( 'fp_reset_consent_revision', 'fp_reset_consent_revision_nonce' );
+
+            $redirect = isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '';
+            $fallback = admin_url( 'admin.php?page=fp-privacy-cookie-policy&tab=help' );
+            $redirect = $redirect ? wp_validate_redirect( $redirect, $fallback ) : $fallback;
+
+            $settings = $this->get_settings();
+            $revision = isset( $settings['consent_revision'] ) ? (int) $settings['consent_revision'] : 1;
+            $revision++;
+
+            if ( $revision < 1 ) {
+                $revision = 1;
+            }
+
+            $settings['consent_revision']            = $revision;
+            $settings['consent_revision_updated_at'] = current_time( 'mysql' );
+
+            update_option( self::OPTION_KEY, $settings );
+            update_option( self::VERSION_OPTION, self::VERSION );
+
+            $this->localized_cache = array();
+
+            $redirect = add_query_arg( 'fp_consent_revision', 'reset', $redirect );
 
             wp_safe_redirect( $redirect );
             exit;

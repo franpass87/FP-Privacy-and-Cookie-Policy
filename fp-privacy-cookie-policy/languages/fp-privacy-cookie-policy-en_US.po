@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: FP Privacy and Cookie Policy 1.6.0\n"
+"Project-Id-Version: FP Privacy and Cookie Policy 1.13.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-05 00:00+0000\n"
-"PO-Revision-Date: 2024-06-01 00:00+0000\n"
+"POT-Creation-Date: 2024-07-04 00:00+0000\n"
+"PO-Revision-Date: 2024-07-04 00:00+0000\n"
 "Last-Translator: Francesco Passeri <info@francescopasseri.com>\n"
 "Language-Team: none\n"
 "Language: en_US\n"
@@ -387,6 +387,14 @@ msgstr "Search consents"
 msgid "Cerca per ID, IP o stato"
 msgstr "Search by ID, IP or state"
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5404
+msgid "Dal giorno"
+msgstr "From date"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5408
+msgid "Al giorno"
+msgstr "To date"
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2257
 msgid "Filtra per evento"
 msgstr "Filter by event"
@@ -435,9 +443,49 @@ msgstr "Anonymous"
 msgid "Nessun consenso registrato al momento."
 msgstr "No consent recorded at the moment."
 
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5486
+msgid "Apri registro consensi"
+msgstr "Open consent log"
+
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2336
 msgid "Nessun consenso corrisponde ai criteri di ricerca."
 msgstr "No consent matches the selected filters."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5224
+msgid "Altri eventi"
+msgstr "Other events"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5246
+msgid "Riepilogo registro consensi"
+msgstr "Consent log summary"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5249
+msgid "Totale eventi registrati"
+msgstr "Total recorded events"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5255
+msgid "Ultimo evento registrato: %s"
+msgstr "Last recorded event: %s"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5259
+msgid "Nessun evento registrato finora."
+msgstr "No events have been recorded yet."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5265
+msgid "Distribuzione totale"
+msgstr "Overall distribution"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5292
+msgid "Ultimi %d giorni"
+msgstr "Last %d days"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5296
+msgid "Totale"
+msgstr "Total"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5324
+msgid "Nessun dato registrato negli ultimi %d giorni."
+msgstr "No data recorded in the last %d days."
 
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1377
 msgid "&laquo;"
@@ -761,3 +809,166 @@ msgstr "Manage cookie preferences"
 #: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:1915
 msgid "Ultimo aggiornamento"
 msgstr "Last updated"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3497
+msgid "Riquadro fluttuante (in basso)"
+msgstr "Floating panel (bottom)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3498
+msgid "Riquadro fluttuante (in alto)"
+msgstr "Floating panel (top)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3499
+msgid "Barra a tutta larghezza (in basso)"
+msgstr "Full-width bar (bottom)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3500
+msgid "Barra a tutta larghezza (in alto)"
+msgstr "Full-width bar (top)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3505
+msgid "Layout del banner"
+msgstr "Banner layout"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3511
+msgid "Colore di sfondo"
+msgstr "Background colour"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3516
+msgid "Colore del testo"
+msgstr "Text colour"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3521
+msgid "Colore principale (CTA)"
+msgstr "Primary colour (CTA)"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3526
+msgid "Colore pulsante secondario"
+msgstr "Secondary button colour"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3531
+msgid "Testo pulsante secondario"
+msgstr "Secondary button text"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3536
+msgid "Colore bordo"
+msgstr "Border colour"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3540
+msgid "Aspetto del banner"
+msgstr "Banner appearance"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3551
+msgid "Inserisci colori in formato esadecimale (es. #1F2933) o utilizza i selettori per aggiornare l’anteprima in tempo reale."
+msgstr "Enter colours in hexadecimal format (e.g. #1F2933) or use the pickers to update the preview in real time."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3561
+msgid "Anteprima lingua"
+msgstr "Language preview"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2312
+msgid "Modalità anteprima"
+msgstr "Preview mode"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3853
+msgid "Abilita la modalità anteprima per gli amministratori"
+msgstr "Enable preview mode for administrators"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3857
+msgid "Mostra sempre il banner agli amministratori senza salvare le scelte per verificare layout, testi e script."
+msgstr "Always show the banner to administrators without storing their choices so you can review layouts, texts and scripts."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3861 fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5916
+msgid "Puoi attivare l'anteprima anche visitando il sito con %s."
+msgstr "You can also enable the preview by visiting the site with %s."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:3867
+msgid "Apri il sito in modalità anteprima"
+msgstr "Open the site in preview mode"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:4944
+msgid "Modalità anteprima attiva: le scelte non vengono salvate."
+msgstr "Preview mode active: choices are not saved."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5905
+msgid "Testa il banner senza salvare consensi"
+msgstr "Test the banner without saving consents"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5906
+msgid "Utilizza la modalità anteprima per mostrare il banner solo agli amministratori e verificare layout, traduzioni e integrazioni JavaScript senza registrare eventi nel log."
+msgstr "Use preview mode to show the banner only to administrators and validate layouts, translations and JavaScript integrations without recording events."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5911
+msgid "Attiva la modalità anteprima dalla tab Impostazioni per forzare sempre il banner agli amministratori."
+msgstr "Enable preview mode from the Settings tab to always force the banner for administrators."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5921
+msgid "In modalità anteprima le scelte non vengono salvate in cookie né inviate al registro, ma vengono comunque emessi gli eventi per testare GTM o script personalizzati."
+msgstr "In preview mode choices are not stored in cookies or sent to the log, but events are still fired so you can test GTM or custom scripts."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5788
+msgid "Sempre attivo"
+msgstr "Always active"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5790
+msgid "Consentito"
+msgstr "Granted"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5792
+msgid "Negato"
+msgstr "Denied"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:5799
+msgid "Mostra JSON"
+msgstr "Show JSON"
+
+#: fp-privacy-cookie-policy/includes/class-fp-privacy-cli.php:281
+msgid "Unable to encode the settings payload as JSON."
+msgstr "Unable to encode the settings payload as JSON."
+
+#: fp-privacy-cookie-policy/includes/class-fp-privacy-cli.php:287
+msgid "Unable to write settings export to %s."
+msgstr "Unable to write settings export to %s."
+
+#: fp-privacy-cookie-policy/includes/class-fp-privacy-cli.php:290
+msgid "Settings exported to %s."
+msgstr "Settings exported to %s."
+
+#: fp-privacy-cookie-policy/includes/class-fp-privacy-cli.php:318
+msgid "The file %s could not be found."
+msgstr "The file %s could not be found."
+
+#: fp-privacy-cookie-policy/includes/class-fp-privacy-cli.php:322
+msgid "The provided file could not be read."
+msgstr "The provided file could not be read."
+
+#: fp-privacy-cookie-policy/includes/class-fp-privacy-cli.php:338
+msgid "Settings imported successfully."
+msgstr "Settings imported successfully."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:2251
+msgid "Il consenso verrà richiesto nuovamente a tutti i visitatori."
+msgstr "Consent will be requested again for all visitors."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:6202
+msgid "Mai"
+msgstr "Never"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:6277
+msgid "Richiedi nuovamente il consenso"
+msgstr "Require consent again"
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:6278
+msgid "Aumenta la revisione del consenso per mostrare di nuovo il banner dopo modifiche rilevanti alle informative o alle impostazioni di tracking."
+msgstr "Increase the consent revision to show the banner again after significant updates to policies or tracking settings."
+
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:6283
+msgid "Richiedi nuovo consenso"
+msgstr "Request new consent"
+
+#. translators: 1: consent revision number, 2: formatted datetime or "Mai".
+#: fp-privacy-cookie-policy/fp-privacy-cookie-policy.php:6289
+#, php-format
+msgid "Revisione corrente: %1$d. Ultimo reset: %2$s."
+msgstr "Current revision: %1$d. Last reset: %2$s."
+

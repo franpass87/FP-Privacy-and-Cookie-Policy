@@ -26,8 +26,19 @@
     var cookieOptions = settings.cookieOptions || {};
     var texts = settings.texts || {};
     var statusLabelText = texts.updatedAt || '';
+    var previewMode = !!settings.previewMode;
+    var consentRevision = parseInt(settings.consentRevision, 10);
+
+    if (isNaN(consentRevision) || consentRevision < 1) {
+        consentRevision = 1;
+    }
+
+    var consentRevisionUpdatedAt = settings.consentRevisionUpdatedAt || '';
+
     var consentMetadata = {
-        updatedAt: null
+        updatedAt: null,
+        revision: consentRevision,
+        revisionUpdatedAt: consentRevisionUpdatedAt || null
     };
     var statusElement;
     var statusValueElement;
@@ -123,12 +134,20 @@
             applyConsentToInterface(currentConsent);
             var mapped = updateGoogleConsent(currentConsent, true);
             pushDataLayer(currentConsent, mapped);
-            hideBanner();
+            if (previewMode) {
+                showBanner();
+            } else {
+                hideBanner();
+            }
             toggleManageButton(true);
         } else {
             currentConsent = buildDefaultConsent();
             showBanner();
-            toggleManageButton(false);
+            if (previewMode) {
+                toggleManageButton(true);
+            } else {
+                toggleManageButton(false);
+            }
         }
 
         updateUpdatedAtUI();
@@ -229,6 +248,20 @@
             }
             var parsed = JSON.parse(cookie);
             if (parsed && typeof parsed === 'object') {
+                var storedRevision = null;
+                if (Object.prototype.hasOwnProperty.call(parsed, '__fpRevision')) {
+                    storedRevision = parseInt(parsed.__fpRevision, 10);
+                    delete parsed.__fpRevision;
+                }
+                if (Object.prototype.hasOwnProperty.call(parsed, '__fpRevisionUpdatedAt')) {
+                    delete parsed.__fpRevisionUpdatedAt;
+                }
+                if (storedRevision === null || isNaN(storedRevision) || storedRevision < 1) {
+                    storedRevision = 1;
+                }
+                if (storedRevision !== consentRevision) {
+                    return null;
+                }
                 if (parsed.__fpTimestamp) {
                     consentMetadata.updatedAt = parsed.__fpTimestamp;
                     delete parsed.__fpTimestamp;
@@ -254,12 +287,16 @@
         consentMetadata.updatedAt = timestamp;
         currentConsent = state;
         applyConsentToInterface(state);
-        storeConsentCookie(state, timestamp);
+        if (!previewMode) {
+            storeConsentCookie(state, timestamp);
+        }
         updateGoogleConsent(state, false);
         hideBanner();
         closeModal();
         dispatchConsentEvent(state, eventType);
-        sendConsentToServer(state, eventType);
+        if (!previewMode) {
+            sendConsentToServer(state, eventType);
+        }
         toggleManageButton(true);
         updateUpdatedAtUI();
     }
@@ -335,7 +372,9 @@
             consent_state: Object.assign({}, state),
             google_consent: Object.assign({}, googleState || {}),
             consent_language: settings.language || '',
-            consent_timestamp: isoTimestamp
+            consent_timestamp: isoTimestamp,
+            consent_revision: consentRevision,
+            consent_revision_updated_at: consentRevisionUpdatedAt || ''
         });
     }
 
@@ -350,6 +389,7 @@
         append('nonce', settings.nonce);
         append('consentId', consentId || '');
         append('event', eventType);
+        append('revision', String(consentRevision));
 
         Object.keys(state).forEach(function (key) {
             append('consent[' + key + ']', state[key] ? '1' : '0');
@@ -430,6 +470,10 @@
         var storedTimestamp = timestamp || consentMetadata.updatedAt;
         if (storedTimestamp) {
             payload.__fpTimestamp = storedTimestamp;
+        }
+        payload.__fpRevision = consentRevision;
+        if (consentRevisionUpdatedAt) {
+            payload.__fpRevisionUpdatedAt = consentRevisionUpdatedAt;
         }
 
         var value = encodeURIComponent(JSON.stringify(payload));
@@ -567,7 +611,9 @@
             consentId: consentId,
             state: Object.assign({}, state),
             eventType: eventType,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
+            revision: consentRevision,
+            revisionUpdatedAt: consentRevisionUpdatedAt || ''
         };
         var event;
         try {

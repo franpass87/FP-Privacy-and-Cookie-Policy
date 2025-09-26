@@ -4,7 +4,7 @@ Tags: gdpr, cookie banner, consent management, privacy policy, google consent mo
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.7.0
+Stable tag: 1.14.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,16 +15,22 @@ FP Privacy and Cookie Policy helps agencies and professionals implement a comple
 
 = Highlights =
 * Responsive cookie banner with "Accept", "Reject" and "Preferences" actions.
-* Automatic language detection (Italian/English) based on browser and site locale.
+* Automatic language detection with manual language selection for additional translations beyond Italian/English.
 * Granular cookie categories (necessary, preferences, statistics, marketing) with description of services used.
+* Customisable banner layout and colour palette with a live admin preview.
 * Automatic generation and updates of dedicated privacy and cookie policy pages based on the plugins and services detected on your site.
-* Visual editor for privacy and cookie policy texts and dedicated shortcodes (`[fp_privacy_policy]`, `[fp_cookie_policy]`, `[fp_cookie_preferences]`).
-* Consent registry with anonymised IP address, AJAX logging and CSV export.
+* Visual editor for privacy and cookie policy texts with live banner preview, language selector and dedicated shortcodes (`[fp_privacy_policy]`, `[fp_cookie_policy]`, `[fp_cookie_preferences]`).
+* Consent registry with anonymised IP address, AJAX logging and CSV export (including filtered results).
+* Visual consent log summary with total counts, per-event distribution and a last-30-days trend snapshot.
+* Dashboard widget with consent metrics and quick access to the plugin log inside WordPress.
 * Contextual indicator showing the last consent update directly next to the manage button.
+* Preview mode to surface the banner only to administrators without storing new consent events.
 * Native Google Consent Mode v2 integration and `dataLayer` events to orchestrate your tracking setup.
 * Configurable consent log retention with automatic cleanup and integration with the WordPress privacy export/erase tools.
 * Adjustable consent cookie duration to align banner re-consent with your legal requirements.
-* First-class WP-CLI commands to monitor the consent log, recreate the table, trigger cleanups and export CSV snapshots.
+* First-class WP-CLI commands to monitor the consent log, recreate the table, trigger cleanups, export CSV snapshots and manage settings backups.
+* Built-in backup tools to export/import the plugin settings between different environments.
+* Consent revision reset button to invalidate previous approvals and relaunch the banner after major policy updates.
 
 = Why it matters =
 * Keep the entire consent lifecycle inside WordPress without relying on external dashboards.
@@ -55,6 +61,8 @@ The plugin ships with a dedicated command namespace to automate maintenance task
 * `wp fp-privacy recreate [--force]` — recreates the consent log table and restores the cleanup schedule without accessing wp-admin.
 * `wp fp-privacy cleanup` — runs the retention cleanup immediately while respecting your configuration.
 * `wp fp-privacy export --file=consents.csv` — saves the entire consent log to a CSV file optimised for large datasets.
+* `wp fp-privacy settings-export --file=fp-settings.json` — generates a JSON export of the plugin settings matching the admin backup tool.
+* `wp fp-privacy settings-import --file=fp-settings.json` — restores settings from a JSON file previously exported by the plugin.
 
 == Supporto e contatti ==
 Il plugin è mantenuto da [Francesco Passeri](https://francescopasseri.com/). Per richieste professionali, personalizzazioni o supporto contatta [info@francescopasseri.com](mailto:info@francescopasseri.com).
@@ -65,6 +73,46 @@ Il plugin è mantenuto da [Francesco Passeri](https://francescopasseri.com/). Pe
 3. Registro consensi con esportazione CSV e informazioni anonimizzate.
 
 == Changelog ==
+= 1.14.0 =
+* Added a consent revision reset so administrators can immediately re-display the banner to every visitor after policy or tracking changes.
+* Included the consent revision metadata in the front-end cookie, JavaScript events and `dataLayer` push for tighter integration with analytics workflows.
+
+= 1.13.3 =
+* Added WP-CLI commands to export and import the plugin settings using the same JSON payload generated in the admin tools.
+* Introduced the `fp_privacy_settings_imported` hook so custom integrations can react when a new configuration is imported.
+
+= 1.13.2 =
+* Improved the consent log readability by surfacing per-category badges that highlight granted, denied or mandatory preferences.
+* Added an inline toggle to inspect the raw JSON payload for each consent event without leaving the admin screen.
+
+= 1.13.1 =
+* Added a consent overview widget to the WordPress dashboard with quick links to the plugin log.
+
+= 1.13.0 =
+* Added a banner preview mode to test layouts, translations and GTM integrations without logging events or setting the consent cookie.
+
+= 1.12.2 =
+* CSV exports respect the current consent log filters (search, event type and date range) so you can download only the data you need.
+
+= 1.12.1 =
+* Added date range filters to the consent log so you can narrow searches to a specific time window.
+
+= 1.12.0 =
+* Added an interactive consent log summary with total counts, percentages and last 30 days activity directly inside the Logs tab.
+
+= 1.11.0 =
+* Added layout controls for the consent banner (floating top/bottom or full-width bars) with instant preview feedback.
+* Introduced a colour palette editor that syncs the banner, modal and manage button to the configured brand colours.
+
+= 1.10.0 =
+* Added import/export tools in the help tab so you can back up the configuration or move it between installs.
+
+= 1.9.0 =
+* Added a language selector to the banner preview so editors can validate every translation without leaving the settings screen.
+
+= 1.8.0 =
+* Added a dedicated language manager inside the settings panel to enable additional translations (including custom ISO codes) for banner, policies and categories.
+
 = 1.7.0 =
 * Introduced automatic privacy and cookie policy generation that keeps content in sync with detected plugins and services.
 * Created dedicated policy pages on activation and ensured they stay linked to the plugin shortcodes.
