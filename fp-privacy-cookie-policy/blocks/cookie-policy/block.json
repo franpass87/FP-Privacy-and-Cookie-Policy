@@ -1,0 +1,20 @@
+{
+    "apiVersion": 2,
+    "name": "fp-privacy/cookie-policy",
+    "title": "FP Cookie Policy",
+    "category": "widgets",
+    "icon": "list-view",
+    "description": "Displays the generated cookie policy.",
+    "textdomain": "fp-privacy",
+    "attributes": {
+        "lang": {
+            "type": "string",
+            "default": ""
+        }
+    },
+    "editorScript": "fp-privacy-cookie-policy-block-editor",
+    "editorStyle": "fp-privacy-cookie-policy-block-editor-style",
+    "supports": {
+        "html": false
+    }
+}

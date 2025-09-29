@@ -1,0 +1,28 @@
+{
+    "apiVersion": 2,
+    "name": "fp-privacy/cookie-preferences",
+    "title": "FP Cookie Preferences",
+    "category": "widgets",
+    "icon": "admin-settings",
+    "description": "Displays a button to open the cookie preferences modal.",
+    "textdomain": "fp-privacy",
+    "editorScript": "fp-privacy-cookie-preferences-block-editor",
+    "editorStyle": "fp-privacy-cookie-preferences-block-editor-style",
+    "attributes": {
+        "label": {
+            "type": "string",
+            "default": ""
+        },
+        "description": {
+            "type": "string",
+            "default": ""
+        },
+        "lang": {
+            "type": "string",
+            "default": ""
+        }
+    },
+    "supports": {
+        "html": false
+    }
+}

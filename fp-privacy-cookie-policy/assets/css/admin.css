@@ -1,0 +1,86 @@
+.fp-privacy-settings .fp-privacy-language-panel,
+.fp-privacy-settings .fp-privacy-org,
+.fp-privacy-settings .fp-privacy-layout,
+.fp-privacy-settings .fp-privacy-palette,
+.fp-privacy-settings .fp-privacy-consent-mode {
+margin-bottom: 24px;
+background: #fff;
+padding: 20px;
+border: 1px solid #d1d5db;
+border-radius: 8px;
+}
+
+.fp-privacy-settings label {
+display: block;
+margin-bottom: 12px;
+}
+
+.fp-privacy-settings label span {
+display: block;
+font-weight: 600;
+margin-bottom: 4px;
+}
+
+.fp-privacy-palette label {
+display: inline-block;
+margin-right: 20px;
+}
+
+.fp-privacy-detected .status-detected {
+color: #047857;
+font-weight: 600;
+}
+
+.fp-privacy-consent-log table.details summary {
+cursor: pointer;
+}
+
+.fp-privacy-diff {
+background: #fff;
+border: 1px solid #d1d5db;
+padding: 16px;
+border-radius: 8px;
+overflow: auto;
+}
+
+.fp-privacy-consent-log .fp-privacy-event {
+display: inline-block;
+padding: 4px 8px;
+border-radius: 999px;
+font-size: 12px;
+text-transform: uppercase;
+letter-spacing: 0.02em;
+}
+
+.fp-privacy-consent-log .fp-privacy-event-consent { background: #ecfdf5; color: #065f46; }
+.fp-privacy-consent-log .fp-privacy-event-accept_all { background: #eff6ff; color: #1d4ed8; }
+.fp-privacy-consent-log .fp-privacy-event-reject_all { background: #fef2f2; color: #b91c1c; }
+.fp-privacy-consent-log .fp-privacy-event-reset { background: #fef3c7; color: #92400e; }
+.fp-privacy-consent-log .fp-privacy-event-revision_bump { background: #ede9fe; color: #5b21b6; }
+
+.fp-privacy-consent-log .tablenav-pages {
+margin: 1rem 0;
+}
+
+.fp-privacy-consent-log .fp-privacy-summary ul {
+display: flex;
+flex-wrap: wrap;
+gap: 16px;
+padding-left: 0;
+list-style: none;
+}
+
+.fp-privacy-consent-log .fp-privacy-summary li {
+background: #fff;
+border: 1px solid #d1d5db;
+padding: 12px;
+border-radius: 6px;
+}
+
+.fp-privacy-policy-editor .wp-editor-area {
+min-height: 200px;
+}
+
+.fp-privacy-policy-editor .fp-privacy-regenerate {
+margin-top: 20px;
+}

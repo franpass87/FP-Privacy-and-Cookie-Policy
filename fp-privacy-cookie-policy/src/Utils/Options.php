@@ -1,0 +1,513 @@
+<?php
+/**
+ * Options handler.
+ *
+ * @package FP\Privacy\Utils
+ */
+
+namespace FP\Privacy\Utils;
+
+use WP_Post;
+
+/**
+ * Options utility class.
+ */
+class Options {
+const OPTION_KEY = 'fp_privacy_options';
+
+/**
+ * Cached options.
+ *
+ * @var array<string, mixed>
+ */
+private $options = array();
+
+/**
+ * Blog identifier the options were loaded for.
+ *
+ * @var int
+ */
+private $blog_id = 0;
+
+/**
+ * Instance.
+ *
+ * @var Options
+ */
+private static $instance;
+
+/**
+ * Get singleton instance.
+ *
+ * @return Options
+ */
+public static function instance() {
+$current_blog_id = function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0;
+
+if ( ! self::$instance || self::$instance->blog_id !== $current_blog_id ) {
+self::$instance = new self();
+}
+
+return self::$instance;
+}
+
+/**
+ * Constructor.
+ */
+private function __construct() {
+$this->blog_id = function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0;
+$this->options = $this->load();
+}
+
+/**
+ * Get raw options.
+ *
+ * @return array<string, mixed>
+ */
+public function all() {
+return $this->options;
+}
+
+/**
+ * Get a specific option value.
+ *
+ * @param string $key Option key.
+ * @param mixed  $default Default value.
+ *
+ * @return mixed
+ */
+public function get( $key, $default = null ) {
+if ( isset( $this->options[ $key ] ) ) {
+return $this->options[ $key ];
+}
+
+return $default;
+}
+
+/**
+ * Set options.
+ *
+ * @param array<string, mixed> $new_options New options.
+ *
+ * @return void
+ */
+public function set( array $new_options ) {
+$defaults  = $this->get_default_options();
+$merged    = \wp_parse_args( $new_options, $this->options );
+$sanitized = $this->sanitize( $merged, $defaults );
+$this->options = $sanitized;
+
+\update_option( self::OPTION_KEY, $sanitized, false );
+
+$this->ensure_pages_exist();
+}
+
+/**
+ * Load options from the database.
+ *
+ * @return array<string, mixed>
+ */
+private function load() {
+$stored   = \get_option( self::OPTION_KEY );
+$defaults = $this->get_default_options();
+
+if ( ! is_array( $stored ) ) {
+return $defaults;
+}
+
+return $this->sanitize( \wp_parse_args( $stored, $defaults ), $defaults );
+}
+
+/**
+ * Get defaults.
+ *
+ * @return array<string, mixed>
+ */
+public function get_default_options() {
+$default_locale = \get_locale();
+$default_palette = array(
+    'surface_bg'          => '#0B1220',
+    'surface_text'        => '#FFFFFF',
+    'button_primary_bg'   => '#4C7CF6',
+    'button_primary_tx'   => '#FFFFFF',
+    'button_secondary_bg' => '#E5E7EB',
+    'button_secondary_tx' => '#111827',
+    'link'                => '#2563EB',
+    'border'              => '#D1D5DB',
+    'focus'               => '#3B82F6',
+);
+
+$banner_default = array(
+    'title'       => \__('We value your privacy', 'fp-privacy' ),
+    'message'     => \__('We use cookies to improve your experience. You can accept all cookies or manage your preferences.', 'fp-privacy' ),
+    'btn_accept'  => \__('Accept all', 'fp-privacy' ),
+    'btn_reject'  => \__('Reject all', 'fp-privacy' ),
+    'btn_prefs'   => \__('Manage preferences', 'fp-privacy' ),
+    'link_policy' => '',
+);
+
+$category_defaults = array(
+    'necessary'   => array(
+        'label'       => array( 'default' => \__('Strictly necessary', 'fp-privacy' ) ),
+        'description' => array( 'default' => \__('Essential cookies required for the website to function and cannot be disabled.', 'fp-privacy' ) ),
+        'locked'      => true,
+        'services'    => array(),
+    ),
+    'preferences' => array(
+        'label'       => array( 'default' => \__('Preferences', 'fp-privacy' ) ),
+        'description' => array( 'default' => \__('Store user preferences such as language or location.', 'fp-privacy' ) ),
+        'locked'      => false,
+        'services'    => array(),
+    ),
+    'statistics'  => array(
+        'label'       => array( 'default' => \__('Statistics', 'fp-privacy' ) ),
+        'description' => array( 'default' => \__('Collect anonymous statistics to improve our services.', 'fp-privacy' ) ),
+        'locked'      => false,
+        'services'    => array(),
+    ),
+    'marketing'   => array(
+        'label'       => array( 'default' => \__('Marketing', 'fp-privacy' ) ),
+        'description' => array( 'default' => \__('Enable personalized advertising and tracking.', 'fp-privacy' ) ),
+        'locked'      => false,
+        'services'    => array(),
+    ),
+);
+
+return array(
+    'languages_active'      => array( $default_locale ),
+    'banner_texts'          => array(
+        $default_locale => $banner_default,
+    ),
+    'banner_layout'         => array(
+        'type'                  => 'floating',
+        'position'              => 'bottom',
+        'palette'               => $default_palette,
+        'sync_modal_and_button' => true,
+    ),
+    'categories'            => $category_defaults,
+    'consent_mode_defaults' => array(
+        'analytics_storage'     => 'denied',
+        'ad_storage'            => 'denied',
+        'ad_user_data'          => 'denied',
+        'ad_personalization'    => 'denied',
+        'functionality_storage' => 'granted',
+        'security_storage'      => 'granted',
+    ),
+    'retention_days'        => 180,
+    'consent_revision'      => 1,
+    'preview_mode'          => false,
+    'pages'                 => array(
+        'privacy_policy_page_id' => array( $default_locale => 0 ),
+        'cookie_policy_page_id'  => array( $default_locale => 0 ),
+    ),
+    'org_name'              => '',
+    'vat'                   => '',
+    'address'               => '',
+    'dpo_name'              => '',
+    'dpo_email'             => '',
+    'privacy_email'         => '',
+    'snapshots'             => array(
+        'services' => array(
+            'detected'     => array(),
+            'generated_at' => 0,
+        ),
+        'policies' => array(
+            'privacy' => array(),
+            'cookie'  => array(),
+        ),
+    ),
+);
+}
+
+/**
+ * Sanitize options array.
+ *
+ * @param array<string, mixed> $value    Value to sanitize.
+ * @param array<string, mixed> $defaults Defaults.
+ *
+ * @return array<string, mixed>
+ */
+private function sanitize( array $value, array $defaults ) {
+$default_locale = $defaults['languages_active'][0];
+$languages      = Validator::locale_list( $value['languages_active'] ?? $defaults['languages_active'], $default_locale );
+
+$banner_defaults = $defaults['banner_texts'][ $default_locale ] ?? reset( $defaults['banner_texts'] );
+$layout_raw      = isset( $value['banner_layout'] ) && \is_array( $value['banner_layout'] ) ? $value['banner_layout'] : array();
+$categories_raw  = isset( $value['categories'] ) && \is_array( $value['categories'] ) ? $value['categories'] : $defaults['categories'];
+$pages_raw       = isset( $value['pages'] ) && \is_array( $value['pages'] ) ? $value['pages'] : array();
+
+$owner_fields = Validator::sanitize_owner_fields(
+    array(
+        'org_name'      => $value['org_name'] ?? $defaults['org_name'],
+        'vat'           => $value['vat'] ?? $defaults['vat'],
+        'address'       => $value['address'] ?? $defaults['address'],
+        'dpo_name'      => $value['dpo_name'] ?? $defaults['dpo_name'],
+        'dpo_email'     => $value['dpo_email'] ?? $defaults['dpo_email'],
+        'privacy_email' => $value['privacy_email'] ?? $defaults['privacy_email'],
+    )
+);
+
+$layout = array(
+    'type'                  => Validator::choice( $layout_raw['type'] ?? '', array( 'floating', 'bar' ), $defaults['banner_layout']['type'] ),
+    'position'              => Validator::choice( $layout_raw['position'] ?? '', array( 'top', 'bottom' ), $defaults['banner_layout']['position'] ),
+    'palette'               => Validator::sanitize_palette( isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ? $layout_raw['palette'] : array(), $defaults['banner_layout']['palette'] ),
+    'sync_modal_and_button' => Validator::bool( $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'] ),
+);
+
+return array(
+    'languages_active'      => $languages,
+    'banner_texts'          => Validator::sanitize_banner_texts( isset( $value['banner_texts'] ) && \is_array( $value['banner_texts'] ) ? $value['banner_texts'] : array(), $languages, $banner_defaults ),
+    'banner_layout'         => $layout,
+    'categories'            => Validator::sanitize_categories( $categories_raw, $languages ),
+    'consent_mode_defaults' => Validator::sanitize_consent_mode( isset( $value['consent_mode_defaults'] ) && \is_array( $value['consent_mode_defaults'] ) ? $value['consent_mode_defaults'] : array(), $defaults['consent_mode_defaults'] ),
+    'retention_days'        => Validator::int( $value['retention_days'] ?? $defaults['retention_days'], $defaults['retention_days'], 1 ),
+    'consent_revision'      => Validator::int( $value['consent_revision'] ?? $defaults['consent_revision'], $defaults['consent_revision'], 1 ),
+    'preview_mode'          => Validator::bool( $value['preview_mode'] ?? $defaults['preview_mode'] ),
+    'pages'                 => Validator::sanitize_pages( $pages_raw, $languages ),
+    'org_name'              => $owner_fields['org_name'],
+    'vat'                   => $owner_fields['vat'],
+    'address'               => $owner_fields['address'],
+    'dpo_name'              => $owner_fields['dpo_name'],
+    'dpo_email'             => $owner_fields['dpo_email'],
+    'privacy_email'         => $owner_fields['privacy_email'],
+    'snapshots'             => $this->sanitize_snapshots( isset( $value['snapshots'] ) && \is_array( $value['snapshots'] ) ? $value['snapshots'] : array(), $languages ),
+);
+}
+
+/**
+ * Sanitize stored snapshots.
+ *
+ * @param array<string, mixed> $snapshots Snapshots payload.
+ * @param array<int, string>   $languages Active languages.
+ *
+ * @return array<string, mixed>
+ */
+private function sanitize_snapshots( array $snapshots, array $languages ) {
+$services = array(
+    'detected'     => array(),
+    'generated_at' => 0,
+);
+
+if ( isset( $snapshots['services'] ) && \is_array( $snapshots['services'] ) ) {
+    $services['detected']     = isset( $snapshots['services']['detected'] ) && \is_array( $snapshots['services']['detected'] ) ? array_values( $snapshots['services']['detected'] ) : array();
+    $services['generated_at'] = (int) ( $snapshots['services']['generated_at'] ?? 0 );
+}
+
+$policies = array(
+    'privacy' => array(),
+    'cookie'  => array(),
+);
+
+foreach ( array( 'privacy', 'cookie' ) as $type ) {
+    $entries = array();
+    if ( isset( $snapshots['policies'][ $type ] ) && \is_array( $snapshots['policies'][ $type ] ) ) {
+        $entries = $snapshots['policies'][ $type ];
+    }
+
+    foreach ( $languages as $language ) {
+        $language = Validator::locale( $language, $languages[0] );
+        $content  = isset( $entries[ $language ]['content'] ) ? \wp_kses_post( $entries[ $language ]['content'] ) : '';
+        $generated = isset( $entries[ $language ]['generated_at'] ) ? (int) $entries[ $language ]['generated_at'] : 0;
+
+        $policies[ $type ][ $language ] = array(
+            'content'      => $content,
+            'generated_at' => $generated,
+        );
+    }
+}
+
+return array(
+    'services' => $services,
+    'policies' => $policies,
+);
+}
+
+/**
+ * Get active languages.
+ *
+ * @return array<int, string>
+ */
+public function get_languages() {
+return $this->options['languages_active'];
+}
+
+/**
+ * Normalize locale against active languages.
+ *
+ * @param string $locale Raw locale.
+ *
+ * @return string
+ */
+public function normalize_language( $locale ) {
+$languages = $this->get_languages();
+$primary   = $languages[0] ?? 'en_US';
+$locale    = Validator::locale( $locale, $primary );
+
+if ( in_array( $locale, $languages, true ) ) {
+    return $locale;
+}
+
+return $primary;
+}
+/**
+ * Get banner text for a language.
+ *
+ * @param string $lang Locale.
+ *
+ * @return array<string, string>
+ */
+public function get_banner_text( $lang ) {
+$lang   = $this->normalize_language( $lang );
+$texts  = $this->options['banner_texts'];
+$result = $texts[ $lang ] ?? reset( $texts );
+
+return \is_array( $result ) ? $result : array();
+}
+
+/**
+ * Get categories for the requested language.
+ *
+ * @param string $lang Locale.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+public function get_categories_for_language( $lang ) {
+$lang     = $this->normalize_language( $lang );
+$fallback = $this->get_languages()[0] ?? 'en_US';
+$result   = array();
+
+foreach ( $this->options['categories'] as $key => $category ) {
+    $label = '';
+    if ( isset( $category['label'][ $lang ] ) && '' !== $category['label'][ $lang ] ) {
+        $label = $category['label'][ $lang ];
+    } elseif ( isset( $category['label']['default'] ) ) {
+        $label = $category['label']['default'];
+    } elseif ( isset( $category['label'][ $fallback ] ) ) {
+        $label = $category['label'][ $fallback ];
+    }
+
+    $description = '';
+    if ( isset( $category['description'][ $lang ] ) && '' !== $category['description'][ $lang ] ) {
+        $description = $category['description'][ $lang ];
+    } elseif ( isset( $category['description']['default'] ) ) {
+        $description = $category['description']['default'];
+    } elseif ( isset( $category['description'][ $fallback ] ) ) {
+        $description = $category['description'][ $fallback ];
+    }
+
+    $services = isset( $category['services'][ $lang ] ) && \is_array( $category['services'][ $lang ] ) ? $category['services'][ $lang ] : array();
+
+    $result[ $key ] = array(
+        'label'       => $label,
+        'description' => $description,
+        'locked'      => ! empty( $category['locked'] ),
+        'services'    => $services,
+    );
+}
+
+return $result;
+}
+
+/**
+ * Retrieve a policy page id for type and language.
+ *
+ * @param string $type  privacy_policy|cookie_policy.
+ * @param string $lang  Locale.
+ *
+ * @return int
+ */
+public function get_page_id( $type, $lang ) {
+$lang = $this->normalize_language( $lang );
+$key  = 'privacy_policy' === $type ? 'privacy_policy_page_id' : 'cookie_policy_page_id';
+$map  = isset( $this->options['pages'][ $key ] ) && \is_array( $this->options['pages'][ $key ] ) ? $this->options['pages'][ $key ] : array();
+
+if ( ! empty( $map[ $lang ] ) ) {
+    return (int) $map[ $lang ];
+}
+
+foreach ( $map as $page_id ) {
+    if ( $page_id ) {
+        return (int) $page_id;
+    }
+}
+
+return 0;
+}
+/**
+ * Increment consent revision.
+ *
+ * @return void
+ */
+public function bump_revision() {
+$this->options['consent_revision'] = isset( $this->options['consent_revision'] ) ? (int) $this->options['consent_revision'] + 1 : 1;
+\update_option( self::OPTION_KEY, $this->options );
+}
+
+/**
+ * Ensure required pages exist.
+ *
+ * @return void
+ */
+public function ensure_pages_exist() {
+$languages = $this->get_languages();
+$pages     = isset( $this->options['pages'] ) && \is_array( $this->options['pages'] ) ? $this->options['pages'] : array();
+$pages     = \wp_parse_args(
+    $pages,
+    array(
+        'privacy_policy_page_id' => array(),
+        'cookie_policy_page_id'  => array(),
+    )
+);
+
+$updated = false;
+
+$map = array(
+    'privacy_policy_page_id' => array(
+        'title'     => \__('Privacy Policy', 'fp-privacy' ),
+        'shortcode' => 'fp_privacy_policy',
+    ),
+    'cookie_policy_page_id'  => array(
+        'title'     => \__('Cookie Policy', 'fp-privacy' ),
+        'shortcode' => 'fp_cookie_policy',
+    ),
+);
+
+foreach ( $map as $key => $config ) {
+    foreach ( $languages as $language ) {
+        $language = $this->normalize_language( $language );
+        $page_id  = isset( $pages[ $key ][ $language ] ) ? (int) $pages[ $key ][ $language ] : 0;
+
+        if ( $page_id && \get_post( $page_id ) instanceof WP_Post ) {
+            continue;
+        }
+
+        $title = $config['title'];
+        if ( count( $languages ) > 1 ) {
+            $title = sprintf( /* translators: %s: language code */ \__( '%1$s (%2$s)', 'fp-privacy' ), $config['title'], $language );
+        }
+
+        $content = '[' . $config['shortcode'] . ' lang="' . \esc_attr( $language ) . '"]';
+
+        $created = \wp_insert_post(
+            array(
+                'post_title'   => $title,
+                'post_status'  => 'publish',
+                'post_type'    => 'page',
+                'post_content' => $content,
+            )
+        );
+
+        if ( $created && ! \is_wp_error( $created ) ) {
+            $pages[ $key ][ $language ] = (int) $created;
+            $updated                     = true;
+        }
+    }
+}
+
+if ( $updated ) {
+    $this->options['pages'] = $pages;
+    \update_option( self::OPTION_KEY, $this->options, false );
+}
+}
+}
+
