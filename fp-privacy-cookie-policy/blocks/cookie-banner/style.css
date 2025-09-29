@@ -1,0 +1,136 @@
+.fp-privacy-banner-preview {
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 16px;
+    color: #1f2937;
+    line-height: 1.5;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 360px;
+}
+
+.fp-privacy-banner-preview--bar {
+    max-width: none;
+    width: 100%;
+}
+
+.fp-privacy-banner-preview__header {
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.fp-privacy-banner-preview__description {
+    margin: 0;
+    color: #4b5563;
+}
+
+.fp-privacy-banner-preview__content {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #ffffff;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.fp-privacy-banner-preview__title {
+    margin: 0;
+    font-weight: 600;
+    color: #111827;
+    font-size: 14px;
+}
+
+.fp-privacy-banner-preview__message {
+    margin: 0;
+    color: #374151;
+    font-size: 13px;
+}
+
+.fp-privacy-banner-preview__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.fp-privacy-banner-preview__chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #1f2937;
+    font-size: 12px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.fp-privacy-banner-preview__chip--language {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.fp-privacy-banner-preview__chip--warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.fp-privacy-banner-preview__notice {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #92400e;
+}
+
+.fp-privacy-banner-preview__reset {
+    margin-top: 12px;
+}
+
+.fp-privacy-banner-preview__alert {
+    background: #fee2e2;
+    border: 1px solid #f87171;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #991b1b;
+    font-size: 13px;
+}
+
+.fp-privacy-banner-preview__buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.fp-privacy-banner-preview__button {
+    border-radius: 999px;
+    padding: 6px 16px;
+    background: #e5e7eb;
+    color: #111827;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.fp-privacy-banner-preview__button.is-primary {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.fp-privacy-banner-preview__hints {
+    margin: 0;
+    padding-left: 18px;
+    color: #374151;
+}
+
+.fp-privacy-banner-preview__hint {
+    margin-bottom: 6px;
+}
+
+.fp-privacy-banner-preview__hint:last-child {
+    margin-bottom: 0;
+}

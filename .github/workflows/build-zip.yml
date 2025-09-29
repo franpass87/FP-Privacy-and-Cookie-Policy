@@ -1,0 +1,116 @@
+name: Build plugin ZIP
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Ref opzionale (branch/tag) da buildare'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      slug: ${{ steps.meta.outputs.slug }}
+      zip_name: ${{ steps.pkg.outputs.zip_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Setup PHP (solo per lint)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: none
+          coverage: none
+
+      - name: Determina slug, file principale e versione
+        id: meta
+        run: |
+          set -euo pipefail
+          PLUGIN_SLUG="fp-privacy-cookie-policy"
+          MAIN_FILE="fp-privacy-cookie-policy.php"
+          if [ ! -f "$MAIN_FILE" ]; then
+            echo "File principale non trovato: $MAIN_FILE" >&2
+            exit 1
+          fi
+          VERSION="$(grep -E '^[[:space:]]*\*?[[:space:]]*Version:[[:space:]]*' "$MAIN_FILE" | head -n1 | sed -E 's/.*Version:[[:space:]]*//')"
+          VERSION_TRIM="$(echo "$VERSION" | tr -d '\r' | xargs)"
+          echo "version=$VERSION_TRIM" >> "$GITHUB_OUTPUT"
+          echo "slug=$PLUGIN_SLUG" >> "$GITHUB_OUTPUT"
+          echo "main=$MAIN_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Verifica corrispondenza tag ⇔ Version (se evento tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF##*/}"
+          VERSION="${{ steps.meta.outputs.version }}"
+          TAG_VER="${TAG#v}"
+          if [ "$TAG_VER" != "$VERSION" ]; then
+            echo "ERRORE: il tag ($TAG) non corrisponde alla Version ($VERSION) nell'header del plugin." >&2
+            exit 1
+          fi
+          echo "OK: tag ($TAG) combacia con Version ($VERSION)."
+
+      - name: Lint PHP (sintassi)
+        run: |
+          set -euo pipefail
+          find . -type f -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" -print0 | xargs -0 -n1 php -l
+
+      - name: Rendi eseguibile lo script di packaging
+        run: chmod +x bin/package.sh
+
+      - name: Costruisci ZIP del plugin
+        id: pkg
+        env:
+          PLUGIN_VERSION: ${{ steps.meta.outputs.version }}
+          PLUGIN_SLUG: ${{ steps.meta.outputs.slug }}
+        run: |
+          set -euo pipefail
+          bin/package.sh "$PLUGIN_SLUG" "$PLUGIN_VERSION"
+          echo "zip_path=./build/${PLUGIN_SLUG}-${PLUGIN_VERSION}.zip" >> "$GITHUB_OUTPUT"
+          echo "zip_name=${PLUGIN_SLUG}-${PLUGIN_VERSION}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Pubblica artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pkg.outputs.zip_name }}
+          path: ${{ steps.pkg.outputs.zip_path }}
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scarica artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ format('{0}', needs.build.outputs.zip_name) }}
+          path: .
+
+      - name: Recupera artifact se nome non disponibile
+        run: |
+          set -euo pipefail
+          ZIP="$(ls -1 *.zip 2>/dev/null | head -n1 || true)"
+          if [ -z "$ZIP" ]; then
+            echo "Nessun ZIP trovato per la release." >&2
+            exit 1
+          fi
+          echo "ZIP=$ZIP" >> "$GITHUB_ENV"
+
+      - name: Pubblica release con asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

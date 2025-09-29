@@ -1,0 +1,16 @@
+*.min.js -diff
+*.min.css -diff
+*.map -diff
+*.zip -diff
+/.gitignore                 export-ignore
+/.gitattributes             export-ignore
+/.github/                   export-ignore
+/bin/package.sh             export-ignore
+/bin/qa-checklist.md        export-ignore
+/tests/                     export-ignore
+/dist/                      export-ignore
+/build/                     export-ignore
+/node_modules/              export-ignore
+/vendor/                    export-ignore
+/*.map                      export-ignore
+/*.min.*                    export-ignore

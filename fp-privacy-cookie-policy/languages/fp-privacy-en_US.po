@@ -1,0 +1,980 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: FP Privacy and Cookie Policy 0.1.0\n"
+"Report-Msgid-Bugs-To: https://francescopasseri.com\n"
+"POT-Creation-Date: 2025-02-14 00:00+0000\n"
+"PO-Revision-Date: 2025-02-14 00:00+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: xgettext\n"
+"X-Domain: fp-privacy\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/cookie-policy.php:15
+msgid "About cookies"
+msgstr "About cookies"
+
+#: templates/cookie-policy.php:16
+msgid ""
+"Cookies are small text files stored on your device. They allow us to "
+"remember your preferences, ensure the website works properly and measure "
+"performance. Some cookies are strictly necessary while others require your "
+"consent."
+msgstr ""
+"Cookies are small text files stored on your device. They allow us to "
+"remember your preferences, ensure the website works properly and measure "
+"performance. Some cookies are strictly necessary while others require your "
+"consent."
+
+#: templates/cookie-policy.php:18
+msgid "How we use cookies"
+msgstr "How we use cookies"
+
+#: templates/cookie-policy.php:19
+msgid ""
+"We group cookies into categories so you can tailor your experience. You can "
+"update your preferences at any time using the cookie preferences button."
+msgstr ""
+"We group cookies into categories so you can tailor your experience. You can "
+"update your preferences at any time using the cookie preferences button."
+
+#: templates/cookie-policy.php:21
+msgid "Retention of consent"
+msgstr "Retention of consent"
+
+#: templates/cookie-policy.php:22
+#, php-format
+msgid ""
+"Your consent choices are stored for %d days unless you change them earlier."
+msgstr ""
+"Your consent choices are stored for %d days unless you change them earlier."
+
+#: templates/cookie-policy.php:30 templates/privacy-policy.php:55
+#: src/Admin/Settings.php:215
+msgid "Service"
+msgstr "Service"
+
+#: templates/cookie-policy.php:31 templates/privacy-policy.php:57
+msgid "Purpose"
+msgstr "Purpose"
+
+#: templates/cookie-policy.php:32 src/Admin/Settings.php:219
+msgid "Cookies"
+msgstr "Cookies"
+
+#: templates/cookie-policy.php:33 templates/privacy-policy.php:37
+msgid "Retention"
+msgstr "Retention"
+
+#: templates/cookie-policy.php:50
+msgid "Managing cookies"
+msgstr "Managing cookies"
+
+#: templates/cookie-policy.php:51
+msgid ""
+"You can revisit your preferences using the cookie preferences button or "
+"adjust your browser settings to delete or block cookies. Blocking essential "
+"cookies may impact site functionality."
+msgstr ""
+"You can revisit your preferences using the cookie preferences button or "
+"adjust your browser settings to delete or block cookies. Blocking essential "
+"cookies may impact site functionality."
+
+#: templates/cookie-policy.php:53
+msgid "Last update"
+msgstr "Last update"
+
+#: templates/cookie-policy.php:54
+#, php-format
+msgid "This policy was generated on %s."
+msgstr "This policy was generated on %s."
+
+#: templates/privacy-policy.php:20
+msgid "Data controller"
+msgstr "Data controller"
+
+#: templates/privacy-policy.php:23
+#, php-format
+msgid "VAT/Tax ID: %s"
+msgstr "VAT/Tax ID: %s"
+
+#: templates/privacy-policy.php:25
+#, php-format
+msgid "Contact: %s"
+msgstr "Contact: %s"
+
+#: templates/privacy-policy.php:28
+msgid "Purposes of processing"
+msgstr "Purposes of processing"
+
+#: templates/privacy-policy.php:29
+msgid ""
+"We process personal data to provide our services, ensure security, measure "
+"performance and deliver personalized experiences in accordance with the "
+"selected consent preferences."
+msgstr ""
+"We process personal data to provide our services, ensure security, measure "
+"performance and deliver personalized experiences in accordance with the "
+"selected consent preferences."
+
+#: templates/privacy-policy.php:31
+msgid "Legal bases"
+msgstr "Legal bases"
+
+#: templates/privacy-policy.php:32
+msgid ""
+"Depending on the specific processing activity we rely on consent, "
+"contractual necessity or legitimate interest. Marketing and analytics tools "
+"are only activated after explicit consent."
+msgstr ""
+"Depending on the specific processing activity we rely on consent, "
+"contractual necessity or legitimate interest. Marketing and analytics tools "
+"are only activated after explicit consent."
+
+#: templates/privacy-policy.php:34
+msgid "Recipients and data transfers"
+msgstr "Recipients and data transfers"
+
+#: templates/privacy-policy.php:35
+msgid ""
+"Data may be shared with technology partners listed below. Transfers outside "
+"the EU/EEA are protected through adequacy decisions, Standard Contractual "
+"Clauses or equivalent safeguards."
+msgstr ""
+"Data may be shared with technology partners listed below. Transfers outside "
+"the EU/EEA are protected through adequacy decisions, Standard Contractual "
+"Clauses or equivalent safeguards."
+
+#: templates/privacy-policy.php:38
+msgid ""
+"Consent records are stored for the period required by law. Technical cookies "
+"follow the lifespan indicated in the cookie tables."
+msgstr ""
+"Consent records are stored for the period required by law. Technical cookies "
+"follow the lifespan indicated in the cookie tables."
+
+#: templates/privacy-policy.php:40
+msgid "Data subject rights"
+msgstr "Data subject rights"
+
+#: templates/privacy-policy.php:41
+msgid ""
+"You can request access, rectification, erasure, restriction, portability or "
+"object to processing by contacting us. You can withdraw consent at any time "
+"from the cookie preferences interface."
+msgstr ""
+"You can request access, rectification, erasure, restriction, portability or "
+"object to processing by contacting us. You can withdraw consent at any time "
+"from the cookie preferences interface."
+
+#: templates/privacy-policy.php:44
+msgid "Data Protection Officer"
+msgstr "Data Protection Officer"
+
+#: templates/privacy-policy.php:48
+msgid "Services and cookies"
+msgstr "Services and cookies"
+
+#: templates/privacy-policy.php:56 src/Admin/Settings.php:218
+msgid "Provider"
+msgstr "Provider"
+
+#: templates/privacy-policy.php:58
+msgid "Cookies & Retention"
+msgstr "Cookies & Retention"
+
+#: templates/privacy-policy.php:59
+msgid "Legal basis"
+msgstr "Legal basis"
+
+#: templates/privacy-policy.php:65 src/Admin/PolicyEditor.php:75
+msgid "Privacy policy"
+msgstr "Privacy policy"
+
+#: templates/privacy-policy.php:77
+msgid "How to exercise your rights"
+msgstr "How to exercise your rights"
+
+#: templates/privacy-policy.php:78
+msgid ""
+"Submit your request via email or the dedicated contact form. We will respond "
+"within one month and may request additional information to verify your "
+"identity."
+msgstr ""
+"Submit your request via email or the dedicated contact form. We will respond "
+"within one month and may request additional information to verify your "
+"identity."
+
+#: templates/privacy-policy.php:80
+msgid "Supervisory authority"
+msgstr "Supervisory authority"
+
+#: templates/privacy-policy.php:81
+msgid ""
+"If you believe your privacy rights have been violated you can lodge a "
+"complaint with the competent supervisory authority."
+msgstr ""
+"If you believe your privacy rights have been violated you can lodge a "
+"complaint with the competent supervisory authority."
+
+#: templates/preferences-button.php:13 src/Frontend/Shortcodes.php:164
+#: src/Frontend/Blocks.php:99 blocks/cookie-preferences/edit.js:65
+msgid "Manage cookie preferences"
+msgstr "Manage cookie preferences"
+
+#: src/Admin/ConsentLogTable.php:59 src/Admin/ConsentLogTable.php:180
+#: src/Admin/Settings.php:247 src/Admin/Settings.php:282
+#: src/Admin/Settings.php:317 src/Admin/Settings.php:340
+#: src/Admin/Settings.php:378 src/Admin/Settings.php:417
+#: src/Admin/PolicyEditor.php:59 src/Admin/PolicyEditor.php:106
+#: src/Admin/PolicyEditor.php:144
+msgid "Permission denied."
+msgstr "Permission denied."
+
+#: src/Admin/ConsentLogTable.php:99 src/Admin/Menu.php:65 src/Admin/Menu.php:66
+msgid "Consent log"
+msgstr "Consent log"
+
+#: src/Admin/ConsentLogTable.php:100
+msgid "Review consent events and export them for compliance."
+msgstr "Review consent events and export them for compliance."
+
+#: src/Admin/ConsentLogTable.php:104
+msgid "Search by ID, user agent or language"
+msgstr "Search by ID, user agent or language"
+
+#: src/Admin/ConsentLogTable.php:106
+msgid "All events"
+msgstr "All events"
+
+#: src/Admin/ConsentLogTable.php:111
+msgid "From"
+msgstr "From"
+
+#: src/Admin/ConsentLogTable.php:112
+msgid "To"
+msgstr "To"
+
+#: src/Admin/ConsentLogTable.php:113
+msgid "Filter"
+msgstr "Filter"
+
+#: src/Admin/ConsentLogTable.php:114
+msgid "Export CSV"
+msgstr "Export CSV"
+
+#: src/Admin/ConsentLogTable.php:118
+msgid "Last 30 days overview"
+msgstr "Last 30 days overview"
+
+#: src/Admin/ConsentLogTable.php:129
+msgid "Date"
+msgstr "Date"
+
+#: src/Admin/ConsentLogTable.php:130
+msgid "Event"
+msgstr "Event"
+
+#: src/Admin/ConsentLogTable.php:131
+msgid "Consent ID"
+msgstr "Consent ID"
+
+#: src/Admin/ConsentLogTable.php:132 blocks/privacy-policy/edit.js:65
+#: blocks/cookie-policy/edit.js:72 blocks/cookie-preferences/edit.js:93
+#: blocks/cookie-banner/edit.js:96
+msgid "Language"
+msgstr "Language"
+
+#: src/Admin/ConsentLogTable.php:133
+msgid "Revision"
+msgstr "Revision"
+
+#: src/Admin/ConsentLogTable.php:134
+msgid "User agent"
+msgstr "User agent"
+
+#: src/Admin/ConsentLogTable.php:135
+msgid "States"
+msgstr "States"
+
+#: src/Admin/ConsentLogTable.php:140
+msgid "No entries found."
+msgstr "No entries found."
+
+#: src/Admin/ConsentLogTable.php:150
+msgid "View"
+msgstr "View"
+
+#: src/Admin/ConsentLogTable.php:201
+msgid "Unable to open export stream."
+msgstr "Unable to open export stream."
+
+#: src/Admin/Menu.php:36 src/Admin/Menu.php:37
+msgid "Privacy & Cookie"
+msgstr "Privacy & Cookie"
+
+#: src/Admin/Menu.php:47 src/Admin/Menu.php:48
+msgid "Settings"
+msgstr "Settings"
+
+#: src/Admin/Menu.php:56 src/Admin/Menu.php:57 src/Admin/PolicyEditor.php:68
+msgid "Policy editor"
+msgstr "Policy editor"
+
+#: src/Admin/Menu.php:74 src/Admin/Menu.php:75 src/Admin/Settings.php:252
+msgid "Tools"
+msgstr "Tools"
+
+#: src/Admin/Menu.php:83 src/Admin/Menu.php:84 src/Admin/Settings.php:287
+msgid "Quick guide"
+msgstr "Quick guide"
+
+#: src/Admin/Settings.php:91
+msgid "You do not have permission to access this page."
+msgstr "You do not have permission to access this page."
+
+#: src/Admin/Settings.php:99
+msgid "Privacy & Cookie Settings"
+msgstr "Privacy & Cookie Settings"
+
+#: src/Admin/Settings.php:104
+msgid "Languages"
+msgstr "Languages"
+
+#: src/Admin/Settings.php:105
+msgid "Provide active languages (comma separated locale codes)."
+msgstr "Provide active languages (comma separated locale codes)."
+
+#: src/Admin/Settings.php:108
+msgid "Banner content"
+msgstr "Banner content"
+
+#: src/Admin/Settings.php:113 blocks/privacy-policy/edit.js:126
+#: blocks/cookie-policy/edit.js:135 blocks/cookie-preferences/edit.js:176
+#: blocks/cookie-banner/edit.js:207
+#, php-format
+msgid "Language: %s"
+msgstr "Language: %s"
+
+#: src/Admin/Settings.php:115
+msgid "Title"
+msgstr "Title"
+
+#: src/Admin/Settings.php:119
+msgid "Message"
+msgstr "Message"
+
+#: src/Admin/Settings.php:123
+msgid "Accept button label"
+msgstr "Accept button label"
+
+#: src/Admin/Settings.php:127
+msgid "Reject button label"
+msgstr "Reject button label"
+
+#: src/Admin/Settings.php:131
+msgid "Preferences button label"
+msgstr "Preferences button label"
+
+#: src/Admin/Settings.php:135
+msgid "Policy link URL"
+msgstr "Policy link URL"
+
+#: src/Admin/Settings.php:141 blocks/cookie-banner/edit.js:162
+msgid "Layout"
+msgstr "Layout"
+
+#: src/Admin/Settings.php:144
+msgid "Display type"
+msgstr "Display type"
+
+#: src/Admin/Settings.php:146
+msgid "Floating"
+msgstr "Floating"
+
+#: src/Admin/Settings.php:147
+msgid "Bar"
+msgstr "Bar"
+
+#: src/Admin/Settings.php:151 blocks/cookie-banner/edit.js:173
+msgid "Position"
+msgstr "Position"
+
+#: src/Admin/Settings.php:153 blocks/cookie-banner/edit.js:177
+msgid "Top"
+msgstr "Top"
+
+#: src/Admin/Settings.php:154 blocks/cookie-banner/edit.js:176
+msgid "Bottom"
+msgstr "Bottom"
+
+#: src/Admin/Settings.php:159
+msgid "Synchronize modal and button palette"
+msgstr "Synchronize modal and button palette"
+
+#: src/Admin/Settings.php:163
+msgid "Palette"
+msgstr "Palette"
+
+#: src/Admin/Settings.php:173
+msgid "Consent Mode defaults"
+msgstr "Consent Mode defaults"
+
+#: src/Admin/Settings.php:179
+msgid "Granted"
+msgstr "Granted"
+
+#: src/Admin/Settings.php:180
+msgid "Denied"
+msgstr "Denied"
+
+#: src/Admin/Settings.php:186
+msgid "Retention & Revision"
+msgstr "Retention & Revision"
+
+#: src/Admin/Settings.php:188
+msgid "Retention days"
+msgstr "Retention days"
+
+#: src/Admin/Settings.php:193
+msgid "Enable preview mode (admins only)"
+msgstr "Enable preview mode (admins only)"
+
+#: src/Admin/Settings.php:195
+#, php-format
+msgid "Current consent revision: %d"
+msgstr "Current consent revision: %d"
+
+#: src/Admin/Settings.php:196
+msgid "Force new consent (bump revision)"
+msgstr "Force new consent (bump revision)"
+
+#: src/Admin/Settings.php:198
+msgid "Controller & DPO"
+msgstr "Controller & DPO"
+
+#: src/Admin/Settings.php:200
+msgid "Organization name"
+msgstr "Organization name"
+
+#: src/Admin/Settings.php:201
+msgid "VAT / Tax ID"
+msgstr "VAT / Tax ID"
+
+#: src/Admin/Settings.php:202
+msgid "Registered address"
+msgstr "Registered address"
+
+#: src/Admin/Settings.php:203
+msgid "DPO name"
+msgstr "DPO name"
+
+#: src/Admin/Settings.php:204
+msgid "DPO email"
+msgstr "DPO email"
+
+#: src/Admin/Settings.php:205
+msgid "Privacy contact email"
+msgstr "Privacy contact email"
+
+#: src/Admin/Settings.php:208
+msgid "Save settings"
+msgstr "Save settings"
+
+#: src/Admin/Settings.php:211
+msgid "Detected services"
+msgstr "Detected services"
+
+#: src/Admin/Settings.php:216
+msgid "Category"
+msgstr "Category"
+
+#: src/Admin/Settings.php:217
+msgid "Detected"
+msgstr "Detected"
+
+#: src/Admin/Settings.php:227
+msgid "Yes"
+msgstr "Yes"
+
+#: src/Admin/Settings.php:227
+msgid "No"
+msgstr "No"
+
+#: src/Admin/Settings.php:235
+msgid ""
+"Use the policy editor to regenerate your documents after services change."
+msgstr ""
+"Use the policy editor to regenerate your documents after services change."
+
+#: src/Admin/Settings.php:253
+msgid "Export or import configuration, regenerate policies and reset revision."
+msgstr ""
+"Export or import configuration, regenerate policies and reset revision."
+
+#: src/Admin/Settings.php:257
+msgid "Download settings JSON"
+msgstr "Download settings JSON"
+
+#: src/Admin/Settings.php:263
+msgid "Import settings"
+msgstr "Import settings"
+
+#: src/Admin/Settings.php:268
+msgid "Regenerate policies"
+msgstr "Regenerate policies"
+
+#: src/Admin/Settings.php:270
+msgid "Reset consent (bump revision)"
+msgstr "Reset consent (bump revision)"
+
+#: src/Admin/Settings.php:288
+msgid "Shortcodes"
+msgstr "Shortcodes"
+
+#: src/Admin/Settings.php:295
+msgid "Blocks"
+msgstr "Blocks"
+
+#: src/Admin/Settings.php:296
+msgid ""
+"Use the Privacy Policy, Cookie Policy, Cookie Preferences and Cookie Banner "
+"blocks inside the block editor. Each block mirrors the shortcode output."
+msgstr ""
+"Use the Privacy Policy, Cookie Policy, Cookie Preferences and Cookie Banner "
+"blocks inside the block editor. Each block mirrors the shortcode output."
+
+#: src/Admin/Settings.php:297
+msgid "Hooks"
+msgstr "Hooks"
+
+#: src/Admin/Settings.php:304
+msgid "Legal notice"
+msgstr "Legal notice"
+
+#: src/Admin/Settings.php:305
+msgid ""
+"This plugin provides technical tooling to help comply with privacy "
+"regulations. Consult your legal advisor to validate the generated documents."
+msgstr ""
+"This plugin provides technical tooling to help comply with privacy "
+"regulations. Consult your legal advisor to validate the generated documents."
+
+#: src/Admin/PolicyEditor.php:69
+msgid ""
+"Customize the generated documents or regenerate them using the detector."
+msgstr ""
+"Customize the generated documents or regenerate them using the detector."
+
+#: src/Admin/PolicyEditor.php:78
+msgid "Cookie policy"
+msgstr "Cookie policy"
+
+#: src/Admin/PolicyEditor.php:81
+msgid "Save policies"
+msgstr "Save policies"
+
+#: src/Admin/PolicyEditor.php:87
+msgid "Detect integrations and regenerate"
+msgstr "Detect integrations and regenerate"
+
+#: src/Admin/PolicyEditor.php:92
+msgid "Differences between generated templates and current documents"
+msgstr "Differences between generated templates and current documents"
+
+#: src/Admin/PolicyEditor.php:199
+msgid "Privacy policy diff"
+msgstr "Privacy policy diff"
+
+#: src/Admin/PolicyEditor.php:203
+msgid "Cookie policy diff"
+msgstr "Cookie policy diff"
+
+#: src/Admin/DashboardWidget.php:47
+msgid "Privacy & Cookie overview"
+msgstr "Privacy & Cookie overview"
+
+#: src/Admin/DashboardWidget.php:59
+msgid "Total events in the last 30 days:"
+msgstr "Total events in the last 30 days:"
+
+#: src/Admin/DashboardWidget.php:65
+msgid "View consent log"
+msgstr "View consent log"
+
+#: src/Frontend/Shortcodes.php:178
+#, php-format
+msgid "Last consent: %s"
+msgstr "Last consent: %s"
+
+#: src/Utils/Options.php:129
+msgid "Strictly necessary"
+msgstr "Strictly necessary"
+
+#: src/Utils/Options.php:130
+msgid ""
+"Essential cookies required for the website to function and cannot be "
+"disabled."
+msgstr ""
+"Essential cookies required for the website to function and cannot be "
+"disabled."
+
+#: src/Utils/Options.php:135 blocks/cookie-banner/edit.js:147
+msgid "Preferences"
+msgstr "Preferences"
+
+#: src/Utils/Options.php:136
+msgid "Store user preferences such as language or location."
+msgstr "Store user preferences such as language or location."
+
+#: src/Utils/Options.php:141
+msgid "Statistics"
+msgstr "Statistics"
+
+#: src/Utils/Options.php:142
+msgid "Collect anonymous statistics to improve our services."
+msgstr "Collect anonymous statistics to improve our services."
+
+#: src/Utils/Options.php:147
+msgid "Marketing"
+msgstr "Marketing"
+
+#: src/Utils/Options.php:148
+msgid "Enable personalized advertising and tracking."
+msgstr "Enable personalized advertising and tracking."
+
+#: src/Utils/Options.php:158
+msgid "We value your privacy"
+msgstr "We value your privacy"
+
+#: src/Utils/Options.php:159
+msgid ""
+"We use cookies to improve your experience. You can accept all cookies or "
+"manage your preferences."
+msgstr ""
+"We use cookies to improve your experience. You can accept all cookies or "
+"manage your preferences."
+
+#: src/Utils/Options.php:160
+msgid "Accept all"
+msgstr "Accept all"
+
+#: src/Utils/Options.php:161
+msgid "Reject all"
+msgstr "Reject all"
+
+#: src/Utils/Options.php:162
+msgid "Manage preferences"
+msgstr "Manage preferences"
+
+#: src/Utils/Options.php:441
+msgid "Privacy Policy"
+msgstr "Privacy Policy"
+
+#: src/Utils/Options.php:441
+msgid "Cookie Policy"
+msgstr "Cookie Policy"
+
+#: src/Consent/ExporterEraser.php:60 src/Consent/ExporterEraser.php:76
+msgid "FP Privacy consent log"
+msgstr "FP Privacy consent log"
+
+#: src/Consent/ExporterEraser.php:113
+msgid "Consent Log Entry"
+msgstr "Consent Log Entry"
+
+#: src/REST/Controller.php:141
+msgid "Invalid security token."
+msgstr "Invalid security token."
+
+#: src/REST/Controller.php:148
+msgid "Too many requests. Please try again later."
+msgstr "Too many requests. Please try again later."
+
+#: blocks/privacy-policy/edit.js:61
+msgid "FP Privacy Policy"
+msgstr "FP Privacy Policy"
+
+#: blocks/cookie-policy/edit.js:61
+msgid "FP Cookie Policy"
+msgstr "FP Cookie Policy"
+
+#: blocks/cookie-preferences/edit.js:65
+msgid "FP Cookie Preferences"
+msgstr "FP Cookie Preferences"
+
+#: blocks/cookie-banner/edit.js:63
+msgid "FP Cookie Banner"
+msgstr "FP Cookie Banner"
+
+#: blocks/cookie-preferences/edit.js:11
+msgid ""
+"Opens the cookie preferences modal so visitors can review or update their "
+"consent."
+msgstr ""
+"Opens the cookie preferences modal so visitors can review or update their "
+"consent."
+
+#: blocks/privacy-policy/edit.js:31 blocks/cookie-policy/edit.js:31 #:
+#: blocks/cookie-preferences/edit.js:35 blocks/cookie-banner/edit.js:33
+msgid "Inherit current locale"
+msgstr "Inherit current locale"
+
+#: blocks/privacy-policy/edit.js:83 blocks/cookie-policy/edit.js:79 #:
+#: blocks/cookie-preferences/edit.js:100 blocks/cookie-banner/edit.js:103
+msgid "Pick one of the configured languages or type a custom code."
+msgstr "Pick one of the configured languages or type a custom code."
+
+#: blocks/privacy-policy/edit.js:87 blocks/cookie-policy/edit.js:83 #:
+#: blocks/cookie-preferences/edit.js:104 blocks/cookie-banner/edit.js:107
+msgid "Language code"
+msgstr "Language code"
+
+#: blocks/privacy-policy/edit.js:94 blocks/cookie-policy/edit.js:91 #:
+#: blocks/cookie-preferences/edit.js:112
+msgid "Leave empty to use the current site locale."
+msgstr "Leave empty to use the current site locale."
+
+#: blocks/cookie-banner/edit.js:112
+msgid "Leave empty to match the current page locale."
+msgstr "Leave empty to match the current page locale."
+
+#: blocks/privacy-policy/edit.js:104 blocks/cookie-policy/edit.js:101 #:
+#: blocks/cookie-preferences/edit.js:122 blocks/cookie-banner/edit.js:124
+msgid "Available languages:"
+msgstr "Available languages:"
+
+#: blocks/privacy-policy/edit.js:123
+msgid "Privacy policy settings"
+msgstr "Privacy policy settings"
+
+#: blocks/privacy-policy/edit.js:135
+msgid "Privacy policy preview"
+msgstr "Privacy policy preview"
+
+#: blocks/privacy-policy/edit.js:141
+msgid ""
+"This block prints the generated privacy policy on the front-end. Configure "
+"the language to review locale-specific content while editing."
+msgstr ""
+"This block prints the generated privacy policy on the front-end. Configure "
+"the language to review locale-specific content while editing."
+
+#: blocks/cookie-policy/edit.js:127
+msgid "Cookie policy settings"
+msgstr "Cookie policy settings"
+
+#: blocks/cookie-policy/edit.js:139
+msgid "Cookie policy preview"
+msgstr "Cookie policy preview"
+
+#: blocks/privacy-policy/edit.js:145 blocks/cookie-policy/edit.js:151
+msgid "Using the current site locale"
+msgstr "Using the current site locale"
+
+#: blocks/privacy-policy/edit.js:149 blocks/cookie-policy/edit.js:159
+msgid ""
+"No additional languages are configured yet. Add them from the plugin "
+"settings to manage locale-specific policies."
+msgstr ""
+"No additional languages are configured yet. Add them from the plugin "
+"settings to manage locale-specific policies."
+
+#: blocks/privacy-policy/edit.js:162
+msgid "Owner details, contact references, and data subject rights."
+msgstr "Owner details, contact references, and data subject rights."
+
+#: blocks/privacy-policy/edit.js:167
+msgid "Legal bases and processing purposes grouped by service categories."
+msgstr "Legal bases and processing purposes grouped by service categories."
+
+#: blocks/privacy-policy/edit.js:172
+msgid "Automatic updates include detected services and consent revision notes."
+msgstr ""
+"Automatic updates include detected services and consent revision notes."
+
+#: blocks/cookie-policy/edit.js:144
+msgid ""
+"This block prints the generated cookie policy on the front-end. Configure "
+"the language to review locale-specific content while editing."
+msgstr ""
+"This block prints the generated cookie policy on the front-end. Configure "
+"the language to review locale-specific content while editing."
+
+#: blocks/cookie-policy/edit.js:170
+msgid "Service overview, legal bases, and retention for each category."
+msgstr "Service overview, legal bases, and retention for each category."
+
+#: blocks/cookie-policy/edit.js:175
+msgid "Cookie tables are rendered automatically from detected services."
+msgstr "Cookie tables are rendered automatically from detected services."
+
+#: blocks/cookie-policy/edit.js:180
+msgid "Visitors see language-specific contacts and owner details."
+msgstr "Visitors see language-specific contacts and owner details."
+
+#: blocks/cookie-preferences/edit.js:144
+msgid "Cookie preferences settings"
+msgstr "Cookie preferences settings"
+
+#: blocks/cookie-preferences/edit.js:148
+msgid "Button label"
+msgstr "Button label"
+
+#: blocks/cookie-preferences/edit.js:156
+msgid "Accessibility description"
+msgstr "Accessibility description"
+
+#: blocks/cookie-preferences/edit.js:159
+msgid "Announced by assistive technologies when the button receives focus."
+msgstr "Announced by assistive technologies when the button receives focus."
+
+#: blocks/cookie-banner/edit.js:158
+msgid "Cookie banner settings"
+msgstr "Cookie banner settings"
+
+#: blocks/cookie-banner/edit.js:207 blocks/cookie-banner/edit.js:231
+msgid "Floating panel"
+msgstr "Floating panel"
+
+#: blocks/cookie-banner/edit.js:206 blocks/cookie-banner/edit.js:232
+msgid "Full-width bar"
+msgstr "Full-width bar"
+
+#: blocks/cookie-banner/edit.js:251
+msgid "Always display this banner instance"
+msgstr "Always display this banner instance"
+
+#: blocks/cookie-banner/edit.js:256
+msgid ""
+"Force the banner to render even if the visitor has already provided consent."
+msgstr ""
+"Force the banner to render even if the visitor has already provided consent."
+
+#: blocks/cookie-banner/edit.js:263
+msgid "Cookie banner preview"
+msgstr "Cookie banner preview"
+
+#: blocks/cookie-banner/edit.js:140
+msgid "Sample banner title"
+msgstr "Sample banner title"
+
+#: blocks/cookie-banner/edit.js:144
+msgid "Update the banner texts from the plugin settings to preview them here."
+msgstr "Update the banner texts from the plugin settings to preview them here."
+
+#: blocks/cookie-banner/edit.js:283
+msgid ""
+"Save the plugin settings after editing banner content to preview the actual "
+"copy for each language."
+msgstr ""
+"Save the plugin settings after editing banner content to preview the actual "
+"copy for each language."
+
+#: blocks/cookie-banner/edit.js:298
+msgid "Forced display enabled"
+msgstr "Forced display enabled"
+
+#: blocks/cookie-banner/edit.js:308
+msgid ""
+"No additional languages are configured yet. Add them from the plugin "
+"settings to customise the banner per locale."
+msgstr ""
+"No additional languages are configured yet. Add them from the plugin "
+"settings to customise the banner per locale."
+
+#: blocks/cookie-banner/edit.js:317
+msgid ""
+"Forced display bypasses the automatic hide behaviour. Confirm the banner "
+"placement remains accessible across devices."
+msgstr ""
+"Forced display bypasses the automatic hide behaviour. Confirm the banner "
+"placement remains accessible across devices."
+
+#: blocks/cookie-banner/edit.js:145
+msgid "Accept"
+msgstr "Accept"
+
+#: blocks/cookie-banner/edit.js:146
+msgid "Reject"
+msgstr "Reject"
+
+#: blocks/cookie-banner/edit.js:268
+msgid ""
+"Use the inspector controls to review layout, position, and language "
+"overrides before publishing the banner."
+msgstr ""
+"Use the inspector controls to review layout, position, and language "
+"overrides before publishing the banner."
+
+#: blocks/cookie-banner/edit.js:336
+msgid ""
+"Floating panels anchor near a corner whereas bars stretch across the "
+"viewport edge."
+msgstr ""
+"Floating panels anchor near a corner whereas bars stretch across the "
+"viewport edge."
+
+#: blocks/cookie-banner/edit.js:344
+msgid ""
+"Language overrides let you review translated banner texts without switching "
+"the editor UI."
+msgstr ""
+"Language overrides let you review translated banner texts without switching "
+"the editor UI."
+
+#: blocks/cookie-banner/edit.js:352
+msgid ""
+"Forced display keeps the banner visible when manually embedding it alongside "
+"other content."
+msgstr ""
+"Forced display keeps the banner visible when manually embedding it alongside "
+"other content."
+
+#: blocks/cookie-preferences/edit.js:181
+msgid "Cookie preferences preview"
+msgstr "Cookie preferences preview"
+
+#: blocks/cookie-preferences/edit.js:187
+msgid ""
+"The block renders a button that opens the cookie preferences modal so "
+"visitors can change their choices."
+msgstr ""
+"The block renders a button that opens the cookie preferences modal so "
+"visitors can change their choices."
+
+#: blocks/cookie-preferences/edit.js:197
+msgid ""
+"No additional languages are configured yet. Add them from the plugin "
+"settings to customize button text per locale."
+msgstr ""
+"No additional languages are configured yet. Add them from the plugin "
+"settings to customize button text per locale."
+
+#: blocks/cookie-preferences/edit.js:219
+msgid ""
+"On the front-end the button receives focus styles that meet AA contrast "
+"requirements."
+msgstr ""
+"On the front-end the button receives focus styles that meet AA contrast "
+"requirements."
+
+#: blocks/cookie-preferences/edit.js:227
+msgid ""
+"Screen readers announce the accessibility description before opening the "
+"modal."
+msgstr ""
+"Screen readers announce the accessibility description before opening the "
+"modal."
+
+#: blocks/cookie-preferences/edit.js:235
+msgid ""
+"The modal displays a summary of the last recorded consent for additional "
+"context."
+msgstr ""
+"The modal displays a summary of the last recorded consent for additional "
+"context."

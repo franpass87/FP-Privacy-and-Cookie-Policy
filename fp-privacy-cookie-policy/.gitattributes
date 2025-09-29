@@ -1,0 +1,4 @@
+*.min.js -diff
+*.min.css -diff
+*.map -diff
+*.zip -diff

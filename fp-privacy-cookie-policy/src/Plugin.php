@@ -1,0 +1,216 @@
+<?php
+/**
+ * Main plugin bootstrap.
+ *
+ * @package FP\Privacy
+ */
+
+namespace FP\Privacy;
+
+use FP\Privacy\Admin\DashboardWidget;
+use FP\Privacy\Admin\Menu;
+use FP\Privacy\Admin\PolicyEditor;
+use FP\Privacy\Admin\PolicyGenerator;
+use FP\Privacy\Admin\Settings;
+use FP\Privacy\Admin\ConsentLogTable;
+use FP\Privacy\CLI\Commands;
+use FP\Privacy\Consent\Cleanup;
+use FP\Privacy\Consent\ExporterEraser;
+use FP\Privacy\Consent\LogModel;
+use FP\Privacy\Frontend\Banner;
+use FP\Privacy\Frontend\Blocks;
+use FP\Privacy\Frontend\ConsentState;
+use FP\Privacy\Frontend\Shortcodes;
+use FP\Privacy\Integrations\ConsentMode;
+use FP\Privacy\Integrations\DetectorRegistry;
+use FP\Privacy\REST\Controller;
+use FP\Privacy\Utils\I18n;
+use FP\Privacy\Utils\Options;
+use FP\Privacy\Utils\View;
+
+/**
+ * Main plugin class.
+ */
+class Plugin {
+/**
+ * Instance.
+ *
+ * @var Plugin
+ */
+private static $instance;
+
+/**
+ * Options handler.
+ *
+ * @var Options
+ */
+private $options;
+
+/**
+ * Log model.
+ *
+ * @var LogModel
+ */
+private $log_model;
+
+/**
+ * Cleanup handler.
+ *
+ * @var Cleanup
+ */
+private $cleanup;
+
+/**
+ * Consent state manager.
+ *
+ * @var ConsentState
+ */
+private $consent_state;
+
+/**
+ * Get instance.
+ *
+ * @return Plugin
+ */
+public static function instance() {
+if ( ! self::$instance ) {
+self::$instance = new self();
+}
+
+return self::$instance;
+}
+
+/**
+ * Boot plugin.
+ *
+ * @return void
+ */
+public function boot() {
+$this->options = Options::instance();
+$this->options->ensure_pages_exist();
+
+$this->log_model     = new LogModel();
+$this->cleanup       = new Cleanup( $this->log_model, $this->options );
+$this->consent_state = new ConsentState( $this->options, $this->log_model );
+
+$view      = new View();
+$i18n      = new I18n();
+$detector  = new DetectorRegistry();
+$generator = new PolicyGenerator( $this->options, $detector, $view );
+
+$i18n->hooks();
+
+( new ConsentMode( $this->options ) )->hooks();
+
+$shortcodes = new Shortcodes( $this->options, $view );
+$shortcodes->set_state( $this->consent_state );
+$shortcodes->hooks();
+( new Blocks( $this->options ) )->hooks();
+( new Banner( $this->options, $this->consent_state ) )->hooks();
+
+( new Menu() )->hooks();
+( new Settings( $this->options, $detector, $generator ) )->hooks();
+( new PolicyEditor( $this->options, $generator ) )->hooks();
+( new ConsentLogTable( $this->log_model, $this->options ) )->hooks();
+( new DashboardWidget( $this->log_model ) )->hooks();
+
+( new Controller( $this->consent_state, $this->options, $generator, $this->log_model ) )->hooks();
+( new ExporterEraser( $this->log_model, $this->options ) )->hooks();
+$this->cleanup->hooks();
+
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+\WP_CLI::add_command( 'fp-privacy', new Commands( $this->log_model, $this->options, $generator, $detector, $this->cleanup ) );
+}
+}
+
+/**
+ * Activate plugin.
+ *
+ * @param bool $network_wide Network wide activation.
+ *
+ * @return void
+ */
+public static function activate( $network_wide ) {
+$plugin = self::instance();
+
+if ( \is_multisite() && $network_wide ) {
+$sites = \get_sites( array( 'fields' => 'ids' ) );
+foreach ( $sites as $site_id ) {
+$plugin->switch_call( (int) $site_id, array( $plugin, 'setup_site' ) );
+}
+} else {
+$plugin->setup_site();
+}
+}
+
+/**
+ * Deactivate plugin.
+ *
+ * @return void
+ */
+public static function deactivate() {
+$plugin = self::instance();
+
+if ( \is_multisite() ) {
+$sites = \get_sites( array( 'fields' => 'ids' ) );
+foreach ( $sites as $site_id ) {
+$plugin->switch_call(
+(int) $site_id,
+static function () {
+\wp_clear_scheduled_hook( 'fp_privacy_cleanup' );
+}
+);
+}
+} else {
+\wp_clear_scheduled_hook( 'fp_privacy_cleanup' );
+}
+}
+
+/**
+ * Provision a new site in multisite.
+ *
+ * @param int $blog_id Blog ID.
+ *
+ * @return void
+ */
+public function provision_new_site( $blog_id ) {
+$this->switch_call( $blog_id, array( $this, 'setup_site' ) );
+}
+
+/**
+ * Perform site setup.
+ *
+ * @return void
+ */
+public function setup_site() {
+$options = Options::instance();
+$options->set( $options->all() );
+$options->ensure_pages_exist();
+
+$log_model = new LogModel();
+$log_model->maybe_create_table();
+
+if ( ! \wp_next_scheduled( 'fp_privacy_cleanup' ) ) {
+\wp_schedule_event( time() + DAY_IN_SECONDS, 'daily', 'fp_privacy_cleanup' );
+}
+}
+
+/**
+ * Execute callback within blog context.
+ *
+ * @param int      $blog_id Blog ID.
+ * @param callable $callback Callback.
+ *
+ * @return void
+ */
+private function switch_call( $blog_id, $callback ) {
+if ( ! \function_exists( 'switch_to_blog' ) ) {
+\call_user_func( $callback );
+return;
+}
+
+\switch_to_blog( $blog_id );
+\call_user_func( $callback );
+\restore_current_blog();
+}
+}
