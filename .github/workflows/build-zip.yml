@@ -31,21 +31,33 @@ jobs:
           tools: none
           coverage: none
 
-      - name: Determina slug, file principale e versione
+      - name: Determina slug, file principale e versione (auto-detect)
         id: meta
         run: |
           set -euo pipefail
           PLUGIN_SLUG="fp-privacy-cookie-policy"
-          MAIN_FILE="fp-privacy-cookie-policy.php"
-          if [ ! -f "$MAIN_FILE" ]; then
-            echo "File principale non trovato: $MAIN_FILE" >&2
+
+          # Cerca il main file ovunque (matching header "Plugin Name: FP Privacy and Cookie Policy")
+          MAIN_FILE="$(grep -RIl --exclude-dir=.git --include="*.php" -e "^.*Plugin Name:[[:space:]]*FP Privacy and Cookie Policy" . | head -n1 || true)"
+          if [ -z "${MAIN_FILE}" ]; then
+            echo "Main file non trovato: cerca l'header 'Plugin Name: FP Privacy and Cookie Policy'." >&2
             exit 1
           fi
-          VERSION="$(grep -E '^[[:space:]]*\*?[[:space:]]*Version:[[:space:]]*' "$MAIN_FILE" | head -n1 | sed -E 's/.*Version:[[:space:]]*//')"
-          VERSION_TRIM="$(echo "$VERSION" | tr -d '\r' | xargs)"
-          echo "version=$VERSION_TRIM" >> "$GITHUB_OUTPUT"
-          echo "slug=$PLUGIN_SLUG" >> "$GITHUB_OUTPUT"
-          echo "main=$MAIN_FILE" >> "$GITHUB_OUTPUT"
+
+          # Cartella radice del plugin (dir del main file)
+          PLUGIN_DIR="$(dirname "${MAIN_FILE}")"
+
+          # Estrai Version: dall'header
+          VERSION="$(grep -E '^[[:space:]]*\*?[[:space:]]*Version:[[:space:]]*' "${MAIN_FILE}" | head -n1 | sed -E 's/.*Version:[[:space:]]*//; s/[[:space:]]+$//')"
+          if [ -z "${VERSION}" ]; then
+            echo "Version non trovata nell'header di ${MAIN_FILE}" >&2
+            exit 1
+          fi
+
+          echo "slug=${PLUGIN_SLUG}"        >> "$GITHUB_OUTPUT"
+          echo "main=${MAIN_FILE}"          >> "$GITHUB_OUTPUT"
+          echo "plugin_dir=${PLUGIN_DIR}"   >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}"         >> "$GITHUB_OUTPUT"
 
       - name: Verifica corrispondenza tag ⇔ Version (se evento tag)
         if: startsWith(github.ref, 'refs/tags/')
@@ -73,9 +85,10 @@ jobs:
         env:
           PLUGIN_VERSION: ${{ steps.meta.outputs.version }}
           PLUGIN_SLUG: ${{ steps.meta.outputs.slug }}
+          PLUGIN_DIR: ${{ steps.meta.outputs.plugin_dir }}
         run: |
           set -euo pipefail
-          bin/package.sh "$PLUGIN_SLUG" "$PLUGIN_VERSION"
+          bin/package.sh "$PLUGIN_SLUG" "$PLUGIN_VERSION" "$PLUGIN_DIR"
           echo "zip_path=./build/${PLUGIN_SLUG}-${PLUGIN_VERSION}.zip" >> "$GITHUB_OUTPUT"
           echo "zip_name=${PLUGIN_SLUG}-${PLUGIN_VERSION}.zip" >> "$GITHUB_OUTPUT"
 
