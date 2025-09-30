@@ -39,6 +39,16 @@ font-size: 1.25rem;
 margin-bottom: 1rem;
 }
 
+.fp-privacy-revision-notice {
+margin-bottom: 1rem;
+padding: 12px 16px;
+border-radius: 8px;
+background: rgba(255, 255, 255, 0.12);
+border: 1px solid var(--fp-privacy-border);
+font-weight: 600;
+color: inherit;
+}
+
 .fp-privacy-banner-buttons {
 display: flex;
 flex-wrap: wrap;

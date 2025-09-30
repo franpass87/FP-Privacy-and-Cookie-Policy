@@ -228,14 +228,21 @@ class Validator {
 			$language = self::locale( $language, 'en_US' );
 			$source   = isset( $texts[ $language ] ) && is_array( $texts[ $language ] ) ? $texts[ $language ] : array();
 
-			$sanitized[ $language ] = array(
-				'title'       => self::text( $source['title'] ?? ( $defaults['title'] ?? '' ) ),
-				'message'     => self::textarea( $source['message'] ?? ( $defaults['message'] ?? '' ) ),
-				'btn_accept'  => self::text( $source['btn_accept'] ?? ( $defaults['btn_accept'] ?? '' ) ),
-				'btn_reject'  => self::text( $source['btn_reject'] ?? ( $defaults['btn_reject'] ?? '' ) ),
-				'btn_prefs'   => self::text( $source['btn_prefs'] ?? ( $defaults['btn_prefs'] ?? '' ) ),
-				'link_policy' => self::url( $source['link_policy'] ?? ( $defaults['link_policy'] ?? '' ) ),
-			);
+                        $sanitized[ $language ] = array(
+                                'title'           => self::text( $source['title'] ?? ( $defaults['title'] ?? '' ) ),
+                                'message'         => self::textarea( $source['message'] ?? ( $defaults['message'] ?? '' ) ),
+                                'btn_accept'      => self::text( $source['btn_accept'] ?? ( $defaults['btn_accept'] ?? '' ) ),
+                                'btn_reject'      => self::text( $source['btn_reject'] ?? ( $defaults['btn_reject'] ?? '' ) ),
+                                'btn_prefs'       => self::text( $source['btn_prefs'] ?? ( $defaults['btn_prefs'] ?? '' ) ),
+                                'modal_title'     => self::text( $source['modal_title'] ?? ( $defaults['modal_title'] ?? '' ) ),
+                                'modal_close'     => self::text( $source['modal_close'] ?? ( $defaults['modal_close'] ?? '' ) ),
+                                'modal_save'      => self::text( $source['modal_save'] ?? ( $defaults['modal_save'] ?? '' ) ),
+                                'revision_notice' => self::text( $source['revision_notice'] ?? ( $defaults['revision_notice'] ?? '' ) ),
+                                'toggle_locked'   => self::text( $source['toggle_locked'] ?? ( $defaults['toggle_locked'] ?? '' ) ),
+                                'toggle_enabled'  => self::text( $source['toggle_enabled'] ?? ( $defaults['toggle_enabled'] ?? '' ) ),
+                                'debug_label'     => self::text( $source['debug_label'] ?? ( $defaults['debug_label'] ?? '' ) ),
+                                'link_policy'     => self::url( $source['link_policy'] ?? ( $defaults['link_policy'] ?? '' ) ),
+                        );
 		}
 
 		return $sanitized;

@@ -4,7 +4,7 @@ FP Privacy and Cookie Policy is a WordPress plugin that delivers a full GDPR/ePr
 
 ## Key Features
 
-- GDPR-ready cookie banner with granular preferences, preview mode, accessibility-focused modal, and configurable palette.
+- GDPR-ready cookie banner with granular preferences, preview mode, accessibility-focused modal, revision reminder, and configurable palette.
 - Automated privacy and cookie policy generation based on detected integrations (Google Analytics 4, GTM, Meta Pixel, Hotjar, etc.).
 - Consent registry stored in a dedicated database table with hashed IPs, daily retention cleanup, CSV export, and analytics summary.
 - Google Consent Mode v2 orchestration and `dataLayer` integration with `fp-consent-change` CustomEvent.
@@ -28,11 +28,12 @@ FP Privacy and Cookie Policy is a WordPress plugin that delivers a full GDPR/ePr
 
 1. Navigate to **Privacy & Cookie → Settings**.
 2. Configure active languages, banner copy, layout, palette, consent mode defaults, retention, and controller/DPO details.
-3. Use the live preview and color contrast checker to validate accessible palettes.
-4. Save settings and optionally bump the consent revision to re-trigger the banner for returning visitors.
-5. Use **Policy editor** to customize or regenerate documents. Regeneration invokes the detector registry and updates pages while bumping the revision.
-6. Review the **Consent log** for event breakdowns, filters, and CSV export.
-7. **Tools** allow JSON import/export, regeneration shortcuts, and revision reset. The quick guide documents shortcodes, blocks, and hooks.
+3. Use the live preview panel and color contrast checker to validate accessible palettes as you type.
+4. Observe the stale snapshot notice above the form whenever detected services or generated documents are older than two weeks.
+5. Save settings and optionally bump the consent revision to re-trigger the banner for returning visitors.
+6. Use **Policy editor** to customize or regenerate documents. Regeneration invokes the detector registry and updates pages while bumping the revision.
+7. Review the **Consent log** for event breakdowns, filters, and CSV export.
+8. **Tools** allow JSON import/export, regeneration shortcuts, and revision reset. The quick guide documents shortcodes, blocks, and hooks.
 
 ## Shortcodes
 
@@ -113,6 +114,7 @@ Namespace: `fp-privacy/v1`
 - No compiled assets or `.min` files; ES5 scripts enqueue directly.
 - Autoloading uses a lightweight PSR-4 routine scoped to the `FP\Privacy` namespace.
 - Tests are not bundled; follow the QA checklist for manual verification.
+- Run `bin/package.sh` from the repository root to create a distributable ZIP without development artefacts.
 
 ## License
 

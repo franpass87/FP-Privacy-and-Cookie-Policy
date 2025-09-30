@@ -152,12 +152,14 @@ return new WP_Error( 'fp_privacy_rate_limited', \__( 'Too many requests. Please 
 $event  = \\sanitize_text_field( $request->get_param( 'event' ) );
 $states = $request->get_param( 'states' );
 $lang   = \\sanitize_text_field( $request->get_param( 'lang' ) );
+$consent_id = $request->get_param( 'consent_id' );
+$consent_id = $consent_id ? \\sanitize_text_field( $consent_id ) : '';
 
 if ( ! \is_array( $states ) ) {
 $states = array();
 }
 
-$result = $this->state->save_event( $event, $states, $lang );
+$result = $this->state->save_event( $event, $states, $lang, $consent_id );
 
 return new WP_REST_Response( $result, 200 );
 }

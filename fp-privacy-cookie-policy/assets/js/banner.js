@@ -24,6 +24,9 @@ var layout = data.options.layout || {};
 var texts = data.options.texts || {};
 var rest = data.rest || {};
 var consentDefaults = data.options.mode || {};
+var consentCookie = data.cookie || {};
+var focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+var lastFocusedElement = null;
 
 var dataset = root.dataset || {};
 var forceDisplay = false;
@@ -47,6 +50,7 @@ forceDisplay = true;
 var modalOverlay;
 var modal;
 var banner;
+var revisionNotice;
 
 document.addEventListener( 'DOMContentLoaded', function () {
 buildBanner();
@@ -77,6 +81,14 @@ banner.appendChild( title );
 var message = document.createElement( 'p' );
 message.innerHTML = texts.message || '';
 banner.appendChild( message );
+
+revisionNotice = document.createElement( 'div' );
+revisionNotice.className = 'fp-privacy-revision-notice';
+revisionNotice.style.display = 'none';
+if ( texts.revision_notice ) {
+    revisionNotice.textContent = texts.revision_notice;
+}
+banner.appendChild( revisionNotice );
 
 if ( texts.link_policy ) {
 var link = document.createElement( 'a' );
@@ -130,55 +142,71 @@ return btn;
 function buildModal() {
 modalOverlay = document.createElement( 'div' );
 modalOverlay.className = 'fp-privacy-modal-overlay';
-modalOverlay.setAttribute( 'role', 'dialog' );
-modalOverlay.setAttribute( 'aria-modal', 'true' );
+modalOverlay.setAttribute( 'aria-hidden', 'true' );
+modalOverlay.setAttribute( 'tabindex', '-1' );
 
 modal = document.createElement( 'div' );
 modal.className = 'fp-privacy-modal';
+modal.setAttribute( 'role', 'dialog' );
+modal.setAttribute( 'aria-modal', 'true' );
 
 var close = document.createElement( 'button' );
 close.type = 'button';
 close.className = 'close';
-close.setAttribute( 'aria-label', 'Close preferences' );
+    close.setAttribute( 'aria-label', texts.modal_close || texts.btn_prefs || '' );
 close.innerHTML = '&times;';
 close.addEventListener( 'click', closeModal );
 modal.appendChild( close );
 
 var heading = document.createElement( 'h2' );
-heading.textContent = texts.btn_prefs || 'Preferences';
+heading.id = 'fp-privacy-modal-title';
+    heading.textContent = texts.modal_title || texts.btn_prefs || '';
 modal.appendChild( heading );
+modal.setAttribute( 'aria-labelledby', heading.id );
 
-for ( var key in categories ) {
-if ( ! categories.hasOwnProperty( key ) ) {
-continue;
-}
-var cat = categories[ key ];
-var wrapper = document.createElement( 'div' );
-wrapper.className = 'fp-privacy-category';
+    var savedCategories = state.categories || {};
 
-var title = document.createElement( 'h3' );
-title.textContent = cat.label || key;
-wrapper.appendChild( title );
+    for ( var key in categories ) {
+        if ( ! categories.hasOwnProperty( key ) ) {
+            continue;
+        }
+        var cat = categories[ key ];
+        var wrapper = document.createElement( 'div' );
+        wrapper.className = 'fp-privacy-category';
 
-var desc = document.createElement( 'p' );
-desc.innerHTML = cat.description || '';
-wrapper.appendChild( desc );
+        var title = document.createElement( 'h3' );
+        title.textContent = cat.label || key;
+        wrapper.appendChild( title );
 
-var toggle = document.createElement( 'label' );
-toggle.className = 'fp-privacy-switch';
+        var desc = document.createElement( 'p' );
+        desc.innerHTML = cat.description || '';
+        wrapper.appendChild( desc );
 
-var checkbox = document.createElement( 'input' );
-checkbox.type = 'checkbox';
-checkbox.value = key;
-checkbox.name = 'fp_privacy_category_' + key;
-checkbox.checked = ! cat.locked;
-checkbox.disabled = !! cat.locked;
-checkbox.dataset.category = key;
+        var toggle = document.createElement( 'label' );
+        toggle.className = 'fp-privacy-switch';
+
+        var checkbox = document.createElement( 'input' );
+        checkbox.type = 'checkbox';
+        checkbox.value = key;
+        checkbox.name = 'fp_privacy_category_' + key;
+        var saved = Object.prototype.hasOwnProperty.call( savedCategories, key ) ? savedCategories[ key ] : null;
+        if ( cat.locked ) {
+            checkbox.checked = true;
+            checkbox.disabled = true;
+        } else if ( saved !== null ) {
+            checkbox.checked = !! saved;
+        } else {
+            checkbox.checked = true;
+        }
+        if ( ! cat.locked ) {
+            checkbox.disabled = false;
+        }
+        checkbox.dataset.category = key;
 
 toggle.appendChild( checkbox );
 
 var toggleText = document.createElement( 'span' );
-toggleText.textContent = cat.locked ? 'Always active' : 'Enabled';
+        toggleText.textContent = cat.locked ? texts.toggle_locked || '' : texts.toggle_enabled || '';
 toggle.appendChild( toggleText );
 
 wrapper.appendChild( toggle );
@@ -188,7 +216,8 @@ modal.appendChild( wrapper );
 var actions = document.createElement( 'div' );
 actions.className = 'fp-privacy-modal-actions';
 
-var save = createButton( 'Save preferences', 'fp-privacy-button fp-privacy-button-primary' );
+    var saveLabel = texts.modal_save || texts.btn_prefs || '';
+    var save = createButton( saveLabel, 'fp-privacy-button fp-privacy-button-primary' );
 save.addEventListener( 'click', handleSavePreferences );
 actions.appendChild( save );
 
@@ -209,31 +238,43 @@ closeModal();
 }
 });
 
-document.addEventListener( 'keydown', function ( event ) {
-if ( 'Escape' === event.key && modalOverlay.style.display === 'flex' ) {
-closeModal();
-}
-});
+document.addEventListener( 'keydown', handleModalKeydown );
+
+updateRevisionNotice();
 }
 
 function showBanner() {
 banner.style.display = 'block';
+state.should_display = true;
+updateRevisionNotice();
 }
 
 function hideBanner() {
 banner.style.display = 'none';
+state.should_display = false;
+updateRevisionNotice();
 }
 
 function openModal() {
+lastFocusedElement = document.activeElement;
 modalOverlay.style.display = 'flex';
-var firstInput = modal.querySelector( 'input[type="checkbox"]:not(:disabled)' );
-if ( firstInput ) {
-firstInput.focus();
+modalOverlay.setAttribute( 'aria-hidden', 'false' );
+
+var focusable = modalOverlay.querySelectorAll( focusableSelector );
+if ( focusable.length ) {
+focusable[0].focus();
+} else {
+modalOverlay.focus();
 }
 }
 
 function closeModal() {
 modalOverlay.style.display = 'none';
+modalOverlay.setAttribute( 'aria-hidden', 'true' );
+
+if ( lastFocusedElement && lastFocusedElement.focus ) {
+lastFocusedElement.focus();
+}
 }
 
 function buildConsentPayload( grantAll, denyAll ) {
@@ -312,23 +353,47 @@ closeModal();
 }
 
 function persistConsent( event, payload ) {
-var consentMode = mapToConsentMode( payload );
-if ( window.fpPrivacyConsent ) {
-window.fpPrivacyConsent.update( consentMode );
-}
+    var consentMode = mapToConsentMode( payload );
+    if ( window.fpPrivacyConsent ) {
+        window.fpPrivacyConsent.update( consentMode );
+    }
 
-if ( typeof window.dataLayer === 'undefined' ) {
-window.dataLayer = [];
-}
+    if ( typeof window.dataLayer === 'undefined' ) {
+        window.dataLayer = [];
+    }
 
-window.dataLayer.push( {
-event: 'fp_consent_update',
-consent: consentMode,
-rev: state.revision,
-ts: Date.now(),
-} );
+    var timestamp = Date.now();
+    var consentId = ensureConsentId();
 
-document.dispatchEvent( new CustomEvent( 'fp-consent-change', { detail: { consent: consentMode, event: event, revision: state.revision } } ) );
+    window.dataLayer.push( {
+        event: 'fp_consent_update',
+        consent: consentMode,
+        rev: state.revision,
+        ts: timestamp,
+        timestamp: timestamp,
+        consentId: consentId,
+    } );
+
+    document.dispatchEvent(
+        new CustomEvent( 'fp-consent-change', {
+            detail: {
+                consent: consentMode,
+                event: event,
+                revision: state.revision,
+                timestamp: timestamp,
+                consentId: consentId,
+            },
+        } )
+    );
+
+    state.consent_id = consentId;
+    state.last_event = timestamp;
+    state.categories = Object.assign( {}, payload );
+    state.last_revision = state.revision;
+    state.should_display = false;
+    updateRevisionNotice();
+
+    var lang = state.lang || ( data.options.state ? data.options.state.lang : '' ) || document.documentElement.lang || 'en';
 
 if ( ! state.preview_mode && rest.url ) {
 window.fetch( rest.url, {
@@ -341,9 +406,123 @@ credentials: 'same-origin',
 body: JSON.stringify( {
 event: event,
 states: payload,
-lang: data.options.state ? data.options.state.lang : document.documentElement.lang || 'en',
+lang: lang,
+consent_id: consentId,
 } ),
-} ).catch( function () {} );
+} )
+    .then( function ( response ) {
+        if ( response && response.ok ) {
+            return response.json();
+        }
+
+        return null;
+    } )
+    .then( function ( result ) {
+        if ( result && result.consent_id ) {
+            state.consent_id = result.consent_id;
+        }
+    } )
+    .catch( function () {} );
+}
+
+hideBanner();
+
+function readConsentIdFromCookie() {
+    var name = ( consentCookie.name || 'fp_consent_state_id' ) + '=';
+    var parts = document.cookie ? document.cookie.split( ';' ) : [];
+
+    for ( var i = 0; i < parts.length; i++ ) {
+        var cookie = parts[ i ].trim();
+        if ( cookie.indexOf( name ) === 0 ) {
+            var value = cookie.substring( name.length );
+            var segments = value.split( '|' );
+            return segments[ 0 ] || '';
+        }
+    }
+
+    return '';
+}
+
+function ensureConsentId() {
+    if ( state.consent_id ) {
+        return state.consent_id;
+    }
+
+    var existing = readConsentIdFromCookie();
+    if ( existing ) {
+        state.consent_id = existing;
+        return existing;
+    }
+
+    var generated = generateConsentId();
+    state.consent_id = generated;
+
+    return generated;
+}
+
+function generateConsentId() {
+    if ( window.crypto && window.crypto.getRandomValues ) {
+        var bytes = new Uint8Array( 16 );
+        window.crypto.getRandomValues( bytes );
+        var output = '';
+
+        for ( var i = 0; i < bytes.length; i++ ) {
+            var hex = bytes[ i ].toString( 16 );
+            output += hex.length === 1 ? '0' + hex : hex;
+        }
+
+        return output;
+    }
+
+    return 'fpconsent' + Math.random().toString( 36 ).slice( 2 ) + Date.now().toString( 36 );
+}
+
+function updateRevisionNotice() {
+    if ( ! revisionNotice ) {
+        return;
+    }
+
+    if ( state.should_display && state.last_revision && state.last_revision < state.revision && texts.revision_notice ) {
+        revisionNotice.textContent = texts.revision_notice;
+        revisionNotice.style.display = 'block';
+    } else {
+        revisionNotice.style.display = 'none';
+    }
+}
+
+function handleModalKeydown( event ) {
+    if ( modalOverlay.style.display !== 'flex' ) {
+        return;
+    }
+
+    if ( event.key === 'Escape' ) {
+        event.preventDefault();
+        closeModal();
+        return;
+    }
+
+    if ( event.key !== 'Tab' ) {
+        return;
+    }
+
+    var focusable = modalOverlay.querySelectorAll( focusableSelector );
+    if ( ! focusable.length ) {
+        return;
+    }
+
+    var first = focusable[0];
+    var last = focusable[ focusable.length - 1 ];
+    var active = document.activeElement;
+
+    if ( event.shiftKey ) {
+        if ( active === first || active === modalOverlay ) {
+            event.preventDefault();
+            last.focus();
+        }
+    } else if ( active === last ) {
+        event.preventDefault();
+        first.focus();
+    }
 }
 
 hideBanner();
@@ -352,7 +531,8 @@ hideBanner();
 function renderCookieDebug() {
 var panel = document.createElement( 'div' );
 panel.className = 'fp-privacy-cookie-debug';
-panel.innerHTML = '<strong>Cookie debug:</strong> ' + document.cookie;
+    var label = texts.debug_label || '';
+    panel.innerHTML = '<strong>' + label + '</strong> ' + document.cookie;
 banner.appendChild( panel );
 }
 })();
