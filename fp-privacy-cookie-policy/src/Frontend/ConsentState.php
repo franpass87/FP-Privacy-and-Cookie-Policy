@@ -64,7 +64,7 @@ $this->log_model = $log_model;
             'lang'           => $lang,
         );
 
-        if ( ! $needs_consent ) {
+        if ( $cookie['id'] ) {
             $record = $this->log_model->query(
                 array(
 'paged'    => 1,
@@ -76,8 +76,9 @@ $this->log_model = $log_model;
 )
 );
 if ( $record ) {
-$states['categories'] = $record[0]['states'];
-$states['last_event'] = $record[0]['created_at'];
+$states['categories']    = $record[0]['states'];
+$states['last_event']    = $record[0]['created_at'];
+$states['last_revision'] = isset( $record[0]['rev'] ) ? (int) $record[0]['rev'] : 0;
             }
         }
 
@@ -93,50 +94,79 @@ $states['last_event'] = $record[0]['created_at'];
         );
     }
 
-/**
- * Save consent event.
- *
- * @param string               $event  Event.
- * @param array<string, mixed> $states States.
- * @param string               $lang   Language.
- *
- * @return array<string, mixed>
- */
-public function save_event( $event, array $states, $lang ) {
-$preview = (bool) $this->options->get( 'preview_mode', false );
-$cookie  = $this->get_cookie_payload();
+    /**
+     * Save consent event.
+     *
+     * @param string               $event       Event.
+     * @param array<string, mixed> $states      States.
+     * @param string               $lang        Language.
+     * @param string               $consent_id  Optional consent identifier.
+     *
+     * @return array<string, mixed>
+     */
+    public function save_event( $event, array $states, $lang, $consent_id = '' ) {
+        $preview = (bool) $this->options->get( 'preview_mode', false );
+        $cookie  = $this->get_cookie_payload();
 
-if ( empty( $cookie['id'] ) ) {
-$cookie['id'] = $this->generate_consent_id();
-}
+        $event  = in_array( $event, array( 'accept_all', 'reject_all', 'consent', 'reset' ), true ) ? $event : 'consent';
+        $states = $this->sanitize_states_payload( $states );
+        $lang   = $this->options->normalize_language( $lang );
 
-$revision = (int) $this->options->get( 'consent_revision', 1 );
-$cookie['rev'] = $revision;
+        if ( empty( $cookie['id'] ) ) {
+            $provided = \sanitize_text_field( $consent_id );
+            $cookie['id'] = '' !== $provided ? $provided : $this->generate_consent_id();
+        }
 
-if ( ! $preview ) {
-$this->log_model->insert(
-array(
-'consent_id' => $cookie['id'],
-'event'      => $event,
-'states'     => $states,
-'ip_hash'    => $this->get_ip_hash(),
-'ua'         => $this->get_user_agent(),
-'lang'       => $lang,
-'rev'        => $revision,
-)
-);
+        $revision       = (int) $this->options->get( 'consent_revision', 1 );
+        $cookie['rev'] = $revision;
 
-\do_action( 'fp_consent_update', $states, $event, $revision );
-}
+        if ( ! $preview ) {
+            $this->log_model->insert(
+                array(
+                    'consent_id' => $cookie['id'],
+                    'event'      => $event,
+                    'states'     => $states,
+                    'ip_hash'    => $this->get_ip_hash(),
+                    'ua'         => $this->get_user_agent(),
+                    'lang'       => $lang,
+                    'rev'        => $revision,
+                )
+            );
 
-$this->set_cookie( $cookie['id'], $revision );
+            \do_action( 'fp_consent_update', $states, $event, $revision );
+        }
 
-return array(
-'consent_id' => $cookie['id'],
-'revision'   => $revision,
-'preview'    => $preview,
-);
-}
+        $this->set_cookie( $cookie['id'], $revision );
+
+        return array(
+            'consent_id' => $cookie['id'],
+            'revision'   => $revision,
+            'preview'    => $preview,
+        );
+    }
+
+    /**
+     * Sanitize the states payload to booleans keyed by safe category slugs.
+     *
+     * @param array<string, mixed> $states Raw states payload.
+     *
+     * @return array<string, bool>
+     */
+    private function sanitize_states_payload( array $states ) {
+        $sanitized = array();
+
+        foreach ( $states as $key => $value ) {
+            $clean_key = \sanitize_key( $key );
+
+            if ( '' === $clean_key ) {
+                continue;
+            }
+
+            $sanitized[ $clean_key ] = (bool) $value;
+        }
+
+        return $sanitized;
+    }
 
 /**
  * Reset consent state.

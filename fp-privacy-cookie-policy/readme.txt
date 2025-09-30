@@ -16,7 +16,7 @@ FP Privacy and Cookie Policy combines privacy notice automation with a fully acc
 
 = Highlights =
 
-* GDPR-friendly banner with floating/bar layouts, palette syncing, preview mode, and accessible modal controls.
+* GDPR-friendly banner with floating/bar layouts, palette syncing, preview mode, revision notice, and accessible modal controls.
 * Consent registry with hashed IP, retention policies, CSV exports, and 30-day summaries.
 * Auto-detected services (GA4, GTM, Meta Pixel, Hotjar, reCAPTCHA, YouTube, Matomo, TikTok, etc.) feeding localized privacy/cookie policy templates.
 * Google Consent Mode v2 defaults/updates plus `fp-consent-change` CustomEvent and `dataLayer` push.
@@ -31,8 +31,10 @@ FP Privacy and Cookie Policy combines privacy notice automation with a fully acc
 1. Upload the `fp-privacy-cookie-policy` directory to `/wp-content/plugins/`.
 2. Activate through the **Plugins** menu (or network activate on multisite).
 3. Configure languages, banner content, palette, Consent Mode defaults, and controller/DPO details under **Privacy & Cookie → Settings**.
-4. Review/regenerate the privacy and cookie policies via **Privacy & Cookie → Policy editor**.
-5. Monitor events in **Privacy & Cookie → Consent log** and export CSVs if required.
+4. Use the live preview panel and contrast warning on the settings screen to validate copy and palettes as you edit.
+5. Review the stale snapshot notice that links to the Tools tab whenever generated policies are older than two weeks.
+6. Review/regenerate the privacy and cookie policies via **Privacy & Cookie → Policy editor**.
+7. Monitor events in **Privacy & Cookie → Consent log** and export CSVs if required.
 
 == Frequently Asked Questions ==
 
@@ -51,6 +53,10 @@ Use the "Reset consent (bump revision)" button in **Privacy & Cookie → Setting
 = Where do I find GTM examples? =
 
 See the quick guide screen inside the plugin and the repository `README.md` for sample dataLayer usage and Consent Mode integration notes.
+
+= How do I build a distributable ZIP? =
+
+Run `bin/package.sh` from the repository root. The script produces a clean archive under `dist/` without minified or binary artefacts.
 
 == Changelog ==
 

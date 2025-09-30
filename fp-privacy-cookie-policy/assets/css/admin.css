@@ -10,6 +10,60 @@ border: 1px solid #d1d5db;
 border-radius: 8px;
 }
 
+.fp-privacy-settings .fp-privacy-preview {
+margin-bottom: 24px;
+background: #fff;
+padding: 20px;
+border: 1px solid #d1d5db;
+border-radius: 8px;
+}
+
+.fp-privacy-preview-controls {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-bottom: 16px;
+}
+
+.fp-privacy-preview-controls select {
+min-width: 160px;
+}
+
+.fp-privacy-preview-frame {
+background: #f8fafc;
+border: 1px dashed #cbd5f5;
+border-radius: 8px;
+padding: 24px;
+min-height: 220px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.fp-privacy-preview-frame .fp-privacy-banner {
+position: relative;
+left: auto;
+right: auto;
+bottom: auto;
+top: auto;
+transform: none;
+margin: 0 auto;
+}
+
+.fp-privacy-preview-frame .fp-privacy-banner.is-bar {
+width: 100%;
+max-width: 100%;
+border-radius: 0;
+}
+
+.fp-privacy-preview-frame .fp-privacy-banner.position-top {
+align-self: flex-start;
+}
+
+.fp-privacy-preview-frame .fp-privacy-banner.position-bottom {
+align-self: flex-end;
+}
+
 .fp-privacy-settings label {
 display: block;
 margin-bottom: 12px;

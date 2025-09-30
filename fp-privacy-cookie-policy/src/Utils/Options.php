@@ -138,12 +138,19 @@ $default_palette = array(
 );
 
 $banner_default = array(
-    'title'       => \__('We value your privacy', 'fp-privacy' ),
-    'message'     => \__('We use cookies to improve your experience. You can accept all cookies or manage your preferences.', 'fp-privacy' ),
-    'btn_accept'  => \__('Accept all', 'fp-privacy' ),
-    'btn_reject'  => \__('Reject all', 'fp-privacy' ),
-    'btn_prefs'   => \__('Manage preferences', 'fp-privacy' ),
-    'link_policy' => '',
+    'title'          => \__( 'We value your privacy', 'fp-privacy' ),
+    'message'        => \__( 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.', 'fp-privacy' ),
+    'btn_accept'     => \__( 'Accept all', 'fp-privacy' ),
+    'btn_reject'     => \__( 'Reject all', 'fp-privacy' ),
+    'btn_prefs'      => \__( 'Manage preferences', 'fp-privacy' ),
+    'modal_title'    => \__( 'Privacy preferences', 'fp-privacy' ),
+    'modal_close'    => \__( 'Close preferences', 'fp-privacy' ),
+    'modal_save'     => \__( 'Save preferences', 'fp-privacy' ),
+    'revision_notice'=> \__( 'We have updated our policy. Please review your preferences.', 'fp-privacy' ),
+    'toggle_locked'  => \__( 'Always active', 'fp-privacy' ),
+    'toggle_enabled' => \__( 'Enabled', 'fp-privacy' ),
+    'debug_label'    => \__( 'Cookie debug:', 'fp-privacy' ),
+    'link_policy'    => '',
 );
 
 $category_defaults = array(

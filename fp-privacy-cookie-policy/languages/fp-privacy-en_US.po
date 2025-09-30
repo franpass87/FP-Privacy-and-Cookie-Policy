@@ -978,3 +978,39 @@ msgid ""
 msgstr ""
 "The modal displays a summary of the last recorded consent for additional "
 "context."
+#: src/Admin/Settings.php:134 src/Admin/Settings.php:146
+msgid "Revision notice message"
+msgstr "Revision notice message"
+
+#: src/Admin/Settings.php:171
+msgid "Banner preview"
+msgstr "Banner preview"
+
+#: src/Admin/Settings.php:172
+msgid "Adjust copy, colors, and layout to see a live preview of the cookie banner."
+msgstr "Adjust copy, colors, and layout to see a live preview of the cookie banner."
+
+#: src/Admin/Settings.php:175 src/Admin/Settings.php:109
+#: assets/js/admin.js:62
+msgid "Preview language"
+msgstr "Preview language"
+
+#: src/Admin/Settings.php:120
+msgid "Policies generated on %s may be outdated. Regenerate them from the Tools tab."
+msgstr "Policies generated on %s may be outdated. Regenerate them from the Tools tab."
+
+#: src/Admin/Settings.php:121
+msgid "Policies have not been generated yet. Run the policy generator from the Tools tab."
+msgstr "Policies have not been generated yet. Run the policy generator from the Tools tab."
+
+#: src/Admin/Settings.php:122
+msgid "Open Tools"
+msgstr "Open Tools"
+
+#: src/Utils/Options.php:150
+msgid "We have updated our policy. Please review your preferences."
+msgstr "We have updated our policy. Please review your preferences."
+
+#: assets/js/admin.js:51
+msgid "Update the banner texts above to preview the banner."
+msgstr "Update the banner texts above to preview the banner."
