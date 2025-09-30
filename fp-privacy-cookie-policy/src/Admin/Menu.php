@@ -19,7 +19,7 @@ const MENU_SLUG = 'fp-privacy';
  * @return void
  */
 public function hooks() {
-\\add_action( 'admin_menu', array( $this, 'register_menu' ) );
+\add_action( 'admin_menu', array( $this, 'register_menu' ) );
 }
 
 /**
@@ -28,11 +28,11 @@ public function hooks() {
  * @return void
  */
 public function register_menu() {
-if ( ! \\current_user_can( 'manage_options' ) ) {
+if ( ! \current_user_can( 'manage_options' ) ) {
 return;
 }
 
-\\add_menu_page(
+\add_menu_page(
 \__( 'Privacy & Cookie', 'fp-privacy' ),
 \__( 'Privacy & Cookie', 'fp-privacy' ),
 'manage_options',
@@ -42,7 +42,7 @@ array( $this, 'render_settings_page' ),
 59
 );
 
-\\add_submenu_page(
+\add_submenu_page(
 self::MENU_SLUG,
 \__( 'Settings', 'fp-privacy' ),
 \__( 'Settings', 'fp-privacy' ),
@@ -51,7 +51,7 @@ self::MENU_SLUG,
 array( $this, 'render_settings_page' )
 );
 
-\\add_submenu_page(
+\add_submenu_page(
 self::MENU_SLUG,
 \__( 'Policy editor', 'fp-privacy' ),
 \__( 'Policy editor', 'fp-privacy' ),
@@ -60,7 +60,7 @@ self::MENU_SLUG,
 array( $this, 'render_policy_editor' )
 );
 
-\\add_submenu_page(
+\add_submenu_page(
 self::MENU_SLUG,
 \__( 'Consent log', 'fp-privacy' ),
 \__( 'Consent log', 'fp-privacy' ),
@@ -69,7 +69,7 @@ self::MENU_SLUG,
 array( $this, 'render_consent_log' )
 );
 
-\\add_submenu_page(
+\add_submenu_page(
 self::MENU_SLUG,
 \__( 'Tools', 'fp-privacy' ),
 \__( 'Tools', 'fp-privacy' ),
@@ -78,7 +78,7 @@ self::MENU_SLUG,
 array( $this, 'render_tools' )
 );
 
-\\add_submenu_page(
+\add_submenu_page(
 self::MENU_SLUG,
 \__( 'Quick guide', 'fp-privacy' ),
 \__( 'Quick guide', 'fp-privacy' ),
@@ -94,7 +94,7 @@ array( $this, 'render_guide' )
  * @return void
  */
 public function render_settings_page() {
-\\do_action( 'fp_privacy_admin_page_settings' );
+\do_action( 'fp_privacy_admin_page_settings' );
 }
 
 /**
@@ -103,7 +103,7 @@ public function render_settings_page() {
  * @return void
  */
 public function render_policy_editor() {
-\\do_action( 'fp_privacy_admin_page_policy_editor' );
+\do_action( 'fp_privacy_admin_page_policy_editor' );
 }
 
 /**
@@ -112,7 +112,7 @@ public function render_policy_editor() {
  * @return void
  */
 public function render_consent_log() {
-\\do_action( 'fp_privacy_admin_page_consent_log' );
+\do_action( 'fp_privacy_admin_page_consent_log' );
 }
 
 /**
@@ -121,7 +121,7 @@ public function render_consent_log() {
  * @return void
  */
 public function render_tools() {
-\\do_action( 'fp_privacy_admin_page_tools' );
+\do_action( 'fp_privacy_admin_page_tools' );
 }
 
 /**
@@ -130,6 +130,6 @@ public function render_tools() {
  * @return void
  */
 public function render_guide() {
-\\do_action( 'fp_privacy_admin_page_guide' );
+\do_action( 'fp_privacy_admin_page_guide' );
 }
 }

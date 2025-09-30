@@ -82,7 +82,7 @@ WP_CLI::log( 'Total events: ' . $total );
 foreach ( $summary as $event => $count ) {
 WP_CLI::log( ucfirst( str_replace( '_', ' ', $event ) ) . ': ' . $count );
 }
-$next = \\wp_next_scheduled( 'fp_privacy_cleanup' );
+$next = \wp_next_scheduled( 'fp_privacy_cleanup' );
 WP_CLI::log( 'Next cleanup: ' . ( $next ? gmdate( 'c', $next ) : 'not scheduled' ) );
 }
 
@@ -102,8 +102,8 @@ WP_CLI::warning( 'Existing table dropped.' );
 }
 
 $this->log_model->maybe_create_table();
-if ( ! \\wp_next_scheduled( 'fp_privacy_cleanup' ) ) {
-\\wp_schedule_event( time() + DAY_IN_SECONDS, 'daily', 'fp_privacy_cleanup' );
+if ( ! \wp_next_scheduled( 'fp_privacy_cleanup' ) ) {
+\wp_schedule_event( time() + DAY_IN_SECONDS, 'daily', 'fp_privacy_cleanup' );
 }
 WP_CLI::success( 'Consent log table ready.' );
 }
@@ -173,7 +173,7 @@ WP_CLI::error( 'Missing --file parameter.' );
 }
 
 $file = $assoc_args['file'];
-$written = file_put_contents( $file, \\wp_json_encode( $this->options->all(), JSON_PRETTY_PRINT ) );
+$written = file_put_contents( $file, \wp_json_encode( $this->options->all(), JSON_PRETTY_PRINT ) );
 if ( ! $written ) {
 WP_CLI::error( 'Unable to write file.' );
 }
@@ -197,7 +197,7 @@ WP_CLI::error( 'Invalid JSON file.' );
 }
 
 $this->options->set( $data );
-\\do_action( 'fp_privacy_settings_imported', $this->options->all() );
+\do_action( 'fp_privacy_settings_imported', $this->options->all() );
 
 WP_CLI::success( 'Settings imported.' );
 }
@@ -224,7 +224,7 @@ WP_CLI::log( sprintf( '%s [%s] - %s', $service['name'], $service['category'], $s
  * : Increment consent revision after regeneration.
  */
 public function regenerate( $args, $assoc_args ) {
-$lang = isset( $assoc_args['lang'] ) ? $assoc_args['lang'] : \\get_locale();
+$lang = isset( $assoc_args['lang'] ) ? $assoc_args['lang'] : \get_locale();
 $privacy = $this->generator->generate_privacy_policy( $lang );
 $cookie  = $this->generator->generate_cookie_policy( $lang );
 

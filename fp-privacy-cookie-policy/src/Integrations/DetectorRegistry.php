@@ -25,11 +25,11 @@ $services = array(
 'policy_url'  => 'https://policies.google.com/privacy',
 'cookies'     => array( '_ga', '_ga_*', '_gid' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_ga4', 'Analytics measurement and reporting', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_ga4', 'Analytics measurement and reporting', \get_locale() ),
 'retention'   => '26 months',
 'data_location' => 'United States',
 'detector'    => function () {
-return \\wp_script_is( 'google-analytics', 'enqueued' ) || \\get_option( 'ga_dash_tracking' ) || defined( 'GA_MEASUREMENT_ID' );
+return \wp_script_is( 'google-analytics', 'enqueued' ) || \get_option( 'ga_dash_tracking' ) || defined( 'GA_MEASUREMENT_ID' );
 },
 ),
 'gtm'            => array(
@@ -39,11 +39,11 @@ return \\wp_script_is( 'google-analytics', 'enqueued' ) || \\get_option( 'ga_das
 'policy_url'  => 'https://policies.google.com/privacy',
 'cookies'     => array( '_gtm', '_dc_gtm_*' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_gtm', 'Tag management and marketing integrations', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_gtm', 'Tag management and marketing integrations', \get_locale() ),
 'retention'   => '14 months',
 'data_location' => 'United States',
 'detector'    => function () {
-return \\has_action( 'wp_head', 'gtm4wp_wp_head' ) || defined( 'GTM4WP_VERSION' );
+return \has_action( 'wp_head', 'gtm4wp_wp_head' ) || defined( 'GTM4WP_VERSION' );
 },
 ),
 'facebook_pixel' => array(
@@ -53,11 +53,11 @@ return \\has_action( 'wp_head', 'gtm4wp_wp_head' ) || defined( 'GTM4WP_VERSION' 
 'policy_url'  => 'https://www.facebook.com/policy.php',
 'cookies'     => array( '_fbp', 'fr' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_facebook_pixel', 'Advertising conversion tracking', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_facebook_pixel', 'Advertising conversion tracking', \get_locale() ),
 'retention'   => '3 months',
 'data_location' => 'United States',
 'detector'    => function () {
-return defined( 'FACEBOOK_PIXEL_ID' ) || \\has_action( 'wp_head', 'facebook_pixel_head' );
+return defined( 'FACEBOOK_PIXEL_ID' ) || \has_action( 'wp_head', 'facebook_pixel_head' );
 },
 ),
 'hotjar'         => array(
@@ -67,11 +67,11 @@ return defined( 'FACEBOOK_PIXEL_ID' ) || \\has_action( 'wp_head', 'facebook_pixe
 'policy_url'  => 'https://www.hotjar.com/legal/policies/privacy/',
 'cookies'     => array( '_hjSession_*', '_hjFirstSeen' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_hotjar', 'User behavior analytics and feedback', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_hotjar', 'User behavior analytics and feedback', \get_locale() ),
 'retention'   => '1 year',
 'data_location' => 'European Union',
 'detector'    => function () {
-return \\wp_script_is( 'hotjar-tracking', 'enqueued' ) || defined( 'HOTJAR_SITE_ID' );
+return \wp_script_is( 'hotjar-tracking', 'enqueued' ) || defined( 'HOTJAR_SITE_ID' );
 },
 ),
 'clarity'        => array(
@@ -81,11 +81,11 @@ return \\wp_script_is( 'hotjar-tracking', 'enqueued' ) || defined( 'HOTJAR_SITE_
 'policy_url'  => 'https://privacy.microsoft.com/',
 'cookies'     => array( '_clck', '_clsk' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_clarity', 'Session replays and heatmaps', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_clarity', 'Session replays and heatmaps', \get_locale() ),
 'retention'   => '1 year',
 'data_location' => 'United States',
 'detector'    => function () {
-return defined( 'CLARITY_PROJECT_ID' ) || \\has_action( 'wp_head', 'ms_clarity_tag' );
+return defined( 'CLARITY_PROJECT_ID' ) || \has_action( 'wp_head', 'ms_clarity_tag' );
 },
 ),
 recaptcha        => array(
@@ -95,11 +95,11 @@ recaptcha        => array(
 'policy_url'  => 'https://policies.google.com/privacy',
 'cookies'     => array( '_GRECAPTCHA' ),
 'legal_basis' => 'Legitimate interest',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_recaptcha', 'Protect forms from spam and abuse', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_recaptcha', 'Protect forms from spam and abuse', \get_locale() ),
 'retention'   => 'Persistent',
 'data_location' => 'United States',
 'detector'    => function () {
-return \\wp_script_is( 'google-recaptcha', 'enqueued' ) || defined( 'RECAPTCHA_SITE_KEY' );
+return \wp_script_is( 'google-recaptcha', 'enqueued' ) || defined( 'RECAPTCHA_SITE_KEY' );
 },
 ),
 youtube          => array(
@@ -109,11 +109,11 @@ youtube          => array(
 'policy_url'  => 'https://policies.google.com/privacy',
 'cookies'     => array( 'VISITOR_INFO1_LIVE', 'YSC' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_youtube', 'Embedded video playback', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_youtube', 'Embedded video playback', \get_locale() ),
 'retention'   => '6 months',
 'data_location' => 'United States',
 'detector'    => function () {
-return \\has_shortcode( \\get_post_field( 'post_content', \\get_the_ID() ), 'youtube' ) || \\has_block( 'core-embed/youtube' );
+return \has_shortcode( \get_post_field( 'post_content', \get_the_ID() ), 'youtube' ) || \has_block( 'core-embed/youtube' );
 },
 ),
 'vimeo'           => array(
@@ -123,11 +123,11 @@ return \\has_shortcode( \\get_post_field( 'post_content', \\get_the_ID() ), 'you
 'policy_url'  => 'https://vimeo.com/privacy',
 'cookies'     => array( 'vuid' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_vimeo', 'Embedded video playback', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_vimeo', 'Embedded video playback', \get_locale() ),
 'retention'   => '2 years',
 'data_location' => 'United States',
 'detector'    => function () {
-return \\has_block( 'core-embed/vimeo' );
+return \has_block( 'core-embed/vimeo' );
 },
 ),
 'linkedin'        => array(
@@ -137,11 +137,11 @@ return \\has_block( 'core-embed/vimeo' );
 'policy_url'  => 'https://www.linkedin.com/legal/privacy-policy',
 'cookies'     => array( 'bcookie', 'li_sugr' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_linkedin', 'Advertising conversion tracking', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_linkedin', 'Advertising conversion tracking', \get_locale() ),
 'retention'   => '6 months',
 'data_location' => 'United States',
 'detector'    => function () {
-return defined( 'LI_AJAX' ) || \\has_action( 'wp_head', 'linkedin_insight' );
+return defined( 'LI_AJAX' ) || \has_action( 'wp_head', 'linkedin_insight' );
 },
 ),
 tiktok           => array(
@@ -151,7 +151,7 @@ tiktok           => array(
 'policy_url'  => 'https://www.tiktok.com/legal/privacy-policy',
 'cookies'     => array( '_ttp' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_tiktok', 'Advertising conversion tracking', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_tiktok', 'Advertising conversion tracking', \get_locale() ),
 'retention'   => '13 months',
 'data_location' => 'United States',
 'detector'    => function () {
@@ -165,11 +165,11 @@ return defined( 'TIKTOK_PIXEL_ID' );
 'policy_url'  => 'https://matomo.org/privacy-policy/',
 'cookies'     => array( '_pk_id*', '_pk_ses*' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_matomo', 'Self-hosted analytics', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_matomo', 'Self-hosted analytics', \get_locale() ),
 'retention'   => '13 months',
 'data_location' => 'European Union',
 'detector'    => function () {
-return defined( 'MATOMO_VERSION' ) || \\wp_script_is( 'matomo-tracking', 'enqueued' );
+return defined( 'MATOMO_VERSION' ) || \wp_script_is( 'matomo-tracking', 'enqueued' );
 },
 ),
 'pinterest'      => array(
@@ -179,7 +179,7 @@ return defined( 'MATOMO_VERSION' ) || \\wp_script_is( 'matomo-tracking', 'enqueu
 'policy_url'  => 'https://policy.pinterest.com/privacy-policy',
 'cookies'     => array( '_pinterest_ct_*' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_pinterest', 'Advertising conversion tracking', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_pinterest', 'Advertising conversion tracking', \get_locale() ),
 'retention'   => '13 months',
 'data_location' => 'United States',
 'detector'    => function () {
@@ -193,11 +193,11 @@ return defined( 'PINTEREST_TAG_ID' );
 'policy_url'  => 'https://legal.hubspot.com/privacy-policy',
 'cookies'     => array( '__hstc', '__hssrc', '__hssc' ),
 'legal_basis' => 'Consent',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_hubspot', 'Marketing automation and CRM', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_hubspot', 'Marketing automation and CRM', \get_locale() ),
 'retention'   => '13 months',
 'data_location' => 'United States',
 'detector'    => function () {
-return defined( 'HUBSPOT_API_KEY' ) || \\wp_script_is( 'leadin-script-loader', 'enqueued' );
+return defined( 'HUBSPOT_API_KEY' ) || \wp_script_is( 'leadin-script-loader', 'enqueued' );
 },
 ),
 'woocommerce'    => array(
@@ -207,11 +207,11 @@ return defined( 'HUBSPOT_API_KEY' ) || \\wp_script_is( 'leadin-script-loader', '
 'policy_url'  => 'https://automattic.com/privacy/',
 'cookies'     => array( 'woocommerce_cart_hash', 'woocommerce_items_in_cart', 'wp_woocommerce_session_*' ),
 'legal_basis' => 'Contract',
-'purpose'     => \apply_filters( 'fp_privacy_service_purpose_woocommerce', 'E-commerce cart functionality', \\get_locale() ),
+'purpose'     => \apply_filters( 'fp_privacy_service_purpose_woocommerce', 'E-commerce cart functionality', \get_locale() ),
 'retention'   => 'Session',
 'data_location' => 'European Union',
 'detector'    => function () {
-return class_exists( '\\WooCommerce' );
+return class_exists( '\WooCommerce' );
 },
 ),
 );
@@ -231,7 +231,7 @@ $results  = array();
 foreach ( $registry as $key => $service ) {
 $detected = false;
 if ( isset( $service['detector'] ) && \is_callable( $service['detector'] ) ) {
-$detected = (bool) \\call_user_func( $service['detector'] );
+$detected = (bool) \call_user_func( $service['detector'] );
 }
 
 $service['key']      = $key;
