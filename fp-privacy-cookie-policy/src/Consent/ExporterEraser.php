@@ -94,7 +94,7 @@ global $wpdb;
 $page      = max( 1, (int) $page );
 $per_page  = 100;
 $offset    = ( $page - 1 ) * $per_page;
-$consent_id = \\sanitize_text_field( $email );
+$consent_id = \sanitize_text_field( $email );
 
 $results = $wpdb->get_results(
 $wpdb->prepare(
@@ -111,12 +111,12 @@ $data = array();
 foreach ( $results as $row ) {
 $data[] = array(
 'name'  => \__( 'Consent Log Entry', 'fp-privacy' ),
-'value' => \\wp_json_encode( array(
+'value' => \wp_json_encode( array(
 'event'   => $row['event'],
 'lang'    => $row['lang'],
 'rev'     => (int) $row['rev'],
 'time'    => $row['created_at'],
-'states'  => \\json_decode( $row['states'], true ),
+'states'  => \json_decode( $row['states'], true ),
 'user_agent' => $row['ua'],
 ) ),
 );
@@ -144,7 +144,7 @@ global $wpdb;
 $page       = max( 1, (int) $page );
 $per_page   = 100;
 $offset     = ( $page - 1 ) * $per_page;
-$consent_id = \\sanitize_text_field( $email );
+$consent_id = \sanitize_text_field( $email );
 
 $rows = $wpdb->get_results(
 $wpdb->prepare(
@@ -156,7 +156,7 @@ $offset
 ARRAY_A
 );
 
-$ids = \\wp_list_pluck( $rows, 'id' );
+$ids = \wp_list_pluck( $rows, 'id' );
 
 $removed = 0;
 if ( $ids ) {

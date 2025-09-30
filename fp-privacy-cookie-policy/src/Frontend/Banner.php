@@ -54,41 +54,41 @@ public function hooks() {
  * @return void
  */
 public function enqueue_assets() {
-$lang      = \\determine_locale();
+$lang      = \determine_locale();
 $state     = $this->state->get_frontend_state( $lang );
 $should    = $state['state']['should_display'];
 $preview   = $state['state']['preview_mode'];
-$shortcode = \\apply_filters( 'fp_privacy_force_enqueue_banner', false );
+$shortcode = \apply_filters( 'fp_privacy_force_enqueue_banner', false );
 
 if ( ! $should && ! $preview && ! $shortcode ) {
 return;
 }
 
 $handle = 'fp-privacy-banner';
-\\wp_register_style( $handle, FP_PRIVACY_PLUGIN_URL . 'assets/css/banner.css', array(), FP_PRIVACY_PLUGIN_VERSION );
-\\wp_register_script( $handle, FP_PRIVACY_PLUGIN_URL . 'assets/js/banner.js', array(), FP_PRIVACY_PLUGIN_VERSION, true );
-\\wp_register_script( 'fp-privacy-consent-mode', FP_PRIVACY_PLUGIN_URL . 'assets/js/consent-mode.js', array(), FP_PRIVACY_PLUGIN_VERSION, true );
+\wp_register_style( $handle, FP_PRIVACY_PLUGIN_URL . 'assets/css/banner.css', array(), FP_PRIVACY_PLUGIN_VERSION );
+\wp_register_script( $handle, FP_PRIVACY_PLUGIN_URL . 'assets/js/banner.js', array(), FP_PRIVACY_PLUGIN_VERSION, true );
+\wp_register_script( 'fp-privacy-consent-mode', FP_PRIVACY_PLUGIN_URL . 'assets/js/consent-mode.js', array(), FP_PRIVACY_PLUGIN_VERSION, true );
 
-\\wp_enqueue_style( $handle );
-\\wp_add_inline_style( $handle, $this->build_palette_css( $state['layout']['palette'] ) );
+\wp_enqueue_style( $handle );
+\wp_add_inline_style( $handle, $this->build_palette_css( $state['layout']['palette'] ) );
 
-\\wp_enqueue_script( 'fp-privacy-consent-mode' );
-\\wp_enqueue_script( $handle );
+\wp_enqueue_script( 'fp-privacy-consent-mode' );
+\wp_enqueue_script( $handle );
 
-\\wp_localize_script(
+\wp_localize_script(
 $handle,
 'FP_PRIVACY_DATA',
 array(
-'ajaxUrl'   => \\admin_url( 'admin-ajax.php' ),
-'nonce'     => \\wp_create_nonce( 'fp-privacy-consent' ),
+'ajaxUrl'   => \admin_url( 'admin-ajax.php' ),
+'nonce'     => \wp_create_nonce( 'fp-privacy-consent' ),
 'options'   => $state,
 'cookie'    => array(
 'name'     => ConsentState::COOKIE_NAME,
-'duration' => (int) \\apply_filters( 'fp_privacy_cookie_duration_days', 180 ),
+'duration' => (int) \apply_filters( 'fp_privacy_cookie_duration_days', 180 ),
 ),
 'rest'      => array(
-'url'   => \\esc_url_raw( \\rest_url( 'fp-privacy/v1/consent' ) ),
-'nonce' => \\wp_create_nonce( 'wp_rest' ),
+'url'   => \esc_url_raw( \rest_url( 'fp-privacy/v1/consent' ) ),
+'nonce' => \wp_create_nonce( 'wp_rest' ),
 ),
 )
 );
@@ -113,7 +113,7 @@ echo '<div id="fp-privacy-banner-root" aria-live="polite"></div>';
 private function build_palette_css( $palette ) {
 $css = ':root {';
 foreach ( $palette as $key => $value ) {
-$css .= '--fp-privacy-' . \\sanitize_key( $key ) . ':' . \sanitize_hex_color( $value ) . ';';
+$css .= '--fp-privacy-' . \sanitize_key( $key ) . ':' . \sanitize_hex_color( $value ) . ';';
 }
 $css .= '}';
 

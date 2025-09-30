@@ -68,7 +68,7 @@ $this->log_model = $log_model;
  * @return void
  */
 public function hooks() {
-\\add_action( 'rest_api_init', array( $this, 'register_routes' ) );
+    \add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 }
 
 /**
@@ -77,19 +77,19 @@ public function hooks() {
  * @return void
  */
 public function register_routes() {
-\\register_rest_route(
+        \register_rest_route(
 'fp-privacy/v1',
 '/consent/summary',
 array(
 'permission_callback' => function () {
-return \\current_user_can( 'manage_options' );
+            return \current_user_can( 'manage_options' );
 },
 'methods'             => 'GET',
 'callback'            => array( $this, 'get_summary' ),
 )
 );
 
-\\register_rest_route(
+        \register_rest_route(
 'fp-privacy/v1',
 '/consent',
 array(
@@ -99,12 +99,12 @@ array(
 )
 );
 
-\\register_rest_route(
+        \register_rest_route(
 'fp-privacy/v1',
 '/revision/bump',
 array(
 'permission_callback' => function () {
-return \\current_user_can( 'manage_options' );
+            return \current_user_can( 'manage_options' );
 },
 'methods'             => 'POST',
 'callback'            => array( $this, 'bump_revision' ),
@@ -137,23 +137,23 @@ return new WP_REST_Response( $data, 200 );
  */
 public function post_consent( WP_REST_Request $request ) {
 $nonce = $request->get_header( 'X-WP-Nonce' );
-if ( ! $nonce || ! \\wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-return new WP_Error( 'fp_privacy_invalid_nonce', \__( 'Invalid security token.', 'fp-privacy' ), array( 'status' => 403 ) );
+if ( ! $nonce || ! \wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+        return new WP_Error( 'fp_privacy_invalid_nonce', \__( 'Invalid security token.', 'fp-privacy' ), array( 'status' => 403 ) );
 }
 
-$ip      = isset( $_SERVER['REMOTE_ADDR'] ) ? \\sanitize_text_field( \\wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : ''; // for rate limiting only.
+$ip      = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : ''; // for rate limiting only.
 $limit   = 'fp_privacy_rate_' . hash( 'sha256', $ip . FP_PRIVACY_IP_SALT );
-$attempt = (int) \\get_transient( $limit );
+$attempt = (int) \get_transient( $limit );
 if ( $attempt > 10 ) {
 return new WP_Error( 'fp_privacy_rate_limited', \__( 'Too many requests. Please try again later.', 'fp-privacy' ), array( 'status' => 429 ) );
 }
-\\set_transient( $limit, $attempt + 1, MINUTE_IN_SECONDS * 10 );
+\set_transient( $limit, $attempt + 1, MINUTE_IN_SECONDS * 10 );
 
-$event  = \\sanitize_text_field( $request->get_param( 'event' ) );
+$event  = \sanitize_text_field( $request->get_param( 'event' ) );
 $states = $request->get_param( 'states' );
-$lang   = \\sanitize_text_field( $request->get_param( 'lang' ) );
+$lang   = \sanitize_text_field( $request->get_param( 'lang' ) );
 $consent_id = $request->get_param( 'consent_id' );
-$consent_id = $consent_id ? \\sanitize_text_field( $consent_id ) : '';
+$consent_id = $consent_id ? \sanitize_text_field( $consent_id ) : '';
 
 if ( ! \is_array( $states ) ) {
 $states = array();

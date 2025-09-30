@@ -82,14 +82,14 @@ $defaults = array(
 'created_at' => \current_time( 'mysql', true ),
 );
 
-$data = \\wp_parse_args( $data, $defaults );
+$data = \wp_parse_args( $data, $defaults );
 $data = array(
-'consent_id' => \\sanitize_text_field( $data['consent_id'] ),
+'consent_id' => \sanitize_text_field( $data['consent_id'] ),
 'event'      => in_array( $data['event'], array( 'accept_all', 'reject_all', 'consent', 'reset', 'revision_bump' ), true ) ? $data['event'] : 'consent',
-'states'     => \\wp_json_encode( $this->ensure_states( $data['states'] ) ),
-'ip_hash'    => \\sanitize_text_field( $data['ip_hash'] ),
-'ua'         => \\sanitize_text_field( $data['ua'] ),
-'lang'       => \\sanitize_text_field( $data['lang'] ),
+'states'     => \wp_json_encode( $this->ensure_states( $data['states'] ) ),
+'ip_hash'    => \sanitize_text_field( $data['ip_hash'] ),
+'ua'         => \sanitize_text_field( $data['ua'] ),
+'lang'       => \sanitize_text_field( $data['lang'] ),
 'rev'        => (int) $data['rev'],
 'created_at' => $this->sanitize_datetime( $data['created_at'] ),
 );
@@ -116,7 +116,7 @@ $defaults = array(
 'to'         => '',
 );
 
-$args = \\wp_parse_args( $args, $defaults );
+$args = \wp_parse_args( $args, $defaults );
 
 $where  = 'WHERE 1=1';
 $params = array();
@@ -179,7 +179,7 @@ $defaults = array(
 'from'   => '',
 'to'     => '',
 );
-$args = \\wp_parse_args( $args, $defaults );
+$args = \wp_parse_args( $args, $defaults );
 
 $where  = 'WHERE 1=1';
 $params = array();
@@ -222,7 +222,7 @@ return (int) $wpdb->get_var( $sql );
 public function delete_older_than( $days ) {
 global $wpdb;
 
-$threshold = \\gmdate( 'Y-m-d H:i:s', time() - ( (int) $days * DAY_IN_SECONDS ) );
+$threshold = \gmdate( 'Y-m-d H:i:s', time() - ( (int) $days * DAY_IN_SECONDS ) );
 
 return (int) $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->table} WHERE created_at < %s", $threshold ) );
 }
@@ -235,7 +235,7 @@ return (int) $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->table} WHERE cre
 public function summary_last_30_days() {
 global $wpdb;
 
-$from = \\gmdate( 'Y-m-d H:i:s', time() - ( 30 * DAY_IN_SECONDS ) );
+$from = \gmdate( 'Y-m-d H:i:s', time() - ( 30 * DAY_IN_SECONDS ) );
 
 $rows = $wpdb->get_results(
 $wpdb->prepare( "SELECT event, COUNT(*) as total FROM {$this->table} WHERE created_at >= %s GROUP BY event", $from ),
@@ -300,7 +300,7 @@ try {
 $dt = new DateTimeImmutable( $date, new DateTimeZone( 'UTC' ) );
 return $dt->format( 'Y-m-d H:i:s' );
 } catch ( Exception $e ) {
-return \\gmdate( 'Y-m-d H:i:s' );
+return \gmdate( 'Y-m-d H:i:s' );
 }
 }
 }

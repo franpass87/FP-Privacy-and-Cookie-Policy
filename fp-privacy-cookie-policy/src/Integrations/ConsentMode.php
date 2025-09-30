@@ -61,7 +61,7 @@ return;
 }
 
 $defaults = $this->options->get( 'consent_mode_defaults' );
-$object   = \\wp_json_encode( $defaults );
+    $object   = \wp_json_encode( $defaults );
 
 $script = sprintf(
     '(function(){var defaults=%1$s;window.fpPrivacyConsentDefaults=defaults;window.dataLayer=window.dataLayer||[];if(typeof window.gtag==="function"){window.gtag("consent","default",defaults);}else{window.dataLayer.push(["consent","default",defaults]);}window.dataLayer.push({event:"gtm.init_consent",consentDefaults:defaults});})();',
