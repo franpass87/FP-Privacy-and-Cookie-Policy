@@ -102,7 +102,7 @@ $i18n->hooks();
 
 ( new ConsentMode( $this->options ) )->hooks();
 
-$shortcodes = new Shortcodes( $this->options, $view );
+        $shortcodes = new Shortcodes( $this->options, $view, $generator );
 $shortcodes->set_state( $this->consent_state );
 $shortcodes->hooks();
 ( new Blocks( $this->options ) )->hooks();
@@ -189,6 +189,10 @@ $options->ensure_pages_exist();
 
 $log_model = new LogModel();
 $log_model->maybe_create_table();
+
+if ( function_exists( '\fp_privacy_get_ip_salt' ) ) {
+\fp_privacy_get_ip_salt();
+}
 
 if ( ! \wp_next_scheduled( 'fp_privacy_cleanup' ) ) {
 \wp_schedule_event( time() + DAY_IN_SECONDS, 'daily', 'fp_privacy_cleanup' );

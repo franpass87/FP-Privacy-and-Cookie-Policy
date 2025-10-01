@@ -7,6 +7,7 @@
 
 namespace FP\Privacy\Frontend;
 
+use FP\Privacy\Admin\PolicyGenerator;
 use FP\Privacy\Utils\Options;
 use FP\Privacy\Utils\View;
 
@@ -21,12 +22,19 @@ class Shortcodes {
  */
 private $options;
 
-/**
- * View renderer.
- *
- * @var View
- */
-private $view;
+    /**
+     * View renderer.
+     *
+     * @var View
+     */
+    private $view;
+
+    /**
+     * Policy generator.
+     *
+     * @var PolicyGenerator
+     */
+    private $generator;
 
 /**
  * Consent state.
@@ -45,13 +53,15 @@ private $force_enqueue = false;
 /**
  * Constructor.
  *
- * @param Options      $options Options handler.
- * @param View         $view    View renderer.
- */
-public function __construct( Options $options, View $view ) {
-$this->options = $options;
-$this->view    = $view;
-}
+     * @param Options         $options   Options handler.
+     * @param View            $view      View renderer.
+     * @param PolicyGenerator $generator Policy generator.
+     */
+    public function __construct( Options $options, View $view, PolicyGenerator $generator ) {
+        $this->options   = $options;
+        $this->view      = $view;
+        $this->generator = $generator;
+    }
 
 /**
  * Inject consent state dependency.
@@ -113,16 +123,10 @@ $atts,
 'fp_privacy_policy'
 );
 
-$html = $this->view->render(
-'privacy-policy.php',
-array(
-'lang'     => $atts['lang'],
-'options'  => $this->options->all(),
-)
-);
+        $html = $this->generator->generate_privacy_policy( $atts['lang'] );
 
-return \apply_filters( 'fp_privacy_policy_content', $html, $atts['lang'] );
-}
+        return \apply_filters( 'fp_privacy_policy_content', $html, $atts['lang'] );
+    }
 
 /**
  * Render cookie policy template.
@@ -140,16 +144,10 @@ $atts,
 'fp_cookie_policy'
 );
 
-$html = $this->view->render(
-'cookie-policy.php',
-array(
-'lang'     => $atts['lang'],
-'options'  => $this->options->all(),
-)
-);
+        $html = $this->generator->generate_cookie_policy( $atts['lang'] );
 
-return \apply_filters( 'fp_cookie_policy_content', $html, $atts['lang'] );
-}
+        return \apply_filters( 'fp_cookie_policy_content', $html, $atts['lang'] );
+    }
 
 /**
  * Render preferences button.
@@ -186,11 +184,20 @@ if ( '' === $description ) {
 }
 
 $state = $this->state ? $this->state->get_frontend_state( $lang ) : array( 'state' => array() );
-$last = isset( $state['state']['last_event'] ) ? $state['state']['last_event'] : '';
+        $last = isset( $state['state']['last_event'] ) ? $state['state']['last_event'] : '';
 
-if ( $last ) {
-    $description .= ' ' . \sprintf( \__( 'Last consent: %s', 'fp-privacy' ), $last );
-}
+        if ( $last ) {
+            $timestamp = \mysql2date( 'U', $last, true );
+            $format    = trim( (string) \get_option( 'date_format' ) . ' ' . (string) \get_option( 'time_format' ) );
+
+            if ( '' === $format ) {
+                $format = 'F j, Y';
+            }
+
+            $formatted = $timestamp ? \wp_date( $format, $timestamp ) : $last;
+
+            $description .= ' ' . \sprintf( \__( 'Last consent: %s', 'fp-privacy' ), $formatted );
+        }
 
 $description = \trim( $description );
 $description_id = \wp_unique_id( 'fp-privacy-consent-hint-' );
@@ -230,6 +237,10 @@ public function render_cookie_banner( $atts ) {
 
     $this->force_enqueue = true;
 
+    if ( \did_action( 'wp_enqueue_scripts' ) ) {
+        $this->enqueue_banner_assets( $lang );
+    }
+
     $attributes = array(
         'class'                  => 'fp-privacy-banner-shortcode',
         'data-fp-privacy-banner' => '1',
@@ -260,5 +271,22 @@ public function render_cookie_banner( $atts ) {
     $html .= '></div>';
 
     return $html;
+}
+
+/**
+ * Ensure banner assets load when the shortcode renders after wp_enqueue_scripts.
+ *
+ * @param string $lang Language override.
+ *
+ * @return void
+ */
+private function enqueue_banner_assets( $lang ) {
+    $lang = '' !== $lang ? $this->options->normalize_language( $lang ) : '';
+
+    if ( '' === $lang ) {
+        $lang = \determine_locale();
+    }
+
+    \do_action( 'fp_privacy_enqueue_banner_assets', $lang );
 }
 }

@@ -35,8 +35,8 @@ $this->options = $options;
  * @return void
  */
 public function hooks() {
-\add_action( 'wp_enqueue_scripts', array( $this, 'ensure_script' ), 5 );
-\add_action( 'wp_footer', array( $this, 'print_defaults' ), 1 );
+    \add_action( 'wp_enqueue_scripts', array( $this, 'ensure_script' ), 5 );
+    \add_action( 'wp_head', array( $this, 'print_defaults' ), 1 );
 }
 
 /**
@@ -56,16 +56,20 @@ if ( ! \wp_script_is( 'fp-privacy-consent-mode', 'registered' ) ) {
  * @return void
  */
 public function print_defaults() {
-if ( ! \wp_script_is( 'fp-privacy-consent-mode', 'enqueued' ) ) {
-return;
-}
+    if ( ! \wp_script_is( 'fp-privacy-consent-mode', 'enqueued' ) ) {
+        return;
+    }
 
-$defaults = $this->options->get( 'consent_mode_defaults' );
+    $defaults = $this->options->get( 'consent_mode_defaults' );
     $object   = \wp_json_encode( $defaults );
 
-$script = sprintf(
-    '(function(){var defaults=%1$s;window.fpPrivacyConsentDefaults=defaults;window.dataLayer=window.dataLayer||[];if(typeof window.gtag==="function"){window.gtag("consent","default",defaults);}else{window.dataLayer.push(["consent","default",defaults]);}window.dataLayer.push({event:"gtm.init_consent",consentDefaults:defaults});})();',
-    $object
+    if ( false === $object ) {
+        return;
+    }
+
+    $script = sprintf(
+        '(function(){var defaults=%1$s;window.fpPrivacyConsentDefaults=defaults;window.dataLayer=window.dataLayer||[];if(typeof window.gtag==="function"){window.gtag("consent","default",defaults);}else{window.dataLayer.push(["consent","default",defaults]);}window.dataLayer.push({event:"gtm.init_consent",consentDefaults:defaults});})();',
+        $object
 );
 
 \wp_print_inline_script_tag( $script );

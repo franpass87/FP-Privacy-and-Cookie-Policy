@@ -1,17 +1,32 @@
 (function () {
 'use strict';
 
+function createCustomEvent( name, detail ) {
+    if ( typeof window.CustomEvent === 'function' ) {
+        return new CustomEvent( name, { detail: detail } );
+    }
+
+    if ( document && document.createEvent ) {
+        try {
+            var event = document.createEvent( 'CustomEvent' );
+            event.initCustomEvent( name, false, false, detail );
+            return event;
+        } catch ( error ) {
+            // Fall through to null.
+        }
+    }
+
+    return null;
+}
+
 var data = window.FP_PRIVACY_DATA;
 if ( ! data ) {
 return;
 }
 
-var root = document.getElementById( 'fp-privacy-banner-root' );
+var root = document.querySelector( '[data-fp-privacy-banner]' );
 if ( ! root ) {
-var shortcodeRoot = document.querySelector( '[data-fp-privacy-banner]' );
-if ( shortcodeRoot ) {
-root = shortcodeRoot;
-}
+root = document.getElementById( 'fp-privacy-banner-root' );
 }
 
 if ( ! root ) {
@@ -30,6 +45,59 @@ var lastFocusedElement = null;
 
 var dataset = root.dataset || {};
 var forceDisplay = false;
+var externalOpeners = [];
+var externalListenerBound = false;
+
+function refreshExternalOpeners() {
+    var nodes = document.querySelectorAll( '[data-fp-privacy-open]' );
+    externalOpeners = [];
+
+    for ( var i = 0; i < nodes.length; i++ ) {
+        externalOpeners.push( nodes[ i ] );
+        nodes[ i ].setAttribute( 'aria-expanded', 'false' );
+    }
+}
+
+function updateOpenersExpanded( expanded ) {
+    var value = expanded ? 'true' : 'false';
+
+    if ( preferencesButton ) {
+        preferencesButton.setAttribute( 'aria-expanded', value );
+    }
+
+    for ( var i = 0; i < externalOpeners.length; i++ ) {
+        externalOpeners[ i ].setAttribute( 'aria-expanded', value );
+    }
+}
+
+function handleExternalOpeners( event ) {
+    if ( event.defaultPrevented ) {
+        return;
+    }
+
+    var target = event.target;
+
+    while ( target && target !== document ) {
+        if ( target.getAttribute && target.hasAttribute( 'data-fp-privacy-open' ) ) {
+            event.preventDefault();
+            refreshExternalOpeners();
+
+            if ( ! banner ) {
+                initializeBanner();
+            }
+
+            openModal();
+            return;
+        }
+
+        target = target.parentNode;
+    }
+}
+
+if ( ! externalListenerBound ) {
+    document.addEventListener( 'click', handleExternalOpeners );
+    externalListenerBound = true;
+}
 
 if ( dataset.layoutType === 'bar' || dataset.layoutType === 'floating' ) {
 layout.type = dataset.layoutType;
@@ -51,13 +119,29 @@ var modalOverlay;
 var modal;
 var banner;
 var revisionNotice;
+var preferencesButton = null;
 
-document.addEventListener( 'DOMContentLoaded', function () {
-buildBanner();
-if ( state.should_display || forceDisplay ) {
-showBanner();
+if ( document.readyState === 'loading' ) {
+    document.addEventListener( 'DOMContentLoaded', initializeBanner );
+} else {
+    initializeBanner();
 }
-});
+
+function initializeBanner() {
+    if ( banner ) {
+        return;
+    }
+
+    buildBanner();
+    refreshExternalOpeners();
+    updateOpenersExpanded( false );
+
+    if ( state.should_display || forceDisplay ) {
+        showBanner();
+    } else {
+        hideBanner();
+    }
+}
 
 function buildBanner() {
 banner = document.createElement( 'div' );
@@ -116,9 +200,13 @@ handleRejectAll();
 buttons.appendChild( reject );
 
 var prefs = createButton( texts.btn_prefs, 'fp-privacy-button fp-privacy-button-secondary' );
-prefs.addEventListener( 'click', function () {
+preferencesButton = prefs;
+prefs.setAttribute( 'aria-expanded', 'false' );
+prefs.setAttribute( 'data-fp-privacy-open', 'true' );
+prefs.addEventListener( 'click', function ( event ) {
+event.preventDefault();
 openModal();
-});
+} );
 buttons.appendChild( prefs );
 
 banner.appendChild( buttons );
@@ -196,7 +284,7 @@ modal.setAttribute( 'aria-labelledby', heading.id );
         } else if ( saved !== null ) {
             checkbox.checked = !! saved;
         } else {
-            checkbox.checked = true;
+            checkbox.checked = false;
         }
         if ( ! cat.locked ) {
             checkbox.disabled = false;
@@ -250,15 +338,20 @@ updateRevisionNotice();
 }
 
 function hideBanner() {
-banner.style.display = 'none';
-state.should_display = false;
-updateRevisionNotice();
+    if ( ! banner ) {
+        return;
+    }
+
+    banner.style.display = 'none';
+    state.should_display = false;
+    updateRevisionNotice();
 }
 
 function openModal() {
 lastFocusedElement = document.activeElement;
 modalOverlay.style.display = 'flex';
 modalOverlay.setAttribute( 'aria-hidden', 'false' );
+    updateOpenersExpanded( true );
 
 var focusable = modalOverlay.querySelectorAll( focusableSelector );
 if ( focusable.length ) {
@@ -271,6 +364,7 @@ modalOverlay.focus();
 function closeModal() {
 modalOverlay.style.display = 'none';
 modalOverlay.setAttribute( 'aria-hidden', 'true' );
+    updateOpenersExpanded( false );
 
 if ( lastFocusedElement && lastFocusedElement.focus ) {
 lastFocusedElement.focus();
@@ -303,37 +397,34 @@ return payload;
 }
 
 function mapToConsentMode( payload ) {
-var result = {};
-for ( var key in consentDefaults ) {
-if ( consentDefaults.hasOwnProperty( key ) ) {
-result[ key ] = consentDefaults[ key ];
-}
-}
+    if ( window.fpPrivacyConsent && typeof window.fpPrivacyConsent.mapBannerPayload === 'function' ) {
+        return window.fpPrivacyConsent.mapBannerPayload( payload, { defaults: consentDefaults } );
+    }
 
-var marketing = payload.marketing === true;
-var statistics = payload.statistics === true;
-var preferences = payload.preferences === true;
+    var result = {};
+    for ( var key in consentDefaults ) {
+        if ( Object.prototype.hasOwnProperty.call( consentDefaults, key ) ) {
+            result[ key ] = consentDefaults[ key ];
+        }
+    }
 
-if ( statistics ) {
-result.analytics_storage = 'granted';
-} else {
-result.analytics_storage = 'denied';
-}
+    var marketingFallback = result.ad_storage === 'granted' || result.ad_user_data === 'granted' || result.ad_personalization === 'granted';
+    var statisticsFallback = result.analytics_storage === 'granted';
+    var functionalityFallback = result.functionality_storage === 'granted';
 
-if ( marketing ) {
-result.ad_storage = 'granted';
-result.ad_user_data = 'granted';
-result.ad_personalization = 'granted';
-} else {
-result.ad_storage = 'denied';
-result.ad_user_data = 'denied';
-result.ad_personalization = 'denied';
-}
+    var marketing = Object.prototype.hasOwnProperty.call( payload, 'marketing' ) ? payload.marketing === true : marketingFallback;
+    var statistics = Object.prototype.hasOwnProperty.call( payload, 'statistics' ) ? payload.statistics === true : statisticsFallback;
+    var preferences = Object.prototype.hasOwnProperty.call( payload, 'preferences' ) ? payload.preferences === true : functionalityFallback;
+    var necessary = Object.prototype.hasOwnProperty.call( payload, 'necessary' ) ? payload.necessary === true : true;
 
-result.functionality_storage = preferences || payload.necessary ? 'granted' : 'denied';
-result.security_storage = 'granted';
+    result.analytics_storage = statistics ? 'granted' : 'denied';
+    result.ad_storage = marketing ? 'granted' : 'denied';
+    result.ad_user_data = marketing ? 'granted' : 'denied';
+    result.ad_personalization = marketing ? 'granted' : 'denied';
+    result.functionality_storage = ( preferences || necessary ) ? 'granted' : 'denied';
+    result.security_storage = 'granted';
 
-return result;
+    return result;
 }
 
 function handleAcceptAll() {
@@ -374,58 +465,112 @@ function persistConsent( event, payload ) {
         consentId: consentId,
     } );
 
-    document.dispatchEvent(
-        new CustomEvent( 'fp-consent-change', {
-            detail: {
-                consent: consentMode,
-                event: event,
-                revision: state.revision,
-                timestamp: timestamp,
-                consentId: consentId,
-            },
-        } )
-    );
+    var consentEvent = createCustomEvent( 'fp-consent-change', {
+        consent: consentMode,
+        event: event,
+        revision: state.revision,
+        timestamp: timestamp,
+        consentId: consentId,
+    } );
 
-    state.consent_id = consentId;
-    state.last_event = timestamp;
-    state.categories = Object.assign( {}, payload );
-    state.last_revision = state.revision;
-    state.should_display = false;
-    updateRevisionNotice();
+    if ( consentEvent ) {
+        document.dispatchEvent( consentEvent );
+    }
 
     var lang = state.lang || ( data.options.state ? data.options.state.lang : '' ) || document.documentElement.lang || 'en';
 
-if ( ! state.preview_mode && rest.url ) {
-window.fetch( rest.url, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'X-WP-Nonce': rest.nonce,
-},
-credentials: 'same-origin',
-body: JSON.stringify( {
-event: event,
-states: payload,
-lang: lang,
-consent_id: consentId,
-} ),
-} )
-    .then( function ( response ) {
-        if ( response && response.ok ) {
-            return response.json();
-        }
-
-        return null;
-    } )
-    .then( function ( result ) {
-        if ( result && result.consent_id ) {
+    var markSuccess = function ( result ) {
+        if ( typeof handleConsentResponse === 'function' ) {
+            handleConsentResponse( result );
+        } else if ( result && result.consent_id ) {
             state.consent_id = result.consent_id;
         }
-    } )
-    .catch( function () {} );
-}
 
-hideBanner();
+        if ( ! state.consent_id ) {
+            state.consent_id = consentId;
+        }
+
+        state.last_event = timestamp;
+        state.categories = Object.assign( {}, payload );
+        state.last_revision = state.revision;
+        state.should_display = false;
+        updateRevisionNotice();
+        hideBanner();
+    };
+
+    var handleFailure = function () {
+        state.should_display = true;
+        showBanner();
+    };
+
+    if ( state.preview_mode || ! rest.url ) {
+        markSuccess( { consent_id: consentId } );
+        return;
+    }
+
+    var requestBody = JSON.stringify( {
+        event: event,
+        states: payload,
+        lang: lang,
+        consent_id: consentId,
+    } );
+
+    if ( typeof window.fetch === 'function' ) {
+        window.fetch( rest.url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-WP-Nonce': rest.nonce,
+            },
+            credentials: 'same-origin',
+            body: requestBody,
+        } )
+            .then( function ( response ) {
+                if ( response && response.ok ) {
+                    return response.json().catch( function () {
+                        return { consent_id: consentId };
+                    } );
+                }
+
+                throw new Error( 'consent_request_failed' );
+            } )
+            .then( markSuccess )
+            .catch( function () {
+                handleFailure();
+            } );
+    } else {
+        var xhr = new XMLHttpRequest();
+        xhr.open( 'POST', rest.url, true );
+        xhr.withCredentials = true;
+        xhr.setRequestHeader( 'Content-Type', 'application/json' );
+        if ( rest.nonce ) {
+            xhr.setRequestHeader( 'X-WP-Nonce', rest.nonce );
+        }
+        xhr.onreadystatechange = function () {
+            if ( xhr.readyState !== 4 ) {
+                return;
+            }
+
+            if ( xhr.status >= 200 && xhr.status < 300 ) {
+                var result = { consent_id: consentId };
+
+                try {
+                    var parsed = JSON.parse( xhr.responseText );
+                    if ( parsed && typeof parsed === 'object' ) {
+                        result = parsed;
+                    }
+                } catch ( error ) {
+                    // Ignore malformed JSON responses.
+                }
+
+                markSuccess( result );
+            } else {
+                handleFailure();
+            }
+        };
+        xhr.send( requestBody );
+    }
+}
 
 function readConsentIdFromCookie() {
     var name = ( consentCookie.name || 'fp_consent_state_id' ) + '=';
@@ -525,14 +670,21 @@ function handleModalKeydown( event ) {
     }
 }
 
-hideBanner();
+function renderCookieDebug() {
+    var panel = document.createElement( 'div' );
+    panel.className = 'fp-privacy-cookie-debug';
+    var label = texts.debug_label || '';
+    var strong = document.createElement( 'strong' );
+    strong.textContent = label;
+    panel.appendChild( strong );
+    panel.appendChild( document.createTextNode( ' ' + document.cookie ) );
+    banner.appendChild( panel );
+}
+function handleConsentResponse( result ) {
+    if ( result && result.consent_id ) {
+        state.consent_id = result.consent_id;
+    }
 }
 
-function renderCookieDebug() {
-var panel = document.createElement( 'div' );
-panel.className = 'fp-privacy-cookie-debug';
-    var label = texts.debug_label || '';
-    panel.innerHTML = '<strong>' + label + '</strong> ' + document.cookie;
-banner.appendChild( panel );
-}
 })();
+

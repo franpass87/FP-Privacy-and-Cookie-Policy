@@ -146,7 +146,7 @@ $export_url      = \add_query_arg( $export_args, \admin_url( 'admin-post.php' ) 
 <td><?php echo \esc_html( $entry['consent_id'] ); ?></td>
 <td><?php echo \esc_html( $entry['lang'] ); ?></td>
 <td><?php echo (int) $entry['rev']; ?></td>
-<td><code><?php echo \esc_html( mb_strimwidth( $entry['ua'], 0, 80, '…', 'UTF-8' ) ); ?></code></td>
+<td><code><?php echo \esc_html( $this->truncate_user_agent( $entry['ua'] ) ); ?></code></td>
 <td><details><summary><?php \esc_html_e( 'View', 'fp-privacy' ); ?></summary><pre><?php echo \esc_html( \wp_json_encode( $entry['states'], JSON_PRETTY_PRINT ) ); ?></pre></details></td>
 </tr>
 <?php endforeach; ?>
@@ -227,7 +227,7 @@ public function handle_export_csv() {
 					$entry['created_at'],
 					$entry['ip_hash'],
 					$entry['ua'],
-					\wp_json_encode( $entry['states'] ),
+					$this->encode_states_for_csv( $entry['states'] ),
 				)
 			);
 		}
@@ -241,4 +241,46 @@ public function handle_export_csv() {
 	\fclose( $handle );
 	exit;
 }
+
+    /**
+     * Encode states payload safely for CSV output.
+     *
+     * @param mixed $states States payload.
+     *
+     * @return string
+     */
+    private function encode_states_for_csv( $states ) {
+        $encoded = \wp_json_encode( $states );
+
+        if ( false === $encoded ) {
+            return '{}';
+        }
+
+        return $encoded;
+    }
+
+    /**
+     * Truncate user agent strings safely when mbstring is unavailable.
+     *
+     * @param string $ua    User agent string.
+     * @param int    $width Maximum length.
+     *
+     * @return string
+     */
+    private function truncate_user_agent( $ua, $width = 80 ) {
+        $ua       = (string) $ua;
+        $ellipsis = '…';
+
+        if ( function_exists( 'mb_strimwidth' ) ) {
+            return mb_strimwidth( $ua, 0, $width, $ellipsis, 'UTF-8' );
+        }
+
+        if ( strlen( $ua ) <= $width ) {
+            return $ua;
+        }
+
+        $cut = max( 0, $width - strlen( $ellipsis ) );
+
+        return substr( $ua, 0, $cut ) . $ellipsis;
+    }
 }

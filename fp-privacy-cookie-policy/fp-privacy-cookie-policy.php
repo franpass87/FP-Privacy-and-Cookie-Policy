@@ -24,7 +24,46 @@ define( 'FP_PRIVACY_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'FP_PRIVACY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 
-define( 'FP_PRIVACY_IP_SALT', 'fp-privacy-cookie-policy-salt' );
+if ( ! function_exists( 'fp_privacy_get_ip_salt' ) ) {
+    function fp_privacy_get_ip_salt() {
+        static $salt = null;
+
+        if ( null !== $salt ) {
+            return $salt;
+        }
+
+        $option_key = 'fp_privacy_ip_salt';
+
+        if ( function_exists( 'get_option' ) ) {
+            $stored = get_option( $option_key );
+
+            if ( is_string( $stored ) && '' !== $stored ) {
+                $salt = $stored;
+
+                return $salt;
+            }
+        }
+
+        if ( function_exists( 'wp_generate_password' ) ) {
+            $salt = wp_generate_password( 64, false, false );
+        } elseif ( function_exists( 'wp_salt' ) ) {
+            $salt = wp_salt( 'fp-privacy-ip' );
+        } else {
+            try {
+                $salt = bin2hex( random_bytes( 32 ) );
+            } catch ( \Exception $e ) {
+                $salt = md5( uniqid( 'fp-privacy', true ) );
+            }
+        }
+
+        if ( function_exists( 'update_option' ) ) {
+            update_option( $option_key, $salt, false );
+        }
+
+        return $salt;
+    }
+}
+
 spl_autoload_register(
 function ( $class ) {
 if ( 0 !== strpos( $class, 'FP\\\\Privacy\\\\' ) ) {

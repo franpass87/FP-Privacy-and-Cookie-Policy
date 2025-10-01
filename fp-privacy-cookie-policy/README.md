@@ -100,7 +100,10 @@ Namespace: `fp-privacy/v1`
 - `fp_privacy_services_registry`
 - `fp_privacy_service_purpose_{key}`
 - `fp_privacy_csv_export_batch_size`
-- `fp_privacy_cookie_duration_days`
+- `fp_privacy_cookie_duration_days` – Adjust the storage lifetime (in days) for the consent cookie.
+- `fp_privacy_cookie_options` – Filter the cookie attributes before they are persisted.
+- `fp_privacy_detector_cache_ttl` – Tweak how long detector results are cached before refreshing.
+- `fp_privacy_enqueue_banner_assets` – Force banner scripts/styles to load when rendering via shortcode.
 
 ## Multisite Support
 
