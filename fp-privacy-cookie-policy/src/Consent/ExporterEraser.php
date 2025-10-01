@@ -55,11 +55,15 @@ public function hooks() {
  *
  * @return array<string, mixed>
  */
-public function register_exporter( $exporters ) {
-$exporters['fp-privacy-consent'] = array(
-'exporter_friendly_name' => \__( 'FP Privacy consent log', 'fp-privacy' ),
-'callback'               => array( $this, 'export_personal_data' ),
-);
+    public function register_exporter( $exporters ) {
+        if ( ! $this->supports_privacy_requests() ) {
+            return $exporters;
+        }
+
+        $exporters['fp-privacy-consent'] = array(
+            'exporter_friendly_name' => \__( 'FP Privacy consent log', 'fp-privacy' ),
+            'callback'               => array( $this, 'export_personal_data' ),
+        );
 
 return $exporters;
 }
@@ -71,11 +75,15 @@ return $exporters;
  *
  * @return array<string, mixed>
  */
-public function register_eraser( $erasers ) {
-$erasers['fp-privacy-consent'] = array(
-'eraser_friendly_name' => \__( 'FP Privacy consent log', 'fp-privacy' ),
-'callback'             => array( $this, 'erase_personal_data' ),
-);
+    public function register_eraser( $erasers ) {
+        if ( ! $this->supports_privacy_requests() ) {
+            return $erasers;
+        }
+
+        $erasers['fp-privacy-consent'] = array(
+            'eraser_friendly_name' => \__( 'FP Privacy consent log', 'fp-privacy' ),
+            'callback'             => array( $this, 'erase_personal_data' ),
+        );
 
 return $erasers;
 }
@@ -88,23 +96,41 @@ return $erasers;
  *
  * @return array<string, mixed>
  */
-public function export_personal_data( $email, $page ) {
-global $wpdb;
+    public function export_personal_data( $email, $page ) {
+        global $wpdb;
 
-$page      = max( 1, (int) $page );
-$per_page  = 100;
-$offset    = ( $page - 1 ) * $per_page;
-$consent_id = \sanitize_text_field( $email );
+        $page      = max( 1, (int) $page );
+        $per_page  = 100;
+        $offset    = ( $page - 1 ) * $per_page;
+        $consent_ids = $this->resolve_consent_ids( $email );
+        $is_email    = \is_email( $email );
 
-$results = $wpdb->get_results(
-$wpdb->prepare(
-"SELECT * FROM {$this->log_model->get_table()} WHERE consent_id = %s ORDER BY created_at ASC LIMIT %d OFFSET %d",
-$consent_id,
-$per_page,
-$offset
-),
-ARRAY_A
-);
+        if ( empty( $consent_ids ) ) {
+            $errors = array();
+
+            if ( $is_email ) {
+                $errors[] = \__( 'Consent logs are not linked to email addresses. Map requests via the fp_privacy_consent_ids_for_email filter before enabling this exporter.', 'fp-privacy' );
+            }
+
+            return array(
+                'data'   => array(),
+                'done'   => true,
+                'errors' => $errors,
+            );
+        }
+
+        $placeholders = implode( ',', array_fill( 0, count( $consent_ids ), '%s' ) );
+        $query_args   = array_merge( $consent_ids, array( $per_page, $offset ) );
+
+        $sql = $wpdb->prepare(
+            "SELECT * FROM {$this->log_model->get_table()} WHERE consent_id IN ({$placeholders}) ORDER BY created_at ASC LIMIT %d OFFSET %d",
+            $query_args
+        );
+
+        $results = $wpdb->get_results(
+            $sql,
+            ARRAY_A
+        );
 
 $data = array();
 
@@ -124,10 +150,11 @@ $data[] = array(
 
 $done = count( $results ) < $per_page;
 
-return array(
-'data' => $data,
-'done' => $done,
-);
+        return array(
+            'data'   => $data,
+            'done'   => $done,
+            'errors' => array(),
+        );
 }
 
 /**
@@ -138,23 +165,44 @@ return array(
  *
  * @return array<string, mixed>
  */
-public function erase_personal_data( $email, $page ) {
-global $wpdb;
+    public function erase_personal_data( $email, $page ) {
+        global $wpdb;
 
-$page       = max( 1, (int) $page );
-$per_page   = 100;
-$offset     = ( $page - 1 ) * $per_page;
-$consent_id = \sanitize_text_field( $email );
+        $page       = max( 1, (int) $page );
+        $per_page   = 100;
+        $offset     = ( $page - 1 ) * $per_page;
+        $consent_ids = $this->resolve_consent_ids( $email );
+        $is_email    = \is_email( $email );
 
-$rows = $wpdb->get_results(
-$wpdb->prepare(
-"SELECT id FROM {$this->log_model->get_table()} WHERE consent_id = %s ORDER BY created_at ASC LIMIT %d OFFSET %d",
-$consent_id,
-$per_page,
-$offset
-),
-ARRAY_A
-);
+        if ( empty( $consent_ids ) ) {
+            $messages = array();
+            $retained = false;
+
+            if ( $is_email ) {
+                $messages[] = \__( 'Consent logs are stored by consent ID. Provide a mapping via the fp_privacy_consent_ids_for_email filter to erase records for email-based requests.', 'fp-privacy' );
+                $retained   = true;
+            }
+
+            return array(
+                'items_removed'  => false,
+                'items_retained' => $retained,
+                'messages'       => $messages,
+                'done'           => true,
+            );
+        }
+
+        $placeholders = implode( ',', array_fill( 0, count( $consent_ids ), '%s' ) );
+        $query_args   = array_merge( $consent_ids, array( $per_page, $offset ) );
+
+        $sql = $wpdb->prepare(
+            "SELECT id FROM {$this->log_model->get_table()} WHERE consent_id IN ({$placeholders}) ORDER BY created_at ASC LIMIT %d OFFSET %d",
+            $query_args
+        );
+
+        $rows = $wpdb->get_results(
+            $sql,
+            ARRAY_A
+        );
 
 $ids = \wp_list_pluck( $rows, 'id' );
 
@@ -167,11 +215,60 @@ $removed = count( $ids );
 
 $done = count( $rows ) < $per_page;
 
-return array(
-'items_removed'  => $removed > 0,
-'items_retained' => false,
-'messages'       => array(),
-'done'           => $done,
-);
-}
+        return array(
+            'items_removed'  => $removed > 0,
+            'items_retained' => false,
+            'messages'       => array(),
+            'done'           => $done,
+        );
+
+    }
+
+    /**
+     * Determine whether privacy tools should be registered.
+     *
+     * @return bool
+     */
+    private function supports_privacy_requests() {
+        $enabled = \apply_filters( 'fp_privacy_enable_privacy_tools', false, $this->options );
+
+        return (bool) $enabled || \has_filter( 'fp_privacy_consent_ids_for_email' );
+    }
+
+    /**
+     * Resolve one or more consent identifiers for a request value.
+     *
+     * @param string $value Email address or consent identifier.
+     *
+     * @return array<int, string>
+     */
+    private function resolve_consent_ids( $value ) {
+        $value = \sanitize_text_field( (string) $value );
+
+        if ( '' === $value ) {
+            return array();
+        }
+
+        if ( \is_email( $value ) ) {
+            $mapped = \apply_filters( 'fp_privacy_consent_ids_for_email', array(), $value, $this->options );
+
+            if ( ! \is_array( $mapped ) ) {
+                return array();
+            }
+
+            $ids = array();
+
+            foreach ( $mapped as $candidate ) {
+                $sanitized = \substr( \sanitize_text_field( (string) $candidate ), 0, 64 );
+
+                if ( '' !== $sanitized ) {
+                    $ids[] = $sanitized;
+                }
+            }
+
+            return array_values( array_unique( $ids ) );
+        }
+
+        return array( \substr( $value, 0, 64 ) );
+    }
 }

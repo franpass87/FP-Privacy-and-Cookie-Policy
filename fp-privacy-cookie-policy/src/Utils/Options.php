@@ -13,7 +13,9 @@ use WP_Post;
  * Options utility class.
  */
 class Options {
-const OPTION_KEY = 'fp_privacy_options';
+    const OPTION_KEY = 'fp_privacy_options';
+
+    const PAGE_MANAGED_META_KEY = '_fp_privacy_managed_signature';
 
 /**
  * Cached options.
@@ -638,10 +640,10 @@ return 0;
  *
  * @return void
  */
-public function bump_revision() {
-$this->options['consent_revision'] = isset( $this->options['consent_revision'] ) ? (int) $this->options['consent_revision'] + 1 : 1;
-\update_option( self::OPTION_KEY, $this->options );
-}
+    public function bump_revision() {
+        $this->options['consent_revision'] = isset( $this->options['consent_revision'] ) ? (int) $this->options['consent_revision'] + 1 : 1;
+        \update_option( self::OPTION_KEY, $this->options, false );
+    }
 
 /**
  * Ensure required pages exist.
@@ -672,12 +674,12 @@ $map = array(
     ),
 );
 
-foreach ( $map as $key => $config ) {
-    foreach ( $languages as $language ) {
-        $language = $this->normalize_language( $language );
-        $page_id  = isset( $pages[ $key ][ $language ] ) ? (int) $pages[ $key ][ $language ] : 0;
+        foreach ( $map as $key => $config ) {
+            foreach ( $languages as $language ) {
+                $language = $this->normalize_language( $language );
+                $page_id  = isset( $pages[ $key ][ $language ] ) ? (int) $pages[ $key ][ $language ] : 0;
 
-        $post    = $page_id ? \get_post( $page_id ) : null;
+                $post    = $page_id ? \get_post( $page_id ) : null;
 
         if ( $post instanceof WP_Post && 'page' !== $post->post_type ) {
             $post = null;
@@ -696,34 +698,66 @@ foreach ( $map as $key => $config ) {
             }
         }
 
-        if ( $post instanceof WP_Post ) {
-            $needs_refresh = 'publish' !== $post->post_status || trim( (string) $post->post_content ) !== $content;
+                if ( $post instanceof WP_Post ) {
+                    $current_content   = trim( (string) $post->post_content );
+                    $expected_signature = \hash( 'sha256', $content );
+                    $stored_signature   = (string) \get_post_meta( $post->ID, self::PAGE_MANAGED_META_KEY, true );
+                    $current_signature  = '' !== $current_content ? \hash( 'sha256', $current_content ) : '';
+                    $is_managed         = '' !== $stored_signature && $current_signature && \hash_equals( $stored_signature, $current_signature );
 
-            if ( ! $needs_refresh ) {
-                continue;
-            }
+                    if ( $current_content === $content ) {
+                        if ( $stored_signature !== $expected_signature ) {
+                            \update_post_meta( $post->ID, self::PAGE_MANAGED_META_KEY, $expected_signature );
+                        }
 
-            $result = \wp_update_post(
-                array(
-                    'ID'           => $post->ID,
-                    'post_status'  => 'publish',
-                    'post_type'    => 'page',
-                    'post_content' => $content,
-                ),
-                true
-            );
+                        if ( 'publish' !== $post->post_status ) {
+                            $result = \wp_update_post(
+                                array(
+                                    'ID'          => $post->ID,
+                                    'post_status' => 'publish',
+                                ),
+                                true
+                            );
 
-            if ( $result && ! \is_wp_error( $result ) ) {
-                $pages[ $key ][ $language ] = (int) $post->ID;
-                $updated                     = true;
-                continue;
-            }
-        }
+                            if ( $result && ! \is_wp_error( $result ) ) {
+                                $pages[ $key ][ $language ] = (int) $post->ID;
+                                $updated                     = true;
+                            }
+                        }
 
-        $title = $config['title'];
-        if ( count( $languages ) > 1 ) {
-            $title = sprintf( /* translators: %s: language code */ \__( '%1$s (%2$s)', 'fp-privacy' ), $config['title'], $language );
-        }
+                        continue;
+                    }
+
+                    if ( ! $is_managed ) {
+                        if ( '' !== $stored_signature ) {
+                            \delete_post_meta( $post->ID, self::PAGE_MANAGED_META_KEY );
+                        }
+
+                        continue;
+                    }
+
+                    $result = \wp_update_post(
+                        array(
+                            'ID'           => $post->ID,
+                            'post_status'  => 'publish',
+                            'post_type'    => 'page',
+                            'post_content' => $content,
+                        ),
+                        true
+                    );
+
+                    if ( $result && ! \is_wp_error( $result ) ) {
+                        \update_post_meta( $post->ID, self::PAGE_MANAGED_META_KEY, $expected_signature );
+                        $pages[ $key ][ $language ] = (int) $post->ID;
+                        $updated                     = true;
+                        continue;
+                    }
+                }
+
+                $title = $config['title'];
+                if ( count( $languages ) > 1 ) {
+                    $title = sprintf( /* translators: %s: language code */ \__( '%1$s (%2$s)', 'fp-privacy' ), $config['title'], $language );
+                }
 
         $created = \wp_insert_post(
             array(
@@ -734,12 +768,13 @@ foreach ( $map as $key => $config ) {
             )
         );
 
-        if ( $created && ! \is_wp_error( $created ) ) {
-            $pages[ $key ][ $language ] = (int) $created;
-            $updated                     = true;
+                if ( $created && ! \is_wp_error( $created ) ) {
+                    \update_post_meta( $created, self::PAGE_MANAGED_META_KEY, \hash( 'sha256', $content ) );
+                    $pages[ $key ][ $language ] = (int) $created;
+                    $updated                     = true;
+                }
+            }
         }
-    }
-}
 
 if ( $updated ) {
     $this->options['pages'] = $pages;

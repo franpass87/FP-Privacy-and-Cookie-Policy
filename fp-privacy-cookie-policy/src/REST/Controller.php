@@ -136,10 +136,10 @@ return new WP_REST_Response( $data, 200 );
  * @return WP_REST_Response|WP_Error
  */
 public function post_consent( WP_REST_Request $request ) {
-$nonce = $request->get_header( 'X-WP-Nonce' );
-if ( ! $nonce || ! \wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-        return new WP_Error( 'fp_privacy_invalid_nonce', \__( 'Invalid security token.', 'fp-privacy' ), array( 'status' => 403 ) );
-}
+        $nonce = $request->get_header( 'X-WP-Nonce' );
+        if ( ! $nonce || ! \wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+            return $this->rest_nonce_error();
+        }
 
 $ip      = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : ''; // for rate limiting only.
 $salt    = function_exists( '\fp_privacy_get_ip_salt' ) ? \fp_privacy_get_ip_salt() : 'fp-privacy-cookie-policy-salt';
@@ -176,10 +176,27 @@ $states = array();
  *
  * @return WP_REST_Response
  */
-public function bump_revision( WP_REST_Request $request ) {
-$this->options->bump_revision();
-$this->options->set( $this->options->all() );
+    public function bump_revision( WP_REST_Request $request ) {
+        $this->options->bump_revision();
+        $this->options->set( $this->options->all() );
 
-return new WP_REST_Response( array( 'revision' => $this->options->get( 'consent_revision' ) ), 200 );
-}
+        return new WP_REST_Response( array( 'revision' => $this->options->get( 'consent_revision' ) ), 200 );
+    }
+
+    /**
+     * Build nonce error with a refreshed token.
+     *
+     * @return WP_Error
+     */
+    private function rest_nonce_error() {
+        $data = array(
+            'status' => 403,
+        );
+
+        if ( function_exists( 'wp_create_nonce' ) ) {
+            $data['refresh_nonce'] = \wp_create_nonce( 'wp_rest' );
+        }
+
+        return new WP_Error( 'fp_privacy_invalid_nonce', \__( 'Invalid security token.', 'fp-privacy' ), $data );
+    }
 }

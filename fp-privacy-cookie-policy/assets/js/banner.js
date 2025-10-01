@@ -518,61 +518,100 @@ function persistConsent( event, payload ) {
         consent_id: consentId,
     } );
 
-    if ( typeof window.fetch === 'function' ) {
-        window.fetch( rest.url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-WP-Nonce': rest.nonce,
-            },
-            credentials: 'same-origin',
-            body: requestBody,
-        } )
-            .then( function ( response ) {
+    var sendConsentRequest = function ( retry ) {
+        if ( typeof window.fetch === 'function' ) {
+            return window.fetch( rest.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': rest.nonce,
+                },
+                credentials: 'same-origin',
+                body: requestBody,
+            } ).then( function ( response ) {
                 if ( response && response.ok ) {
                     return response.json().catch( function () {
                         return { consent_id: consentId };
                     } );
                 }
 
-                throw new Error( 'consent_request_failed' );
-            } )
-            .then( markSuccess )
-            .catch( function () {
-                handleFailure();
-            } );
-    } else {
-        var xhr = new XMLHttpRequest();
-        xhr.open( 'POST', rest.url, true );
-        xhr.withCredentials = true;
-        xhr.setRequestHeader( 'Content-Type', 'application/json' );
-        if ( rest.nonce ) {
-            xhr.setRequestHeader( 'X-WP-Nonce', rest.nonce );
-        }
-        xhr.onreadystatechange = function () {
-            if ( xhr.readyState !== 4 ) {
-                return;
-            }
+                if ( ! retry && response && response.status === 403 ) {
+                    return response
+                        .json()
+                        .then( function ( payload ) {
+                            var nextNonce = payload && payload.data ? payload.data.refresh_nonce : undefined;
 
-            if ( xhr.status >= 200 && xhr.status < 300 ) {
-                var result = { consent_id: consentId };
+                            if ( nextNonce ) {
+                                rest.nonce = nextNonce;
+                                return sendConsentRequest( true );
+                            }
 
-                try {
-                    var parsed = JSON.parse( xhr.responseText );
-                    if ( parsed && typeof parsed === 'object' ) {
-                        result = parsed;
-                    }
-                } catch ( error ) {
-                    // Ignore malformed JSON responses.
+                            throw new Error( 'consent_request_failed' );
+                        } )
+                        .catch( function () {
+                            throw new Error( 'consent_request_failed' );
+                        } );
                 }
 
-                markSuccess( result );
-            } else {
-                handleFailure();
+                throw new Error( 'consent_request_failed' );
+            } );
+        }
+
+        return new Promise( function ( resolve, reject ) {
+            var xhr = new XMLHttpRequest();
+            xhr.open( 'POST', rest.url, true );
+            xhr.withCredentials = true;
+            xhr.setRequestHeader( 'Content-Type', 'application/json' );
+            if ( rest.nonce ) {
+                xhr.setRequestHeader( 'X-WP-Nonce', rest.nonce );
             }
-        };
-        xhr.send( requestBody );
-    }
+            xhr.onreadystatechange = function () {
+                if ( xhr.readyState !== 4 ) {
+                    return;
+                }
+
+                if ( xhr.status >= 200 && xhr.status < 300 ) {
+                    var result = { consent_id: consentId };
+
+                    try {
+                        var parsed = JSON.parse( xhr.responseText );
+                        if ( parsed && typeof parsed === 'object' ) {
+                            result = parsed;
+                        }
+                    } catch ( error ) {
+                        // Ignore malformed JSON responses.
+                    }
+
+                    resolve( result );
+                    return;
+                }
+
+                if ( ! retry && xhr.status === 403 ) {
+                    try {
+                        var payload = JSON.parse( xhr.responseText );
+                        var refresh = payload && payload.data ? payload.data.refresh_nonce : undefined;
+
+                        if ( refresh ) {
+                            rest.nonce = refresh;
+                            sendConsentRequest( true ).then( resolve ).catch( reject );
+                            return;
+                        }
+                    } catch ( error ) {
+                        // Ignore JSON parsing issues so the failure can bubble up.
+                    }
+                }
+
+                reject( new Error( 'consent_request_failed' ) );
+            };
+            xhr.send( requestBody );
+        } );
+    };
+
+    sendConsentRequest( false )
+        .then( markSuccess )
+        .catch( function () {
+            handleFailure();
+        } );
 }
 
 function readConsentIdFromCookie() {
