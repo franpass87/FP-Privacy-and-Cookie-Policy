@@ -16,6 +16,86 @@ $time_format   = (string) get_option( 'time_format' );
 $display_format = trim( $date_format . ' ' . $time_format );
 $categories_meta = isset( $categories_meta ) && is_array( $categories_meta ) ? $categories_meta : array();
 
+if ( ! function_exists( 'fp_privacy_format_service_cookies' ) ) {
+    /**
+     * Format service cookies into readable strings.
+     *
+     * @param mixed $cookies Raw cookies array.
+     *
+     * @return array<int, string>
+     */
+    function fp_privacy_format_service_cookies( $cookies ) {
+        if ( ! is_array( $cookies ) ) {
+            return array();
+        }
+
+        $formatted = array();
+
+        foreach ( $cookies as $cookie ) {
+            if ( ! is_array( $cookie ) ) {
+                continue;
+            }
+
+            $name        = isset( $cookie['name'] ) ? (string) $cookie['name'] : '';
+            $domain      = isset( $cookie['domain'] ) ? (string) $cookie['domain'] : '';
+            $duration    = isset( $cookie['duration'] ) ? (string) $cookie['duration'] : '';
+            $description = isset( $cookie['description'] ) ? (string) $cookie['description'] : '';
+
+            $details = array();
+
+            if ( '' !== $domain ) {
+                $details[] = sprintf( /* translators: %s: cookie domain. */ __( 'Domain: %s', 'fp-privacy' ), $domain );
+            }
+
+            if ( '' !== $duration ) {
+                $details[] = sprintf( /* translators: %s: cookie duration. */ __( 'Duration: %s', 'fp-privacy' ), $duration );
+            }
+
+            if ( '' !== $description ) {
+                $details[] = $description;
+            }
+
+            if ( '' === $name && empty( $details ) ) {
+                continue;
+            }
+
+            $label = '' !== $name ? $name : __( 'Unnamed cookie', 'fp-privacy' );
+
+            if ( $details ) {
+                $label .= ' (' . implode( ' — ', $details ) . ')';
+            }
+
+            $formatted[] = $label;
+        }
+
+        return $formatted;
+    }
+}
+
+if ( ! function_exists( 'fp_privacy_get_service_value' ) ) {
+    /**
+     * Safely fetch a scalar service value.
+     *
+     * @param mixed  $service Service payload.
+     * @param string $key     Array key to retrieve.
+     *
+     * @return string
+     */
+    function fp_privacy_get_service_value( $service, $key ) {
+        if ( ! is_array( $service ) || ! isset( $service[ $key ] ) ) {
+            return '';
+        }
+
+        $value = $service[ $key ];
+
+        if ( is_scalar( $value ) || ( is_object( $value ) && method_exists( $value, '__toString' ) ) ) {
+            return (string) $value;
+        }
+
+        return '';
+    }
+}
+
 if ( '' === $display_format ) {
     $display_format = 'F j, Y';
 }
@@ -60,12 +140,27 @@ if ( '' === $last_generated ) {
 </tr>
 </thead>
 <tbody>
-<?php foreach ( $services as $service ) : ?>
+<?php foreach ( $services as $service ) :
+    if ( ! is_array( $service ) ) {
+        continue;
+    }
+
+    $name      = fp_privacy_get_service_value( $service, 'name' );
+    $purpose   = fp_privacy_get_service_value( $service, 'purpose' );
+    $retention = fp_privacy_get_service_value( $service, 'retention' );
+    $service_cookies = fp_privacy_format_service_cookies( isset( $service['cookies'] ) ? $service['cookies'] : array() );
+    ?>
 <tr>
-<td><?php echo esc_html( $service['name'] ); ?></td>
-<td><?php echo esc_html( $service['purpose'] ); ?></td>
-<td><?php echo esc_html( implode( ', ', (array) $service['cookies'] ) ); ?></td>
-<td><?php echo esc_html( $service['retention'] ); ?></td>
+<td><?php echo esc_html( $name ); ?></td>
+<td><?php echo wp_kses_post( $purpose ); ?></td>
+<td>
+    <?php if ( ! empty( $service_cookies ) ) : ?>
+        <span><?php echo esc_html( implode( '; ', $service_cookies ) ); ?></span>
+    <?php else : ?>
+        <span><?php echo esc_html__( 'No cookies declared.', 'fp-privacy' ); ?></span>
+    <?php endif; ?>
+</td>
+<td><?php echo esc_html( $retention ); ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody>

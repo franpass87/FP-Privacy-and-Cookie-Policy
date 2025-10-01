@@ -13,11 +13,17 @@ use function esc_url_raw;
 use function filter_var;
 use function is_array;
 use function preg_match;
+use function preg_replace;
 use function rest_sanitize_boolean;
 use function sanitize_email;
 use function sanitize_hex_color;
 use function sanitize_key;
 use function sanitize_text_field;
+use function str_replace;
+use function strlen;
+use function strpos;
+use function strtolower;
+use function trim;
 use function wp_kses_post;
 use function wp_parse_args;
 
@@ -367,21 +373,67 @@ class Validator {
 			$descriptions = isset( $category['description'] ) && is_array( $category['description'] ) ? $category['description'] : array();
 			$services     = isset( $category['services'] ) && is_array( $category['services'] ) ? $category['services'] : array();
 
-			$sanitized[ $key ] = array(
-				'label'       => array(),
-				'description' => array(),
-				'locked'      => self::bool( $category['locked'] ?? false ),
-				'services'    => array(),
-			);
+                        $sanitized[ $key ] = array(
+                                'label'       => array(),
+                                'description' => array(),
+                                'locked'      => self::bool( $category['locked'] ?? false ),
+                                'services'    => array(),
+                        );
 
-			foreach ( $languages as $language ) {
-				$language = self::locale( $language, 'en_US' );
-				$label    = $labels[ $language ] ?? ( $labels['default'] ?? ( $labels ? reset( $labels ) : '' ) );
-				$desc     = $descriptions[ $language ] ?? ( $descriptions['default'] ?? ( $descriptions ? reset( $descriptions ) : '' ) );
+                        $default_label = null;
+                        if ( array_key_exists( 'default', $labels ) ) {
+                                $default_label                                 = self::text( $labels['default'] );
+                                $sanitized[ $key ]['label']['default']        = $default_label;
+                        }
 
-				$sanitized[ $key ]['label'][ $language ]       = self::text( $label );
-				$sanitized[ $key ]['description'][ $language ] = self::textarea( $desc );
-			}
+                        $default_description = null;
+                        if ( array_key_exists( 'default', $descriptions ) ) {
+                                $default_description                            = self::textarea( $descriptions['default'] );
+                                $sanitized[ $key ]['description']['default']   = $default_description;
+                        }
+
+                        $first_label = '';
+                        foreach ( $labels as $label_key => $label_value ) {
+                                if ( 'default' === $label_key ) {
+                                        continue;
+                                }
+
+                                $first_label = self::text( $label_value );
+                                break;
+                        }
+
+                        $first_description = '';
+                        foreach ( $descriptions as $description_key => $description_value ) {
+                                if ( 'default' === $description_key ) {
+                                        continue;
+                                }
+
+                                $first_description = self::textarea( $description_value );
+                                break;
+                        }
+
+                        foreach ( $languages as $language ) {
+                                $language = self::locale( $language, 'en_US' );
+
+                                if ( array_key_exists( $language, $labels ) ) {
+                                        $label = self::text( $labels[ $language ] );
+                                } elseif ( null !== $default_label ) {
+                                        $label = $default_label;
+                                } else {
+                                        $label = $first_label;
+                                }
+
+                                if ( array_key_exists( $language, $descriptions ) ) {
+                                        $description = self::textarea( $descriptions[ $language ] );
+                                } elseif ( null !== $default_description ) {
+                                        $description = $default_description;
+                                } else {
+                                        $description = $first_description;
+                                }
+
+                                $sanitized[ $key ]['label'][ $language ]       = $label;
+                                $sanitized[ $key ]['description'][ $language ] = $description;
+                        }
 
 			$sanitized[ $key ]['services'] = self::sanitize_services( $services, $languages );
 		}
@@ -400,23 +452,32 @@ class Validator {
 	public static function sanitize_services( array $services, array $languages ): array {
 		$sanitized = array();
 
-		foreach ( $services as $language => $entries ) {
-			$lang = self::locale( $language, $languages[0] ?? 'en_US' );
+                foreach ( $services as $language => $entries ) {
+                        $lang       = self::locale( $language, $languages[0] ?? 'en_US' );
+                        $is_default = 'default' === $language || 'default' === $lang;
 
-			if ( ! in_array( $lang, $languages, true ) ) {
-				continue;
-			}
+                        if ( ! $is_default && ! in_array( $lang, $languages, true ) ) {
+                                $mapped = self::match_locale_to_active_languages( $lang, $languages );
 
-			if ( ! is_array( $entries ) ) {
-				continue;
-			}
+                                if ( '' === $mapped ) {
+                                        continue;
+                                }
+
+                                $lang = $mapped;
+                        }
+
+                        if ( ! is_array( $entries ) ) {
+                                continue;
+                        }
+
+                        $key = $is_default ? 'default' : $lang;
 
 			foreach ( $entries as $entry ) {
 				if ( ! is_array( $entry ) ) {
 					continue;
 				}
 
-				$sanitized[ $lang ][] = self::sanitize_service_entry( $entry );
+				$sanitized[ $key ][] = self::sanitize_service_entry( $entry );
 			}
 		}
 
@@ -428,8 +489,67 @@ class Validator {
 			}
 		}
 
-		return $sanitized;
-	}
+                if ( isset( $sanitized['default'] ) ) {
+                        $sanitized['default'] = array_values( $sanitized['default'] );
+                }
+
+                return $sanitized;
+        }
+
+        /**
+         * Attempt to match an arbitrary locale string against active languages.
+         *
+         * @param string              $locale    Candidate locale.
+         * @param array<int, string>  $languages Active languages.
+         *
+         * @return string
+         */
+        private static function match_locale_to_active_languages( string $locale, array $languages ): string {
+                $normalized = self::normalize_locale_token( $locale );
+
+                if ( '' === $normalized ) {
+                        return '';
+                }
+
+                foreach ( $languages as $language ) {
+                        if ( '' === $language ) {
+                                continue;
+                        }
+
+                        if ( self::normalize_locale_token( $language ) === $normalized ) {
+                                return $language;
+                        }
+                }
+
+                if ( strlen( $normalized ) === 2 ) {
+                        foreach ( $languages as $language ) {
+                                if ( '' === $language ) {
+                                        continue;
+                                }
+
+                                $candidate = self::normalize_locale_token( $language );
+
+                                if ( 0 === strpos( $candidate, $normalized . '_' ) ) {
+                                        return $language;
+                                }
+                        }
+                }
+
+                return '';
+        }
+
+        /**
+         * Normalize locale token for safe comparisons.
+         *
+         * @param string $locale Raw locale value.
+         *
+         * @return string
+         */
+        private static function normalize_locale_token( string $locale ): string {
+                $locale = str_replace( '-', '_', strtolower( trim( $locale ) ) );
+
+                return preg_replace( '/[^a-z0-9_]/', '', $locale ) ?? '';
+        }
 
 	/**
 	 * Sanitize single service entry.
@@ -453,14 +573,41 @@ class Validator {
 
 		$signals = array();
 
-		if ( isset( $service['uses_consent_mode'] ) && is_array( $service['uses_consent_mode'] ) ) {
-			$allowed = array( 'analytics_storage', 'ad_storage', 'ad_user_data', 'ad_personalization', 'functionality_storage', 'security_storage' );
+                if ( isset( $service['uses_consent_mode'] ) && is_array( $service['uses_consent_mode'] ) ) {
+                        $allowed = array( 'analytics_storage', 'ad_storage', 'ad_user_data', 'ad_personalization', 'functionality_storage', 'personalization_storage', 'security_storage' );
 
-			foreach ( $service['uses_consent_mode'] as $signal ) {
-				$signal = sanitize_text_field( (string) $signal );
+			foreach ( $service['uses_consent_mode'] as $key => $value ) {
+				$candidate = '';
 
-				if ( in_array( $signal, $allowed, true ) && ! in_array( $signal, $signals, true ) ) {
-					$signals[] = $signal;
+				if ( is_string( $key ) && '' !== $key && ! is_numeric( $key ) ) {
+					$candidate = sanitize_text_field( $key );
+
+					if ( is_array( $value ) ) {
+						$enabled = false;
+
+						foreach ( $value as $flag ) {
+							if ( self::bool( $flag ) ) {
+								$enabled = true;
+								break;
+							}
+						}
+					} else {
+						$enabled = self::bool( $value );
+					}
+
+					if ( ! $enabled ) {
+						continue;
+					}
+				} else {
+					$candidate = sanitize_text_field( (string) $value );
+				}
+
+				if ( '' === $candidate ) {
+					continue;
+				}
+
+				if ( in_array( $candidate, $allowed, true ) && ! in_array( $candidate, $signals, true ) ) {
+					$signals[] = $candidate;
 				}
 			}
 		}

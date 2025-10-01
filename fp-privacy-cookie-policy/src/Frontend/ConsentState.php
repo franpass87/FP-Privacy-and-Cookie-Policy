@@ -219,11 +219,15 @@ $this->log_model = $log_model;
         if ( \is_string( $value ) ) {
             $value = strtolower( trim( $value ) );
 
-            if ( in_array( $value, array( 'true', '1', 'yes', 'on' ), true ) ) {
+            // Support legacy payloads that stored consent states as strings such as
+            // "granted"/"denied" in addition to generic truthy tokens.
+            $truthy = array( 'true', '1', 'yes', 'on', 'granted', 'allow', 'allowed', 'enabled', 'accept', 'accepted' );
+            if ( in_array( $value, $truthy, true ) ) {
                 return true;
             }
 
-            if ( in_array( $value, array( 'false', '0', 'no', 'off' ), true ) ) {
+            $falsy = array( 'false', '0', 'no', 'off', 'denied', 'deny', 'disabled', 'disallow', 'disallowed', 'rejected', 'reject', 'revoked' );
+            if ( in_array( $value, $falsy, true ) ) {
                 return false;
             }
         }

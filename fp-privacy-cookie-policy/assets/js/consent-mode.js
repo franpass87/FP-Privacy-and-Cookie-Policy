@@ -49,10 +49,12 @@
         var marketingFallback = result.ad_storage === 'granted' || result.ad_user_data === 'granted' || result.ad_personalization === 'granted';
         var statisticsFallback = result.analytics_storage === 'granted';
         var functionalityFallback = result.functionality_storage === 'granted';
+        var personalizationFallback = result.personalization_storage === 'granted';
 
         var marketing = normalizeBoolean( payload.marketing, marketingFallback );
         var statistics = normalizeBoolean( payload.statistics, statisticsFallback );
-        var preferences = normalizeBoolean( payload.preferences, functionalityFallback );
+        var preferencesFallback = functionalityFallback || personalizationFallback;
+        var preferences = normalizeBoolean( payload.preferences, preferencesFallback );
         var necessary = normalizeBoolean( payload.necessary, true );
 
         result.analytics_storage = statistics ? 'granted' : 'denied';
@@ -60,6 +62,7 @@
         result.ad_user_data = marketing ? 'granted' : 'denied';
         result.ad_personalization = marketing ? 'granted' : 'denied';
         result.functionality_storage = ( preferences || necessary ) ? 'granted' : 'denied';
+        result.personalization_storage = preferences ? 'granted' : 'denied';
         result.security_storage = 'granted';
 
         return result;
