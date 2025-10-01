@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,10 +67,18 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+= 0.1.1 =
+* Improved banner bootstrapping for shortcode placements, strengthened accessibility guards, and ensured Consent Mode defaults fire even when `gtag` is asynchronous.
+* Hardened consent logging by filtering unknown categories, honoring locked toggles, surfacing REST errors, and exposing filters for cookie attributes and IP salt storage.
+* Reused cached detector results for localized policy generation, grouped manual services with translated labels, and expanded embed detection in admin/CLI contexts with configurable cache TTL.
+
 = 0.1.0 =
 * Initial alpha release with banner, consent registry, CSV export, policy detector/generator, WP-CLI, REST API, Google Consent Mode v2, shortcodes, Gutenberg blocks, multisite support, and i18n.
 
 == Upgrade Notice ==
+
+= 0.1.1 =
+Review banner behavior if you rely on shortcode placement and confirm consent settings after the hardened logging/filters.
 
 = 0.1.0 =
 First release. Configure banner settings and review generated policies after upgrading.

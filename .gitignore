@@ -6,4 +6,5 @@ build/
 *.min.*
 *.zip
 *.log
+.phpunit.result.cache
 .DS_Store

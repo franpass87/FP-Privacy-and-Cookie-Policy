@@ -1,4 +1,4 @@
-# Audit Report – FP Privacy and Cookie Policy 0.1.0
+# Audit Report – FP Privacy and Cookie Policy 0.1.1
 
 ## Security (score 100 / PASS)
 - **Finding:** Lo storage degli stati di consenso non validava le chiavi prima di salvarle nel log (potenziale escalation XSS in backoffice via JSON non normalizzato). **Severity:** medium. **Status:** FIXED. **Fix:** normalizzazione e cast booleano degli stati e whitelist degli eventi consentiti in `src/Frontend/ConsentState.php`. **Files:** `fp-privacy-cookie-policy/src/Frontend/ConsentState.php`.

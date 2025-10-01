@@ -1,6 +1,6 @@
 # FP Privacy and Cookie Policy – Audit Playbook
 
-Questo playbook elenca le verifiche richieste per l'audit del plugin (versione 0.1.0) suddivise per sezione, con peso, riferimenti e criteri di superamento (PASS) o fallimento (FAIL).
+Questo playbook elenca le verifiche richieste per l'audit del plugin (versione 0.1.1) suddivise per sezione, con peso, riferimenti e criteri di superamento (PASS) o fallimento (FAIL).
 
 ## 1. Security (peso 15)
 - [ ] **CSRF & capability** – Verificare nonce e controlli `current_user_can` su ogni endpoint/admin-post. PASS se presenti ovunque; FAIL in caso contrario.
