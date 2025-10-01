@@ -111,13 +111,21 @@ Namespace: `fp-privacy/v1`
 - New sites added via `wpmu_new_blog` trigger automatic provisioning.
 - Each site retains independent settings and consent registries.
 
+## Release Process
+
+Refer to `README-BUILD.md` for detailed instructions.
+
+1. Run `bash build.sh --bump=patch` to bump the patch version and generate a distributable ZIP in the `build/` directory.
+2. Alternatively, set an explicit version with `bash build.sh --set-version=1.2.3` (optionally provide `--zip-name`).
+3. Tag the release with `git tag v1.2.3` and push the tag to trigger the GitHub Action that uploads the ZIP artifact.
+
 ## Development Notes
 
 - PHP 7.4+, WordPress 6.2+ compatibility target.
 - No compiled assets or `.min` files; ES5 scripts enqueue directly.
 - Autoloading uses a lightweight PSR-4 routine scoped to the `FP\Privacy` namespace.
 - Tests are not bundled; follow the QA checklist for manual verification.
-- Run `bin/package.sh` from the repository root to create a distributable ZIP without development artefacts.
+- Run `bash build.sh --bump=patch` from the plugin root to create a distributable ZIP without development artefacts.
 
 ## License
 

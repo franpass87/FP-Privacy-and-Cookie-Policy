@@ -1,0 +1,58 @@
+name: Build plugin ZIP
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  PLUGIN_DIR: fp-privacy-cookie-policy
+  PLUGIN_SLUG: fp-privacy-cookie-policy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Install dependencies
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: |
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+          composer dump-autoload -o --classmap-authoritative
+
+      - name: Prepare build directory
+        run: |
+          rm -rf build/${PLUGIN_SLUG}
+          mkdir -p build/${PLUGIN_SLUG}
+          rsync -a --delete \
+            --exclude=.git/ \
+            --exclude=.github/ \
+            --exclude=tests/ \
+            --exclude=docs/ \
+            --exclude=node_modules/ \
+            --exclude='*.md' \
+            --exclude=.idea/ \
+            --exclude=.vscode/ \
+            --exclude=build/ \
+            --exclude=.gitattributes \
+            --exclude=.gitignore \
+            ${PLUGIN_DIR}/ build/${PLUGIN_SLUG}/
+
+      - name: Create ZIP
+        working-directory: build
+        run: |
+          zip -rq ${PLUGIN_SLUG}.zip ${PLUGIN_SLUG}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-zip
+          path: build/${{ env.PLUGIN_SLUG }}.zip
