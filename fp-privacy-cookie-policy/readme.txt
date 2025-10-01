@@ -26,6 +26,13 @@ FP Privacy and Cookie Policy combines privacy notice automation with a fully acc
 * Multisite support with automatic provisioning on activation and `wpmu_new_blog`.
 * Extensive hooks (`fp_consent_update`, `fp_privacy_services_registry`, etc.) and filters for customization.
 
+= Developer Hooks =
+
+* `fp_privacy_cookie_duration_days` – Change the consent cookie lifespan.
+* `fp_privacy_cookie_options` – Filter cookie attributes before they are written.
+* `fp_privacy_detector_cache_ttl` – Override the detector cache expiry time.
+* `fp_privacy_enqueue_banner_assets` – Force banner assets to load when rendering via shortcode.
+
 == Installation ==
 
 1. Upload the `fp-privacy-cookie-policy` directory to `/wp-content/plugins/`.
@@ -40,7 +47,7 @@ FP Privacy and Cookie Policy combines privacy notice automation with a fully acc
 
 = Does the banner log IP addresses? =
 
-IP addresses are hashed with a constant salt (`FP_PRIVACY_IP_SALT`). No clear IP data is stored.
+IP addresses are hashed with a site-specific salt stored per installation. No clear IP data is stored.
 
 = Can I customize detected services? =
 

@@ -1,38 +1,95 @@
 (function () {
-if ( ! window.fpPrivacyConsent ) {
-window.fpPrivacyConsent = {};
-}
+    if ( ! window.fpPrivacyConsent ) {
+        window.fpPrivacyConsent = {};
+    }
 
-var consent = window.fpPrivacyConsent;
+    var consent = window.fpPrivacyConsent;
 
-consent.defaults = function () {
-return window.fpPrivacyConsentDefaults || {};
-};
+    function normalizeBoolean( value, fallback ) {
+        if ( value === true || value === false ) {
+            return value;
+        }
 
-consent.update = function ( states ) {
-if ( typeof window.dataLayer === 'undefined' ) {
-window.dataLayer = [];
-}
+        if ( typeof value === 'string' ) {
+            if ( value === 'granted' ) {
+                return true;
+            }
 
-var defaults = consent.defaults();
-var payload = {};
+            if ( value === 'denied' ) {
+                return false;
+            }
+        }
 
-for ( var key in defaults ) {
-if ( defaults.hasOwnProperty( key ) ) {
-payload[ key ] = defaults[ key ];
-}
-}
+        return fallback;
+    }
 
-for ( var consentKey in states ) {
-if ( states.hasOwnProperty( consentKey ) ) {
-payload[ consentKey ] = states[ consentKey ];
-}
-}
+    function cloneDefaults( defaults ) {
+        var result = {};
 
-if ( typeof window.gtag === 'function' ) {
-window.gtag( 'consent', 'update', payload );
-}
+        for ( var key in defaults ) {
+            if ( Object.prototype.hasOwnProperty.call( defaults, key ) ) {
+                result[ key ] = defaults[ key ];
+            }
+        }
 
-return payload;
-};
+        return result;
+    }
+
+    consent.defaults = function () {
+        return window.fpPrivacyConsentDefaults || {};
+    };
+
+    consent.mapBannerPayload = function ( payload, context ) {
+        payload = payload || {};
+        context = context || {};
+
+        var defaults = context.defaults || consent.defaults();
+        var result = cloneDefaults( defaults );
+
+        var marketingFallback = result.ad_storage === 'granted' || result.ad_user_data === 'granted' || result.ad_personalization === 'granted';
+        var statisticsFallback = result.analytics_storage === 'granted';
+        var functionalityFallback = result.functionality_storage === 'granted';
+
+        var marketing = normalizeBoolean( payload.marketing, marketingFallback );
+        var statistics = normalizeBoolean( payload.statistics, statisticsFallback );
+        var preferences = normalizeBoolean( payload.preferences, functionalityFallback );
+        var necessary = normalizeBoolean( payload.necessary, true );
+
+        result.analytics_storage = statistics ? 'granted' : 'denied';
+        result.ad_storage = marketing ? 'granted' : 'denied';
+        result.ad_user_data = marketing ? 'granted' : 'denied';
+        result.ad_personalization = marketing ? 'granted' : 'denied';
+        result.functionality_storage = ( preferences || necessary ) ? 'granted' : 'denied';
+        result.security_storage = 'granted';
+
+        return result;
+    };
+
+    consent.update = function ( states ) {
+        if ( typeof window.dataLayer === 'undefined' ) {
+            window.dataLayer = [];
+        }
+
+        var defaults = consent.defaults();
+        var payload = cloneDefaults( defaults );
+
+        for ( var consentKey in states ) {
+            if ( Object.prototype.hasOwnProperty.call( states, consentKey ) ) {
+                payload[ consentKey ] = states[ consentKey ];
+            }
+        }
+
+        if ( typeof window.gtag === 'function' ) {
+            window.gtag( 'consent', 'update', payload );
+        } else {
+            window.dataLayer.push( [ 'consent', 'update', payload ] );
+        }
+
+        window.dataLayer.push( {
+            event: 'fp_consent_mode_update',
+            consent: payload,
+        } );
+
+        return payload;
+    };
 })();

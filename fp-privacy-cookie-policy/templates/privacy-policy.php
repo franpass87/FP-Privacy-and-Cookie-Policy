@@ -15,6 +15,7 @@ $dpo_name = isset( $options['dpo_name'] ) ? $options['dpo_name'] : '';
 $dpo_mail = isset( $options['dpo_email'] ) ? $options['dpo_email'] : '';
 $privacy_mail = isset( $options['privacy_email'] ) ? $options['privacy_email'] : '';
 $vat      = isset( $options['vat'] ) ? $options['vat'] : '';
+$categories_meta = isset( $categories_meta ) && is_array( $categories_meta ) ? $categories_meta : array();
 ?>
 <section class="fp-privacy-policy">
 <h2><?php echo esc_html__( 'Data controller', 'fp-privacy' ); ?></h2>
@@ -46,9 +47,16 @@ $vat      = isset( $options['vat'] ) ? $options['vat'] : '';
 <?php endif; ?>
 
 <h2><?php echo esc_html__( 'Services and cookies', 'fp-privacy' ); ?></h2>
-<?php foreach ( $groups as $category => $services ) : ?>
+<?php foreach ( $groups as $category => $services ) :
+    $meta  = isset( $categories_meta[ $category ] ) && is_array( $categories_meta[ $category ] ) ? $categories_meta[ $category ] : array();
+    $label = isset( $meta['label'] ) && '' !== $meta['label'] ? $meta['label'] : ucfirst( str_replace( '_', ' ', $category ) );
+    $description = isset( $meta['description'] ) ? $meta['description'] : '';
+    ?>
 <div class="fp-privacy-category-block">
-<h3><?php echo esc_html( ucfirst( str_replace( '_', ' ', $category ) ) ); ?></h3>
+<h3><?php echo esc_html( $label ); ?></h3>
+    <?php if ( $description ) : ?>
+        <p class="fp-privacy-category-description"><?php echo wp_kses_post( $description ); ?></p>
+    <?php endif; ?>
 <table>
 <thead>
 <tr>

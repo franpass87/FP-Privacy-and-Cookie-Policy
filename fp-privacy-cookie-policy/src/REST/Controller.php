@@ -142,7 +142,8 @@ if ( ! $nonce || ! \wp_verify_nonce( $nonce, 'wp_rest' ) ) {
 }
 
 $ip      = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : ''; // for rate limiting only.
-$limit   = 'fp_privacy_rate_' . hash( 'sha256', $ip . FP_PRIVACY_IP_SALT );
+$salt    = function_exists( '\fp_privacy_get_ip_salt' ) ? \fp_privacy_get_ip_salt() : 'fp-privacy-cookie-policy-salt';
+$limit   = 'fp_privacy_rate_' . hash( 'sha256', $ip . '|' . $salt );
 $attempt = (int) \get_transient( $limit );
 if ( $attempt > 10 ) {
 return new WP_Error( 'fp_privacy_rate_limited', \__( 'Too many requests. Please try again later.', 'fp-privacy' ), array( 'status' => 429 ) );
@@ -159,9 +160,13 @@ if ( ! \is_array( $states ) ) {
 $states = array();
 }
 
-$result = $this->state->save_event( $event, $states, $lang, $consent_id );
+        $result = $this->state->save_event( $event, $states, $lang, $consent_id );
 
-return new WP_REST_Response( $result, 200 );
+        if ( \is_wp_error( $result ) ) {
+            return $result;
+        }
+
+        return new WP_REST_Response( $result, 200 );
 }
 
 /**

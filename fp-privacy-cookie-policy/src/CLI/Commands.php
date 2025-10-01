@@ -151,9 +151,15 @@ if ( empty( $entries ) ) {
 break;
 }
 
-foreach ( $entries as $entry ) {
-fputcsv( $handle, array( $entry['id'], $entry['consent_id'], $entry['event'], json_encode( $entry['states'] ), $entry['lang'], $entry['rev'], $entry['created_at'] ) );
-}
+        foreach ( $entries as $entry ) {
+            $states = \wp_json_encode( $entry['states'] );
+
+            if ( false === $states ) {
+                $states = '{}';
+            }
+
+            fputcsv( $handle, array( $entry['id'], $entry['consent_id'], $entry['event'], $states, $entry['lang'], $entry['rev'], $entry['created_at'] ) );
+        }
 
 $paged++;
 }

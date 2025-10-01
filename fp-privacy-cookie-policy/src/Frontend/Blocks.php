@@ -196,14 +196,24 @@ class Blocks {
             );
         }
 
+        $languages_json = \wp_json_encode( $languages );
+
+        if ( false === $languages_json ) {
+            return;
+        }
+
         $script = 'window.fpPrivacyBlockData = window.fpPrivacyBlockData || {};' .
-            'window.fpPrivacyBlockData.languages = ' . \wp_json_encode( $languages ) . ';';
+            'window.fpPrivacyBlockData.languages = ' . $languages_json . ';';
 
         if ( 'cookie-banner' === $slug ) {
             $preview = $this->get_banner_preview_data( $languages );
 
             if ( ! empty( $preview ) ) {
-                $script .= 'window.fpPrivacyBlockData.bannerPreview = ' . \wp_json_encode( $preview ) . ';';
+                $preview_json = \wp_json_encode( $preview );
+
+                if ( false !== $preview_json ) {
+                    $script .= 'window.fpPrivacyBlockData.bannerPreview = ' . $preview_json . ';';
+                }
             }
         }
 

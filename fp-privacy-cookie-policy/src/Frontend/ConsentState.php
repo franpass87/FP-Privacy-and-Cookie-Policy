@@ -9,6 +9,7 @@ namespace FP\Privacy\Frontend;
 
 use FP\Privacy\Consent\LogModel;
 use FP\Privacy\Utils\Options;
+use WP_Error;
 
 /**
  * Handles cookie persistence and logging of consent events.
@@ -65,20 +66,12 @@ $this->log_model = $log_model;
         );
 
         if ( $cookie['id'] ) {
-            $record = $this->log_model->query(
-                array(
-'paged'    => 1,
-'per_page' => 1,
-'event'    => 'consent',
-'from'     => '',
-'to'       => '',
-'search'   => $cookie['id'],
-)
-);
-if ( $record ) {
-$states['categories']    = $record[0]['states'];
-$states['last_event']    = $record[0]['created_at'];
-$states['last_revision'] = isset( $record[0]['rev'] ) ? (int) $record[0]['rev'] : 0;
+            $record = $this->log_model->find_latest_by_consent_id( $cookie['id'] );
+
+            if ( $record ) {
+                $states['categories']    = isset( $record['states'] ) && is_array( $record['states'] ) ? $this->sanitize_states_payload( $record['states'] ) : array();
+                $states['last_event']    = isset( $record['created_at'] ) ? $record['created_at'] : '';
+                $states['last_revision'] = isset( $record['rev'] ) ? (int) $record['rev'] : 0;
             }
         }
 
@@ -102,26 +95,30 @@ $states['last_revision'] = isset( $record[0]['rev'] ) ? (int) $record[0]['rev'] 
      * @param string               $lang        Language.
      * @param string               $consent_id  Optional consent identifier.
      *
-     * @return array<string, mixed>
+     * @return array<string, mixed>|WP_Error
      */
     public function save_event( $event, array $states, $lang, $consent_id = '' ) {
         $preview = (bool) $this->options->get( 'preview_mode', false );
         $cookie  = $this->get_cookie_payload();
 
         $event  = in_array( $event, array( 'accept_all', 'reject_all', 'consent', 'reset' ), true ) ? $event : 'consent';
-        $states = $this->sanitize_states_payload( $states );
         $lang   = $this->options->normalize_language( $lang );
+        $states = $this->sanitize_states_payload( $states );
+        $states = $this->filter_known_categories( $states, $lang );
+        $states = $this->enforce_locked_categories( $states, $lang );
 
         if ( empty( $cookie['id'] ) ) {
             $provided = \sanitize_text_field( $consent_id );
             $cookie['id'] = '' !== $provided ? $provided : $this->generate_consent_id();
         }
 
+        $cookie['id'] = \substr( \sanitize_text_field( (string) $cookie['id'] ), 0, 64 );
+
         $revision       = (int) $this->options->get( 'consent_revision', 1 );
         $cookie['rev'] = $revision;
 
         if ( ! $preview ) {
-            $this->log_model->insert(
+            $inserted = $this->log_model->insert(
                 array(
                     'consent_id' => $cookie['id'],
                     'event'      => $event,
@@ -133,10 +130,19 @@ $states['last_revision'] = isset( $record[0]['rev'] ) ? (int) $record[0]['rev'] 
                 )
             );
 
+            if ( ! $inserted ) {
+                return new WP_Error(
+                    'fp_consent_log_failed',
+                    \__( 'Unable to store the consent event.', 'fp-privacy' ),
+                    array( 'status' => 500 )
+                );
+            }
+
             \do_action( 'fp_consent_update', $states, $event, $revision );
         }
-
-        $this->set_cookie( $cookie['id'], $revision );
+        if ( ! $preview ) {
+            $this->set_cookie( $cookie['id'], $revision );
+        }
 
         return array(
             'consent_id' => $cookie['id'],
@@ -162,34 +168,113 @@ $states['last_revision'] = isset( $record[0]['rev'] ) ? (int) $record[0]['rev'] 
                 continue;
             }
 
-            $sanitized[ $clean_key ] = (bool) $value;
+            $sanitized[ $clean_key ] = $this->normalize_boolean( $value );
         }
 
         return $sanitized;
     }
 
-/**
- * Reset consent state.
- *
- * @return void
- */
-public function reset() {
-$cookie = $this->get_cookie_payload();
-$this->set_cookie( '', 0, time() - HOUR_IN_SECONDS );
+    /**
+     * Filter out unknown consent categories from the payload.
+     *
+     * @param array<string, bool> $states   Sanitized states.
+     * @param string              $language Active language.
+     *
+     * @return array<string, bool>
+     */
+    private function filter_known_categories( array $states, $language ) {
+        $categories = $this->options->get_categories_for_language( $language );
 
-if ( $cookie['id'] ) {
-$this->log_model->insert(
-array(
-'consent_id' => $cookie['id'],
-'event'      => 'reset',
-'ip_hash'    => $this->get_ip_hash(),
-'ua'         => $this->get_user_agent(),
-'lang'       => \get_locale(),
-'rev'        => (int) $this->options->get( 'consent_revision', 1 ),
-)
-);
-}
-}
+        if ( empty( $categories ) ) {
+            return array();
+        }
+
+        $filtered = array();
+
+        foreach ( $states as $slug => $value ) {
+            if ( isset( $categories[ $slug ] ) ) {
+                $filtered[ $slug ] = (bool) $value;
+            }
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * Convert mixed value into a strict boolean following common string conventions.
+     *
+     * @param mixed $value Raw value.
+     *
+     * @return bool
+     */
+    private function normalize_boolean( $value ) {
+        if ( \is_bool( $value ) ) {
+            return $value;
+        }
+
+        if ( \is_numeric( $value ) ) {
+            return (bool) (int) $value;
+        }
+
+        if ( \is_string( $value ) ) {
+            $value = strtolower( trim( $value ) );
+
+            if ( in_array( $value, array( 'true', '1', 'yes', 'on' ), true ) ) {
+                return true;
+            }
+
+            if ( in_array( $value, array( 'false', '0', 'no', 'off' ), true ) ) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Ensure locked consent categories remain granted.
+     *
+     * @param array<string, bool> $states   Sanitized states.
+     * @param string              $language Active language.
+     *
+     * @return array<string, bool>
+     */
+    private function enforce_locked_categories( array $states, $language ) {
+        $categories = $this->options->get_categories_for_language( $language );
+
+        foreach ( $categories as $slug => $category ) {
+            if ( ! empty( $category['locked'] ) ) {
+                $states[ $slug ] = true;
+            }
+        }
+
+        return $states;
+    }
+
+    /**
+     * Reset consent state.
+     *
+     * @return void
+     */
+    public function reset() {
+        $cookie = $this->get_cookie_payload();
+        $this->set_cookie( '', 0, time() - HOUR_IN_SECONDS );
+
+        if ( $cookie['id'] ) {
+            $this->log_model->insert(
+                array(
+                    'consent_id' => $cookie['id'],
+                    'event'      => 'reset',
+                    'ip_hash'    => $this->get_ip_hash(),
+                    'ua'         => $this->get_user_agent(),
+                    'lang'       => \get_locale(),
+                    'rev'        => (int) $this->options->get( 'consent_revision', 1 ),
+                )
+            );
+        }
+
+        \do_action( 'fp_consent_update', array(), 'reset', (int) $this->options->get( 'consent_revision', 1 ) );
+    }
 
 /**
  * Get cookie payload.
@@ -237,22 +322,38 @@ $time = time() + ( $days * DAY_IN_SECONDS );
 
 $secure = \is_ssl();
 $value  = $id ? $id . '|' . (int) $rev : '';
-$options = array(
-'expires'  => $time,
-'path'     => COOKIEPATH ? COOKIEPATH : '/',
-'domain'   => COOKIE_DOMAIN,
-'secure'   => $secure,
-'httponly' => false,
-'samesite' => 'Lax',
-);
+        $cookie_path   = defined( 'COOKIEPATH' ) && COOKIEPATH ? COOKIEPATH : '/';
+        $cookie_domain = defined( 'COOKIE_DOMAIN' ) ? COOKIE_DOMAIN : '';
 
-\setcookie( self::COOKIE_NAME, $value, $options );
+        $options = array(
+            'expires'  => $time,
+            'path'     => $cookie_path,
+            'domain'   => $cookie_domain,
+            'secure'   => $secure,
+            'httponly' => false,
+            'samesite' => 'Lax',
+        );
 
-if ( COOKIEPATH !== SITECOOKIEPATH ) {
-$options['path'] = SITECOOKIEPATH ? SITECOOKIEPATH : '/';
-\setcookie( self::COOKIE_NAME, $value, $options );
-}
-}
+        if ( function_exists( '\apply_filters' ) ) {
+            $filtered = \apply_filters( 'fp_privacy_cookie_options', $options, $value, $id, $rev );
+
+            if ( is_array( $filtered ) ) {
+                $options = array_merge( $options, $filtered );
+            }
+        }
+
+        \setcookie( self::COOKIE_NAME, $value, $options );
+
+        if ( defined( 'SITECOOKIEPATH' ) ) {
+            $site_path = SITECOOKIEPATH ? SITECOOKIEPATH : '/';
+
+            if ( $site_path !== $options['path'] ) {
+                $site_options         = $options;
+                $site_options['path'] = $site_path;
+                \setcookie( self::COOKIE_NAME, $value, $site_options );
+            }
+        }
+    }
 
 /**
  * Generate unique consent identifier.
@@ -273,8 +374,10 @@ return uniqid( 'fpconsent', true );
  * @return string
  */
 private function get_ip_hash() {
-$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-return hash( 'sha256', $ip . '|' . FP_PRIVACY_IP_SALT );
+$ip   = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+$salt = function_exists( '\fp_privacy_get_ip_salt' ) ? \fp_privacy_get_ip_salt() : 'fp-privacy-cookie-policy-salt';
+
+return hash( 'sha256', $ip . '|' . $salt );
 }
 
 /**

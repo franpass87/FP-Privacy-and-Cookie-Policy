@@ -82,20 +82,60 @@ $defaults = array(
 'created_at' => \current_time( 'mysql', true ),
 );
 
-$data = \wp_parse_args( $data, $defaults );
-$data = array(
-'consent_id' => \sanitize_text_field( $data['consent_id'] ),
-'event'      => in_array( $data['event'], array( 'accept_all', 'reject_all', 'consent', 'reset', 'revision_bump' ), true ) ? $data['event'] : 'consent',
-'states'     => \wp_json_encode( $this->ensure_states( $data['states'] ) ),
-'ip_hash'    => \sanitize_text_field( $data['ip_hash'] ),
-'ua'         => \sanitize_text_field( $data['ua'] ),
-'lang'       => \sanitize_text_field( $data['lang'] ),
-'rev'        => (int) $data['rev'],
-'created_at' => $this->sanitize_datetime( $data['created_at'] ),
-);
+        $data = \wp_parse_args( $data, $defaults );
 
-return (bool) $wpdb->insert( $this->table, $data );
-}
+        $consent_id = \substr( \sanitize_text_field( $data['consent_id'] ), 0, 64 );
+        $encoded    = \wp_json_encode( $this->ensure_states( $data['states'] ) );
+
+        if ( false === $encoded ) {
+            $encoded = '{}';
+        }
+
+        $data = array(
+            'consent_id' => $consent_id,
+            'event'      => in_array( $data['event'], array( 'accept_all', 'reject_all', 'consent', 'reset', 'revision_bump' ), true ) ? $data['event'] : 'consent',
+            'states'     => $encoded,
+            'ip_hash'    => \sanitize_text_field( $data['ip_hash'] ),
+            'ua'         => \sanitize_text_field( $data['ua'] ),
+            'lang'       => \sanitize_text_field( $data['lang'] ),
+            'rev'        => (int) $data['rev'],
+            'created_at' => $this->sanitize_datetime( $data['created_at'] ),
+        );
+
+        return (bool) $wpdb->insert( $this->table, $data );
+    }
+
+    /**
+     * Retrieve the latest entry for a consent identifier.
+     *
+     * @param string $consent_id Consent identifier.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function find_latest_by_consent_id( $consent_id ) {
+        global $wpdb;
+
+        $consent_id = \substr( \sanitize_text_field( (string) $consent_id ), 0, 64 );
+
+        if ( '' === $consent_id ) {
+            return null;
+        }
+
+        $sql = $wpdb->prepare(
+            "SELECT * FROM {$this->table} WHERE consent_id = %s ORDER BY created_at DESC LIMIT 1",
+            $consent_id
+        );
+
+        $row = $wpdb->get_row( $sql, ARRAY_A );
+
+        if ( ! $row ) {
+            return null;
+        }
+
+        $row['states'] = $this->ensure_states( $row['states'] );
+
+        return $row;
+    }
 
 /**
  * Get paginated entries.
@@ -152,16 +192,16 @@ $sql = $wpdb->prepare(
 array_merge( $params, array( $limit, $offset ) )
 );
 
-$results = $wpdb->get_results( $sql, ARRAY_A );
+        $results = $wpdb->get_results( $sql, ARRAY_A );
 
-return array_map(
-function ( $row ) {
-$row['states'] = \json_decode( $row['states'], true );
-return $row;
-},
-$results
-);
-}
+        foreach ( $results as &$row ) {
+            $row['states'] = $this->ensure_states( $row['states'] );
+        }
+
+        unset( $row );
+
+        return $results;
+    }
 
 /**
  * Count entries.
@@ -273,10 +313,21 @@ return $this->table;
  *
  * @return array<string, mixed>
  */
-private function ensure_states( $states ) {
-if ( \is_array( $states ) ) {
-return $states;
-}
+    /**
+     * Normalize stored states into an array structure.
+     *
+     * @param mixed $states Raw states payload.
+     *
+     * @return array<string, mixed>
+     */
+    public function normalize_states( $states ) {
+        return $this->ensure_states( $states );
+    }
+
+    private function ensure_states( $states ) {
+        if ( \is_array( $states ) ) {
+            return $states;
+        }
 
 if ( \is_string( $states ) ) {
 $decoded = \json_decode( $states, true );

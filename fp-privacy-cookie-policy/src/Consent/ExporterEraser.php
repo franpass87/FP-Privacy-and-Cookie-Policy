@@ -111,15 +111,15 @@ $data = array();
 foreach ( $results as $row ) {
 $data[] = array(
 'name'  => \__( 'Consent Log Entry', 'fp-privacy' ),
-'value' => \wp_json_encode( array(
-'event'   => $row['event'],
-'lang'    => $row['lang'],
-'rev'     => (int) $row['rev'],
-'time'    => $row['created_at'],
-'states'  => \json_decode( $row['states'], true ),
-'user_agent' => $row['ua'],
-) ),
-);
+            'value' => \wp_json_encode( array(
+                'event'   => $row['event'],
+                'lang'    => $row['lang'],
+                'rev'     => (int) $row['rev'],
+                'time'    => $row['created_at'],
+                'states'  => $this->log_model->normalize_states( $row['states'] ),
+                'user_agent' => $row['ua'],
+            ) ),
+        );
 }
 
 $done = count( $results ) < $per_page;
