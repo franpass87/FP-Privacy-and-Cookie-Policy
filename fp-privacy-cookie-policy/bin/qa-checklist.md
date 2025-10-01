@@ -1,6 +1,6 @@
 # FP Privacy & Cookie Policy – QA Checklist
 
-Use this checklist to verify the 0.1.0 release across single and multisite environments.
+Use this checklist to verify the 0.1.1 release across single and multisite environments.
 
 ## Activation & Provisioning
 - [ ] Activate on a single site; confirm consent table creation, options population, and policy pages per active language.

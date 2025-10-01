@@ -71,19 +71,49 @@ if ( ! function_exists( 'fp_privacy_get_ip_salt' ) ) {
 }
 
 spl_autoload_register(
-function ( $class ) {
-if ( 0 !== strpos( $class, 'FP\\\\Privacy\\\\' ) ) {
-return;
-}
+    static function ( $class ) {
+        $prefix      = 'FP\\Privacy\\';
+        $prefix_len  = strlen( $prefix );
 
-$relative = str_replace( 'FP\\\\Privacy\\\\', '', $class );
-$relative = str_replace( '\\\\', DIRECTORY_SEPARATOR, $relative );
-$path     = FP_PRIVACY_PLUGIN_PATH . 'src/' . $relative . '.php';
+        if ( 0 !== strncmp( $class, $prefix, $prefix_len ) ) {
+            return;
+        }
 
-if ( file_exists( $path ) ) {
-require_once $path;
-}
-}
+        $relative = substr( $class, $prefix_len );
+        $relative = str_replace( '\\', DIRECTORY_SEPARATOR, $relative );
+
+        $source_root = FP_PRIVACY_PLUGIN_PATH . 'src' . DIRECTORY_SEPARATOR;
+        $path        = $source_root . $relative . '.php';
+
+        if ( ! is_readable( $path ) ) {
+            return;
+        }
+
+        static $resolved_root = null;
+
+        if ( null === $resolved_root ) {
+            $resolved_root = realpath( $source_root );
+
+            if ( false === $resolved_root ) {
+                // Fall back to the non-resolved path so autoloading can still operate.
+                $resolved_root = rtrim( $source_root, DIRECTORY_SEPARATOR );
+            }
+
+            $resolved_root = rtrim( $resolved_root, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR;
+        }
+
+        $resolved_path = realpath( $path );
+
+        if ( false === $resolved_path ) {
+            return;
+        }
+
+        if ( strncmp( $resolved_path, $resolved_root, strlen( $resolved_root ) ) !== 0 ) {
+            return;
+        }
+
+        require_once $resolved_path;
+    }
 );
 
 if ( ! class_exists( '\\FP\\Privacy\\Plugin' ) ) {

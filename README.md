@@ -108,6 +108,10 @@ Textdomain: `fp-privacy`. The repository includes a `.pot` template alongside ex
 - Filters: `fp_privacy_csv_export_batch_size`, `fp_privacy_cookie_duration_days`, `fp_privacy_services_registry`, `fp_privacy_service_purpose_{key}`.
 
 ## Changelog
+- **0.1.1 — Refinements & hardening.**
+  - Improved banner bootstrapping for shortcodes, accessibility safeguards, and Consent Mode fallbacks.
+  - Hardened consent logging with stricter category handling, REST error surfacing, and cookie attribute filters.
+  - Optimized detector-driven policy generation with localized service grouping and configurable cache TTL.
 - **0.1.0 — Initial alpha release.**
   - First public release with banner, auto policies, Consent Mode v2, consent log, REST, WP-CLI, and multisite support.
 

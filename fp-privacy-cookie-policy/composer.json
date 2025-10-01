@@ -4,11 +4,11 @@
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
-        "php": ">=8.0"
+        "php": ">=7.4"
     },
     "autoload": {
         "psr-4": {
-            "FP\\\\Privacy\\": "src/"
+            "FP\\Privacy\\": "src/"
         }
     },
     "require-dev": {
