@@ -516,7 +516,13 @@ class Validator {
                                 continue;
                         }
 
-                        if ( self::normalize_locale_token( $language ) === $normalized ) {
+                        $candidate = self::normalize_locale_token( $language );
+
+                        if ( $candidate === $normalized ) {
+                                return $language;
+                        }
+
+                        if ( str_replace( '_', '', $candidate ) === $normalized ) {
                                 return $language;
                         }
                 }

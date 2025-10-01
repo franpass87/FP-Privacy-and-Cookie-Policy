@@ -398,17 +398,95 @@ return array(
  *
  * @return string
  */
-public function normalize_language( $locale ) {
-$languages = $this->get_languages();
-$primary   = $languages[0] ?? 'en_US';
-$locale    = Validator::locale( $locale, $primary );
+    public function normalize_language( $locale ) {
+        $languages = $this->get_languages();
 
-if ( in_array( $locale, $languages, true ) ) {
-    return $locale;
-}
+        if ( empty( $languages ) ) {
+            return Validator::locale( $locale, 'en_US' );
+        }
 
-return $primary;
-}
+        $primary = $languages[0];
+        $locale  = Validator::locale( $locale, $primary );
+
+        if ( in_array( $locale, $languages, true ) ) {
+            return $locale;
+        }
+
+        $matched = $this->match_language_alias( $locale, $languages );
+
+        if ( '' !== $matched ) {
+            return $matched;
+        }
+
+        return $primary;
+    }
+
+    /**
+     * Attempt to match locale variations against configured languages.
+     *
+     * @param string              $locale    Requested locale.
+     * @param array<int, string>  $languages Active languages.
+     *
+     * @return string
+     */
+    private function match_language_alias( $locale, array $languages ) {
+        $normalized = $this->normalize_locale_token( $locale );
+
+        if ( '' === $normalized ) {
+            return '';
+        }
+
+        foreach ( $languages as $language ) {
+            if ( '' === $language ) {
+                continue;
+            }
+
+            $candidate = $this->normalize_locale_token( $language );
+
+            if ( $candidate === $normalized ) {
+                return $language;
+            }
+
+            if ( \str_replace( '_', '', $candidate ) === $normalized ) {
+                return $language;
+            }
+        }
+
+        $separator = \strpos( $normalized, '_' );
+        $root      = false !== $separator ? \substr( $normalized, 0, $separator ) : $normalized;
+
+        if ( '' === $root ) {
+            return '';
+        }
+
+        foreach ( $languages as $language ) {
+            if ( '' === $language ) {
+                continue;
+            }
+
+            $candidate = $this->normalize_locale_token( $language );
+
+            if ( $candidate === $root || 0 === \strpos( $candidate, $root . '_' ) ) {
+                return $language;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Normalize locale token for safe comparisons.
+     *
+     * @param string $locale Raw locale value.
+     *
+     * @return string
+     */
+    private function normalize_locale_token( $locale ) {
+        $locale = \strtolower( \trim( (string) $locale ) );
+        $locale = \str_replace( '-', '_', $locale );
+
+        return \preg_replace( '/[^a-z0-9_]/', '', $locale ) ?? '';
+    }
 /**
  * Get banner text for a language.
  *
@@ -599,16 +677,53 @@ foreach ( $map as $key => $config ) {
         $language = $this->normalize_language( $language );
         $page_id  = isset( $pages[ $key ][ $language ] ) ? (int) $pages[ $key ][ $language ] : 0;
 
-        if ( $page_id && \get_post( $page_id ) instanceof WP_Post ) {
-            continue;
+        $post    = $page_id ? \get_post( $page_id ) : null;
+
+        if ( $post instanceof WP_Post && 'page' !== $post->post_type ) {
+            $post = null;
+        }
+        $content = sprintf(
+            '[%1$s lang="%2$s"]',
+            $config['shortcode'],
+            \esc_attr( $language )
+        );
+
+        if ( $post instanceof WP_Post && 'trash' === $post->post_status ) {
+            $restored = \wp_untrash_post( $post->ID );
+
+            if ( ! \is_wp_error( $restored ) && $restored ) {
+                $post = \get_post( $post->ID );
+            }
+        }
+
+        if ( $post instanceof WP_Post ) {
+            $needs_refresh = 'publish' !== $post->post_status || trim( (string) $post->post_content ) !== $content;
+
+            if ( ! $needs_refresh ) {
+                continue;
+            }
+
+            $result = \wp_update_post(
+                array(
+                    'ID'           => $post->ID,
+                    'post_status'  => 'publish',
+                    'post_type'    => 'page',
+                    'post_content' => $content,
+                ),
+                true
+            );
+
+            if ( $result && ! \is_wp_error( $result ) ) {
+                $pages[ $key ][ $language ] = (int) $post->ID;
+                $updated                     = true;
+                continue;
+            }
         }
 
         $title = $config['title'];
         if ( count( $languages ) > 1 ) {
             $title = sprintf( /* translators: %s: language code */ \__( '%1$s (%2$s)', 'fp-privacy' ), $config['title'], $language );
         }
-
-        $content = '[' . $config['shortcode'] . ' lang="' . \esc_attr( $language ) . '"]';
 
         $created = \wp_insert_post(
             array(
