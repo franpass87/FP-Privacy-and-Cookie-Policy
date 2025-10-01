@@ -2,7 +2,7 @@
 /**
  * Plugin Name: FP Privacy and Cookie Policy
  * Description: Gestione privacy/cookie policy, banner e consenso (GDPR) + Google Consent Mode v2.
- * Version: 0.1.0
+ * Version: 0.1.1
  * Author: Francesco Passeri
  * Author URI: https://francescopasseri.com
  * Text Domain: fp-privacy
@@ -17,11 +17,17 @@ exit;
 
 define( 'FP_PRIVACY_PLUGIN_FILE', __FILE__ );
 
-define( 'FP_PRIVACY_PLUGIN_VERSION', '0.1.0' );
+define( 'FP_PRIVACY_PLUGIN_VERSION', '0.1.1' );
 
 define( 'FP_PRIVACY_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
 define( 'FP_PRIVACY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+
+$autoload = __DIR__ . '/vendor/autoload.php';
+
+if ( is_readable( $autoload ) ) {
+    require $autoload;
+}
 
 
 if ( ! function_exists( 'fp_privacy_get_ip_salt' ) ) {

@@ -1,4 +1,6 @@
-*.min.js -diff
-*.min.css -diff
-*.map -diff
-*.zip -diff
+/tests export-ignore
+/docs export-ignore
+/.github export-ignore
+/node_modules export-ignore
+/.gitignore export-ignore
+/.gitattributes export-ignore
