@@ -178,6 +178,14 @@ if ( '' === $lang ) {
     $lang = \get_locale();
 }
 
+$lang = $this->options->normalize_language( $lang );
+
+$this->force_enqueue = true;
+
+if ( \did_action( 'wp_enqueue_scripts' ) ) {
+    $this->enqueue_banner_assets( $lang );
+}
+
 $description = \sanitize_text_field( $atts['description'] );
 if ( '' === $description ) {
     $description = \__( 'Opens the cookie preferences modal so you can review or update your consent settings.', 'fp-privacy' );
@@ -203,7 +211,7 @@ $description = \trim( $description );
 $description_id = \wp_unique_id( 'fp-privacy-consent-hint-' );
 
 return \sprintf(
-'<button type=\"button\" class=\"fp-privacy-preferences\" data-fp-privacy-open aria-describedby=\"%2$s\">%1$s</button><span id=\"%2$s\" class=\"screen-reader-text\">%3$s</span>',
+'<button type="button" class="fp-privacy-preferences" data-fp-privacy-open aria-describedby="%2$s">%1$s</button><span id="%2$s" class="screen-reader-text">%3$s</span>',
 \esc_html( $label ),
 \esc_attr( $description_id ),
 \esc_html( $description )
@@ -229,7 +237,8 @@ public function render_cookie_banner( $atts ) {
         'fp_cookie_banner'
     );
 
-    $lang = '' !== \trim( (string) $atts['lang'] ) ? \preg_replace( '/[^A-Za-z0-9_\\-]/', '', $atts['lang'] ) : '';
+    $lang            = '' !== \trim( (string) $atts['lang'] ) ? \preg_replace( '/[^A-Za-z0-9_\\-]/', '', $atts['lang'] ) : '';
+    $normalized_lang = '' !== $lang ? $this->options->normalize_language( $lang ) : '';
 
     $type     = in_array( $atts['type'], array( 'floating', 'bar' ), true ) ? $atts['type'] : '';
     $position = in_array( $atts['position'], array( 'top', 'bottom' ), true ) ? $atts['position'] : '';
@@ -238,7 +247,7 @@ public function render_cookie_banner( $atts ) {
     $this->force_enqueue = true;
 
     if ( \did_action( 'wp_enqueue_scripts' ) ) {
-        $this->enqueue_banner_assets( $lang );
+        $this->enqueue_banner_assets( '' !== $normalized_lang ? $normalized_lang : $lang );
     }
 
     $attributes = array(
@@ -246,8 +255,8 @@ public function render_cookie_banner( $atts ) {
         'data-fp-privacy-banner' => '1',
     );
 
-    if ( '' !== $lang ) {
-        $attributes['data-lang'] = $lang;
+    if ( '' !== $normalized_lang ) {
+        $attributes['data-lang'] = $normalized_lang;
     }
 
     if ( '' !== $type ) {
