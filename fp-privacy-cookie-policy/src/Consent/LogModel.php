@@ -247,7 +247,11 @@ $where   .= ' AND created_at <= %s';
 $params[] = $this->sanitize_datetime( $args['to'] );
 }
 
-$sql = $wpdb->prepare( "SELECT COUNT(*) FROM {$this->table} {$where}", $params );
+$sql = "SELECT COUNT(*) FROM {$this->table} {$where}";
+
+if ( ! empty( $params ) ) {
+$sql = $wpdb->prepare( $sql, $params );
+}
 
 return (int) $wpdb->get_var( $sql );
 }

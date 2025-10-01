@@ -269,19 +269,52 @@ public function generate_cookie_policy( $lang ) {
                     continue;
                 }
 
-                $name     = isset( $cookie['name'] ) ? (string) $cookie['name'] : '';
-                $duration = isset( $cookie['duration'] ) ? (string) $cookie['duration'] : '';
+                $cookies[] = array(
+                    'name'        => isset( $cookie['name'] ) ? (string) $cookie['name'] : '',
+                    'domain'      => isset( $cookie['domain'] ) ? (string) $cookie['domain'] : '',
+                    'duration'    => isset( $cookie['duration'] ) ? (string) $cookie['duration'] : '',
+                    'description' => isset( $cookie['description'] ) ? (string) $cookie['description'] : '',
+                );
+            }
+        }
 
-                $label = $name;
+        $consent_signals = array();
 
-                if ( '' === $label && '' !== $duration ) {
-                    $label = $duration;
-                } elseif ( '' !== $label && '' !== $duration ) {
-                    $label .= ' (' . $duration . ')';
+        if ( isset( $entry['uses_consent_mode'] ) && is_array( $entry['uses_consent_mode'] ) ) {
+            $allowed_signals = array( 'analytics_storage', 'ad_storage', 'ad_user_data', 'ad_personalization', 'functionality_storage', 'personalization_storage', 'security_storage' );
+
+            foreach ( $entry['uses_consent_mode'] as $signal_key => $signal_value ) {
+                $candidate = '';
+
+                if ( is_string( $signal_key ) && '' !== $signal_key && ! is_numeric( $signal_key ) ) {
+                    $candidate = \sanitize_text_field( $signal_key );
+
+                    if ( is_array( $signal_value ) ) {
+                        $enabled = false;
+
+                        foreach ( $signal_value as $flag ) {
+                            if ( \rest_sanitize_boolean( $flag ) ) {
+                                $enabled = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        $enabled = (bool) \rest_sanitize_boolean( $signal_value );
+                    }
+
+                    if ( ! $enabled ) {
+                        continue;
+                    }
+                } else {
+                    $candidate = \sanitize_text_field( (string) $signal_value );
                 }
 
-                if ( '' !== $label ) {
-                    $cookies[] = $label;
+                if ( '' === $candidate ) {
+                    continue;
+                }
+
+                if ( in_array( $candidate, $allowed_signals, true ) && ! in_array( $candidate, $consent_signals, true ) ) {
+                    $consent_signals[] = $candidate;
                 }
             }
         }
@@ -302,7 +335,7 @@ public function generate_cookie_policy( $lang ) {
             'legal_basis'      => isset( $entry['legal_basis'] ) ? (string) $entry['legal_basis'] : '',
             'data_collected'   => isset( $entry['data_collected'] ) ? (string) $entry['data_collected'] : '',
             'data_transfer'    => isset( $entry['data_transfer'] ) ? (string) $entry['data_transfer'] : '',
-            'uses_consent_mode'=> isset( $entry['uses_consent_mode'] ) && is_array( $entry['uses_consent_mode'] ) ? array_values( $entry['uses_consent_mode'] ) : array(),
+            'uses_consent_mode'=> $consent_signals,
             'cookies'          => $cookies,
             'category'         => $category,
             'detected'         => true,

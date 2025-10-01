@@ -411,10 +411,12 @@ function mapToConsentMode( payload ) {
     var marketingFallback = result.ad_storage === 'granted' || result.ad_user_data === 'granted' || result.ad_personalization === 'granted';
     var statisticsFallback = result.analytics_storage === 'granted';
     var functionalityFallback = result.functionality_storage === 'granted';
+    var personalizationFallback = result.personalization_storage === 'granted';
 
     var marketing = Object.prototype.hasOwnProperty.call( payload, 'marketing' ) ? payload.marketing === true : marketingFallback;
     var statistics = Object.prototype.hasOwnProperty.call( payload, 'statistics' ) ? payload.statistics === true : statisticsFallback;
-    var preferences = Object.prototype.hasOwnProperty.call( payload, 'preferences' ) ? payload.preferences === true : functionalityFallback;
+    var preferencesFallback = functionalityFallback || personalizationFallback;
+    var preferences = Object.prototype.hasOwnProperty.call( payload, 'preferences' ) ? payload.preferences === true : preferencesFallback;
     var necessary = Object.prototype.hasOwnProperty.call( payload, 'necessary' ) ? payload.necessary === true : true;
 
     result.analytics_storage = statistics ? 'granted' : 'denied';
@@ -422,6 +424,7 @@ function mapToConsentMode( payload ) {
     result.ad_user_data = marketing ? 'granted' : 'denied';
     result.ad_personalization = marketing ? 'granted' : 'denied';
     result.functionality_storage = ( preferences || necessary ) ? 'granted' : 'denied';
+    result.personalization_storage = preferences ? 'granted' : 'denied';
     result.security_storage = 'granted';
 
     return result;

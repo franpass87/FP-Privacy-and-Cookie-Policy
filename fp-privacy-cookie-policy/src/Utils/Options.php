@@ -193,12 +193,13 @@ return array(
     ),
     'categories'            => $category_defaults,
     'consent_mode_defaults' => array(
-        'analytics_storage'     => 'denied',
-        'ad_storage'            => 'denied',
-        'ad_user_data'          => 'denied',
-        'ad_personalization'    => 'denied',
-        'functionality_storage' => 'granted',
-        'security_storage'      => 'granted',
+        'analytics_storage'      => 'denied',
+        'ad_storage'             => 'denied',
+        'ad_user_data'           => 'denied',
+        'ad_personalization'     => 'denied',
+        'functionality_storage'  => 'granted',
+        'personalization_storage' => 'denied',
+        'security_storage'       => 'granted',
     ),
     'retention_days'        => 180,
     'consent_revision'      => 1,
@@ -240,8 +241,8 @@ $languages      = Validator::locale_list( $value['languages_active'] ?? $default
 
 $banner_defaults = $defaults['banner_texts'][ $default_locale ] ?? reset( $defaults['banner_texts'] );
 $layout_raw      = isset( $value['banner_layout'] ) && \is_array( $value['banner_layout'] ) ? $value['banner_layout'] : array();
-$categories_raw  = isset( $value['categories'] ) && \is_array( $value['categories'] ) ? $value['categories'] : $defaults['categories'];
-$pages_raw       = isset( $value['pages'] ) && \is_array( $value['pages'] ) ? $value['pages'] : array();
+        $categories_raw  = isset( $value['categories'] ) && \is_array( $value['categories'] ) ? $value['categories'] : $defaults['categories'];
+        $pages_raw       = isset( $value['pages'] ) && \is_array( $value['pages'] ) ? $value['pages'] : array();
 
 $owner_fields = Validator::sanitize_owner_fields(
     array(
@@ -261,11 +262,53 @@ $layout = array(
     'sync_modal_and_button' => Validator::bool( $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'] ),
 );
 
-return array(
+        $default_categories = Validator::sanitize_categories( $defaults['categories'], $languages );
+        $categories         = Validator::sanitize_categories( $categories_raw, $languages );
+
+        $raw_categories_by_slug = array();
+
+        foreach ( $categories_raw as $raw_slug => $raw_category ) {
+            $normalized_slug = \sanitize_key( $raw_slug );
+
+            if ( '' === $normalized_slug ) {
+                continue;
+            }
+
+            $raw_categories_by_slug[ $normalized_slug ] = \is_array( $raw_category ) ? $raw_category : array();
+        }
+
+        if ( ! empty( $default_categories ) ) {
+            $normalized = array();
+
+            foreach ( $default_categories as $slug => $default_category ) {
+                if ( isset( $categories[ $slug ] ) ) {
+                    $merged = \array_replace_recursive( $default_category, $categories[ $slug ] );
+
+                    $raw = $raw_categories_by_slug[ $slug ] ?? array();
+                    if ( ! \array_key_exists( 'locked', $raw ) ) {
+                        $merged['locked'] = $default_category['locked'];
+                    }
+
+                    $normalized[ $slug ] = $merged;
+                } else {
+                    $normalized[ $slug ] = $default_category;
+                }
+            }
+
+            foreach ( $categories as $slug => $category ) {
+                if ( ! isset( $normalized[ $slug ] ) ) {
+                    $normalized[ $slug ] = $category;
+                }
+            }
+
+            $categories = $normalized;
+        }
+
+        return array(
     'languages_active'      => $languages,
     'banner_texts'          => Validator::sanitize_banner_texts( isset( $value['banner_texts'] ) && \is_array( $value['banner_texts'] ) ? $value['banner_texts'] : array(), $languages, $banner_defaults ),
     'banner_layout'         => $layout,
-    'categories'            => Validator::sanitize_categories( $categories_raw, $languages ),
+            'categories'            => $categories,
     'consent_mode_defaults' => Validator::sanitize_consent_mode( isset( $value['consent_mode_defaults'] ) && \is_array( $value['consent_mode_defaults'] ) ? $value['consent_mode_defaults'] : array(), $defaults['consent_mode_defaults'] ),
     'retention_days'        => Validator::int( $value['retention_days'] ?? $defaults['retention_days'], $defaults['retention_days'], 1 ),
     'consent_revision'      => Validator::int( $value['consent_revision'] ?? $defaults['consent_revision'], $defaults['consent_revision'], 1 ),
@@ -334,9 +377,19 @@ return array(
  *
  * @return array<int, string>
  */
-public function get_languages() {
-return $this->options['languages_active'];
-}
+    public function get_languages() {
+        $configured = array();
+
+        if ( isset( $this->options['languages_active'] ) ) {
+            $configured = is_array( $this->options['languages_active'] )
+                ? $this->options['languages_active']
+                : array( $this->options['languages_active'] );
+        }
+
+        $fallback = $configured[0] ?? ( function_exists( '\\get_locale' ) ? (string) \get_locale() : 'en_US' );
+
+        return Validator::locale_list( $configured, $fallback );
+    }
 
 /**
  * Normalize locale against active languages.
@@ -402,7 +455,8 @@ foreach ( $this->options['categories'] as $key => $category ) {
         $description = $category['description'][ $fallback ];
     }
 
-    $services = isset( $category['services'][ $lang ] ) && \is_array( $category['services'][ $lang ] ) ? $category['services'][ $lang ] : array();
+    $services_map = isset( $category['services'] ) && \is_array( $category['services'] ) ? $category['services'] : array();
+    $services     = $this->resolve_services_for_language( $services_map, $lang, $fallback );
 
     $result[ $key ] = array(
         'label'       => $label,
@@ -413,6 +467,67 @@ foreach ( $this->options['categories'] as $key => $category ) {
 }
 
 return $result;
+}
+
+/**
+ * Resolve services list for a given language with fallbacks.
+ *
+ * @param array<string|int, mixed> $services_map Raw services map.
+ * @param string                   $lang         Requested language code.
+ * @param string                   $fallback     Fallback language code.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+private function resolve_services_for_language( array $services_map, $lang, $fallback ) {
+    if ( empty( $services_map ) ) {
+        return array();
+    }
+
+    // Legacy data may store services as a plain list without language keys.
+    if ( array_values( $services_map ) === $services_map ) {
+        return $this->normalize_services_list( $services_map );
+    }
+
+    $candidates = array( $lang );
+
+    if ( 'default' !== $lang ) {
+        $candidates[] = 'default';
+    }
+
+    if ( $fallback && ! in_array( $fallback, $candidates, true ) ) {
+        $candidates[] = $fallback;
+    }
+
+    foreach ( $candidates as $code ) {
+        if ( isset( $services_map[ $code ] ) && \is_array( $services_map[ $code ] ) && ! empty( $services_map[ $code ] ) ) {
+            return $this->normalize_services_list( $services_map[ $code ] );
+        }
+    }
+
+    return array();
+}
+
+/**
+ * Normalize a list of service definitions.
+ *
+ * @param mixed $services Raw services list.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+private function normalize_services_list( $services ) {
+    if ( ! \is_array( $services ) ) {
+        return array();
+    }
+
+    $normalized = array();
+
+    foreach ( $services as $service ) {
+        if ( \is_array( $service ) ) {
+            $normalized[] = $service;
+        }
+    }
+
+    return $normalized;
 }
 
 /**

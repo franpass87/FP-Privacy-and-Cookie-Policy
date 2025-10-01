@@ -164,41 +164,47 @@ public function render_banner() {
      */
     private function build_palette_css( $palette, $sync_modal = false ) {
         $defaults = array(
-            'background'    => '#ffffff',
-            'text'          => '#111111',
-            'button'        => '#1e88e5',
-            'button_text'   => '#ffffff',
-            'border'        => '#d1d1d1',
+            'surface_bg'          => '#0B1220',
+            'surface_text'        => '#FFFFFF',
+            'button_primary_bg'   => '#4C7CF6',
+            'button_primary_tx'   => '#FFFFFF',
+            'button_secondary_bg' => '#E5E7EB',
+            'button_secondary_tx' => '#111827',
+            'link'                => '#2563EB',
+            'border'              => '#D1D5DB',
+            'focus'               => '#3B82F6',
         );
 
         $palette = is_array( $palette ) ? array_merge( $defaults, $palette ) : $defaults;
 
-        $css = '#fp-privacy-banner-root, [data-fp-privacy-banner] {';
+        $surface_bg          = $this->sanitize_palette_value( $palette, 'surface_bg', $defaults['surface_bg'] );
+        $surface_text        = $this->sanitize_palette_value( $palette, 'surface_text', $defaults['surface_text'] );
+        $button_primary_bg   = $this->sanitize_palette_value( $palette, 'button_primary_bg', $defaults['button_primary_bg'] );
+        $button_primary_tx   = $this->sanitize_palette_value( $palette, 'button_primary_tx', $defaults['button_primary_tx'] );
+        $button_secondary_bg = $this->sanitize_palette_value( $palette, 'button_secondary_bg', $defaults['button_secondary_bg'] );
+        $button_secondary_tx = $this->sanitize_palette_value( $palette, 'button_secondary_tx', $defaults['button_secondary_tx'] );
+        $link                = $this->sanitize_palette_value( $palette, 'link', $defaults['link'] );
+        $border              = $this->sanitize_palette_value( $palette, 'border', $defaults['border'] );
+        $focus               = $this->sanitize_palette_value( $palette, 'focus', $defaults['focus'] );
 
-        $background   = $this->sanitize_palette_value( $palette, 'background', $defaults['background'] );
-        $text         = $this->sanitize_palette_value( $palette, 'text', $defaults['text'] );
-        $button       = $this->sanitize_palette_value( $palette, 'button', $defaults['button'] );
-        $button_text  = $this->sanitize_palette_value( $palette, 'button_text', $defaults['button_text'] );
-        $border       = $this->sanitize_palette_value( $palette, 'border', $defaults['border'] );
-
-        $css .= '--fp-privacy-surface_bg:' . $background . ';';
-        $css .= '--fp-privacy-surface_text:' . $text . ';';
-        $css .= '--fp-privacy-button_primary_bg:' . $button . ';';
-        $css .= '--fp-privacy-button_primary_tx:' . $button_text . ';';
-        $css .= '--fp-privacy-button_secondary_bg:' . $border . ';';
-        $css .= '--fp-privacy-button_secondary_tx:' . $text . ';';
-        $css .= '--fp-privacy-link:' . $button . ';';
+        $css  = '#fp-privacy-banner-root, [data-fp-privacy-banner] {';
+        $css .= '--fp-privacy-surface_bg:' . $surface_bg . ';';
+        $css .= '--fp-privacy-surface_text:' . $surface_text . ';';
+        $css .= '--fp-privacy-button_primary_bg:' . $button_primary_bg . ';';
+        $css .= '--fp-privacy-button_primary_tx:' . $button_primary_tx . ';';
+        $css .= '--fp-privacy-button_secondary_bg:' . $button_secondary_bg . ';';
+        $css .= '--fp-privacy-button_secondary_tx:' . $button_secondary_tx . ';';
+        $css .= '--fp-privacy-link:' . $link . ';';
         $css .= '--fp-privacy-border:' . $border . ';';
-        $css .= '--fp-privacy-focus:' . $border . '33;';
-
+        $css .= '--fp-privacy-focus:' . $focus . ';';
         $css .= '}' . PHP_EOL;
 
         if ( $sync_modal ) {
-            $css .= '.fp-privacy-modal{background:' . $background . ';color:' . $text . ';border:1px solid ' . $border . ';}' . PHP_EOL;
-            $css .= '.fp-privacy-modal button.close{color:' . $text . ';}' . PHP_EOL;
-            $css .= '.fp-privacy-modal .fp-privacy-button-primary{background:' . $button . ';color:' . $button_text . ';}' . PHP_EOL;
-            $css .= '.fp-privacy-modal .fp-privacy-button-secondary{background:' . $border . ';color:' . $text . ';border-color:' . $border . ';}' . PHP_EOL;
-            $css .= '.fp-privacy-modal .fp-privacy-switch input[type="checkbox"]:checked{background:' . $button . ';}' . PHP_EOL;
+            $css .= '.fp-privacy-modal{background:' . $surface_bg . ';color:' . $surface_text . ';border:1px solid ' . $border . ';}' . PHP_EOL;
+            $css .= '.fp-privacy-modal button.close{color:' . $surface_text . ';}' . PHP_EOL;
+            $css .= '.fp-privacy-modal .fp-privacy-button-primary{background:' . $button_primary_bg . ';color:' . $button_primary_tx . ';}' . PHP_EOL;
+            $css .= '.fp-privacy-modal .fp-privacy-button-secondary{background:' . $button_secondary_bg . ';color:' . $button_secondary_tx . ';border-color:' . $border . ';}' . PHP_EOL;
+            $css .= '.fp-privacy-modal .fp-privacy-switch input[type="checkbox"]:checked{background:' . $button_primary_bg . ';}' . PHP_EOL;
         }
 
         return $css;
