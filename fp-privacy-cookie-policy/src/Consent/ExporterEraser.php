@@ -3,6 +3,8 @@
  * Privacy exporters and erasers integration.
  *
  * @package FP\Privacy\Consent
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 namespace FP\Privacy\Consent;

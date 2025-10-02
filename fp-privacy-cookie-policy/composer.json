@@ -29,6 +29,27 @@
             "rm -rf vendor",
             "@composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader",
             "composer dump-autoload -o --classmap-authoritative"
+        ],
+        "sync:author": [
+            "node tools/sync-author-metadata.js --apply=true"
+        ],
+        "sync:docs": [
+            "node tools/sync-author-metadata.js --docs --apply=true"
+        ],
+        "changelog:from-git": [
+            "npx --yes conventional-changelog -p angular -i CHANGELOG.md -s || true"
         ]
+    },
+    "authors": [
+        {
+            "name": "Francesco Passeri",
+            "email": "info@francescopasseri.com",
+            "homepage": "https://francescopasseri.com",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://francescopasseri.com",
+    "support": {
+        "issues": "https://francescopasseri.com"
     }
 }

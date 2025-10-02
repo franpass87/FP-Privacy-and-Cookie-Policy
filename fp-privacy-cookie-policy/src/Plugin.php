@@ -3,6 +3,8 @@
  * Main plugin bootstrap.
  *
  * @package FP\Privacy
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 namespace FP\Privacy;

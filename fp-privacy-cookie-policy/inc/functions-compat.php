@@ -3,6 +3,8 @@
  * Compatibility helpers.
  *
  * @package FP\Privacy
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

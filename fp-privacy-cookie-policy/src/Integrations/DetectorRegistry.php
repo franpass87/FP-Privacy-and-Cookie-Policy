@@ -3,6 +3,8 @@
  * Service detector registry.
  *
  * @package FP\Privacy\Integrations
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 namespace FP\Privacy\Integrations;

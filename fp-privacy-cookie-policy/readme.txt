@@ -8,11 +8,13 @@ Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A comprehensive GDPR/ePrivacy consent manager with Google Consent Mode v2, auto-generated privacy/cookie policies, consent logging, REST + WP-CLI tools, and Gutenberg blocks (no build step).
+Provides a GDPR-ready consent banner, consent logging, and automated privacy/cookie policies with Google Consent Mode v2 for WordPress. Includes REST, WP-CLI, and Gutenberg tooling for privacy workflows.
 
 == Description ==
 
-FP Privacy and Cookie Policy combines privacy notice automation with a fully accessible cookie banner, granular consent storage, Google Consent Mode v2, dataLayer hooks, and developer tooling. The plugin is build-tool free (pure ES5) and supports multisite installs, CSV exports, REST endpoints, and WP-CLI commands.
+Provides a GDPR-ready consent banner, consent logging, and automated privacy/cookie policies with Google Consent Mode v2 for WordPress. Includes REST, WP-CLI, and Gutenberg tooling for privacy workflows.
+
+The plugin combines privacy notice automation with a fully accessible cookie banner, granular consent storage, Google Consent Mode v2, dataLayer hooks, and developer tooling. It is build-tool free (pure ES5) and supports multisite installs, CSV exports, REST endpoints, and WP-CLI commands.
 
 = Highlights =
 

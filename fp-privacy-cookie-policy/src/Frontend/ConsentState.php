@@ -3,6 +3,8 @@
  * Consent state manager.
  *
  * @package FP\Privacy\Frontend
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 namespace FP\Privacy\Frontend;
