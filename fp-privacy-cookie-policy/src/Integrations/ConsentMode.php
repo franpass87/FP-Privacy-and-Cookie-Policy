@@ -3,6 +3,8 @@
  * Google Consent Mode integration.
  *
  * @package FP\Privacy\Integrations
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 namespace FP\Privacy\Integrations;

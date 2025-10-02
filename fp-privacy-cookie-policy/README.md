@@ -1,136 +1,89 @@
 # FP Privacy and Cookie Policy
 
-FP Privacy and Cookie Policy is a WordPress plugin that delivers a full GDPR/ePrivacy consent management suite with Google Consent Mode v2 support. It automates banner rendering, consent state logging, document generation, WP-CLI tools, REST endpoints, and Gutenberg blocks without relying on a JavaScript build toolchain.
+> Provides a GDPR-ready consent banner, consent logging, and automated privacy/cookie policies with Google Consent Mode v2 for WordPress. Includes REST, WP-CLI, and Gutenberg tooling for privacy workflows.
 
-## Key Features
+## Plugin Info
 
-- GDPR-ready cookie banner with granular preferences, preview mode, accessibility-focused modal, revision reminder, and configurable palette.
-- Automated privacy and cookie policy generation based on detected integrations (Google Analytics 4, GTM, Meta Pixel, Hotjar, etc.).
-- Consent registry stored in a dedicated database table with hashed IPs, daily retention cleanup, CSV export, and analytics summary.
-- Google Consent Mode v2 orchestration and `dataLayer` integration with `fp-consent-change` CustomEvent.
-- Shortcodes, Block API v2 (ES5) blocks, and template overrides for complete front-end flexibility.
-- WP-CLI commands for status, cleanup, export, detection, and policy regeneration.
-- REST API endpoints (`fp-privacy/v1`) for saving consent and retrieving dashboards.
-- Multisite aware activation, per-site provisioning, and automatic policy page creation.
-- Extensive i18n with `fp-privacy` text domain and ready-to-translate POT file.
-- Admin UX covering settings, policy editor with diff preview, consent log table, CSV export, tools (import/export), and quick guide.
+| Key | Value |
+| --- | --- |
+| Name | FP Privacy and Cookie Policy |
+| Version | 0.1.1 |
+| Author | [Francesco Passeri](https://francescopasseri.com) |
+| Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
+| Requires WordPress | 6.2 |
+| Tested up to | 6.6 |
+| Requires PHP | 7.4 |
+| Text Domain | `fp-privacy` |
+| Domain Path | `/languages` |
+| License | [GPL-2.0-or-later](LICENSE) |
+
+## About
+
+FP Privacy and Cookie Policy provides a privacy compliance toolkit for WordPress that fuses an accessible consent banner with automated privacy and cookie policy generation. It focuses on maintainable, build-step-free JavaScript, integrates Google Consent Mode v2, and exposes REST and WP-CLI interfaces to help site owners and developers orchestrate consent workflows across multisite environments.
+
+## Features
+
+- GDPR-ready consent banner with floating or bar layouts, palette preview, accessibility guards, and shortcode placement.
+- Automated privacy and cookie policy generation that detects services such as Google Analytics 4, GTM, Meta Pixel, Hotjar, YouTube, TikTok, and more.
+- Consent registry stored in a dedicated database table with hashed IP addresses, retention cleanup, CSV export, and analytics summaries.
+- Google Consent Mode v2 bootstrap and update helpers with `dataLayer` pushes and the `fp-consent-change` `CustomEvent`.
+- REST API namespace `fp-privacy/v1` for submitting consent decisions and fetching consent summaries.
+- WP-CLI commands for inspecting status, regenerating policies, exporting logs, resetting revisions, and orchestrating detection routines.
+- Gutenberg blocks (ES5, no build tooling) for banner placement, policy output, and the consent preferences button.
+- Shortcodes and template tags for rendering policies, preferences buttons, and the consent banner in classic themes.
+- Multisite support with automatic provisioning on activation and `wpmu_new_blog` events.
+- Extensive translation support with ready-to-build POT files and localization helpers.
 
 ## Installation
 
 1. Copy the `fp-privacy-cookie-policy` directory into your WordPress `wp-content/plugins/` directory.
-2. Activate **FP Privacy and Cookie Policy** from the Plugins screen (network activate on multisite if required).
-3. During activation the plugin will:
-   - Create the consent log table (`wp_fp_consent_log`).
-   - Generate privacy/cookie policy pages for the default locale (shortcodes inserted).
-   - Schedule the daily cleanup cron (`fp_privacy_cleanup`).
+2. Activate **FP Privacy and Cookie Policy** from the Plugins screen (or network activate in multisite).
+3. During activation the plugin creates the consent log table, generates privacy and cookie policy pages, and schedules the daily cleanup cron.
 
-## Configuration Overview
+## Usage
 
-1. Navigate to **Privacy & Cookie → Settings**.
-2. Configure active languages, banner copy, layout, palette, consent mode defaults, retention, and controller/DPO details.
-3. Use the live preview panel and color contrast checker to validate accessible palettes as you type.
-4. Observe the stale snapshot notice above the form whenever detected services or generated documents are older than two weeks.
-5. Save settings and optionally bump the consent revision to re-trigger the banner for returning visitors.
-6. Use **Policy editor** to customize or regenerate documents. Regeneration invokes the detector registry and updates pages while bumping the revision.
-7. Review the **Consent log** for event breakdowns, filters, and CSV export.
-8. **Tools** allow JSON import/export, regeneration shortcuts, and revision reset. The quick guide documents shortcodes, blocks, and hooks.
+### Configure settings
 
-## Shortcodes
+1. Navigate to **Privacy & Cookie → Settings** and configure active languages, banner content, palette, Consent Mode defaults, retention windows, and controller/DPO contact details.
+2. Use the live preview and contrast checker to validate banner accessibility and styling choices while editing.
+3. Bump the consent revision when you need returning visitors to reconfirm preferences.
 
-- `[fp_privacy_policy]` – render the generated privacy policy.
-- `[fp_cookie_policy]` – render the generated cookie policy.
-- `[fp_cookie_preferences]` – output the cookie preferences management button.
-- `[fp_cookie_banner]` – manually place the banner in templates.
+### Maintain policies
 
-## Gutenberg Blocks (ES5, No Build Step)
+1. Visit **Privacy & Cookie → Policy editor** to regenerate localized documents whenever detected services change.
+2. Review the stale snapshot notice for quick access to regeneration tools.
+3. Leverage the shortcode- and block-based outputs to inject policies into custom layouts.
 
-Blocks are registered under the “FP Privacy” category:
+### Monitor consent
 
-1. **Privacy Policy** – server-rendered via shortcode.
-2. **Cookie Policy** – server-rendered via shortcode.
-3. **Cookie Preferences** – injects the preferences button with aria attributes.
-4. **Cookie Banner** – renders the floating/bar banner wrapper.
+1. Inspect **Privacy & Cookie → Consent log** for per-event breakdowns, filters, and CSV export.
+2. Use REST or WP-CLI commands (`wp fp-privacy ...`) to audit state, reset tables, or export/import settings.
+3. Dispatch custom triggers via `fp-consent-change` or `dataLayer` listeners in your front-end scripts.
 
-Scripts are loaded with the WordPress-provided globals (`wp.blocks`, `wp.element`, `wp.i18n`, `wp.editor`) and require no additional tooling.
-
-## Google Consent Mode v2 & Data Layer
-
-- Default consent signals are dispatched with `gtag('consent', 'default', {...})` at banner bootstrap.
-- When users update preferences the plugin sends `gtag('consent', 'update', {...})`, pushes `fp_consent_update` events into the `dataLayer`, and emits the `fp-consent-change` CustomEvent.
-- Use the README quick guide or `bin/qa-checklist.md` for GTM snippet examples and debugging pointers.
-
-## Detector & Policy Generator
-
-`FP\Privacy\Integrations\DetectorRegistry` inspects scripts, known option signatures, and cookie names to identify services. The generator groups services by category, provider, cookies, and legal basis to build localized documents using the templates in `templates/`.
-
-The detector map is filterable via `fp_privacy_services_registry` for custom services, and the generator output can be post-processed with `fp_privacy_policy_content` / `fp_cookie_policy_content` filters.
-
-## Consent Registry & Data Retention
-
-- Logs events (`accept_all`, `reject_all`, `consent`, `reset`, `revision_bump`) with hashed IP, user agent, language, revision, and JSON states.
-- Daily cleanup respects the `retention_days` option; the interval is filterable via `fp_privacy_csv_export_batch_size` and the cron schedule runs per site.
-- Exporter/Eraser handlers integrate with WordPress personal data tools.
-
-## WP-CLI Commands
-
-Run `wp help fp-privacy` for full documentation. Highlights:
-
-- `wp fp-privacy status` – Inspect table presence, event counts, and next cleanup.
-- `wp fp-privacy recreate [--force]` – Recreate the consent table and reschedule cron.
-- `wp fp-privacy cleanup` – Execute retention cleanup immediately.
-- `wp fp-privacy export --file=/path/to/file.csv` – Stream CSV export in batches.
-- `wp fp-privacy settings-export --file=/path/to/file.json`
-- `wp fp-privacy settings-import --file=/path/to/file.json`
-- `wp fp-privacy detect` – Output detected services.
-- `wp fp-privacy regenerate [--lang=LANG|all] [--bump-revision]`
-
-## REST API
-
-Namespace: `fp-privacy/v1`
-
-- `GET /consent/summary` (admin capability) – returns 30-day event stats and revision info.
-- `POST /consent` – stores granular consent with nonce and rate limiting.
-- `POST /revision/bump` – admin endpoint mirroring the revision bump action.
-
-## Hooks & Filters
+## Hooks / Filters
 
 - `fp_consent_update( $states, $event, $revision )`
 - `fp_privacy_settings_imported( $settings )`
-- `fp_privacy_policy_content` / `fp_cookie_policy_content`
+- `fp_privacy_policy_content`
+- `fp_privacy_cookie_policy_content`
 - `fp_privacy_services_registry`
 - `fp_privacy_service_purpose_{key}`
 - `fp_privacy_csv_export_batch_size`
-- `fp_privacy_cookie_duration_days` – Adjust the storage lifetime (in days) for the consent cookie.
-- `fp_privacy_cookie_options` – Filter the cookie attributes before they are persisted.
-- `fp_privacy_detector_cache_ttl` – Tweak how long detector results are cached before refreshing.
-- `fp_privacy_enqueue_banner_assets` – Force banner scripts/styles to load when rendering via shortcode.
+- `fp_privacy_cookie_duration_days`
+- `fp_privacy_cookie_options`
+- `fp_privacy_detector_cache_ttl`
+- `fp_privacy_enqueue_banner_assets`
 
-## Multisite Support
+## Support
 
-- Network activation provisions all sites by creating tables, options, and scheduling cleanup events.
-- New sites added via `wpmu_new_blog` trigger automatic provisioning.
-- Each site retains independent settings and consent registries.
+- Documentation: see the [`docs/`](docs/) directory for overview, architecture notes, and FAQs.
+- Issues & contact: [https://francescopasseri.com](https://francescopasseri.com)
+- Builds: run `bash build.sh --bump=patch` to prepare a distributable ZIP without development artefacts.
 
-## Release Process
+## Changelog
 
-Refer to `README-BUILD.md` for detailed instructions.
+Refer to [CHANGELOG.md](CHANGELOG.md) for release notes in Keep a Changelog format.
 
-1. Run `bash build.sh --bump=patch` to bump the patch version and generate a distributable ZIP in the `build/` directory.
-2. Alternatively, set an explicit version with `bash build.sh --set-version=1.2.3` (optionally provide `--zip-name`).
-3. Tag the release with `git tag v1.2.3` and push the tag to trigger the GitHub Action that uploads the ZIP artifact.
+## Assumptions
 
-## Development Notes
-
-- PHP 7.4+, WordPress 6.2+ compatibility target.
-- No compiled assets or `.min` files; ES5 scripts enqueue directly.
-- Autoloading uses a lightweight PSR-4 routine scoped to the `FP\Privacy` namespace.
-- Tests are not bundled; follow the QA checklist for manual verification.
-- Run `bash build.sh --bump=patch` from the plugin root to create a distributable ZIP without development artefacts.
-
-## License
-
-Distributed under the [GNU General Public License v2 or later](LICENSE).
-
-## Disclaimer
-
-This plugin provides technical tooling to support privacy compliance workflows. Always review generated documents and consent flows with your legal counsel.
+No public issue tracker is bundled with the repository, so the support URL points to the author homepage for contact.

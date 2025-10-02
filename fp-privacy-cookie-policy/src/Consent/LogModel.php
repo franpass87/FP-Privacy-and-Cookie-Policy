@@ -3,6 +3,8 @@
  * Consent log model.
  *
  * @package FP\Privacy\Consent
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 namespace FP\Privacy\Consent;

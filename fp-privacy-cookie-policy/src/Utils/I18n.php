@@ -3,6 +3,8 @@
  * Internationalization helper.
  *
  * @package FP\Privacy\Utils
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 namespace FP\Privacy\Utils;

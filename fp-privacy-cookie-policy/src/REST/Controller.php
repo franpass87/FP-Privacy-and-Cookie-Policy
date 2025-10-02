@@ -3,6 +3,8 @@
  * REST controller.
  *
  * @package FP\Privacy\REST
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 namespace FP\Privacy\REST;

@@ -3,6 +3,8 @@
  * Policy generator.
  *
  * @package FP\Privacy\Admin
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 namespace FP\Privacy\Admin;

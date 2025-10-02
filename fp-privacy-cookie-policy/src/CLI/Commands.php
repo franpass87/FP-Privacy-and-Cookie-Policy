@@ -3,6 +3,8 @@
  * WP-CLI commands.
  *
  * @package FP\Privacy\CLI
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
  */
 
 namespace FP\Privacy\CLI;

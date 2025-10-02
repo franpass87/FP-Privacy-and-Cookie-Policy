@@ -1,12 +1,21 @@
 # Changelog
 
-## 0.1.1 — Refinements & hardening
-- Restored the consent banner to prioritize shortcode containers, wire external preference triggers, and guard the modal UI for assistive technologies while bootstrapping saved consent states via the lightweight Consent Mode helper.
-- Hardened consent persistence by filtering unknown categories, enforcing locked toggles, surfacing REST failures, and exposing a cookie attribute filter alongside a site-specific IP hash salt and uninstall cleanup routine.
-- Reused cached detector output for policy generation, merged manual services into grouped tables with localized labels, and expanded embed detectors to work in admin/CLI contexts with configurable cache TTL handling.
+All notable changes to this project will be documented in this file.
 
-## 0.1.0 — Initial alpha release
-- First public release with GDPR cookie banner, granular categories, consent registry (CSV export + retention), live palette preview, Google Consent Mode v2 integration, `fp-consent-change` CustomEvent, service detection with automatic privacy/cookie policy generation, shortcodes, Gutenberg blocks (ES5), WP-CLI commands, multisite provisioning, i18n, REST API, exporter/eraser, and cron-based cleanup.
-- Added Consent Mode bootstrap fallback to `dataLayer` for asynchronous tag managers.
-- Enriched `fp_consent_update` payloads with timestamps and consent identifiers to match audit requirements.
-- Introduced admin banner preview with live contrast checks plus stale snapshot notice linking to policy tools.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.1.1] - 2025-10-01
+### Changed
+- Prioritized shortcode containers when bootstrapping the consent banner, wired external preference triggers, and reinforced modal accessibility while seeding saved states through the Consent Mode helper.
+- Reused cached detector output for document generation, grouped manual services with localized labels, and expanded embed detection to work across admin, CLI, and configurable cache TTL scenarios.
+
+### Fixed
+- Hardened consent persistence by filtering unknown categories, enforcing locked toggles, surfacing REST failures, and exposing a cookie attribute filter along with a site-specific IP hash salt and uninstall cleanup routine.
+
+## [0.1.0] - 2025-09-28
+### Added
+- Initial public release featuring the GDPR consent banner, granular categories, consent registry with CSV export and retention, palette preview, Google Consent Mode v2 integration, `fp-consent-change` event, service detection with automated policy generation, shortcodes, ES5 Gutenberg blocks, WP-CLI commands, multisite provisioning, REST API, exporter/eraser handlers, and cron-based cleanup.
+- Consent Mode bootstrap fallback to `dataLayer` for asynchronous tag managers together with enriched `fp_consent_update` payloads including timestamps and identifiers.
+- Admin banner preview with live contrast checks and stale snapshot notices linking to policy tooling.
