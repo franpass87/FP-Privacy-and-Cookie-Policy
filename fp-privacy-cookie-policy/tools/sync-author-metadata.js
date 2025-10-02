@@ -21,7 +21,7 @@ const options = {
 for (const arg of args) {
   if (arg.startsWith('--apply')) {
     const [, value] = arg.split('=');
-    options.apply = value === 'true' || value === '1' || value === undefined;
+    options.apply = value === 'true' || value === '1' || value === undefined || value === '';
   }
 
   if (arg === '--docs' || arg.startsWith('--docs=')) {
