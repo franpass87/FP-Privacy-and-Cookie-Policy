@@ -416,7 +416,7 @@ async function run() {
   const rows = report.map((item) => [item.file, item.fields.join(', ')]);
   const widths = header.map((h, idx) => Math.max(h.length, ...rows.map((row) => row[idx].length)));
 
-  const divider = `${widths.map((w) => '-'.repeat(w + 2)).join('+')}`;
+  const divider = `+${widths.map((w) => '-'.repeat(w + 2)).join('+')}+`;
   const formatRow = (cols) => cols.map((col, idx) => ` ${col.padEnd(widths[idx])} `).join('|');
 
   console.log(formatRow(header));
