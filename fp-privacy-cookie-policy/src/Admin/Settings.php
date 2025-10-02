@@ -103,11 +103,17 @@ if ( ! \current_user_can( 'manage_options' ) ) {
 \wp_die( \esc_html__( 'You do not have permission to access this page.', 'fp-privacy' ) );
 }
 
-$options         = $this->options->all();
-$languages       = $options['languages_active'];
-$detected        = $this->detector->detect_services();
-$primary_lang    = $languages[0] ?? 'en_US';
-$snapshot_notice = $this->get_snapshot_notice( $options['snapshots'] );
+        $options         = $this->options->all();
+        $languages       = $this->options->get_languages();
+        $primary_lang    = $languages[0] ?? $this->options->normalize_language( \function_exists( '\get_locale' ) ? \get_locale() : 'en_US' );
+        $detected        = $this->detector->detect_services();
+        $snapshot_notice = $this->get_snapshot_notice( $options['snapshots'] );
+
+        $default_options   = $this->options->get_default_options();
+        $default_locale    = $this->options->normalize_language( $default_options['languages_active'][0] ?? $primary_lang );
+        $default_texts_raw = isset( $default_options['banner_texts'][ $default_locale ] ) && \is_array( $default_options['banner_texts'][ $default_locale ] )
+            ? $default_options['banner_texts'][ $default_locale ]
+            : array();
 ?>
 <div class="wrap fp-privacy-settings">
 <h1><?php \esc_html_e( 'Privacy & Cookie Settings', 'fp-privacy' ); ?></h1>
@@ -123,12 +129,14 @@ $message    = $timestamp ? \sprintf( \__( 'Policies generated on %s may be outda
 <input type="hidden" name="action" value="fp_privacy_save_settings" />
 
 <h2><?php \esc_html_e( 'Languages', 'fp-privacy' ); ?></h2>
-<p class="description"><?php \esc_html_e( 'Provide active languages (comma separated locale codes).', 'fp-privacy' ); ?></p>
-<input type="text" name="languages_active" class="regular-text" value="<?php echo \esc_attr( implode( ',', $languages ) ); ?>" />
+        <p class="description"><?php \esc_html_e( 'Provide active languages (comma separated locale codes).', 'fp-privacy' ); ?></p>
+        <input type="text" name="languages_active" class="regular-text" value="<?php echo \esc_attr( implode( ',', $languages ) ); ?>" />
 
-<h2><?php \esc_html_e( 'Banner content', 'fp-privacy' ); ?></h2>
-<?php foreach ( $languages as $lang ) :
-$text = isset( $options['banner_texts'][ $lang ] ) ? $options['banner_texts'][ $lang ] : $this->options->get_default_options()['banner_texts'][ \get_locale() ];
+        <h2><?php \esc_html_e( 'Banner content', 'fp-privacy' ); ?></h2>
+        <?php foreach ( $languages as $lang ) :
+                $lang = $this->options->normalize_language( $lang );
+                $text = isset( $options['banner_texts'][ $lang ] ) && \is_array( $options['banner_texts'][ $lang ] ) ? $options['banner_texts'][ $lang ] : array();
+                $text = \wp_parse_args( $text, $default_texts_raw );
 ?>
 <div class="fp-privacy-language-panel" data-lang="<?php echo \esc_attr( $lang ); ?>">
 <h3><?php echo \esc_html( \sprintf( \__( 'Language: %s', 'fp-privacy' ), $lang ) ); ?></h3>
