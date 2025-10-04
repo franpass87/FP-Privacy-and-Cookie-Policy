@@ -229,11 +229,11 @@ class Validator {
 	 *
 	 * @return array<string, array<string, string>>
 	 */
-	public static function sanitize_banner_texts( array $texts, array $languages, array $defaults ): array {
-		$sanitized = array();
+        public static function sanitize_banner_texts( array $texts, array $languages, array $defaults ): array {
+                $sanitized = array();
 
-		foreach ( $languages as $language ) {
-			$language = self::locale( $language, 'en_US' );
+                foreach ( $languages as $language ) {
+                        $language = self::locale( $language, 'en_US' );
 			$source   = isset( $texts[ $language ] ) && is_array( $texts[ $language ] ) ? $texts[ $language ] : array();
 
                         $sanitized[ $language ] = array(
@@ -493,6 +493,72 @@ class Validator {
 
                 if ( isset( $sanitized['default'] ) ) {
                         $sanitized['default'] = array_values( $sanitized['default'] );
+                }
+
+                return $sanitized;
+        }
+
+        /**
+         * Sanitize cached automatic translations.
+         *
+         * @param array<string, mixed>      $translations Cached translations.
+         * @param array<string, string>     $defaults      Default banner texts.
+         *
+         * @return array<string, mixed>
+         */
+        public static function sanitize_auto_translations( array $translations, array $defaults ): array {
+                $sanitized = array();
+
+                if ( isset( $translations['banner'] ) && is_array( $translations['banner'] ) ) {
+                        foreach ( $translations['banner'] as $locale => $payload ) {
+                                $locale = self::locale( $locale, '' );
+
+                                if ( '' === $locale || ! is_array( $payload ) ) {
+                                        continue;
+                                }
+
+                                $hash  = isset( $payload['hash'] ) ? self::text( $payload['hash'] ) : '';
+                                $texts = isset( $payload['texts'] ) && is_array( $payload['texts'] ) ? $payload['texts'] : array();
+                                $map   = self::sanitize_banner_texts( array( $locale => $texts ), array( $locale ), $defaults );
+
+                                $sanitized['banner'][ $locale ] = array(
+                                        'hash'  => $hash,
+                                        'texts' => $map[ $locale ],
+                                );
+                        }
+                }
+
+                if ( isset( $translations['categories'] ) && is_array( $translations['categories'] ) ) {
+                        foreach ( $translations['categories'] as $locale => $payload ) {
+                                $locale = self::locale( $locale, '' );
+
+                                if ( '' === $locale || ! is_array( $payload ) ) {
+                                        continue;
+                                }
+
+                                $hash  = isset( $payload['hash'] ) ? self::text( $payload['hash'] ) : '';
+                                $items = array();
+
+                                if ( isset( $payload['items'] ) && is_array( $payload['items'] ) ) {
+                                        foreach ( $payload['items'] as $slug => $entry ) {
+                                                $key = sanitize_key( $slug );
+
+                                                if ( '' === $key || ! is_array( $entry ) ) {
+                                                        continue;
+                                                }
+
+                                                $items[ $key ] = array(
+                                                        'label'       => self::text( $entry['label'] ?? '' ),
+                                                        'description' => self::textarea( $entry['description'] ?? '' ),
+                                                );
+                                        }
+                                }
+
+                                $sanitized['categories'][ $locale ] = array(
+                                        'hash'  => $hash,
+                                        'items' => $items,
+                                );
+                        }
                 }
 
                 return $sanitized;

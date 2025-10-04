@@ -257,7 +257,9 @@ public function render_cookie_banner( $atts ) {
         'data-fp-privacy-banner' => '1',
     );
 
-    if ( '' !== $normalized_lang ) {
+    if ( '' !== $lang ) {
+        $attributes['data-lang'] = $lang;
+    } elseif ( '' !== $normalized_lang ) {
         $attributes['data-lang'] = $normalized_lang;
     }
 
