@@ -27,12 +27,19 @@ class Options {
  */
 private $options = array();
 
-/**
- * Blog identifier the options were loaded for.
- *
- * @var int
- */
-private $blog_id = 0;
+    /**
+     * Blog identifier the options were loaded for.
+     *
+     * @var int
+     */
+    private $blog_id = 0;
+
+    /**
+     * Automatic translator utility.
+     *
+     * @var Translator
+     */
+    private $translator;
 
 /**
  * Instance.
@@ -59,9 +66,10 @@ return self::$instance;
 /**
  * Constructor.
  */
-private function __construct() {
-$this->blog_id = function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0;
-$this->options = $this->load();
+    private function __construct() {
+        $this->blog_id    = function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0;
+        $this->options    = $this->load();
+        $this->translator = new Translator();
 }
 
 /**
@@ -189,55 +197,56 @@ $script_defaults = array(
     $default_locale => $this->build_script_language_defaults( $category_defaults ),
 );
 
-return array(
-    'languages_active'      => array( $default_locale ),
-    'banner_texts'          => array(
-        $default_locale => $banner_default,
-    ),
-    'banner_layout'         => array(
-        'type'                  => 'floating',
-        'position'              => 'bottom',
-        'palette'               => $default_palette,
-        'sync_modal_and_button' => true,
-    ),
-    'categories'            => $category_defaults,
-    'consent_mode_defaults' => array(
-        'analytics_storage'      => 'denied',
-        'ad_storage'             => 'denied',
-        'ad_user_data'           => 'denied',
-        'ad_personalization'     => 'denied',
-        'functionality_storage'  => 'granted',
-        'personalization_storage' => 'denied',
-        'security_storage'       => 'granted',
-    ),
-    'retention_days'        => 180,
-    'consent_revision'      => 1,
-    'preview_mode'          => false,
-    'pages'                 => array(
-        'privacy_policy_page_id' => array( $default_locale => 0 ),
-        'cookie_policy_page_id'  => array( $default_locale => 0 ),
-    ),
-    'org_name'              => '',
-    'vat'                   => '',
-    'address'               => '',
-    'dpo_name'              => '',
-    'dpo_email'             => '',
-    'privacy_email'         => '',
-    'snapshots'             => array(
-        'services' => array(
-            'detected'     => array(),
-            'generated_at' => 0,
-        ),
-        'policies' => array(
-            'privacy' => array(),
-            'cookie'  => array(),
-        ),
-    ),
-    'scripts'               => $script_defaults,
-    'detector_alert'        => $this->get_default_detector_alert(),
-    'detector_notifications' => $this->get_default_detector_notifications(),
-);
-}
+        return array(
+            'languages_active'      => array( $default_locale ),
+            'banner_texts'          => array(
+                $default_locale => $banner_default,
+            ),
+            'banner_layout'         => array(
+                'type'                  => 'floating',
+                'position'              => 'bottom',
+                'palette'               => $default_palette,
+                'sync_modal_and_button' => true,
+            ),
+            'categories'            => $category_defaults,
+            'consent_mode_defaults' => array(
+                'analytics_storage'       => 'denied',
+                'ad_storage'              => 'denied',
+                'ad_user_data'            => 'denied',
+                'ad_personalization'      => 'denied',
+                'functionality_storage'   => 'granted',
+                'personalization_storage' => 'denied',
+                'security_storage'        => 'granted',
+            ),
+            'retention_days'        => 180,
+            'consent_revision'      => 1,
+            'preview_mode'          => false,
+            'pages'                 => array(
+                'privacy_policy_page_id' => array( $default_locale => 0 ),
+                'cookie_policy_page_id'  => array( $default_locale => 0 ),
+            ),
+            'org_name'              => '',
+            'vat'                   => '',
+            'address'               => '',
+            'dpo_name'              => '',
+            'dpo_email'             => '',
+            'privacy_email'         => '',
+            'snapshots'             => array(
+                'services' => array(
+                    'detected'     => array(),
+                    'generated_at' => 0,
+                ),
+                'policies' => array(
+                    'privacy' => array(),
+                    'cookie'  => array(),
+                ),
+            ),
+            'scripts'               => $script_defaults,
+            'detector_alert'        => $this->get_default_detector_alert(),
+            'detector_notifications' => $this->get_default_detector_notifications(),
+            'auto_translations'     => array(),
+        );
+    }
 
 /**
  * Sanitize options array.
@@ -340,8 +349,9 @@ $layout = array(
             'scripts'               => $this->sanitize_script_rules( $scripts_raw, $languages, $categories, $existing_scripts ),
             'detector_alert'        => $this->sanitize_detector_alert( $alert_raw ),
             'detector_notifications' => $this->sanitize_detector_notifications( $notifications_raw, $this->get_detector_notifications() ),
+            'auto_translations'     => Validator::sanitize_auto_translations( isset( $value['auto_translations'] ) && \is_array( $value['auto_translations'] ) ? $value['auto_translations'] : array(), $banner_defaults ),
         );
-}
+    }
 
 /**
  * Sanitize stored snapshots.
@@ -1123,13 +1133,206 @@ foreach ( array( 'privacy', 'cookie' ) as $type ) {
  *
  * @return array<string, string>
  */
-public function get_banner_text( $lang ) {
-$lang   = $this->normalize_language( $lang );
-$texts  = $this->options['banner_texts'];
-$result = $texts[ $lang ] ?? reset( $texts );
+    public function get_banner_text( $lang ) {
+        $languages = $this->get_languages();
+        $primary   = $languages[0] ?? 'en_US';
+        $requested = Validator::locale( $lang, $primary );
+        $texts     = $this->options['banner_texts'];
 
-return \is_array( $result ) ? $result : array();
-}
+        if ( isset( $texts[ $requested ] ) && \is_array( $texts[ $requested ] ) ) {
+            return $texts[ $requested ];
+        }
+
+        $normalized = $this->normalize_language( $requested );
+
+        if ( isset( $texts[ $normalized ] ) && $normalized !== $requested ) {
+            return $this->maybe_auto_translate_banner_text( $texts[ $normalized ], $normalized, $requested );
+        }
+
+        $result = $texts[ $normalized ] ?? reset( $texts );
+
+        return \is_array( $result ) ? $result : array();
+    }
+
+    /**
+     * Maybe translate banner texts to a requested language.
+     *
+     * @param array<string, string> $source      Source banner texts.
+     * @param string                $source_lang Source language code.
+     * @param string                $target_lang Target language code.
+     *
+     * @return array<string, string>
+     */
+    private function maybe_auto_translate_banner_text( array $source, $source_lang, $target_lang ) {
+        $source_lang = Validator::locale( $source_lang, 'en_US' );
+        $target_lang = Validator::locale( $target_lang, $source_lang );
+
+        if ( $source_lang === $target_lang ) {
+            return $source;
+        }
+
+        $cache       = isset( $this->options['auto_translations'] ) && \is_array( $this->options['auto_translations'] ) ? $this->options['auto_translations'] : array();
+        $banner_cache = isset( $cache['banner'] ) && \is_array( $cache['banner'] ) ? $cache['banner'] : array();
+        $hash         = \md5( (string) \wp_json_encode( $source ) );
+
+        if ( isset( $banner_cache[ $target_lang ] ) && \is_array( $banner_cache[ $target_lang ] ) ) {
+            $cached = $banner_cache[ $target_lang ];
+
+            if ( isset( $cached['hash'], $cached['texts'] ) && $cached['hash'] === $hash && \is_array( $cached['texts'] ) ) {
+                return $cached['texts'];
+            }
+        }
+
+        if ( ! $this->translator ) {
+            return $source;
+        }
+
+        $translated = $this->translator->translate_banner_texts( $source, $source_lang, $target_lang );
+
+        if ( empty( $translated ) ) {
+            return $source;
+        }
+
+        $sanitized = Validator::sanitize_banner_texts( array( $target_lang => $translated ), array( $target_lang ), $source );
+        $result    = $sanitized[ $target_lang ] ?? array();
+
+        if ( empty( $result ) ) {
+            return $source;
+        }
+
+        $banner_cache[ $target_lang ] = array(
+            'hash'  => $hash,
+            'texts' => $result,
+        );
+
+        $cache['banner'] = $banner_cache;
+
+        $this->set(
+            array(
+                'auto_translations' => $cache,
+            )
+        );
+
+        return $result;
+    }
+
+    /**
+     * Translate categories metadata when needed.
+     *
+     * @param array<string, array<string, mixed>> $categories Categories metadata.
+     * @param string                              $source_lang Source language.
+     * @param string                              $target_lang Target language.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function maybe_auto_translate_categories( array $categories, $source_lang, $target_lang ) {
+        $source_lang = Validator::locale( $source_lang, 'en_US' );
+        $target_lang = Validator::locale( $target_lang, $source_lang );
+
+        if ( $source_lang === $target_lang || empty( $categories ) ) {
+            return $categories;
+        }
+
+        $cache            = isset( $this->options['auto_translations'] ) && \is_array( $this->options['auto_translations'] ) ? $this->options['auto_translations'] : array();
+        $categories_cache = isset( $cache['categories'] ) && \is_array( $cache['categories'] ) ? $cache['categories'] : array();
+        $hash_payload     = array();
+
+        foreach ( $categories as $slug => $meta ) {
+            $key = \sanitize_key( $slug );
+
+            if ( '' === $key ) {
+                continue;
+            }
+
+            $hash_payload[ $key ] = array(
+                'label'       => isset( $meta['label'] ) ? (string) $meta['label'] : '',
+                'description' => isset( $meta['description'] ) ? (string) $meta['description'] : '',
+            );
+        }
+
+        if ( empty( $hash_payload ) ) {
+            return $categories;
+        }
+
+        $hash = \md5( (string) \wp_json_encode( $hash_payload ) );
+
+        if ( isset( $categories_cache[ $target_lang ] ) && \is_array( $categories_cache[ $target_lang ] ) ) {
+            $cached = $categories_cache[ $target_lang ];
+
+            if ( isset( $cached['hash'], $cached['items'] ) && $cached['hash'] === $hash && \is_array( $cached['items'] ) ) {
+                foreach ( $categories as $slug => $meta ) {
+                    $key = \sanitize_key( $slug );
+
+                    if ( '' === $key || ! isset( $cached['items'][ $key ] ) ) {
+                        continue;
+                    }
+
+                    $entry = $cached['items'][ $key ];
+
+                    if ( isset( $entry['label'] ) ) {
+                        $categories[ $slug ]['label'] = $entry['label'];
+                    }
+
+                    if ( isset( $entry['description'] ) ) {
+                        $categories[ $slug ]['description'] = $entry['description'];
+                    }
+                }
+
+                return $categories;
+            }
+        }
+
+        if ( ! $this->translator ) {
+            return $categories;
+        }
+
+        $cache_items = array();
+
+        foreach ( $categories as $slug => $meta ) {
+            $label       = isset( $meta['label'] ) ? (string) $meta['label'] : '';
+            $description = isset( $meta['description'] ) ? (string) $meta['description'] : '';
+
+            if ( '' !== \trim( $label ) ) {
+                $label = $this->translator->translate_string( $label, $source_lang, $target_lang );
+            }
+
+            if ( '' !== \trim( $description ) ) {
+                $description = $this->translator->translate_string( $description, $source_lang, $target_lang );
+            }
+
+            $label       = Validator::text( $label );
+            $description = Validator::textarea( $description );
+
+            $categories[ $slug ]['label']       = $label;
+            $categories[ $slug ]['description'] = $description;
+
+            $key = \sanitize_key( $slug );
+
+            if ( '' === $key ) {
+                continue;
+            }
+
+            $cache_items[ $key ] = array(
+                'label'       => $label,
+                'description' => $description,
+            );
+        }
+
+        $categories_cache[ $target_lang ] = array(
+            'hash'  => $hash,
+            'items' => $cache_items,
+        );
+
+        $cache['categories'] = $categories_cache;
+
+        $this->set(
+            array(
+                'auto_translations' => $cache,
+            )
+        );
+
+        return $categories;
+    }
 
 /**
  * Get categories for the requested language.
@@ -1138,15 +1341,18 @@ return \is_array( $result ) ? $result : array();
  *
  * @return array<string, array<string, mixed>>
  */
-public function get_categories_for_language( $lang ) {
-$lang     = $this->normalize_language( $lang );
-$fallback = $this->get_languages()[0] ?? 'en_US';
-$result   = array();
+    public function get_categories_for_language( $lang ) {
+        $languages = $this->get_languages();
+        $primary   = $languages[0] ?? 'en_US';
+        $requested = Validator::locale( $lang, $primary );
+        $lang      = $this->normalize_language( $requested );
+        $fallback  = $primary;
+        $result    = array();
 
-foreach ( $this->options['categories'] as $key => $category ) {
-    $label = '';
-    if ( isset( $category['label'][ $lang ] ) && '' !== $category['label'][ $lang ] ) {
-        $label = $category['label'][ $lang ];
+        foreach ( $this->options['categories'] as $key => $category ) {
+            $label = '';
+            if ( isset( $category['label'][ $lang ] ) && '' !== $category['label'][ $lang ] ) {
+                $label = $category['label'][ $lang ];
     } elseif ( isset( $category['label']['default'] ) ) {
         $label = $category['label']['default'];
     } elseif ( isset( $category['label'][ $fallback ] ) ) {
@@ -1165,16 +1371,20 @@ foreach ( $this->options['categories'] as $key => $category ) {
     $services_map = isset( $category['services'] ) && \is_array( $category['services'] ) ? $category['services'] : array();
     $services     = $this->resolve_services_for_language( $services_map, $lang, $fallback );
 
-    $result[ $key ] = array(
-        'label'       => $label,
-        'description' => $description,
-        'locked'      => ! empty( $category['locked'] ),
-        'services'    => $services,
-    );
-}
+            $result[ $key ] = array(
+                'label'       => $label,
+                'description' => $description,
+                'locked'      => ! empty( $category['locked'] ),
+                'services'    => $services,
+            );
+        }
 
-return $result;
-}
+        if ( $requested !== $lang ) {
+            return $this->maybe_auto_translate_categories( $result, $lang, $requested );
+        }
+
+        return $result;
+    }
 
 /**
  * Resolve services list for a given language with fallbacks.

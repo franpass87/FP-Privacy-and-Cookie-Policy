@@ -11,6 +11,7 @@ namespace FP\Privacy\Frontend;
 
 use FP\Privacy\Consent\LogModel;
 use FP\Privacy\Utils\Options;
+use FP\Privacy\Utils\Validator;
 use WP_Error;
 
 /**
@@ -52,7 +53,10 @@ $this->log_model = $log_model;
  * @return array<string, mixed>
  */
     public function get_frontend_state( $lang ) {
-        $lang       = $this->options->normalize_language( $lang );
+        $languages  = $this->options->get_languages();
+        $primary    = $languages[0] ?? 'en_US';
+        $requested  = Validator::locale( $lang, $primary );
+        $normalized = $this->options->normalize_language( $requested );
         $cookie     = $this->get_cookie_payload();
         $revision   = (int) $this->options->get( 'consent_revision', 1 );
         $preview    = (bool) $this->options->get( 'preview_mode', false );
@@ -64,7 +68,8 @@ $this->log_model = $log_model;
             'revision'       => $revision,
             'should_display' => $needs_consent,
             'preview_mode'   => $preview,
-            'lang'           => $lang,
+            'lang'           => $requested,
+            'resolved_lang'  => $normalized,
         );
 
         if ( $cookie['id'] ) {
@@ -77,8 +82,8 @@ $this->log_model = $log_model;
             }
         }
 
-        $text       = $this->options->get_banner_text( $lang );
-        $categories = $this->options->get_categories_for_language( $lang );
+        $text       = $this->options->get_banner_text( $requested );
+        $categories = $this->options->get_categories_for_language( $normalized );
 
         return array(
             'texts'     => $text,
