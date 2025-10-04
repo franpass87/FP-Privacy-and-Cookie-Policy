@@ -15,7 +15,18 @@ $dpo_name = isset( $options['dpo_name'] ) ? $options['dpo_name'] : '';
 $dpo_mail = isset( $options['dpo_email'] ) ? $options['dpo_email'] : '';
 $privacy_mail = isset( $options['privacy_email'] ) ? $options['privacy_email'] : '';
 $vat      = isset( $options['vat'] ) ? $options['vat'] : '';
+$generated_at    = isset( $generated_at ) ? (int) $generated_at : 0;
 $categories_meta = isset( $categories_meta ) && is_array( $categories_meta ) ? $categories_meta : array();
+
+$date_format  = (string) get_option( 'date_format' );
+$time_format  = (string) get_option( 'time_format' );
+$display_date = trim( $date_format . ' ' . $time_format );
+
+if ( '' === $display_date ) {
+    $display_date = 'F j, Y';
+}
+
+$last_generated = $generated_at > 0 ? wp_date( $display_date, $generated_at ) : wp_date( $display_date );
 
 if ( ! function_exists( 'fp_privacy_format_service_cookies' ) ) {
     /**
@@ -98,6 +109,9 @@ if ( ! function_exists( 'fp_privacy_get_service_value' ) ) {
 }
 ?>
 <section class="fp-privacy-policy">
+<h2><?php echo esc_html__( 'Overview', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'This privacy policy explains how we process personal data in compliance with Regulation (EU) 2016/679 (General Data Protection Regulation, "GDPR") and applicable national privacy laws, including the most recent guidelines issued by European supervisory authorities.', 'fp-privacy' ); ?></p>
+
 <h2><?php echo esc_html__( 'Data controller', 'fp-privacy' ); ?></h2>
 <p>
 <?php echo esc_html( $org ); ?>
@@ -106,20 +120,35 @@ if ( ! function_exists( 'fp_privacy_get_service_value' ) ) {
 <?php if ( $privacy_mail ) : ?><?php echo esc_html( sprintf( __( 'Contact: %s', 'fp-privacy' ), $privacy_mail ) ); ?><?php endif; ?>
 </p>
 
+<h2><?php echo esc_html__( 'Applicable regulations', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'Processing activities are carried out in accordance with the GDPR, the ePrivacy Directive as implemented locally, consumer protection rules and any sector-specific obligations that apply to our services.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'Categories of data we process', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'Depending on how you interact with the website we may process identification data (such as name or contact details), technical data (IP address, device identifiers, logs), usage data (pages visited, actions taken), and preference data (consent choices, marketing preferences). Additional information collected by specific services is described in the integrations table below.', 'fp-privacy' ); ?></p>
+
 <h2><?php echo esc_html__( 'Purposes of processing', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'We process personal data to provide our services, ensure security, measure performance and deliver personalized experiences in accordance with the selected consent preferences.', 'fp-privacy' ); ?></p>
+<p><?php echo esc_html__( 'We process personal data to provide our services, respond to enquiries, ensure security, measure performance, improve our content and deliver tailored experiences only where you have granted the relevant consent.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'Legal bases', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'Depending on the specific processing activity we rely on consent, contractual necessity or legitimate interest. Marketing and analytics tools are only activated after explicit consent.', 'fp-privacy' ); ?></p>
+<p><?php echo esc_html__( 'Processing is grounded on one or more of the following legal bases: consent (Article 6.1.a GDPR) for optional tools such as analytics or marketing cookies; contractual necessity (Article 6.1.b GDPR) when processing is required to provide requested services; compliance with legal obligations (Article 6.1.c GDPR); and legitimate interest (Article 6.1.f GDPR) for security, fraud prevention and essential analytics balanced against your rights. Optional tools are never activated before consent is granted.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'Recipients and data transfers', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'Data may be shared with technology partners listed below. Transfers outside the EU/EEA are protected through adequacy decisions, Standard Contractual Clauses or equivalent safeguards.', 'fp-privacy' ); ?></p>
+<p><?php echo esc_html__( 'Data may be shared with technology partners listed below strictly for the purposes indicated. When partners are established outside the European Economic Area, transfers occur only where an adequacy decision is in place or through Standard Contractual Clauses and additional safeguards consistent with the recommendations of the European Data Protection Board.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'Security measures', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'We apply technical and organisational measures such as encryption in transit, access controls, data minimisation and staff training to protect personal data against unauthorised access, alteration or disclosure.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'Retention', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'Consent records are stored for the period required by law. Technical cookies follow the lifespan indicated in the cookie tables.', 'fp-privacy' ); ?></p>
+<p><?php echo esc_html__( 'Personal data are retained only for as long as necessary to fulfil the purposes stated above, comply with statutory retention duties or defend legal claims. Consent records are stored for the period required by law. Technical cookies follow the lifespan indicated in the cookie tables.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'Data subject rights', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'You can request access, rectification, erasure, restriction, portability or object to processing by contacting us. You can withdraw consent at any time from the cookie preferences interface.', 'fp-privacy' ); ?></p>
+<p><?php echo esc_html__( 'You can exercise your rights to access, rectification, erasure, restriction, objection, portability and to withdraw consent at any time without affecting the lawfulness of processing prior to withdrawal. You also have the right not to be subject to decisions based solely on automated processing, including profiling, which produce legal effects concerning you or similarly significantly affect you.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'How to exercise your rights', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'Submit your request via email or the dedicated contact form. We will respond within one month pursuant to Articles 12 and 15–22 GDPR and may request additional information to verify your identity. If your request is complex or we receive numerous requests, the response time may be extended by two further months with prior notice.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'Withdrawal of consent and cookie management', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'You can adjust your consent choices at any time through the cookie preferences interface displayed on the site footer or by clearing cookies in your browser. Revoking consent does not affect mandatory processing necessary to operate the service.', 'fp-privacy' ); ?></p>
 
 <?php if ( $dpo_name || $dpo_mail ) : ?>
 <h2><?php echo esc_html__( 'Data Protection Officer', 'fp-privacy' ); ?></h2>
@@ -186,9 +215,9 @@ if ( ! function_exists( 'fp_privacy_get_service_value' ) ) {
 </div>
 <?php endforeach; ?>
 
-<h2><?php echo esc_html__( 'How to exercise your rights', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'Submit your request via email or the dedicated contact form. We will respond within one month and may request additional information to verify your identity.', 'fp-privacy' ); ?></p>
-
 <h2><?php echo esc_html__( 'Supervisory authority', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'If you believe your privacy rights have been violated you can lodge a complaint with the competent supervisory authority.', 'fp-privacy' ); ?></p>
+<p><?php echo esc_html__( 'If you believe your privacy rights have been violated you can lodge a complaint with the competent supervisory authority in your Member State of residence, workplace or where the alleged infringement took place.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'Last update', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html( sprintf( __( 'This policy was generated on %s.', 'fp-privacy' ), $last_generated ) ); ?></p>
 </section>

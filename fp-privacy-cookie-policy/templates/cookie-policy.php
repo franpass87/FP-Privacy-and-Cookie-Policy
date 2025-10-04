@@ -9,11 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 exit;
 }
 
-$retention     = isset( $options['retention_days'] ) ? (int) $options['retention_days'] : 180;
-$generated_at  = isset( $generated_at ) ? (int) $generated_at : 0;
-$date_format   = (string) get_option( 'date_format' );
-$time_format   = (string) get_option( 'time_format' );
-$display_format = trim( $date_format . ' ' . $time_format );
+$retention       = isset( $options['retention_days'] ) ? (int) $options['retention_days'] : 180;
+$generated_at    = isset( $generated_at ) ? (int) $generated_at : 0;
+$date_format     = (string) get_option( 'date_format' );
+$time_format     = (string) get_option( 'time_format' );
+$display_format  = trim( $date_format . ' ' . $time_format );
 $categories_meta = isset( $categories_meta ) && is_array( $categories_meta ) ? $categories_meta : array();
 
 if ( ! function_exists( 'fp_privacy_format_service_cookies' ) ) {
@@ -111,14 +111,20 @@ if ( '' === $last_generated ) {
 }
 ?>
 <section class="fp-cookie-policy">
-<h2><?php echo esc_html__( 'About cookies', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'Cookies are small text files stored on your device. They allow us to remember your preferences, ensure the website works properly and measure performance. Some cookies are strictly necessary while others require your consent.', 'fp-privacy' ); ?></p>
+<h2><?php echo esc_html__( 'About cookies and tracking technologies', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'Cookies are small text files stored on your device together with similar technologies such as local storage or pixels. They enable core functionality, remember your preferences and help us measure interactions. Except for strictly necessary cookies, we only place cookies after obtaining your explicit consent in line with the GDPR and the ePrivacy Directive.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'Legal framework', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'Cookie usage is based on your consent pursuant to Articles 6.1.a and 7 GDPR and the national implementation of the ePrivacy Directive. Evidence of consent is securely stored and may be provided to supervisory authorities upon request.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'How we use cookies', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'We group cookies into categories so you can tailor your experience. You can update your preferences at any time using the cookie preferences button.', 'fp-privacy' ); ?></p>
+<p><?php echo esc_html__( 'We group cookies into categories so you can tailor your experience. Each category contains the services and technologies described in the tables below, including provider, purpose, cookie duration and links to external privacy information where available.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'Retention of consent', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html( sprintf( __( 'Your consent choices are stored for %d days unless you change them earlier.', 'fp-privacy' ), $retention ) ); ?></p>
+
+<h2><?php echo esc_html__( 'Third-country transfers', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'Some providers may process data outside the EU/EEA. Where this occurs we rely on adequacy decisions or Standard Contractual Clauses combined with supplementary measures to ensure an equivalent level of protection.', 'fp-privacy' ); ?></p>
 
 <?php foreach ( $groups as $category => $services ) :
     $meta  = isset( $categories_meta[ $category ] ) && is_array( $categories_meta[ $category ] ) ? $categories_meta[ $category ] : array();
@@ -169,7 +175,10 @@ if ( '' === $last_generated ) {
 <?php endforeach; ?>
 
 <h2><?php echo esc_html__( 'Managing cookies', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'You can revisit your preferences using the cookie preferences button or adjust your browser settings to delete or block cookies. Blocking essential cookies may impact site functionality.', 'fp-privacy' ); ?></p>
+<p><?php echo esc_html__( 'You can revisit your preferences using the cookie preferences button available on every page or adjust your browser settings to delete or block cookies. Blocking essential cookies may impact site functionality. You can also withdraw consent at any time without affecting the lawfulness of processing carried out before withdrawal.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'Your rights', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'For more information about how we handle personal data and how to exercise your rights of access, rectification, erasure, restriction, objection, portability or to lodge a complaint with a supervisory authority, please refer to our privacy policy.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'Last update', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html( sprintf( __( 'This policy was generated on %s.', 'fp-privacy' ), $last_generated ) ); ?></p>

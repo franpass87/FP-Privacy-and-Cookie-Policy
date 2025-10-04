@@ -1,13 +1,14 @@
 :root {
---fp-privacy-surface_bg: #0b1220;
---fp-privacy-surface_text: #ffffff;
---fp-privacy-button_primary_bg: #4c7cf6;
---fp-privacy-button_primary_tx: #ffffff;
---fp-privacy-button_secondary_bg: #e5e7eb;
---fp-privacy-button_secondary_tx: #111827;
---fp-privacy-link: #2563eb;
---fp-privacy-border: #d1d5db;
---fp-privacy-focus: #3b82f6;
+    --fp-privacy-surface_bg: #f9fafb;
+    --fp-privacy-surface_text: #1f2937;
+    --fp-privacy-button_primary_bg: #2563eb;
+    --fp-privacy-button_primary_tx: #ffffff;
+    --fp-privacy-button_secondary_bg: #ffffff;
+    --fp-privacy-button_secondary_tx: #1f2937;
+    --fp-privacy-link: #1d4ed8;
+    --fp-privacy-border: #d1d5db;
+    --fp-privacy-focus: #2563eb;
+    --fp-privacy-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
 }
 
 #fp-privacy-banner-root,
@@ -16,37 +17,41 @@ font-family: inherit;
 }
 
 .fp-privacy-banner {
-position: fixed;
-left: 50%;
-transform: translateX(-50%);
-z-index: 99999;
-max-width: 640px;
-background: var(--fp-privacy-surface_bg);
-color: var(--fp-privacy-surface_text);
-border-radius: 12px;
-padding: 24px;
-box-shadow: 0 20px 40px rgba(11, 18, 32, 0.25);
-border: 1px solid var(--fp-privacy-border);
-line-height: 1.6;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999;
+    max-width: 640px;
+    background: var(--fp-privacy-surface_bg);
+    color: var(--fp-privacy-surface_text);
+    border-radius: 18px;
+    padding: 20px 24px;
+    box-shadow: var(--fp-privacy-shadow);
+    border: 1px solid var(--fp-privacy-border);
+    line-height: 1.6;
+    backdrop-filter: blur(12px);
 }
 
 .fp-privacy-banner h2 {
-margin-top: 0;
-font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .fp-privacy-banner p {
-margin-bottom: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
 }
 
 .fp-privacy-revision-notice {
-margin-bottom: 1rem;
-padding: 12px 16px;
-border-radius: 8px;
-background: rgba(255, 255, 255, 0.12);
-border: 1px solid var(--fp-privacy-border);
-font-weight: 600;
-color: inherit;
+    margin-bottom: 1rem;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.18);
+    font-weight: 600;
+    color: inherit;
 }
 
 .fp-privacy-banner-buttons {
@@ -56,33 +61,50 @@ gap: 12px;
 }
 
 .fp-privacy-button {
-cursor: pointer;
-border-radius: 6px;
-font-weight: 600;
-padding: 0.6rem 1.4rem;
-border: 2px solid transparent;
-transition: background 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    border-radius: 999px;
+    font-weight: 600;
+    padding: 0.6rem 1.4rem;
+    border: 1px solid transparent;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
 .fp-privacy-button-primary {
-background: var(--fp-privacy-button_primary_bg);
-color: var(--fp-privacy-button_primary_tx);
+    background: var(--fp-privacy-button_primary_bg);
+    color: var(--fp-privacy-button_primary_tx);
+    border-color: transparent;
 }
 
 .fp-privacy-button-primary:focus,
 .fp-privacy-button-secondary:focus {
-outline: 3px solid var(--fp-privacy-focus);
-outline-offset: 2px;
+    outline: 3px solid var(--fp-privacy-focus);
+    outline-offset: 2px;
 }
 
 .fp-privacy-button-secondary {
-background: var(--fp-privacy-button_secondary_bg);
-color: var(--fp-privacy-button_secondary_tx);
+    background: var(--fp-privacy-button_secondary_bg);
+    color: var(--fp-privacy-button_secondary_tx);
+    border-color: var(--fp-privacy-border);
+}
+
+.fp-privacy-button:hover {
+    filter: brightness(0.95);
+}
+
+.fp-privacy-button-secondary:hover {
+    background: #f3f4f6;
 }
 
 .fp-privacy-link {
-color: var(--fp-privacy-link);
-text-decoration: underline;
+    color: var(--fp-privacy-link);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.fp-privacy-link:hover,
+.fp-privacy-link:focus {
+    text-decoration: underline;
 }
 
 .fp-privacy-modal-overlay {
@@ -187,6 +209,28 @@ font-size: 0.875rem;
 background: rgba(37, 99, 235, 0.1);
 padding: 1rem;
 border-radius: 8px;
+}
+
+.fp-privacy-blocked {
+    border: 1px solid var(--fp-privacy-border, #d1d5db);
+    background-color: rgba(249, 250, 251, 0.92);
+    color: var(--fp-privacy-surface_text, #111827);
+    padding: 20px;
+    text-align: center;
+    border-radius: 12px;
+    margin: 24px 0;
+}
+
+.fp-privacy-blocked p {
+    margin: 0 0 12px;
+}
+
+.fp-privacy-blocked .button {
+    margin: 0 auto;
+}
+
+.fp-privacy-style-placeholder {
+    display: none;
 }
 
 @media (max-width: 782px) {

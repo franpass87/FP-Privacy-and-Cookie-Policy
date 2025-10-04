@@ -166,15 +166,15 @@ public function render_banner() {
      */
     private function build_palette_css( $palette, $sync_modal = false ) {
         $defaults = array(
-            'surface_bg'          => '#0B1220',
-            'surface_text'        => '#FFFFFF',
-            'button_primary_bg'   => '#4C7CF6',
+            'surface_bg'          => '#F9FAFB',
+            'surface_text'        => '#1F2937',
+            'button_primary_bg'   => '#2563EB',
             'button_primary_tx'   => '#FFFFFF',
-            'button_secondary_bg' => '#E5E7EB',
-            'button_secondary_tx' => '#111827',
-            'link'                => '#2563EB',
+            'button_secondary_bg' => '#FFFFFF',
+            'button_secondary_tx' => '#1F2937',
+            'link'                => '#1D4ED8',
             'border'              => '#D1D5DB',
-            'focus'               => '#3B82F6',
+            'focus'               => '#2563EB',
         );
 
         $palette = is_array( $palette ) ? array_merge( $defaults, $palette ) : $defaults;

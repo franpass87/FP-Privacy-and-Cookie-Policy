@@ -114,7 +114,7 @@ return \wp_script_is( 'hotjar-tracking', 'enqueued' ) || defined( 'HOTJAR_SITE_I
 return defined( 'CLARITY_PROJECT_ID' ) || \has_action( 'wp_head', 'ms_clarity_tag' );
 },
 ),
-recaptcha        => array(
+        'recaptcha'        => array(
 'name'        => 'Google reCAPTCHA',
 'category'    => 'necessary',
 'provider'    => 'Google LLC',
@@ -128,7 +128,7 @@ recaptcha        => array(
 return \wp_script_is( 'google-recaptcha', 'enqueued' ) || defined( 'RECAPTCHA_SITE_KEY' );
 },
 ),
-youtube          => array(
+        'youtube'          => array(
 'name'        => 'YouTube embeds',
 'category'    => 'marketing',
 'provider'    => 'Google LLC',
@@ -166,7 +166,7 @@ youtube          => array(
 return defined( 'LI_AJAX' ) || \has_action( 'wp_head', 'linkedin_insight' );
 },
 ),
-tiktok           => array(
+        'tiktok'           => array(
 'name'        => 'TikTok Pixel',
 'category'    => 'marketing',
 'provider'    => 'TikTok Technology Limited',
@@ -523,5 +523,127 @@ return \apply_filters( 'fp_privacy_services_registry', $services );
         }
 
         return (int) $ttl;
+    }
+
+    /**
+     * Provide default blocking presets for known services.
+     *
+     * @return array<string, array<string, array<int, string>>>
+     */
+    public static function get_blocking_presets() {
+        return array(
+            'ga4'             => array(
+                'script_handles' => array( 'google-analytics', 'gtag' ),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'googletagmanager.com/gtag/js',
+                    'google-analytics.com/analytics.js',
+                ),
+                'iframes'        => array(),
+            ),
+            'gtm'             => array(
+                'script_handles' => array( 'google-tag-manager' ),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'googletagmanager.com/gtm.js',
+                ),
+                'iframes'        => array(
+                    'googletagmanager.com/ns.html',
+                ),
+            ),
+            'facebook_pixel'  => array(
+                'script_handles' => array( 'facebook-pixel' ),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'connect.facebook.net/en_US/fbevents.js',
+                ),
+                'iframes'        => array(),
+            ),
+            'hotjar'          => array(
+                'script_handles' => array( 'hotjar-tracking' ),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'static.hotjar.com',
+                    'script.hotjar.com',
+                ),
+                'iframes'        => array(),
+            ),
+            'clarity'         => array(
+                'script_handles' => array( 'ms-clarity' ),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'www.clarity.ms/tag',
+                    'clarity.ms/tag',
+                ),
+                'iframes'        => array(),
+            ),
+            'recaptcha'       => array(
+                'script_handles' => array( 'google-recaptcha' ),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'www.google.com/recaptcha',
+                    'www.gstatic.com/recaptcha',
+                ),
+                'iframes'        => array(
+                    'www.google.com/recaptcha',
+                ),
+            ),
+            'youtube'         => array(
+                'script_handles' => array(),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'youtube.com/iframe_api',
+                    'ytimg.com/iframe_api',
+                ),
+                'iframes'        => array(
+                    'youtube.com/embed',
+                    'youtube-nocookie.com/embed',
+                ),
+            ),
+            'vimeo'           => array(
+                'script_handles' => array(),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'player.vimeo.com/api/player.js',
+                ),
+                'iframes'        => array(
+                    'player.vimeo.com/video',
+                ),
+            ),
+            'linkedin'        => array(
+                'script_handles' => array( 'linkedin-insight' ),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'snap.licdn.com/li.lms-analytics/insight.min.js',
+                ),
+                'iframes'        => array(),
+            ),
+            'tiktok'          => array(
+                'script_handles' => array( 'tiktok-pixel' ),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'analytics.tiktok.com/i18n/pixel/events.js',
+                ),
+                'iframes'        => array(),
+            ),
+            'matomo'          => array(
+                'script_handles' => array( 'matomo-tracking' ),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    'matomo.js',
+                    'piwik.js',
+                ),
+                'iframes'        => array(),
+            ),
+            'pinterest'       => array(
+                'script_handles' => array( 'pinterest-tag' ),
+                'style_handles'  => array(),
+                'patterns'       => array(
+                    's.pinimg.com/ct/core.js',
+                    'ct.pinterest.com',
+                ),
+                'iframes'        => array(),
+            ),
+        );
     }
 }
