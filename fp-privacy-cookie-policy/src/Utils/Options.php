@@ -9,6 +9,7 @@
 
 namespace FP\Privacy\Utils;
 
+use FP\Privacy\Integrations\DetectorRegistry;
 use WP_Post;
 
 /**
@@ -129,17 +130,17 @@ return $this->sanitize( \wp_parse_args( $stored, $defaults ), $defaults );
  */
 public function get_default_options() {
 $default_locale = \get_locale();
-$default_palette = array(
-    'surface_bg'          => '#0B1220',
-    'surface_text'        => '#FFFFFF',
-    'button_primary_bg'   => '#4C7CF6',
-    'button_primary_tx'   => '#FFFFFF',
-    'button_secondary_bg' => '#E5E7EB',
-    'button_secondary_tx' => '#111827',
-    'link'                => '#2563EB',
-    'border'              => '#D1D5DB',
-    'focus'               => '#3B82F6',
-);
+        $default_palette = array(
+            'surface_bg'          => '#F9FAFB',
+            'surface_text'        => '#1F2937',
+            'button_primary_bg'   => '#2563EB',
+            'button_primary_tx'   => '#FFFFFF',
+            'button_secondary_bg' => '#FFFFFF',
+            'button_secondary_tx' => '#1F2937',
+            'link'                => '#1D4ED8',
+            'border'              => '#D1D5DB',
+            'focus'               => '#2563EB',
+        );
 
 $banner_default = array(
     'title'          => \__( 'We value your privacy', 'fp-privacy' ),
@@ -182,6 +183,10 @@ $category_defaults = array(
         'locked'      => false,
         'services'    => array(),
     ),
+);
+
+$script_defaults = array(
+    $default_locale => $this->build_script_language_defaults( $category_defaults ),
 );
 
 return array(
@@ -228,6 +233,9 @@ return array(
             'cookie'  => array(),
         ),
     ),
+    'scripts'               => $script_defaults,
+    'detector_alert'        => $this->get_default_detector_alert(),
+    'detector_notifications' => $this->get_default_detector_notifications(),
 );
 }
 
@@ -247,6 +255,10 @@ $banner_defaults = $defaults['banner_texts'][ $default_locale ] ?? reset( $defau
 $layout_raw      = isset( $value['banner_layout'] ) && \is_array( $value['banner_layout'] ) ? $value['banner_layout'] : array();
         $categories_raw  = isset( $value['categories'] ) && \is_array( $value['categories'] ) ? $value['categories'] : $defaults['categories'];
         $pages_raw       = isset( $value['pages'] ) && \is_array( $value['pages'] ) ? $value['pages'] : array();
+        $scripts_raw     = isset( $value['scripts'] ) && \is_array( $value['scripts'] ) ? $value['scripts'] : array();
+        $alert_raw       = isset( $value['detector_alert'] ) && \is_array( $value['detector_alert'] ) ? $value['detector_alert'] : array();
+        $notifications_raw = isset( $value['detector_notifications'] ) && \is_array( $value['detector_notifications'] ) ? $value['detector_notifications'] : array();
+        $existing_scripts  = isset( $this->options['scripts'] ) && \is_array( $this->options['scripts'] ) ? $this->options['scripts'] : array();
 
 $owner_fields = Validator::sanitize_owner_fields(
     array(
@@ -309,23 +321,26 @@ $layout = array(
         }
 
         return array(
-    'languages_active'      => $languages,
-    'banner_texts'          => Validator::sanitize_banner_texts( isset( $value['banner_texts'] ) && \is_array( $value['banner_texts'] ) ? $value['banner_texts'] : array(), $languages, $banner_defaults ),
-    'banner_layout'         => $layout,
+            'languages_active'      => $languages,
+            'banner_texts'          => Validator::sanitize_banner_texts( isset( $value['banner_texts'] ) && \is_array( $value['banner_texts'] ) ? $value['banner_texts'] : array(), $languages, $banner_defaults ),
+            'banner_layout'         => $layout,
             'categories'            => $categories,
-    'consent_mode_defaults' => Validator::sanitize_consent_mode( isset( $value['consent_mode_defaults'] ) && \is_array( $value['consent_mode_defaults'] ) ? $value['consent_mode_defaults'] : array(), $defaults['consent_mode_defaults'] ),
-    'retention_days'        => Validator::int( $value['retention_days'] ?? $defaults['retention_days'], $defaults['retention_days'], 1 ),
-    'consent_revision'      => Validator::int( $value['consent_revision'] ?? $defaults['consent_revision'], $defaults['consent_revision'], 1 ),
-    'preview_mode'          => Validator::bool( $value['preview_mode'] ?? $defaults['preview_mode'] ),
-    'pages'                 => Validator::sanitize_pages( $pages_raw, $languages ),
-    'org_name'              => $owner_fields['org_name'],
-    'vat'                   => $owner_fields['vat'],
-    'address'               => $owner_fields['address'],
-    'dpo_name'              => $owner_fields['dpo_name'],
-    'dpo_email'             => $owner_fields['dpo_email'],
-    'privacy_email'         => $owner_fields['privacy_email'],
-    'snapshots'             => $this->sanitize_snapshots( isset( $value['snapshots'] ) && \is_array( $value['snapshots'] ) ? $value['snapshots'] : array(), $languages ),
-);
+            'consent_mode_defaults' => Validator::sanitize_consent_mode( isset( $value['consent_mode_defaults'] ) && \is_array( $value['consent_mode_defaults'] ) ? $value['consent_mode_defaults'] : array(), $defaults['consent_mode_defaults'] ),
+            'retention_days'        => Validator::int( $value['retention_days'] ?? $defaults['retention_days'], $defaults['retention_days'], 1 ),
+            'consent_revision'      => Validator::int( $value['consent_revision'] ?? $defaults['consent_revision'], $defaults['consent_revision'], 1 ),
+            'preview_mode'          => Validator::bool( $value['preview_mode'] ?? $defaults['preview_mode'] ),
+            'pages'                 => Validator::sanitize_pages( $pages_raw, $languages ),
+            'org_name'              => $owner_fields['org_name'],
+            'vat'                   => $owner_fields['vat'],
+            'address'               => $owner_fields['address'],
+            'dpo_name'              => $owner_fields['dpo_name'],
+            'dpo_email'             => $owner_fields['dpo_email'],
+            'privacy_email'         => $owner_fields['privacy_email'],
+            'snapshots'             => $this->sanitize_snapshots( isset( $value['snapshots'] ) && \is_array( $value['snapshots'] ) ? $value['snapshots'] : array(), $languages ),
+            'scripts'               => $this->sanitize_script_rules( $scripts_raw, $languages, $categories, $existing_scripts ),
+            'detector_alert'        => $this->sanitize_detector_alert( $alert_raw ),
+            'detector_notifications' => $this->sanitize_detector_notifications( $notifications_raw, $this->get_detector_notifications() ),
+        );
 }
 
 /**
@@ -337,10 +352,10 @@ $layout = array(
  * @return array<string, mixed>
  */
 private function sanitize_snapshots( array $snapshots, array $languages ) {
-$services = array(
-    'detected'     => array(),
-    'generated_at' => 0,
-);
+    $services = array(
+        'detected'     => array(),
+        'generated_at' => 0,
+    );
 
 if ( isset( $snapshots['services'] ) && \is_array( $snapshots['services'] ) ) {
     $services['detected']     = isset( $snapshots['services']['detected'] ) && \is_array( $snapshots['services']['detected'] ) ? array_values( $snapshots['services']['detected'] ) : array();
@@ -370,11 +385,501 @@ foreach ( array( 'privacy', 'cookie' ) as $type ) {
     }
 }
 
-return array(
-    'services' => $services,
-    'policies' => $policies,
-);
+    return array(
+        'services' => $services,
+        'policies' => $policies,
+    );
 }
+
+    /**
+     * Sanitize script blocking rules for active languages and categories.
+     *
+     * @param array<string, mixed> $rules      Raw rules payload.
+     * @param array<int, string>   $languages  Active languages.
+     * @param array<string, mixed> $categories Sanitized categories.
+     *
+     * @return array<string, array<string, array<string, array<int, string>>>>
+     */
+    private function sanitize_script_rules( array $rules, array $languages, array $categories, array $existing ) {
+        $sanitized = array();
+
+        foreach ( $languages as $language ) {
+            $language = $this->normalize_language( $language );
+            $raw      = isset( $rules[ $language ] ) && \is_array( $rules[ $language ] ) ? $rules[ $language ] : array();
+            $sanitized[ $language ] = array();
+
+            foreach ( $categories as $slug => $meta ) {
+                $entry            = isset( $raw[ $slug ] ) && \is_array( $raw[ $slug ] ) ? $raw[ $slug ] : array();
+                $previous_entry   = isset( $existing[ $language ][ $slug ] ) && \is_array( $existing[ $language ][ $slug ] ) ? $existing[ $language ][ $slug ] : array();
+                $previous_managed = isset( $previous_entry['managed'] ) ? Validator::bool( $previous_entry['managed'] ) : false;
+                $previous_rules   = $this->normalize_script_rule_entry( $previous_entry );
+                $normalized       = $this->normalize_script_rule_entry( $entry );
+
+                $managed = false;
+
+                if ( isset( $entry['managed'] ) ) {
+                    $managed = Validator::bool( $entry['managed'] );
+                } elseif ( $previous_managed && $this->script_rules_equal( $previous_rules, $normalized ) ) {
+                    $managed = true;
+                }
+
+                $normalized['managed'] = $managed;
+
+                $sanitized[ $language ][ $slug ] = $normalized;
+            }
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * Normalize a list of handles.
+     *
+     * @param mixed $handles Raw handles.
+     *
+     * @return array<int, string>
+     */
+    private function sanitize_handle_list( $handles ) {
+        if ( \is_string( $handles ) ) {
+            $handles = \preg_split( '/[\r\n,]+/', $handles ) ?: array();
+        }
+
+        if ( ! \is_array( $handles ) ) {
+            return array();
+        }
+
+        $normalized = array();
+
+        foreach ( $handles as $handle ) {
+            $clean = \sanitize_key( (string) $handle );
+
+            if ( '' === $clean ) {
+                continue;
+            }
+
+            if ( ! in_array( $clean, $normalized, true ) ) {
+                $normalized[] = $clean;
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Normalize substring patterns used to match sources.
+     *
+     * @param mixed $patterns Raw patterns list.
+     *
+     * @return array<int, string>
+     */
+    private function sanitize_pattern_list( $patterns ) {
+        if ( \is_string( $patterns ) ) {
+            $patterns = \preg_split( '/[\r\n]+/', $patterns ) ?: array();
+        }
+
+        if ( ! \is_array( $patterns ) ) {
+            return array();
+        }
+
+        $normalized = array();
+
+        foreach ( $patterns as $pattern ) {
+            $clean = Validator::text( $pattern );
+
+            if ( '' === $clean ) {
+                continue;
+            }
+
+            if ( ! in_array( $clean, $normalized, true ) ) {
+                $normalized[] = $clean;
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Normalize script rule entry ensuring consistent structure.
+     *
+     * @param array<string, mixed> $entry Raw entry.
+     *
+     * @return array<string, mixed>
+     */
+    private function normalize_script_rule_entry( array $entry ) {
+        return array(
+            'script_handles' => $this->sanitize_handle_list( $entry['script_handles'] ?? array() ),
+            'style_handles'  => $this->sanitize_handle_list( $entry['style_handles'] ?? array() ),
+            'patterns'       => $this->sanitize_pattern_list( $entry['patterns'] ?? array() ),
+            'iframes'        => $this->sanitize_pattern_list( $entry['iframes'] ?? array() ),
+            'managed'        => isset( $entry['managed'] ) ? Validator::bool( $entry['managed'] ) : false,
+        );
+    }
+
+    /**
+     * Merge preset suggestions into an existing rule set.
+     *
+     * @param array<string, mixed> $current Current entry.
+     * @param array<string, mixed> $preset  Preset entry.
+     *
+     * @return array<string, mixed>
+     */
+    private function merge_script_rule_defaults( array $current, array $preset ) {
+        $current_normalized = $this->normalize_script_rule_entry( $current );
+        $preset_normalized  = $this->normalize_script_rule_entry( $preset );
+
+        $merged = array(
+            'script_handles' => $this->merge_unique_list( $current_normalized['script_handles'], $preset_normalized['script_handles'] ),
+            'style_handles'  => $this->merge_unique_list( $current_normalized['style_handles'], $preset_normalized['style_handles'] ),
+            'patterns'       => $this->merge_unique_list( $current_normalized['patterns'], $preset_normalized['patterns'] ),
+            'iframes'        => $this->merge_unique_list( $current_normalized['iframes'], $preset_normalized['iframes'] ),
+            'managed'        => false,
+        );
+
+        $has_current = $this->has_script_rule_values( $current_normalized );
+        $has_preset  = $this->has_script_rule_values( $preset_normalized );
+
+        if ( $current_normalized['managed'] && $has_current ) {
+            $merged['managed'] = true;
+        } elseif ( ! $has_current && $has_preset ) {
+            $merged['managed'] = true;
+        }
+
+        if ( ! $merged['managed'] && $has_current && ! $this->has_custom_script_rules( $current_normalized ) && $has_preset ) {
+            $merged['managed'] = true;
+        }
+
+        return $merged;
+    }
+
+    /**
+     * Merge unique values preserving order.
+     *
+     * @param array<int, string> $base       Base list.
+     * @param array<int, string> $additional Additional values.
+     *
+     * @return array<int, string>
+     */
+    private function merge_unique_list( array $base, array $additional ) {
+        foreach ( $additional as $value ) {
+            if ( '' === $value ) {
+                continue;
+            }
+
+            if ( ! in_array( $value, $base, true ) ) {
+                $base[] = $value;
+            }
+        }
+
+        return $base;
+    }
+
+    /**
+     * Determine whether an entry contains meaningful values.
+     *
+     * @param array<string, mixed> $entry Entry to evaluate.
+     *
+     * @return bool
+     */
+    private function has_script_rule_values( array $entry ) {
+        return ! empty( $entry['script_handles'] )
+            || ! empty( $entry['style_handles'] )
+            || ! empty( $entry['patterns'] )
+            || ! empty( $entry['iframes'] );
+    }
+
+    /**
+     * Determine whether the entry was manually customized.
+     *
+     * @param array<string, mixed> $entry Entry to evaluate.
+     *
+     * @return bool
+     */
+    private function has_custom_script_rules( array $entry ) {
+        $managed = isset( $entry['managed'] ) ? Validator::bool( $entry['managed'] ) : false;
+
+        return ! $managed && $this->has_script_rule_values( $entry );
+    }
+
+    /**
+     * Compare script rule lists ignoring management metadata.
+     *
+     * @param array<string, mixed> $a First entry.
+     * @param array<string, mixed> $b Second entry.
+     *
+     * @return bool
+     */
+    private function script_rules_equal( array $a, array $b ) {
+        return $a['script_handles'] === $b['script_handles']
+            && $a['style_handles'] === $b['style_handles']
+            && $a['patterns'] === $b['patterns']
+            && $a['iframes'] === $b['iframes'];
+    }
+
+    /**
+     * Sanitize detector alert payload.
+     *
+     * @param array<string, mixed> $alert Raw alert payload.
+     *
+     * @return array<string, mixed>
+     */
+    private function sanitize_detector_alert( array $alert ) {
+        return array(
+            'active'       => Validator::bool( $alert['active'] ?? false ),
+            'detected_at'  => Validator::int( $alert['detected_at'] ?? 0, 0, 0 ),
+            'last_checked' => Validator::int( $alert['last_checked'] ?? 0, 0, 0 ),
+            'added'        => $this->sanitize_service_summaries( $alert['added'] ?? array() ),
+            'removed'      => $this->sanitize_service_summaries( $alert['removed'] ?? array() ),
+        );
+    }
+
+    /**
+     * Normalize service summaries stored alongside detector alerts.
+     *
+     * @param mixed $services Raw services list.
+     *
+     * @return array<int, array<string, string>>
+     */
+    private function sanitize_service_summaries( $services ) {
+        if ( ! \is_array( $services ) ) {
+            return array();
+        }
+
+        $normalized = array();
+
+        foreach ( $services as $service ) {
+            if ( ! \is_array( $service ) ) {
+                continue;
+            }
+
+            $normalized[] = array(
+                'slug'     => \sanitize_key( $service['slug'] ?? '' ),
+                'name'     => Validator::text( $service['name'] ?? '' ),
+                'category' => \sanitize_key( $service['category'] ?? '' ),
+                'provider' => Validator::text( $service['provider'] ?? '' ),
+            );
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Sanitize detector notification settings.
+     *
+     * @param array<string, mixed> $settings Raw settings.
+     * @param array<string, mixed> $defaults Existing defaults.
+     *
+     * @return array<string, mixed>
+     */
+    private function sanitize_detector_notifications( array $settings, array $defaults ) {
+        $defaults = empty( $defaults ) ? $this->get_default_detector_notifications() : $defaults;
+
+        $email      = isset( $settings['email'] ) ? Validator::bool( $settings['email'] ) : $defaults['email'];
+        $recipients = isset( $settings['recipients'] ) ? $settings['recipients'] : $defaults['recipients'];
+        $last_sent  = isset( $settings['last_sent'] ) ? Validator::int( $settings['last_sent'], (int) $defaults['last_sent'], 0 ) : $defaults['last_sent'];
+
+        return array(
+            'email'      => $email,
+            'recipients' => $this->sanitize_email_list( $recipients ),
+            'last_sent'  => $last_sent,
+        );
+    }
+
+    /**
+     * Normalize list of email recipients.
+     *
+     * @param mixed $emails Raw emails.
+     *
+     * @return array<int, string>
+     */
+    private function sanitize_email_list( $emails ) {
+        if ( \is_string( $emails ) ) {
+            $emails = \preg_split( '/[\s,;]+/', $emails ) ?: array();
+        }
+
+        if ( ! \is_array( $emails ) ) {
+            return array();
+        }
+
+        $normalized = array();
+
+        foreach ( $emails as $email ) {
+            $clean = Validator::email( $email );
+
+            if ( '' === $clean || in_array( $clean, $normalized, true ) ) {
+                continue;
+            }
+
+            $normalized[] = $clean;
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Get default detector notification settings.
+     *
+     * @return array<string, mixed>
+     */
+    public function get_default_detector_notifications() {
+        return array(
+            'email'      => true,
+            'recipients' => array(),
+            'last_sent'  => 0,
+        );
+    }
+
+    /**
+     * Retrieve detector notification settings.
+     *
+     * @return array<string, mixed>
+     */
+    public function get_detector_notifications() {
+        if ( isset( $this->options['detector_notifications'] ) && \is_array( $this->options['detector_notifications'] ) ) {
+            return \array_merge( $this->get_default_detector_notifications(), $this->options['detector_notifications'] );
+        }
+
+        return $this->get_default_detector_notifications();
+    }
+
+    /**
+     * Persist detector notification settings.
+     *
+     * @param array<string, mixed> $settings Settings to merge.
+     *
+     * @return void
+     */
+    public function update_detector_notifications( array $settings ) {
+        $current = $this->get_detector_notifications();
+        $merged  = \array_merge( $current, $settings );
+
+        $this->set(
+            array(
+                'detector_notifications' => $merged,
+            )
+        );
+    }
+
+    /**
+     * Persist preset script rules when new services are detected.
+     *
+     * @param array<int, array<string, mixed>> $services Services detected.
+     *
+     * @return void
+     */
+    public function prime_script_rules_from_services( array $services ) {
+        $presets_by_category = $this->collect_presets_by_category( $services );
+
+        if ( empty( $presets_by_category ) ) {
+            return;
+        }
+
+        $languages = $this->get_languages();
+
+        if ( empty( $languages ) ) {
+            return;
+        }
+
+        $scripts = isset( $this->options['scripts'] ) && \is_array( $this->options['scripts'] ) ? $this->options['scripts'] : array();
+        $updated = false;
+
+        foreach ( $languages as $language ) {
+            $language   = $this->normalize_language( $language );
+            $categories = $this->get_categories_for_language( $language );
+
+            if ( ! isset( $scripts[ $language ] ) || ! \is_array( $scripts[ $language ] ) ) {
+                $scripts[ $language ] = array();
+            }
+
+            foreach ( $categories as $slug => $meta ) {
+                $current_entry      = isset( $scripts[ $language ][ $slug ] ) && \is_array( $scripts[ $language ][ $slug ] ) ? $scripts[ $language ][ $slug ] : array();
+                $normalized_current = $this->normalize_script_rule_entry( $current_entry );
+
+                if ( $this->has_custom_script_rules( $normalized_current ) ) {
+                    continue;
+                }
+
+                if ( ! isset( $presets_by_category[ $slug ] ) ) {
+                    continue;
+                }
+
+                $merged = $this->merge_script_rule_defaults( $normalized_current, $presets_by_category[ $slug ] );
+
+                if ( $this->script_rules_equal( $normalized_current, $merged ) && $normalized_current['managed'] === $merged['managed'] ) {
+                    continue;
+                }
+
+                $scripts[ $language ][ $slug ] = $merged;
+                $updated                        = true;
+            }
+        }
+
+        if ( $updated ) {
+            $this->set(
+                array(
+                    'scripts' => $scripts,
+                )
+            );
+        }
+    }
+
+    /**
+     * Collect preset entries indexed by consent category.
+     *
+     * @param array<int, array<string, mixed>> $services Services list.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function collect_presets_by_category( array $services ) {
+        $presets        = DetectorRegistry::get_blocking_presets();
+        $category_rules = array();
+
+        if ( empty( $presets ) ) {
+            return $category_rules;
+        }
+
+        foreach ( $services as $service ) {
+            if ( ! \is_array( $service ) ) {
+                continue;
+            }
+
+            if ( isset( $service['detected'] ) && ! $service['detected'] ) {
+                continue;
+            }
+
+            $slug = isset( $service['slug'] ) ? \sanitize_key( $service['slug'] ) : '';
+
+            if ( '' === $slug || ! isset( $presets[ $slug ] ) ) {
+                continue;
+            }
+
+            $category = isset( $service['category'] ) ? \sanitize_key( $service['category'] ) : '';
+
+            if ( '' === $category ) {
+                continue;
+            }
+
+            if ( ! isset( $category_rules[ $category ] ) ) {
+                $category_rules[ $category ] = $this->normalize_script_rule_entry( array() );
+            }
+
+            $category_rules[ $category ] = $this->merge_script_rule_defaults( $category_rules[ $category ], $presets[ $slug ] );
+        }
+
+        return $category_rules;
+    }
+
+    /**
+     * Retrieve detected services from stored snapshots.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function get_snapshot_services() {
+        if ( isset( $this->options['snapshots']['services']['detected'] ) && \is_array( $this->options['snapshots']['services']['detected'] ) ) {
+            return $this->options['snapshots']['services']['detected'];
+        }
+
+        return array();
+    }
 
 /**
  * Get active languages.
@@ -393,6 +898,126 @@ return array(
         $fallback = $configured[0] ?? ( function_exists( '\\get_locale' ) ? (string) \get_locale() : 'en_US' );
 
         return Validator::locale_list( $configured, $fallback );
+    }
+
+    /**
+     * Retrieve script rules for a given language.
+     *
+     * @param string $lang Language code.
+     *
+     * @return array<string, array<string, array<int, string>>>
+     */
+    public function get_script_rules_for_language( $lang ) {
+        $lang       = $this->normalize_language( $lang );
+        $categories = $this->get_categories_for_language( $lang );
+        $defaults   = $this->build_script_language_defaults( $categories );
+        $stored     = array();
+
+        if ( isset( $this->options['scripts'][ $lang ] ) && \is_array( $this->options['scripts'][ $lang ] ) ) {
+            $stored = $this->options['scripts'][ $lang ];
+        }
+
+        $normalized_stored = array();
+
+        foreach ( $stored as $slug => $entry ) {
+            if ( ! \is_array( $entry ) ) {
+                $entry = array();
+            }
+
+            $normalized_stored[ $slug ] = $this->normalize_script_rule_entry( $entry );
+        }
+
+        $rules = array();
+
+        foreach ( $categories as $slug => $meta ) {
+            $rules[ $slug ] = isset( $defaults[ $slug ] ) ? $defaults[ $slug ] : $this->normalize_script_rule_entry( array() );
+
+            if ( isset( $normalized_stored[ $slug ] ) ) {
+                $entry = $normalized_stored[ $slug ];
+
+                if ( $this->has_custom_script_rules( $entry ) ) {
+                    $rules[ $slug ] = $entry;
+                } elseif ( $this->has_script_rule_values( $entry ) ) {
+                    $rules[ $slug ] = $this->merge_script_rule_defaults( $rules[ $slug ], $entry );
+                }
+            }
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Get the detector alert payload.
+     *
+     * @return array<string, mixed>
+     */
+    public function get_detector_alert() {
+        if ( isset( $this->options['detector_alert'] ) && \is_array( $this->options['detector_alert'] ) ) {
+            return $this->options['detector_alert'];
+        }
+
+        return $this->get_default_detector_alert();
+    }
+
+    /**
+     * Persist detector alert payload.
+     *
+     * @param array<string, mixed> $payload Alert payload.
+     *
+     * @return void
+     */
+    public function set_detector_alert( array $payload ) {
+        $this->set(
+            array(
+                'detector_alert' => $payload,
+            )
+        );
+    }
+
+    /**
+     * Reset detector alert to defaults.
+     *
+     * @return void
+     */
+    public function clear_detector_alert() {
+        $this->set_detector_alert( $this->get_default_detector_alert() );
+    }
+
+    /**
+     * Get default detector alert payload.
+     *
+     * @return array<string, mixed>
+     */
+    public function get_default_detector_alert() {
+        return array(
+            'active'       => false,
+            'detected_at'  => 0,
+            'last_checked' => 0,
+            'added'        => array(),
+            'removed'      => array(),
+        );
+    }
+
+    /**
+     * Build empty script rule set for a language based on categories metadata.
+     *
+     * @param array<string, mixed> $categories Categories metadata.
+     *
+     * @return array<string, array<string, array<int, string>>>
+     */
+    private function build_script_language_defaults( $categories ) {
+        $defaults        = array();
+        $snapshot_rules  = $this->collect_presets_by_category( $this->get_snapshot_services() );
+
+        foreach ( $categories as $slug => $meta ) {
+            $defaults[ $slug ] = $this->normalize_script_rule_entry( array() );
+
+            if ( isset( $snapshot_rules[ $slug ] ) ) {
+                $defaults[ $slug ] = $this->merge_script_rule_defaults( $defaults[ $slug ], $snapshot_rules[ $slug ] );
+            }
+        }
+
+        return $defaults;
     }
 
 /**

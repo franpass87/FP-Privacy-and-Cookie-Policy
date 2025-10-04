@@ -15,6 +15,7 @@ use FP\Privacy\Admin\PolicyEditor;
 use FP\Privacy\Admin\PolicyGenerator;
 use FP\Privacy\Admin\Settings;
 use FP\Privacy\Admin\ConsentLogTable;
+use FP\Privacy\Admin\IntegrationAudit;
 use FP\Privacy\CLI\Commands;
 use FP\Privacy\Consent\Cleanup;
 use FP\Privacy\Consent\ExporterEraser;
@@ -22,6 +23,7 @@ use FP\Privacy\Consent\LogModel;
 use FP\Privacy\Frontend\Banner;
 use FP\Privacy\Frontend\Blocks;
 use FP\Privacy\Frontend\ConsentState;
+use FP\Privacy\Frontend\ScriptBlocker;
 use FP\Privacy\Frontend\Shortcodes;
 use FP\Privacy\Integrations\ConsentMode;
 use FP\Privacy\Integrations\DetectorRegistry;
@@ -109,10 +111,12 @@ $shortcodes->set_state( $this->consent_state );
 $shortcodes->hooks();
 ( new Blocks( $this->options ) )->hooks();
 ( new Banner( $this->options, $this->consent_state ) )->hooks();
+( new ScriptBlocker( $this->options, $this->consent_state ) )->hooks();
 
 ( new Menu() )->hooks();
 ( new Settings( $this->options, $detector, $generator ) )->hooks();
 ( new PolicyEditor( $this->options, $generator ) )->hooks();
+( new IntegrationAudit( $this->options, $generator ) )->hooks();
 ( new ConsentLogTable( $this->log_model, $this->options ) )->hooks();
 ( new DashboardWidget( $this->log_model ) )->hooks();
 
@@ -160,11 +164,13 @@ $plugin->switch_call(
 (int) $site_id,
 static function () {
 \wp_clear_scheduled_hook( 'fp_privacy_cleanup' );
+                        \wp_clear_scheduled_hook( 'fp_privacy_detector_audit' );
 }
 );
 }
 } else {
 \wp_clear_scheduled_hook( 'fp_privacy_cleanup' );
+        \wp_clear_scheduled_hook( 'fp_privacy_detector_audit' );
 }
 }
 
@@ -199,6 +205,10 @@ if ( function_exists( '\fp_privacy_get_ip_salt' ) ) {
 if ( ! \wp_next_scheduled( 'fp_privacy_cleanup' ) ) {
 \wp_schedule_event( time() + DAY_IN_SECONDS, 'daily', 'fp_privacy_cleanup' );
 }
+
+        if ( ! \wp_next_scheduled( 'fp_privacy_detector_audit' ) ) {
+            \wp_schedule_event( time() + DAY_IN_SECONDS, 'daily', 'fp_privacy_detector_audit' );
+        }
 }
 
 /**

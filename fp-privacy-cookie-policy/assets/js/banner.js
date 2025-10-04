@@ -1,6 +1,8 @@
 (function () {
 'use strict';
 
+// Observe dynamic placeholders so AJAX-injected embeds are restored when consent is granted.
+
 function createCustomEvent( name, detail ) {
     if ( typeof window.CustomEvent === 'function' ) {
         return new CustomEvent( name, { detail: detail } );
@@ -47,6 +49,265 @@ var dataset = root.dataset || {};
 var forceDisplay = false;
 var externalOpeners = [];
 var externalListenerBound = false;
+var placeholderObserver = null;
+var observerTeardownBound = false;
+
+function decodePlaceholder( value ) {
+    if ( ! value ) {
+        return '';
+    }
+
+    try {
+        if ( typeof window.atob === 'function' ) {
+            return window.atob( value );
+        }
+    } catch ( error ) {
+        return '';
+    }
+
+    return '';
+}
+
+function parseBlockedOriginal( node ) {
+    var encoded = node.getAttribute( 'data-fp-privacy-replace' );
+
+    if ( ! encoded ) {
+        return null;
+    }
+
+    var html = decodePlaceholder( encoded );
+
+    if ( ! html ) {
+        return null;
+    }
+
+    var template = document.createElement( 'template' );
+    template.innerHTML = html.trim();
+
+    return template.content.firstElementChild || null;
+}
+
+function cloneAttributes( source, target ) {
+    if ( ! source || ! source.attributes ) {
+        return;
+    }
+
+    for ( var i = 0; i < source.attributes.length; i++ ) {
+        var attr = source.attributes[ i ];
+        target.setAttribute( attr.name, attr.value );
+    }
+}
+
+function shouldAllowCategory( category, payload ) {
+    if ( ! category ) {
+        return false;
+    }
+
+    if ( payload && Object.prototype.hasOwnProperty.call( payload, category ) ) {
+        return payload[ category ] === true;
+    }
+
+    if ( categories && categories[ category ] && categories[ category ].locked ) {
+        return true;
+    }
+
+    return false;
+}
+
+function activateBlockedNode( node ) {
+    if ( ! node || node.getAttribute( 'data-fp-privacy-activated' ) === '1' ) {
+        return;
+    }
+
+    var original = parseBlockedOriginal( node );
+    var parent = node.parentNode;
+
+    if ( ! parent ) {
+        return;
+    }
+
+    if ( ! original ) {
+        parent.removeChild( node );
+        return;
+    }
+
+    if ( node.getAttribute( 'data-fp-privacy-live' ) === '1' ) {
+        return;
+    }
+
+    var blockedType = node.getAttribute( 'data-fp-privacy-blocked' ) || '';
+    var tag = original.tagName ? original.tagName.toLowerCase() : '';
+
+    if ( blockedType === 'script' || tag === 'script' ) {
+        var replacement = document.createElement( 'script' );
+        cloneAttributes( original, replacement );
+        replacement.text = original.text || original.textContent || '';
+        parent.insertBefore( replacement, node );
+        node.__fpPrivacyReplacement = replacement;
+        node.setAttribute( 'data-fp-privacy-live', '1' );
+        node.setAttribute( 'data-fp-privacy-activated', '1' );
+        node.style.display = 'none';
+        return;
+    }
+
+    if ( blockedType === 'style' || tag === 'link' || tag === 'style' ) {
+        var styleReplacement = original.cloneNode( true );
+        parent.insertBefore( styleReplacement, node );
+        node.__fpPrivacyReplacement = styleReplacement;
+        node.setAttribute( 'data-fp-privacy-live', '1' );
+        node.setAttribute( 'data-fp-privacy-activated', '1' );
+        node.style.display = 'none';
+        return;
+    }
+
+    if ( blockedType === 'iframe' ) {
+        if ( typeof node.__fpPrivacyPlaceholder === 'undefined' ) {
+            node.__fpPrivacyPlaceholder = node.innerHTML;
+        }
+
+        if ( typeof node.__fpPrivacyOriginalClass === 'undefined' ) {
+            node.__fpPrivacyOriginalClass = node.className;
+        }
+
+        node.innerHTML = '';
+        node.classList.remove( 'fp-privacy-blocked' );
+        var clone = original.cloneNode( true );
+        node.appendChild( clone );
+        node.__fpPrivacyReplacement = clone;
+        node.setAttribute( 'data-fp-privacy-live', '1' );
+        node.setAttribute( 'data-fp-privacy-activated', '1' );
+        node.style.display = '';
+        return;
+    }
+
+    var fallbackClone = original.cloneNode( true );
+    parent.insertBefore( fallbackClone, node );
+    node.__fpPrivacyReplacement = fallbackClone;
+    node.setAttribute( 'data-fp-privacy-live', '1' );
+    node.setAttribute( 'data-fp-privacy-activated', '1' );
+    node.style.display = 'none';
+}
+
+function deactivateBlockedNode( node ) {
+    if ( ! node ) {
+        return;
+    }
+
+    var replacement = node.__fpPrivacyReplacement;
+
+    if ( replacement && replacement.parentNode ) {
+        replacement.parentNode.removeChild( replacement );
+    }
+
+    delete node.__fpPrivacyReplacement;
+
+    var blockedType = node.getAttribute( 'data-fp-privacy-blocked' ) || '';
+
+    if ( blockedType === 'iframe' ) {
+        if ( typeof node.__fpPrivacyPlaceholder === 'string' ) {
+            node.innerHTML = node.__fpPrivacyPlaceholder;
+        }
+
+        if ( typeof node.__fpPrivacyOriginalClass === 'string' ) {
+            node.className = node.__fpPrivacyOriginalClass;
+        }
+    }
+
+    node.removeAttribute( 'data-fp-privacy-live' );
+    node.removeAttribute( 'data-fp-privacy-activated' );
+    node.style.display = '';
+}
+
+function isBlockedPlaceholder( node ) {
+    if ( ! node || typeof node.getAttribute !== 'function' ) {
+        return false;
+    }
+
+    if ( node.hasAttribute( 'data-fp-privacy-blocked' ) ) {
+        return true;
+    }
+
+    if ( node.querySelector && node.querySelector( '[data-fp-privacy-blocked]' ) ) {
+        return true;
+    }
+
+    return false;
+}
+
+function stopPlaceholderObserver() {
+    if ( placeholderObserver && typeof placeholderObserver.disconnect === 'function' ) {
+        placeholderObserver.disconnect();
+    }
+
+    placeholderObserver = null;
+}
+
+function startPlaceholderObserver() {
+    if ( placeholderObserver || typeof window.MutationObserver !== 'function' ) {
+        return;
+    }
+
+    placeholderObserver = new window.MutationObserver( function ( mutations ) {
+        var shouldRestore = false;
+
+        for ( var i = 0; i < mutations.length; i++ ) {
+            var mutation = mutations[ i ];
+
+            if ( ! mutation || mutation.type !== 'childList' ) {
+                continue;
+            }
+
+            if ( mutation.addedNodes ) {
+                for ( var j = 0; j < mutation.addedNodes.length; j++ ) {
+                    var added = mutation.addedNodes[ j ];
+
+                    if ( isBlockedPlaceholder( added ) ) {
+                        shouldRestore = true;
+                        break;
+                    }
+                }
+            }
+
+            if ( shouldRestore ) {
+                break;
+            }
+        }
+
+        if ( shouldRestore ) {
+            restoreBlockedNodes( state.categories || {} );
+        }
+    } );
+
+    if ( document.body ) {
+        placeholderObserver.observe( document.body, { childList: true, subtree: true } );
+    }
+
+    if ( ! observerTeardownBound ) {
+        window.addEventListener( 'beforeunload', stopPlaceholderObserver );
+        observerTeardownBound = true;
+    }
+}
+
+function restoreBlockedNodes( payload ) {
+    var states = payload || ( state.categories || {} );
+    var nodes = document.querySelectorAll( '[data-fp-privacy-blocked]' );
+
+    for ( var i = 0; i < nodes.length; i++ ) {
+        var node = nodes[ i ];
+        var category = node.getAttribute( 'data-fp-privacy-category' ) || '';
+        var isActive = node.getAttribute( 'data-fp-privacy-live' ) === '1';
+
+        if ( shouldAllowCategory( category, states ) ) {
+            if ( ! isActive ) {
+                activateBlockedNode( node );
+            }
+        } else if ( isActive ) {
+            deactivateBlockedNode( node );
+        }
+    }
+
+    refreshExternalOpeners();
+}
 
 function refreshExternalOpeners() {
     var nodes = document.querySelectorAll( '[data-fp-privacy-open]' );
@@ -99,6 +360,12 @@ if ( ! externalListenerBound ) {
     externalListenerBound = true;
 }
 
+document.addEventListener( 'fp-consent-change', function ( event ) {
+    if ( event && event.detail && event.detail.states ) {
+        restoreBlockedNodes( event.detail.states );
+    }
+} );
+
 if ( dataset.layoutType === 'bar' || dataset.layoutType === 'floating' ) {
 layout.type = dataset.layoutType;
 }
@@ -122,8 +389,14 @@ var revisionNotice;
 var preferencesButton = null;
 
 if ( document.readyState === 'loading' ) {
+    document.addEventListener( 'DOMContentLoaded', function () {
+        restoreBlockedNodes( state.categories || {} );
+        startPlaceholderObserver();
+    } );
     document.addEventListener( 'DOMContentLoaded', initializeBanner );
 } else {
+    restoreBlockedNodes( state.categories || {} );
+    startPlaceholderObserver();
     initializeBanner();
 }
 
@@ -474,6 +747,7 @@ function persistConsent( event, payload ) {
         revision: state.revision,
         timestamp: timestamp,
         consentId: consentId,
+        states: payload,
     } );
 
     if ( consentEvent ) {
@@ -499,6 +773,7 @@ function persistConsent( event, payload ) {
         state.should_display = false;
         updateRevisionNotice();
         hideBanner();
+        restoreBlockedNodes( state.categories );
     };
 
     var handleFailure = function () {

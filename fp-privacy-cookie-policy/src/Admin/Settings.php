@@ -114,6 +114,18 @@ if ( ! \current_user_can( 'manage_options' ) ) {
         $default_texts_raw = isset( $default_options['banner_texts'][ $default_locale ] ) && \is_array( $default_options['banner_texts'][ $default_locale ] )
             ? $default_options['banner_texts'][ $default_locale ]
             : array();
+        $script_rules      = array();
+        $script_categories = array();
+
+        foreach ( $languages as $script_lang ) {
+            $normalized                      = $this->options->normalize_language( $script_lang );
+            $script_rules[ $normalized ]      = $this->options->get_script_rules_for_language( $normalized );
+            $script_categories[ $normalized ] = $this->options->get_categories_for_language( $normalized );
+        }
+        $notifications           = $this->options->get_detector_notifications();
+        $notification_recipients = isset( $notifications['recipients'] ) && \is_array( $notifications['recipients'] )
+            ? implode( ', ', $notifications['recipients'] )
+            : '';
 ?>
 <div class="wrap fp-privacy-settings">
 <h1><?php \esc_html_e( 'Privacy & Cookie Settings', 'fp-privacy' ); ?></h1>
@@ -216,19 +228,19 @@ $message    = $timestamp ? \sprintf( \__( 'Policies generated on %s may be outda
 <label>
 <span><?php \esc_html_e( 'Display type', 'fp-privacy' ); ?></span>
 <select name="banner_layout[type]">
-<option value="floating" <?php\selected( $options['banner_layout']['type'], 'floating' ); ?>><?php \esc_html_e( 'Floating', 'fp-privacy' ); ?></option>
-<option value="bar" <?php\selected( $options['banner_layout']['type'], 'bar' ); ?>><?php \esc_html_e( 'Bar', 'fp-privacy' ); ?></option>
+<option value="floating" <?php \selected( $options['banner_layout']['type'], 'floating' ); ?>><?php \esc_html_e( 'Floating', 'fp-privacy' ); ?></option>
+<option value="bar" <?php \selected( $options['banner_layout']['type'], 'bar' ); ?>><?php \esc_html_e( 'Bar', 'fp-privacy' ); ?></option>
 </select>
 </label>
 <label>
 <span><?php \esc_html_e( 'Position', 'fp-privacy' ); ?></span>
 <select name="banner_layout[position]">
-<option value="top" <?php\selected( $options['banner_layout']['position'], 'top' ); ?>><?php \esc_html_e( 'Top', 'fp-privacy' ); ?></option>
-<option value="bottom" <?php\selected( $options['banner_layout']['position'], 'bottom' ); ?>><?php \esc_html_e( 'Bottom', 'fp-privacy' ); ?></option>
+<option value="top" <?php \selected( $options['banner_layout']['position'], 'top' ); ?>><?php \esc_html_e( 'Top', 'fp-privacy' ); ?></option>
+<option value="bottom" <?php \selected( $options['banner_layout']['position'], 'bottom' ); ?>><?php \esc_html_e( 'Bottom', 'fp-privacy' ); ?></option>
 </select>
 </label>
 <label>
-<input type="checkbox" name="banner_layout[sync_modal_and_button]" value="1" <?php\checked( $options['banner_layout']['sync_modal_and_button'], true ); ?> />
+<input type="checkbox" name="banner_layout[sync_modal_and_button]" value="1" <?php \checked( $options['banner_layout']['sync_modal_and_button'], true ); ?> />
 <?php \esc_html_e( 'Synchronize modal and button palette', 'fp-privacy' ); ?>
 </label>
 </div>
@@ -249,8 +261,8 @@ $message    = $timestamp ? \sprintf( \__( 'Policies generated on %s may be outda
 <label>
 <span><?php echo \esc_html( ucwords( str_replace( '_', ' ', $key ) ) ); ?></span>
 <select name="consent_mode_defaults[<?php echo \esc_attr( $key ); ?>]">
-<option value="granted" <?php\selected( $value, 'granted' ); ?>><?php \esc_html_e( 'Granted', 'fp-privacy' ); ?></option>
-<option value="denied" <?php\selected( $value, 'denied' ); ?>><?php \esc_html_e( 'Denied', 'fp-privacy' ); ?></option>
+<option value="granted" <?php \selected( $value, 'granted' ); ?>><?php \esc_html_e( 'Granted', 'fp-privacy' ); ?></option>
+<option value="denied" <?php \selected( $value, 'denied' ); ?>><?php \esc_html_e( 'Denied', 'fp-privacy' ); ?></option>
 </select>
 </label>
 <?php endforeach; ?>
@@ -262,7 +274,7 @@ $message    = $timestamp ? \sprintf( \__( 'Policies generated on %s may be outda
 <input type="number" min="1" name="retention_days" value="<?php echo \esc_attr( $options['retention_days'] ); ?>" />
 </label>
 <label>
-<input type="checkbox" name="preview_mode" value="1" <?php\checked( $options['preview_mode'], true ); ?> />
+<input type="checkbox" name="preview_mode" value="1" <?php \checked( $options['preview_mode'], true ); ?> />
 <?php \esc_html_e( 'Enable preview mode (admins only)', 'fp-privacy' ); ?>
 </label>
 <p><?php echo \esc_html( \sprintf( \__( 'Current consent revision: %d', 'fp-privacy' ), $options['consent_revision'] ) ); ?></p>
@@ -277,6 +289,59 @@ $message    = $timestamp ? \sprintf( \__( 'Policies generated on %s may be outda
 <label><span><?php \esc_html_e( 'DPO email', 'fp-privacy' ); ?></span><input type="email" name="dpo_email" value="<?php echo \esc_attr( $options['dpo_email'] ); ?>" class="regular-text" /></label>
 <label><span><?php \esc_html_e( 'Privacy contact email', 'fp-privacy' ); ?></span><input type="email" name="privacy_email" value="<?php echo \esc_attr( $options['privacy_email'] ); ?>" class="regular-text" /></label>
 </div>
+
+<h2><?php \esc_html_e( 'Integration alerts', 'fp-privacy' ); ?></h2>
+<label>
+    <input type="checkbox" name="detector_notifications[email]" value="1" <?php \checked( ! empty( $notifications['email'] ) ); ?> />
+    <?php \esc_html_e( 'Send an email when new services are detected or existing ones disappear.', 'fp-privacy' ); ?>
+</label>
+<label>
+    <span><?php \esc_html_e( 'Notification recipients', 'fp-privacy' ); ?></span>
+    <input type="text" name="detector_notifications[recipients]" value="<?php echo \esc_attr( $notification_recipients ); ?>" class="regular-text" />
+    <span class="description"><?php \esc_html_e( 'Comma separated email addresses. Leave blank to use the site administrator email.', 'fp-privacy' ); ?></span>
+</label>
+
+<h2><?php \esc_html_e( 'Script blocking', 'fp-privacy' ); ?></h2>
+<p class="description"><?php \esc_html_e( 'Pause specific scripts, styles, or embeds until the visitor grants the corresponding consent category.', 'fp-privacy' ); ?></p>
+<p class="description"><?php \esc_html_e( 'Detected integrations prefill suggested handles and patterns; edit a category to override the automatic rules.', 'fp-privacy' ); ?></p>
+<?php foreach ( $languages as $script_lang ) :
+    $script_lang      = $this->options->normalize_language( $script_lang );
+    $rules            = isset( $script_rules[ $script_lang ] ) ? $script_rules[ $script_lang ] : array();
+    $categories_meta  = isset( $script_categories[ $script_lang ] ) ? $script_categories[ $script_lang ] : array();
+    ?>
+    <div class="fp-privacy-language-panel" data-lang="<?php echo \esc_attr( $script_lang ); ?>">
+        <h3><?php echo \esc_html( \sprintf( \__( 'Language: %s', 'fp-privacy' ), $script_lang ) ); ?></h3>
+        <?php foreach ( $categories_meta as $slug => $meta ) :
+            $category_rules = isset( $rules[ $slug ] ) && \is_array( $rules[ $slug ] ) ? $rules[ $slug ] : array();
+            $handles        = isset( $category_rules['script_handles'] ) && \is_array( $category_rules['script_handles'] ) ? implode( "\n", $category_rules['script_handles'] ) : '';
+            $style_handles  = isset( $category_rules['style_handles'] ) && \is_array( $category_rules['style_handles'] ) ? implode( "\n", $category_rules['style_handles'] ) : '';
+            $patterns       = isset( $category_rules['patterns'] ) && \is_array( $category_rules['patterns'] ) ? implode( "\n", $category_rules['patterns'] ) : '';
+            $iframes        = isset( $category_rules['iframes'] ) && \is_array( $category_rules['iframes'] ) ? implode( "\n", $category_rules['iframes'] ) : '';
+            ?>
+            <fieldset class="fp-privacy-script-category">
+                <legend><?php echo \esc_html( \sprintf( \__( '%s category', 'fp-privacy' ), $meta['label'] ) ); ?></legend>
+                <label>
+                    <span><?php \esc_html_e( 'Script handles to block (one per line)', 'fp-privacy' ); ?></span>
+                    <textarea name="scripts[<?php echo \esc_attr( $script_lang ); ?>][<?php echo \esc_attr( $slug ); ?>][script_handles]" rows="3" class="large-text"><?php echo \esc_textarea( $handles ); ?></textarea>
+                </label>
+                <label>
+                    <span><?php \esc_html_e( 'Style handles to block (one per line)', 'fp-privacy' ); ?></span>
+                    <textarea name="scripts[<?php echo \esc_attr( $script_lang ); ?>][<?php echo \esc_attr( $slug ); ?>][style_handles]" rows="2" class="large-text"><?php echo \esc_textarea( $style_handles ); ?></textarea>
+                </label>
+                <label>
+                    <span><?php \esc_html_e( 'Script source substrings', 'fp-privacy' ); ?></span>
+                    <textarea name="scripts[<?php echo \esc_attr( $script_lang ); ?>][<?php echo \esc_attr( $slug ); ?>][patterns]" rows="3" class="large-text"><?php echo \esc_textarea( $patterns ); ?></textarea>
+                    <span class="description"><?php \esc_html_e( 'Any script tag whose src contains one of these values will be paused until consent is granted.', 'fp-privacy' ); ?></span>
+                </label>
+                <label>
+                    <span><?php \esc_html_e( 'Iframe source substrings', 'fp-privacy' ); ?></span>
+                    <textarea name="scripts[<?php echo \esc_attr( $script_lang ); ?>][<?php echo \esc_attr( $slug ); ?>][iframes]" rows="3" class="large-text"><?php echo \esc_textarea( $iframes ); ?></textarea>
+                    <span class="description"><?php \esc_html_e( 'Iframes whose src contains one of these values will be replaced with a consent prompt.', 'fp-privacy' ); ?></span>
+                </label>
+            </fieldset>
+        <?php endforeach; ?>
+    </div>
+<?php endforeach; ?>
 
 <?php \submit_button( \__( 'Save settings', 'fp-privacy' ) ); ?>
 </form>
@@ -535,6 +600,11 @@ $payload = array(
 'privacy_email'         => isset( $_POST['privacy_email'] ) ? \wp_unslash( $_POST['privacy_email'] ) : '',
 'categories'            => $this->options->get( 'categories' ),
 'retention_days'        => isset( $_POST['retention_days'] ) ? (int) $_POST['retention_days'] : $this->options->get( 'retention_days' ),
+'scripts'               => isset( $_POST['scripts'] ) ? \wp_unslash( $_POST['scripts'] ) : array(),
+'detector_notifications' => array(
+    'email'      => isset( $_POST['detector_notifications']['email'] ),
+    'recipients' => isset( $_POST['detector_notifications']['recipients'] ) ? \wp_unslash( $_POST['detector_notifications']['recipients'] ) : '',
+),
 );
 
 $this->options->set( $payload );
