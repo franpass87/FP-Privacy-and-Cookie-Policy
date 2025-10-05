@@ -51,6 +51,7 @@ var externalOpeners = [];
 var externalListenerBound = false;
 var placeholderObserver = null;
 var observerTeardownBound = false;
+var reopenButton = null;
 
 function decodePlaceholder( value ) {
     if ( ! value ) {
@@ -326,6 +327,10 @@ function updateOpenersExpanded( expanded ) {
         preferencesButton.setAttribute( 'aria-expanded', value );
     }
 
+    if ( reopenButton ) {
+        reopenButton.setAttribute( 'aria-expanded', value );
+    }
+
     for ( var i = 0; i < externalOpeners.length; i++ ) {
         externalOpeners[ i ].setAttribute( 'aria-expanded', value );
     }
@@ -475,6 +480,7 @@ buttons.appendChild( reject );
 var prefs = createButton( texts.btn_prefs, 'fp-privacy-button fp-privacy-button-secondary' );
 preferencesButton = prefs;
 prefs.setAttribute( 'aria-expanded', 'false' );
+prefs.setAttribute( 'aria-haspopup', 'dialog' );
 prefs.setAttribute( 'data-fp-privacy-open', 'true' );
 prefs.addEventListener( 'click', function ( event ) {
 event.preventDefault();
@@ -486,6 +492,7 @@ banner.appendChild( buttons );
 
 root.appendChild( banner );
 buildModal();
+buildReopenButton();
 
 if ( state.preview_mode ) {
 renderCookieDebug();
@@ -503,11 +510,13 @@ return btn;
 function buildModal() {
 modalOverlay = document.createElement( 'div' );
 modalOverlay.className = 'fp-privacy-modal-overlay';
+modalOverlay.id = 'fp-privacy-modal-overlay';
 modalOverlay.setAttribute( 'aria-hidden', 'true' );
 modalOverlay.setAttribute( 'tabindex', '-1' );
 
 modal = document.createElement( 'div' );
 modal.className = 'fp-privacy-modal';
+modal.id = 'fp-privacy-modal';
 modal.setAttribute( 'role', 'dialog' );
 modal.setAttribute( 'aria-modal', 'true' );
 
@@ -601,13 +610,74 @@ closeModal();
 
 document.addEventListener( 'keydown', handleModalKeydown );
 
+    if ( preferencesButton ) {
+        preferencesButton.setAttribute( 'aria-controls', modal.id );
+    }
+
+    if ( reopenButton ) {
+        reopenButton.setAttribute( 'aria-controls', modal.id );
+    }
+
 updateRevisionNotice();
+}
+
+function buildReopenButton() {
+    if ( reopenButton || state.preview_mode ) {
+        return;
+    }
+
+    reopenButton = document.createElement( 'button' );
+    reopenButton.type = 'button';
+    reopenButton.className = 'fp-privacy-reopen';
+    reopenButton.setAttribute( 'data-fp-privacy-open', 'true' );
+    reopenButton.setAttribute( 'aria-haspopup', 'dialog' );
+
+    var label = texts.btn_prefs || texts.modal_title || '';
+
+    if ( label ) {
+        reopenButton.setAttribute( 'aria-label', label );
+        reopenButton.title = label;
+    } else {
+        reopenButton.setAttribute( 'aria-label', 'Cookie preferences' );
+    }
+
+    if ( modal && modal.id ) {
+        reopenButton.setAttribute( 'aria-controls', modal.id );
+    }
+
+    var icon = document.createElement( 'span' );
+    icon.className = 'fp-privacy-reopen-icon';
+    icon.setAttribute( 'aria-hidden', 'true' );
+    icon.textContent = '\u2699';
+    reopenButton.appendChild( icon );
+
+    reopenButton.addEventListener( 'click', function ( event ) {
+        event.preventDefault();
+        openModal();
+    } );
+
+    document.body.appendChild( reopenButton );
+    updateReopenVisibility();
+}
+
+function updateReopenVisibility() {
+    if ( ! reopenButton ) {
+        return;
+    }
+
+    if ( state.preview_mode || forceDisplay ) {
+        reopenButton.style.display = 'none';
+        return;
+    }
+
+    reopenButton.style.display = state.should_display ? 'none' : 'flex';
 }
 
 function showBanner() {
 banner.style.display = 'block';
 state.should_display = true;
 updateRevisionNotice();
+    updateReopenVisibility();
 }
 
 function hideBanner() {
@@ -618,6 +688,7 @@ function hideBanner() {
     banner.style.display = 'none';
     state.should_display = false;
     updateRevisionNotice();
+    updateReopenVisibility();
 }
 
 function openModal() {
@@ -774,6 +845,7 @@ function persistConsent( event, payload ) {
         updateRevisionNotice();
         hideBanner();
         restoreBlockedNodes( state.categories );
+        updateReopenVisibility();
     };
 
     var handleFailure = function () {

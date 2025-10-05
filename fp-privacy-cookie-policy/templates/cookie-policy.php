@@ -112,19 +112,28 @@ if ( '' === $last_generated ) {
 ?>
 <section class="fp-cookie-policy">
 <h2><?php echo esc_html__( 'About cookies and tracking technologies', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'Cookies are small text files stored on your device together with similar technologies such as local storage or pixels. They enable core functionality, remember your preferences and help us measure interactions. Except for strictly necessary cookies, we only place cookies after obtaining your explicit consent in line with the GDPR and the ePrivacy Directive.', 'fp-privacy' ); ?></p>
+<p><?php echo esc_html__( 'Cookies are small text files stored on your device together with similar technologies such as local storage, SDKs or pixels. They enable core functionality, remember your preferences and help us measure interactions. Except for strictly necessary cookies, we only place cookies after obtaining your explicit consent in line with the GDPR and the ePrivacy Directive.', 'fp-privacy' ); ?></p>
 
-<h2><?php echo esc_html__( 'Legal framework', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'Cookie usage is based on your consent pursuant to Articles 6.1.a and 7 GDPR and the national implementation of the ePrivacy Directive. Evidence of consent is securely stored and may be provided to supervisory authorities upon request.', 'fp-privacy' ); ?></p>
+<h2><?php echo esc_html__( 'Regulatory compliance', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'Cookie usage is based on your consent pursuant to Articles 6.1.a and 7 GDPR, Article 5(3) of the ePrivacy Directive and the latest guidance issued by European supervisory authorities up to October 2025. Evidence of consent is securely stored and may be provided to supervisory authorities upon request.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'Types of cookies and technologies', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'We classify cookies and similar identifiers as strictly necessary, performance, functional, analytics, marketing or personalization tools. Some technologies such as local storage or fingerprinting scripts are treated with the same safeguards as cookies and require your consent when not strictly necessary.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'How we use cookies', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html__( 'We group cookies into categories so you can tailor your experience. Each category contains the services and technologies described in the tables below, including provider, purpose, cookie duration and links to external privacy information where available.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'Consent capture and records', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'Your preferences are collected through the cookie banner or the dedicated preferences centre using granular toggles. We log the consent status, timestamp, device information and version of this policy to maintain accountability. You can withdraw or modify consent at any time without affecting the lawfulness of past processing.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'Retention of consent', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html( sprintf( __( 'Your consent choices are stored for %d days unless you change them earlier.', 'fp-privacy' ), $retention ) ); ?></p>
 
 <h2><?php echo esc_html__( 'Third-country transfers', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'Some providers may process data outside the EU/EEA. Where this occurs we rely on adequacy decisions or Standard Contractual Clauses combined with supplementary measures to ensure an equivalent level of protection.', 'fp-privacy' ); ?></p>
+<p><?php echo esc_html__( 'Some providers may process data outside the EU/EEA. Where this occurs we rely on adequacy decisions or Standard Contractual Clauses combined with supplementary measures such as encryption, pseudonymisation and transfer impact assessments to ensure an equivalent level of protection.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'Managing preferences', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'You can revisit your preferences using the cookie preferences button available on every page or adjust your browser settings to delete or block cookies. Blocking essential cookies may impact site functionality. Detailed instructions for major browsers are linked within the preferences centre.', 'fp-privacy' ); ?></p>
 
 <?php foreach ( $groups as $category => $services ) :
     $meta  = isset( $categories_meta[ $category ] ) && is_array( $categories_meta[ $category ] ) ? $categories_meta[ $category ] : array();
@@ -174,11 +183,14 @@ if ( '' === $last_generated ) {
 </div>
 <?php endforeach; ?>
 
-<h2><?php echo esc_html__( 'Managing cookies', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html__( 'You can revisit your preferences using the cookie preferences button available on every page or adjust your browser settings to delete or block cookies. Blocking essential cookies may impact site functionality. You can also withdraw consent at any time without affecting the lawfulness of processing carried out before withdrawal.', 'fp-privacy' ); ?></p>
+<h2><?php echo esc_html__( 'Additional controls', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'You can also use tools provided by third parties, such as industry opt-out platforms for advertising cookies or device-level settings that reset mobile identifiers. Where available we integrate with consent frameworks (for example IAB TCF 2.2) to honour your choices across participating vendors.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'Your rights', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html__( 'For more information about how we handle personal data and how to exercise your rights of access, rectification, erasure, restriction, objection, portability or to lodge a complaint with a supervisory authority, please refer to our privacy policy.', 'fp-privacy' ); ?></p>
+
+<h2><?php echo esc_html__( 'Policy reviews', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html__( 'We reassess this cookie policy whenever we add new services, modify retention periods or when regulatory requirements evolve. The current version incorporates guidance available up to October 2025 and any future changes will be published on this page.', 'fp-privacy' ); ?></p>
 
 <h2><?php echo esc_html__( 'Last update', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html( sprintf( __( 'This policy was generated on %s.', 'fp-privacy' ), $last_generated ) ); ?></p>

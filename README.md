@@ -8,10 +8,10 @@ Lightweight WordPress plugin for GDPR-compliant privacy & cookie management (ban
 Plugin leggero per gestire banner, preferenze granulari e policy privacy/cookie in modo conforme. Adatto a blog, e-commerce e portali grazie a rilevamento servizi e policy generate automaticamente.
 
 ## Features
-- Cookie banner with Accept / Reject / Preferences states and autosave.
+- Cookie banner with Accept / Reject / Preferences states, autosave, and a discreet reopen control.
 - Granular categories with default states, descriptions, and per-category scripts.
 - Auto-generated Privacy & Cookie Policies based on detected services and languages.
-- Google Consent Mode v2 signal management with automatic updates.
+- Google Consent Mode v2 signal management with automatic updates, documented in `docs/google-consent-mode.md`.
 - `dataLayer` push and `CustomEvent` dispatch when consent changes.
 - Consent log with hashed IP, retention policy, CSV export, and purge tools.
 - Preview mode for banner and policies with revision bump workflow.
@@ -45,7 +45,7 @@ Plugin leggero per gestire banner, preferenze granulari e policy privacy/cookie 
 7. Use import/export tools to replicate settings across environments.
 
 ## Auto-generation of policies
-The plugin uses a `DetectorRegistry` to inspect active integrations such as GA4, Google Tag Manager, Meta Pixel, Hotjar, Microsoft Clarity, reCAPTCHA, YouTube, Vimeo, LinkedIn Insight Tag, TikTok Pixel, Matomo, WooCommerce, and more. Detected services feed the `PolicyGenerator`, which outputs tailored Privacy & Cookie Policy content per language.
+The plugin uses a `DetectorRegistry` to inspect active integrations such as GA4, Google Tag Manager, Meta Pixel, Hotjar, Microsoft Clarity, reCAPTCHA, YouTube, Vimeo, LinkedIn Insight Tag, TikTok Pixel, Matomo, WooCommerce, and more. Detected services feed the `PolicyGenerator`, which outputs tailored Privacy & Cookie Policy content per language with GDPR-aligned sections covering definitions, data sources, safeguards, children's data, breach handling, and governance as of October 2025.
 
 Use the **Regenerate policies** button when services change; the admin UI displays drift notices if detected services differ from the latest policy snapshot. Developers can customize behavior with the following filters:
 - `fp_privacy_services_registry` — extend or modify detected services.
@@ -108,6 +108,10 @@ Textdomain: `fp-privacy`. The repository includes a `.pot` template alongside ex
 - Filters: `fp_privacy_csv_export_batch_size`, `fp_privacy_cookie_duration_days`, `fp_privacy_services_registry`, `fp_privacy_service_purpose_{key}`.
 
 ## Changelog
+- **Unreleased — Documentation & UX polish.**
+  - Documented the Consent Mode v2 helper flow and linked companion guidance across the knowledge base.
+  - Highlighted the floating reopen control for cookie preferences and refreshed accessibility metadata in public docs.
+  - Expanded policy template descriptions to match the latest GDPR expectations captured in October 2025 updates.
 - **0.1.1 — Refinements & hardening.**
   - Improved banner bootstrapping for shortcodes, accessibility safeguards, and Consent Mode fallbacks.
   - Hardened consent logging with stricter category handling, REST error surfacing, and cookie attribute filters.

@@ -107,6 +107,49 @@ gap: 12px;
     text-decoration: underline;
 }
 
+.fp-privacy-reopen {
+    position: fixed;
+    bottom: 18px;
+    left: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(17, 24, 39, 0.82);
+    color: #f9fafb;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.22);
+    cursor: pointer;
+    z-index: 2147483645;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fp-privacy-reopen:hover,
+.fp-privacy-reopen:focus {
+    transform: scale(1.05);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.28);
+    outline: 3px solid var(--fp-privacy-focus);
+    outline-offset: 2px;
+}
+
+.fp-privacy-reopen-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fp-privacy-reopen {
+        transition: none;
+    }
+
+    .fp-privacy-reopen:hover,
+    .fp-privacy-reopen:focus {
+        transform: none;
+    }
+}
+
 .fp-privacy-modal-overlay {
 position: fixed;
 top: 0;
