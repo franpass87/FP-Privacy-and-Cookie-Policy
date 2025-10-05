@@ -16,12 +16,14 @@ Provides a GDPR-ready consent banner, consent logging, and automated privacy/coo
 
 The plugin combines privacy notice automation with a fully accessible cookie banner, granular consent storage, Google Consent Mode v2, dataLayer hooks, and developer tooling. It is build-tool free (pure ES5) and supports multisite installs, CSV exports, REST endpoints, and WP-CLI commands.
 
+Visitors can always revisit their decisions via the built-in floating reopen button, and the generated policies include expanded GDPR-aligned sections updated for October 2025 guidance.
+
 = Highlights =
 
-* GDPR-friendly banner with floating/bar layouts, palette syncing, preview mode, revision notice, and accessible modal controls.
+* GDPR-friendly banner with floating/bar layouts, palette syncing, preview mode, revision notice, accessible modal controls, and a discreet reopen button for cookie preferences.
 * Consent registry with hashed IP, retention policies, CSV exports, and 30-day summaries.
-* Auto-detected services (GA4, GTM, Meta Pixel, Hotjar, reCAPTCHA, YouTube, Matomo, TikTok, etc.) feeding localized privacy/cookie policy templates.
-* Google Consent Mode v2 defaults/updates plus `fp-consent-change` CustomEvent and `dataLayer` push.
+* Auto-detected services (GA4, GTM, Meta Pixel, Hotjar, reCAPTCHA, YouTube, Matomo, TikTok, etc.) feeding localized privacy/cookie policy templates with GDPR-aligned sections (definitions, legal bases, safeguards, breach handling, and more).
+* Google Consent Mode v2 defaults/updates plus `fp-consent-change` CustomEvent, `dataLayer` push, and detailed documentation in `docs/google-consent-mode.md`.
 * Shortcodes, template tags, and four Gutenberg blocks (Privacy Policy, Cookie Policy, Preferences Button, Cookie Banner).
 * WP-CLI: status, recreate, cleanup, CSV export, settings import/export, detector, policy regeneration.
 * REST API namespace `fp-privacy/v1` with endpoints for consent submission and summaries.
@@ -68,6 +70,11 @@ See the quick guide screen inside the plugin and the repository `README.md` for 
 Run `bin/package.sh` from the repository root. The script produces a clean archive under `dist/` without minified or binary artefacts.
 
 == Changelog ==
+
+= 0.1.2 (unreleased) =
+* Documented the Google Consent Mode v2 helper defaults/updates across the handbook and linked the dedicated implementation guide.
+* Publicised the floating reopen preferences button and refreshed accessibility attributes in the UX documentation.
+* Expanded privacy/cookie policy template descriptions to mirror the October 2025 GDPR guidance baked into the generator.
 
 = 0.1.1 =
 * Improved banner bootstrapping for shortcode placements, strengthened accessibility guards, and ensured Consent Mode defaults fire even when `gtag` is asynchronous.
