@@ -74,6 +74,19 @@
         }
 
         var defaults = consent.defaults();
+
+        // Optional Global Privacy Control handling on updates too: if enabled client-side
+        // via window.fpPrivacyEnableGPC and navigator.globalPrivacyControl is true,
+        // coerce non-necessary storages to 'denied'.
+        try {
+            if ( window.fpPrivacyEnableGPC && navigator && navigator.globalPrivacyControl === true ) {
+                var denyKeys = [ 'analytics_storage', 'ad_storage', 'ad_user_data', 'ad_personalization', 'personalization_storage' ];
+                for ( var i = 0; i < denyKeys.length; i++ ) {
+                    var key = denyKeys[ i ];
+                    states[ key ] = 'denied';
+                }
+            }
+        } catch (e) {}
         var payload = cloneDefaults( defaults );
 
         for ( var consentKey in states ) {

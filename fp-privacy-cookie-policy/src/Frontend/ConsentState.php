@@ -151,6 +151,24 @@ $this->log_model = $log_model;
             $this->set_cookie( $cookie['id'], $revision );
         }
 
+        // Link consent id to logged-in user for DSAR mapping.
+        if ( ! $preview && function_exists( '\is_user_logged_in' ) && \is_user_logged_in() && function_exists( '\get_current_user_id' ) ) {
+            $user_id = (int) \get_current_user_id();
+
+            if ( $user_id > 0 && function_exists( '\get_user_meta' ) && function_exists( '\update_user_meta' ) ) {
+                $meta_key = 'fp_consent_ids';
+                $existing = \get_user_meta( $user_id, $meta_key, true );
+
+                if ( ! \is_array( $existing ) ) {
+                    $existing = array();
+                }
+
+                $existing[] = (string) $cookie['id'];
+                $existing    = array_values( array_unique( array_filter( $existing ) ) );
+                \update_user_meta( $user_id, $meta_key, $existing );
+            }
+        }
+
         return array(
             'consent_id' => $cookie['id'],
             'revision'   => $revision,

@@ -124,6 +124,59 @@ $shortcodes->hooks();
 ( new ExporterEraser( $this->log_model, $this->options ) )->hooks();
 $this->cleanup->hooks();
 
+        // Enable WordPress privacy tools integration by default.
+        \add_filter( 'fp_privacy_enable_privacy_tools', '__return_true', 10, 2 );
+
+        // Wire GPC enablement to saved option.
+        $optionsRef = $this->options;
+        \add_filter(
+            'fp_privacy_enable_gpc',
+            static function ( $enabled ) use ( $optionsRef ) {
+                $value = $optionsRef ? (bool) $optionsRef->get( 'gpc_enabled', false ) : false;
+                return (bool) $value;
+            },
+            10,
+            1
+        );
+
+        // Map email -> consent_ids using user meta recorded at consent time.
+        \add_filter(
+            'fp_privacy_consent_ids_for_email',
+            static function ( $ids, $email ) {
+                if ( ! \is_array( $ids ) ) {
+                    $ids = array();
+                }
+
+                if ( ! \is_email( $email ) || ! function_exists( '\get_user_by' ) ) {
+                    return $ids;
+                }
+
+                $user = \get_user_by( 'email', $email );
+
+                if ( ! $user || ! isset( $user->ID ) ) {
+                    return $ids;
+                }
+
+                if ( function_exists( '\get_user_meta' ) ) {
+                    $stored = \get_user_meta( (int) $user->ID, 'fp_consent_ids', true );
+
+                    if ( \is_array( $stored ) ) {
+                        foreach ( $stored as $candidate ) {
+                            $candidate = \substr( (string) $candidate, 0, 64 );
+
+                            if ( '' !== $candidate ) {
+                                $ids[] = $candidate;
+                            }
+                        }
+                    }
+                }
+
+                return array_values( array_unique( $ids ) );
+            },
+            10,
+            2
+        );
+
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 \WP_CLI::add_command( 'fp-privacy', new Commands( $this->log_model, $this->options, $generator, $detector, $this->cleanup ) );
 }

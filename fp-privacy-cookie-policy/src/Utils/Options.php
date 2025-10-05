@@ -220,6 +220,7 @@ $script_defaults = array(
             ),
             'retention_days'        => 180,
             'consent_revision'      => 1,
+            'gpc_enabled'           => false,
             'preview_mode'          => false,
             'pages'                 => array(
                 'privacy_policy_page_id' => array( $default_locale => 0 ),
@@ -337,6 +338,7 @@ $layout = array(
             'consent_mode_defaults' => Validator::sanitize_consent_mode( isset( $value['consent_mode_defaults'] ) && \is_array( $value['consent_mode_defaults'] ) ? $value['consent_mode_defaults'] : array(), $defaults['consent_mode_defaults'] ),
             'retention_days'        => Validator::int( $value['retention_days'] ?? $defaults['retention_days'], $defaults['retention_days'], 1 ),
             'consent_revision'      => Validator::int( $value['consent_revision'] ?? $defaults['consent_revision'], $defaults['consent_revision'], 1 ),
+            'gpc_enabled'           => Validator::bool( $value['gpc_enabled'] ?? $defaults['gpc_enabled'] ),
             'preview_mode'          => Validator::bool( $value['preview_mode'] ?? $defaults['preview_mode'] ),
             'pages'                 => Validator::sanitize_pages( $pages_raw, $languages ),
             'org_name'              => $owner_fields['org_name'],

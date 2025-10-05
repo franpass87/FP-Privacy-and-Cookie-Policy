@@ -268,6 +268,15 @@ $message    = $timestamp ? \sprintf( \__( 'Policies generated on %s may be outda
 <?php endforeach; ?>
 </div>
 
+<h2><?php \esc_html_e( 'Global Privacy Control (GPC)', 'fp-privacy' ); ?></h2>
+<label>
+<input type="checkbox" name="gpc_enabled" value="1" <?php \checked( $options['gpc_enabled'], true ); ?> />
+<?php \esc_html_e( 'Honor Global Privacy Control (deny non-necessary storage when GPC=1)', 'fp-privacy' ); ?>
+</label>
+<p class="description">
+<?php \esc_html_e( 'When enabled, the plugin will treat a Global Privacy Control signal (browser header Sec-GPC: 1 or navigator.globalPrivacyControl) as an opt-out for non-necessary storage. Google Consent Mode default signals for analytics and advertising will be set to denied. This option is not mandatory in the EU but can be adopted as a best practice.', 'fp-privacy' ); ?>
+</p>
+
 <h2><?php \esc_html_e( 'Retention & Revision', 'fp-privacy' ); ?></h2>
 <label>
 <span><?php \esc_html_e( 'Retention days', 'fp-privacy' ); ?></span>
@@ -591,6 +600,7 @@ $payload = array(
 'banner_texts'          => isset( $_POST['banner_texts'] ) ? \wp_unslash( $_POST['banner_texts'] ) : array(),
 'banner_layout'         => isset( $_POST['banner_layout'] ) ? \wp_unslash( $_POST['banner_layout'] ) : array(),
 'consent_mode_defaults' => isset( $_POST['consent_mode_defaults'] ) ? \wp_unslash( $_POST['consent_mode_defaults'] ) : array(),
+'gpc_enabled'           => isset( $_POST['gpc_enabled'] ),
 'preview_mode'          => isset( $_POST['preview_mode'] ),
 'org_name'              => isset( $_POST['org_name'] ) ? \wp_unslash( $_POST['org_name'] ) : '',
 'vat'                   => isset( $_POST['vat'] ) ? \wp_unslash( $_POST['vat'] ) : '',

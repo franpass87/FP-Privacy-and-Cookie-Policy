@@ -62,7 +62,22 @@ public function print_defaults() {
         return;
     }
 
-    $defaults = $this->options->get( 'consent_mode_defaults' );
+        $defaults = $this->options->get( 'consent_mode_defaults' );
+
+        // Optional Global Privacy Control (GPC) handling: if enabled and GPC is detected,
+        // force all non-necessary storages to 'denied' at default stage.
+        $gpc_enabled = (bool) \apply_filters( 'fp_privacy_enable_gpc', false, $this->options );
+        if ( $gpc_enabled && isset( $_SERVER['HTTP_SEC_GPC'] ) && '1' === (string) $_SERVER['HTTP_SEC_GPC'] ) {
+            if ( \is_array( $defaults ) ) {
+                $keys = array( 'analytics_storage', 'ad_storage', 'ad_user_data', 'ad_personalization', 'personalization_storage' );
+
+                foreach ( $keys as $k ) {
+                    if ( isset( $defaults[ $k ] ) ) {
+                        $defaults[ $k ] = 'denied';
+                    }
+                }
+            }
+        }
     $object   = \wp_json_encode( $defaults );
 
     if ( false === $object ) {

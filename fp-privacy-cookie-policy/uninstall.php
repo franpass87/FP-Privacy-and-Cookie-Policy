@@ -23,6 +23,10 @@ if ( ! function_exists( 'fp_privacy_run_uninstall_cleanup' ) ) {
         }
 
         wp_clear_scheduled_hook( 'fp_privacy_cleanup' );
+        // Also clear detector audit schedule to avoid orphaned cron events.
+        if ( function_exists( 'wp_clear_scheduled_hook' ) ) {
+            wp_clear_scheduled_hook( 'fp_privacy_detector_audit' );
+        }
     }
 }
 

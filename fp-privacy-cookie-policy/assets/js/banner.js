@@ -471,7 +471,7 @@ handleAcceptAll();
 });
 buttons.appendChild( accept );
 
-var reject = createButton( texts.btn_reject, 'fp-privacy-button fp-privacy-button-secondary' );
+var reject = createButton( texts.btn_reject, 'fp-privacy-button fp-privacy-button-primary' );
 reject.addEventListener( 'click', function () {
 handleRejectAll();
 });
