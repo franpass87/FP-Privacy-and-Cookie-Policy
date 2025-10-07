@@ -9,10 +9,12 @@
 
 namespace FP\Privacy\Utils;
 
+use FP\Privacy\Interfaces\AutoTranslatorInterface;
+
 /**
  * Handles automatic translation and caching for banner texts and categories.
  */
-class AutoTranslator {
+class AutoTranslator implements AutoTranslatorInterface {
 	/**
 	 * Translation cache.
 	 *

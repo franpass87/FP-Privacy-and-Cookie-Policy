@@ -9,12 +9,13 @@
 
 namespace FP\Privacy\Utils;
 
+use FP\Privacy\Interfaces\PageManagerInterface;
 use WP_Post;
 
 /**
  * Manages privacy and cookie policy pages.
  */
-class PageManager {
+class PageManager implements PageManagerInterface {
 	const PAGE_MANAGED_META_KEY = '_fp_privacy_managed_signature';
 
 	/**

@@ -10,11 +10,12 @@
 namespace FP\Privacy\Utils;
 
 use FP\Privacy\Integrations\DetectorRegistry;
+use FP\Privacy\Interfaces\ScriptRulesManagerInterface;
 
 /**
  * Manages script blocking rules for consent categories.
  */
-class ScriptRulesManager {
+class ScriptRulesManager implements ScriptRulesManagerInterface {
 	/**
 	 * Normalize a list of handles.
 	 *

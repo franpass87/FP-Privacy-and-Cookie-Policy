@@ -9,10 +9,12 @@
 
 namespace FP\Privacy\Utils;
 
+use FP\Privacy\Interfaces\LanguageNormalizerInterface;
+
 /**
  * Handles language code normalization and validation.
  */
-class LanguageNormalizer {
+class LanguageNormalizer implements LanguageNormalizerInterface {
 	/**
 	 * Active languages.
 	 *
