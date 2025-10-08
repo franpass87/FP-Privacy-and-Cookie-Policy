@@ -210,9 +210,15 @@ $ids = \wp_list_pluck( $rows, 'id' );
 
 $removed = 0;
 if ( $ids ) {
-$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-$wpdb->query( $wpdb->prepare( "DELETE FROM {$this->log_model->get_table()} WHERE id IN ({$placeholders})", $ids ) );
-$removed = count( $ids );
+	// Sanitize IDs as integers to prevent SQL injection
+	$ids = array_map( 'absint', $ids );
+	$ids = array_filter( $ids ); // Remove any zero values
+	
+	if ( ! empty( $ids ) ) {
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$this->log_model->get_table()} WHERE id IN ({$placeholders})", $ids ) );
+		$removed = count( $ids );
+	}
 }
 
 $done = count( $rows ) < $per_page;
