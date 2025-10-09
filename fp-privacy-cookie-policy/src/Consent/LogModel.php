@@ -288,17 +288,20 @@ $wpdb->prepare( "SELECT event, COUNT(*) as total FROM {$this->table} WHERE creat
 ARRAY_A
 );
 
-$summary = array(
-'accept_all' => 0,
-'reject_all' => 0,
-'consent'    => 0,
-'reset'      => 0,
-'revision_bump' => 0,
-);
+	$summary = array(
+		'accept_all' => 0,
+		'reject_all' => 0,
+		'consent'    => 0,
+		'reset'      => 0,
+		'revision_bump' => 0,
+	);
 
-foreach ( $rows as $row ) {
-$summary[ $row['event'] ] = (int) $row['total'];
-}
+	foreach ( $rows as $row ) {
+		// Only update summary if the event is in the predefined list to prevent unexpected keys
+		if ( isset( $summary[ $row['event'] ] ) ) {
+			$summary[ $row['event'] ] = (int) $row['total'];
+		}
+	}
 
 return $summary;
 }
