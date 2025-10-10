@@ -294,16 +294,23 @@ class SettingsController {
 
 		$redirect = \wp_get_referer() ? \wp_get_referer() : \admin_url( 'admin.php?page=fp-privacy-tools' );
 
-		if ( empty( $_FILES['settings_file']['tmp_name'] ) || ! \is_uploaded_file( $_FILES['settings_file']['tmp_name'] ) ) {
-			\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'missing', $redirect ) );
-			exit;
-		}
+	if ( empty( $_FILES['settings_file']['tmp_name'] ) || ! \is_uploaded_file( $_FILES['settings_file']['tmp_name'] ) ) {
+		\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'missing', $redirect ) );
+		exit;
+	}
 
-		$content = \file_get_contents( $_FILES['settings_file']['tmp_name'] );
-		if ( false === $content ) {
-			\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'error', $redirect ) );
-			exit;
-		}
+	// Check file size to prevent memory exhaustion (limit to 5MB)
+	$max_size = 5 * 1024 * 1024; // 5MB
+	if ( ! empty( $_FILES['settings_file']['size'] ) && $_FILES['settings_file']['size'] > $max_size ) {
+		\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'too-large', $redirect ) );
+		exit;
+	}
+
+	$content = \file_get_contents( $_FILES['settings_file']['tmp_name'] );
+	if ( false === $content ) {
+		\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'error', $redirect ) );
+		exit;
+	}
 
 		$data = \json_decode( $content, true );
 		if ( ! is_array( $data ) ) {

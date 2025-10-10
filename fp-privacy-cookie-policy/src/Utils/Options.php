@@ -291,10 +291,13 @@ class Options {
 	 * @return array<string, mixed>
 	 */
 	private function sanitize( array $value, array $defaults ) {
-		$default_locale = $defaults['languages_active'][0];
+		$default_locale = ! empty( $defaults['languages_active'] ) ? $defaults['languages_active'][0] : 'en_US';
 		$languages      = Validator::locale_list( $value['languages_active'] ?? $defaults['languages_active'], $default_locale );
 
-		$banner_defaults = $defaults['banner_texts'][ $default_locale ] ?? reset( $defaults['banner_texts'] );
+		$banner_defaults_raw = isset( $defaults['banner_texts'][ $default_locale ] ) 
+			? $defaults['banner_texts'][ $default_locale ] 
+			: ( ! empty( $defaults['banner_texts'] ) ? reset( $defaults['banner_texts'] ) : array() );
+		$banner_defaults = is_array( $banner_defaults_raw ) ? $banner_defaults_raw : array();
 		$layout_raw      = isset( $value['banner_layout'] ) && \is_array( $value['banner_layout'] ) ? $value['banner_layout'] : array();
 		$categories_raw  = isset( $value['categories'] ) && \is_array( $value['categories'] ) ? $value['categories'] : $defaults['categories'];
 		$pages_raw       = isset( $value['pages'] ) && \is_array( $value['pages'] ) ? $value['pages'] : array();
@@ -777,9 +780,18 @@ class Options {
 			return $translated;
 		}
 
-		$result = $texts[ $normalized ] ?? reset( $texts );
+		if ( isset( $texts[ $normalized ] ) ) {
+			$result = $texts[ $normalized ];
+			return \is_array( $result ) ? $result : array();
+		}
 
-		return \is_array( $result ) ? $result : array();
+		// Fallback to first available text if normalized key doesn't exist
+		if ( ! empty( $texts ) ) {
+			$result = reset( $texts );
+			return \is_array( $result ) && $result !== false ? $result : array();
+		}
+
+		return array();
 	}
 
 	/**
