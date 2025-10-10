@@ -921,6 +921,38 @@ msgstr "Apri Strumenti"
 msgid "We have updated our policy. Please review your preferences."
 msgstr "Abbiamo aggiornato la nostra policy. Rivedi le tue preferenze."
 
+#: src/Utils/Options.php:196
+msgid "Always active"
+msgstr "Sempre attivo"
+
+#: src/Utils/Options.php:197
+msgid "Enabled"
+msgstr "Abilitato"
+
+#: src/Utils/Options.php:192
+msgid "Privacy preferences"
+msgstr "Preferenze privacy"
+
+#: src/Utils/Options.php:193
+msgid "Close preferences"
+msgstr "Chiudi preferenze"
+
+#: src/Utils/Options.php:194
+msgid "Save preferences"
+msgstr "Salva preferenze"
+
+#: src/Utils/Options.php:198
+msgid "Cookie debug:"
+msgstr "Debug cookie:"
+
+#: src/Utils/Options.php:200
+msgid "Privacy Policy"
+msgstr "Informativa sulla Privacy"
+
+#: src/Utils/Options.php:201
+msgid "Cookie Policy"
+msgstr "Cookie Policy"
+
 #: assets/js/admin.js:51
 msgid "Update the banner texts above to preview the banner."
 msgstr "Aggiorna i testi del banner sopra per visualizzarne l'anteprima."
