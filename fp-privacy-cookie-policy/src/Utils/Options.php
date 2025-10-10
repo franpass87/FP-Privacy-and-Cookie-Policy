@@ -279,6 +279,8 @@ class Options {
 			'scripts'               => $script_defaults,
 			'detector_alert'        => $this->get_default_detector_alert(),
 			'detector_notifications' => $this->get_default_detector_notifications(),
+			'auto_update_services'  => false,
+			'auto_update_policies'  => false,
 			'auto_translations'     => array(),
 		);
 	}
@@ -392,6 +394,8 @@ class Options {
 			'scripts'               => $this->script_rules_manager->sanitize_rules( $scripts_raw, $languages, $categories, $existing_scripts, $temp_normalizer ),
 			'detector_alert'        => $this->sanitize_detector_alert( $alert_raw ),
 			'detector_notifications' => $this->sanitize_detector_notifications( $notifications_raw, $this->get_detector_notifications() ),
+			'auto_update_services'  => Validator::bool( $value['auto_update_services'] ?? $defaults['auto_update_services'] ),
+			'auto_update_policies'  => Validator::bool( $value['auto_update_policies'] ?? $defaults['auto_update_policies'] ),
 			'auto_translations'     => Validator::sanitize_auto_translations( isset( $value['auto_translations'] ) && \is_array( $value['auto_translations'] ) ? $value['auto_translations'] : array(), $banner_defaults ),
 		);
 	}
