@@ -146,8 +146,6 @@ $this->log_model = $log_model;
             }
 
             \do_action( 'fp_consent_update', $states, $event, $revision );
-        }
-        if ( ! $preview ) {
             $this->set_cookie( $cookie['id'], $revision );
         }
 

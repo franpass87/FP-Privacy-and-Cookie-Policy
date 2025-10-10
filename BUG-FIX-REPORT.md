@@ -60,7 +60,7 @@ La versione PHP in `config.platform` è stata allineata correttamente a `7.4.0`,
 
 ---
 
-## 🐛 Bug Nuovo Identificato e Risolto
+## 🐛 Bug Nuovi Identificati e Risolti
 
 ### 3. **Assegnazione Array Non Sicura in LogModel.php** 🆕
 
@@ -95,6 +95,79 @@ foreach ( $rows as $row ) {
 - ✅ Previene l'aggiunta di chiavi non previste all'array summary
 - ✅ Mantiene la struttura dell'array coerente e prevedibile
 - ✅ Migliora la robustezza del codice contro dati inaspettati nel database
+
+---
+
+### 4. **Logica Duplicata in ConsentState.php** 🆕
+
+**Severità:** 🔴 CRITICA  
+**File:** `fp-privacy-cookie-policy/src/Frontend/ConsentState.php`  
+**Linee:** 148-152 (originali)
+
+**Problema:**
+Nella funzione `save_event()`, c'era un controllo `if ( ! $preview )` duplicato che causava l'impostazione del cookie solo se era attiva la modalità preview. Questo bug impediva il corretto funzionamento del salvataggio del consenso in produzione.
+
+```php
+// PRIMA (bug critico)
+\do_action( 'fp_consent_update', $states, $event, $revision );
+}
+if ( ! $preview ) {
+    $this->set_cookie( $cookie['id'], $revision );
+}
+```
+
+Il secondo `if ( ! $preview )` era fuori dal blocco precedente, causando l'esecuzione solo in modalità non-preview, quando invece doveva essere dentro il blocco precedente.
+
+**Soluzione Implementata:**
+Rimosso il controllo duplicato, mantenendo l'impostazione del cookie all'interno del corretto blocco condizionale.
+
+```php
+// DOPO (corretto)
+\do_action( 'fp_consent_update', $states, $event, $revision );
+$this->set_cookie( $cookie['id'], $revision );
+}
+```
+
+**Benefici:**
+- ✅ Il cookie di consenso viene ora impostato correttamente
+- ✅ Il flusso di consenso funziona sia in modalità preview che in produzione
+- ✅ Logica più chiara e manutenibile
+
+---
+
+### 5. **Potenziale Memory Exhaustion in SettingsController.php** 🆕
+
+**Severità:** 🟡 MEDIA  
+**File:** `fp-privacy-cookie-policy/src/Admin/SettingsController.php`  
+**Linea:** 302 (originale)
+
+**Problema:**
+La funzione `handle_import_settings()` utilizzava `file_get_contents()` su un file caricato senza verificare prima la dimensione del file. Un attaccante potrebbe caricare un file JSON estremamente grande causando un esaurimento della memoria del server.
+
+```php
+// PRIMA (vulnerabile)
+$content = \file_get_contents( $_FILES['settings_file']['tmp_name'] );
+```
+
+**Soluzione Implementata:**
+Aggiunto un controllo sulla dimensione del file prima di leggerlo, con limite di 5MB.
+
+```php
+// DOPO (sicuro)
+// Check file size to prevent memory exhaustion (limit to 5MB)
+$max_size = 5 * 1024 * 1024; // 5MB
+if ( ! empty( $_FILES['settings_file']['size'] ) && $_FILES['settings_file']['size'] > $max_size ) {
+    \wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'too-large', $redirect ) );
+    exit;
+}
+
+$content = \file_get_contents( $_FILES['settings_file']['tmp_name'] );
+```
+
+**Benefici:**
+- ✅ Previene attacchi DoS tramite upload di file grandi
+- ✅ Protegge il server da esaurimento della memoria
+- ✅ Feedback chiaro all'utente quando il file è troppo grande
 
 ---
 
@@ -139,9 +212,11 @@ foreach ( $rows as $row ) {
 - **Query SQL verificate:** 9+
 - **Usi di superglobals verificati:** 31
 - **Usi di in_array verificati:** 21
-- **Bug critici trovati:** 0 (quello precedente era già risolto)
-- **Bug medi trovati:** 1 nuovo
-- **Bug risolti in questa sessione:** 1
+- **Loop while verificati:** 2
+- **Potenziali divisioni per zero verificate:** 1
+- **Bug critici trovati e risolti:** 1 nuovo (più 1 già risolto in precedenza)
+- **Bug medi trovati e risolti:** 2 nuovi
+- **Bug risolti in questa sessione:** 3 nuovi + 2 verificati già corretti
 
 ---
 
@@ -164,9 +239,11 @@ foreach ( $rows as $row ) {
 
 ## 🏆 Conclusione
 
-Il plugin presenta un'architettura di sicurezza **eccellente**. Durante questa analisi è stato identificato e risolto **1 bug** di severità media:
+Il plugin presenta un'architettura di sicurezza **eccellente**. Durante questa analisi approfondita sono stati identificati e risolti **3 bug nuovi**:
 
-1. Assegnazione array non sicura in `LogModel.php` (ora risolto)
+1. 🔴 **CRITICO**: Logica duplicata in `ConsentState.php` che impediva il corretto salvataggio del consenso (ora risolto)
+2. 🟡 **MEDIO**: Assegnazione array non sicura in `LogModel.php` (ora risolto)
+3. 🟡 **MEDIO**: Potenziale memory exhaustion in `SettingsController.php` (ora risolto)
 
 Il codice segue le best practices di WordPress e implementa correttamente:
 - ✅ Protezione CSRF
@@ -178,6 +255,19 @@ Il codice segue le best practices di WordPress e implementa correttamente:
 - ✅ Controlli di tipo stretti
 
 **Valutazione Complessiva:** 🟢 **ECCELLENTE**
+
+---
+
+## 📝 File Modificati in Questa Sessione
+
+1. **`fp-privacy-cookie-policy/src/Consent/LogModel.php`**  
+   - Aggiunto controllo `isset()` per prevenire chiavi array non previste nel summary
+
+2. **`fp-privacy-cookie-policy/src/Frontend/ConsentState.php`**  
+   - 🔴 **CRITICO**: Rimossa logica duplicata che impediva il corretto salvataggio del cookie di consenso
+
+3. **`fp-privacy-cookie-policy/src/Admin/SettingsController.php`**  
+   - Aggiunto controllo dimensione file (max 5MB) per prevenire memory exhaustion durante l'import
 
 ---
 
