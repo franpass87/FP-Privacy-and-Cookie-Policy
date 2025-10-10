@@ -235,12 +235,13 @@ class Options {
 			'banner_texts'          => array(
 				$default_locale => $banner_default,
 			),
-			'banner_layout'         => array(
-				'type'                  => 'floating',
-				'position'              => 'bottom',
-				'palette'               => $default_palette,
-				'sync_modal_and_button' => true,
-			),
+		'banner_layout'         => array(
+			'type'                  => 'floating',
+			'position'              => 'bottom',
+			'palette'               => $default_palette,
+			'sync_modal_and_button' => true,
+			'enable_dark_mode'      => false,
+		),
 			'categories'            => $category_defaults,
 			'consent_mode_defaults' => array(
 				'analytics_storage'       => 'denied',
@@ -317,12 +318,13 @@ class Options {
 			)
 		);
 
-		$layout = array(
-			'type'                  => Validator::choice( $layout_raw['type'] ?? '', array( 'floating', 'bar' ), $defaults['banner_layout']['type'] ),
-			'position'              => Validator::choice( $layout_raw['position'] ?? '', array( 'top', 'bottom' ), $defaults['banner_layout']['position'] ),
-			'palette'               => Validator::sanitize_palette( isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ? $layout_raw['palette'] : array(), $defaults['banner_layout']['palette'] ),
-			'sync_modal_and_button' => Validator::bool( $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'] ),
-		);
+	$layout = array(
+		'type'                  => Validator::choice( $layout_raw['type'] ?? '', array( 'floating', 'bar' ), $defaults['banner_layout']['type'] ),
+		'position'              => Validator::choice( $layout_raw['position'] ?? '', array( 'top', 'bottom' ), $defaults['banner_layout']['position'] ),
+		'palette'               => Validator::sanitize_palette( isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ? $layout_raw['palette'] : array(), $defaults['banner_layout']['palette'] ),
+		'sync_modal_and_button' => Validator::bool( $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'] ),
+		'enable_dark_mode'      => Validator::bool( $layout_raw['enable_dark_mode'] ?? ( $defaults['banner_layout']['enable_dark_mode'] ?? false ) ),
+	);
 
 		$default_categories = Validator::sanitize_categories( $defaults['categories'], $languages );
 		$categories         = Validator::sanitize_categories( $categories_raw, $languages );

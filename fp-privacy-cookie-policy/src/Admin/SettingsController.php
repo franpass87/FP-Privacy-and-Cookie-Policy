@@ -210,27 +210,27 @@ class SettingsController {
 			$languages = array( \get_locale() );
 		}
 
-		$payload = array(
-			'languages_active'       => $languages,
-			'banner_texts'           => isset( $_POST['banner_texts'] ) ? \wp_unslash( $_POST['banner_texts'] ) : array(),
-			'banner_layout'          => isset( $_POST['banner_layout'] ) ? \wp_unslash( $_POST['banner_layout'] ) : array(),
-			'consent_mode_defaults'  => isset( $_POST['consent_mode_defaults'] ) ? \wp_unslash( $_POST['consent_mode_defaults'] ) : array(),
-			'gpc_enabled'            => isset( $_POST['gpc_enabled'] ),
-			'preview_mode'           => isset( $_POST['preview_mode'] ),
-			'org_name'               => isset( $_POST['org_name'] ) ? \wp_unslash( $_POST['org_name'] ) : '',
-			'vat'                    => isset( $_POST['vat'] ) ? \wp_unslash( $_POST['vat'] ) : '',
-			'address'                => isset( $_POST['address'] ) ? \wp_unslash( $_POST['address'] ) : '',
-			'dpo_name'               => isset( $_POST['dpo_name'] ) ? \wp_unslash( $_POST['dpo_name'] ) : '',
-			'dpo_email'              => isset( $_POST['dpo_email'] ) ? \wp_unslash( $_POST['dpo_email'] ) : '',
-			'privacy_email'          => isset( $_POST['privacy_email'] ) ? \wp_unslash( $_POST['privacy_email'] ) : '',
-			'categories'             => $this->options->get( 'categories' ),
-			'retention_days'         => isset( $_POST['retention_days'] ) ? (int) $_POST['retention_days'] : $this->options->get( 'retention_days' ),
-			'scripts'                => isset( $_POST['scripts'] ) ? \wp_unslash( $_POST['scripts'] ) : array(),
-			'detector_notifications' => array(
-				'email'      => isset( $_POST['detector_notifications']['email'] ),
-				'recipients' => isset( $_POST['detector_notifications']['recipients'] ) ? \wp_unslash( $_POST['detector_notifications']['recipients'] ) : '',
-			),
-		);
+	$payload = array(
+		'languages_active'       => $languages,
+		'banner_texts'           => isset( $_POST['banner_texts'] ) ? \wp_unslash( $_POST['banner_texts'] ) : array(),
+		'banner_layout'          => isset( $_POST['banner_layout'] ) ? \wp_unslash( $_POST['banner_layout'] ) : array(),
+		'consent_mode_defaults'  => isset( $_POST['consent_mode_defaults'] ) ? \wp_unslash( $_POST['consent_mode_defaults'] ) : array(),
+		'gpc_enabled'            => isset( $_POST['gpc_enabled'] ),
+		'preview_mode'           => isset( $_POST['preview_mode'] ),
+		'org_name'               => isset( $_POST['org_name'] ) ? \wp_unslash( $_POST['org_name'] ) : '',
+		'vat'                    => isset( $_POST['vat'] ) ? \wp_unslash( $_POST['vat'] ) : '',
+		'address'                => isset( $_POST['address'] ) ? \wp_unslash( $_POST['address'] ) : '',
+		'dpo_name'               => isset( $_POST['dpo_name'] ) ? \wp_unslash( $_POST['dpo_name'] ) : '',
+		'dpo_email'              => isset( $_POST['dpo_email'] ) ? \wp_unslash( $_POST['dpo_email'] ) : '',
+		'privacy_email'          => isset( $_POST['privacy_email'] ) ? \wp_unslash( $_POST['privacy_email'] ) : '',
+		'categories'             => $this->options->get( 'categories' ),
+		'retention_days'         => isset( $_POST['retention_days'] ) ? (int) $_POST['retention_days'] : $this->options->get( 'retention_days' ),
+		'scripts'                => isset( $_POST['scripts'] ) ? \wp_unslash( $_POST['scripts'] ) : array(),
+		'detector_notifications' => array(
+			'email'      => isset( $_POST['detector_notifications']['email'] ),
+			'recipients' => isset( $_POST['detector_notifications']['recipients'] ) ? \wp_unslash( $_POST['detector_notifications']['recipients'] ) : '',
+		),
+	);
 
 		$this->options->set( $payload );
 
