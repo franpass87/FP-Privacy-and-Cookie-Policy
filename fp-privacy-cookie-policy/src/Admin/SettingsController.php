@@ -210,19 +210,10 @@ class SettingsController {
 			$languages = array( \get_locale() );
 		}
 
-	// Gestione banner_layout con enable_dark_mode
-	$banner_layout = isset( $_POST['banner_layout'] ) ? \wp_unslash( $_POST['banner_layout'] ) : array();
-	// Assicura che enable_dark_mode sia presente e booleano
-	if ( isset( $_POST['banner_layout']['enable_dark_mode'] ) ) {
-		$banner_layout['enable_dark_mode'] = true;
-	} else {
-		$banner_layout['enable_dark_mode'] = false;
-	}
-
 	$payload = array(
 		'languages_active'       => $languages,
 		'banner_texts'           => isset( $_POST['banner_texts'] ) ? \wp_unslash( $_POST['banner_texts'] ) : array(),
-		'banner_layout'          => $banner_layout,
+		'banner_layout'          => isset( $_POST['banner_layout'] ) ? \wp_unslash( $_POST['banner_layout'] ) : array(),
 		'consent_mode_defaults'  => isset( $_POST['consent_mode_defaults'] ) ? \wp_unslash( $_POST['consent_mode_defaults'] ) : array(),
 		'gpc_enabled'            => isset( $_POST['gpc_enabled'] ),
 		'preview_mode'           => isset( $_POST['preview_mode'] ),
