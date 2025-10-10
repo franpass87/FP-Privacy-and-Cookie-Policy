@@ -593,15 +593,15 @@ margin-top: 20px;
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 24px;
+    padding: 12px;
+    margin-bottom: 16px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     z-index: 100;
 }
 
 .fp-privacy-sticky-nav h4 {
-    margin: 0 0 12px;
-    font-size: 14px;
+    margin: 0 0 8px;
+    font-size: 13px;
     font-weight: 600;
     color: #6b7280;
     text-transform: uppercase;
@@ -620,12 +620,12 @@ margin-top: 20px;
 
 .fp-privacy-sticky-nav a {
     display: block;
-    padding: 8px 12px;
+    padding: 6px 12px;
     color: #4b5563;
     text-decoration: none;
     border-radius: 6px;
     transition: all 0.2s ease;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .fp-privacy-sticky-nav a:hover,
