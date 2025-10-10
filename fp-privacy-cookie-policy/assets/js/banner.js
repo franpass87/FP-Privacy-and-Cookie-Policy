@@ -774,17 +774,33 @@ function mapToConsentMode( payload ) {
     return result;
 }
 
+function setButtonsLoading( isLoading ) {
+    var buttons = document.querySelectorAll( '.fp-privacy-button' );
+    for ( var i = 0; i < buttons.length; i++ ) {
+        if ( isLoading ) {
+            buttons[ i ].classList.add( 'fp-loading' );
+            buttons[ i ].disabled = true;
+        } else {
+            buttons[ i ].classList.remove( 'fp-loading' );
+            buttons[ i ].disabled = false;
+        }
+    }
+}
+
 function handleAcceptAll() {
+setButtonsLoading( true );
 var payload = buildConsentPayload( true, false );
 persistConsent( 'accept_all', payload );
 }
 
 function handleRejectAll() {
+setButtonsLoading( true );
 var payload = buildConsentPayload( false, true );
 persistConsent( 'reject_all', payload );
 }
 
 function handleSavePreferences() {
+setButtonsLoading( true );
 var payload = buildConsentPayload( false, false );
 persistConsent( 'consent', payload );
 closeModal();
@@ -828,6 +844,8 @@ function persistConsent( event, payload ) {
     var lang = state.lang || ( data.options.state ? data.options.state.lang : '' ) || document.documentElement.lang || 'en';
 
     var markSuccess = function ( result ) {
+        setButtonsLoading( false );
+        
         if ( typeof handleConsentResponse === 'function' ) {
             handleConsentResponse( result );
         } else if ( result && result.consent_id ) {
@@ -849,6 +867,7 @@ function persistConsent( event, payload ) {
     };
 
     var handleFailure = function () {
+        setButtonsLoading( false );
         state.should_display = true;
         showBanner();
     };
