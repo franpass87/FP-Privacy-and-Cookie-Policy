@@ -92,6 +92,15 @@ $this->state   = $state;
         $should    = ! empty( $state['state']['should_display'] );
         $preview   = ! empty( $state['state']['preview_mode'] );
         $shortcode = \apply_filters( 'fp_privacy_force_enqueue_banner', false );
+        
+        // Aggiungi classe dark mode al body se abilitato
+        $dark_mode_enabled = ! empty( $state['layout']['enable_dark_mode'] );
+        if ( $dark_mode_enabled ) {
+            \add_filter( 'body_class', function( $classes ) {
+                $classes[] = 'fp-privacy-dark-mode-enabled';
+                return $classes;
+            });
+        }
 
         $consent_handle = 'fp-privacy-consent-mode';
         $banner_handle  = 'fp-privacy-banner';

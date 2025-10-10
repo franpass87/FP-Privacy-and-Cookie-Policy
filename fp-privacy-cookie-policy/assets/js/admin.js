@@ -65,6 +65,36 @@ $( function () {
 
     var notice = $( '<div class="notice notice-warning" style="display:none;"><p></p></div>' );
     form.prepend( notice );
+    
+    // Aggiungi toggle mobile/desktop per il preview
+    var previewControls = $( '.fp-privacy-preview-controls' );
+    if ( previewControls.length ) {
+        var modeToggle = $( '<div class="fp-privacy-preview-mode-toggle"></div>' );
+        var desktopBtn = $( '<button type="button" class="active" data-mode="desktop">🖥️ Desktop</button>' );
+        var mobileBtn = $( '<button type="button" data-mode="mobile">📱 Mobile</button>' );
+        
+        modeToggle.append( desktopBtn, mobileBtn );
+        previewControls.append( modeToggle );
+        
+        modeToggle.on( 'click', 'button', function() {
+            var btn = $( this );
+            var mode = btn.data( 'mode' );
+            var previewFrame = $( '.fp-privacy-preview-frame' );
+            
+            modeToggle.find( 'button' ).removeClass( 'active' );
+            btn.addClass( 'active' );
+            
+            if ( mode === 'mobile' ) {
+                previewFrame.addClass( 'mobile-mode' );
+            } else {
+                previewFrame.removeClass( 'mobile-mode' );
+            }
+        });
+    }
+    
+    // Auto-save indicator
+    var autoSaveIndicator = $( '<div class="fp-privacy-saving-indicator"><div class="spinner"></div><span>Salvataggio...</span></div>' );
+    form.find( '.button-primary' ).after( autoSaveIndicator );
 
     function evaluateContrast() {
         var surface = form.find( 'input[name="banner_layout[palette][surface_bg]"]' ).val();
@@ -190,7 +220,207 @@ $( function () {
     layoutType.on( 'change', updatePreview );
     layoutPosition.on( 'change', updatePreview );
     languageSelect.on( 'change', updatePreview );
+    
+    // Monitora il checkbox dark mode per aggiornare il preview
+    form.on( 'change', 'input[name="banner_layout[enable_dark_mode]"]', function() {
+        var isDarkMode = $( this ).is( ':checked' );
+        var previewFrame = $( '.fp-privacy-preview-frame' );
+        
+        if ( isDarkMode ) {
+            previewFrame.addClass( 'dark-mode-preview' );
+            $( 'body' ).addClass( 'fp-privacy-dark-mode-enabled' );
+        } else {
+            previewFrame.removeClass( 'dark-mode-preview' );
+            $( 'body' ).removeClass( 'fp-privacy-dark-mode-enabled' );
+        }
+        
+        updatePreview();
+    });
 
     updatePreview();
+    
+    // Toast notification system
+    window.fpPrivacyShowToast = function( message, type ) {
+        type = type || 'info';
+        var toast = $( '<div class="fp-privacy-toast"></div>' ).addClass( type );
+        
+        var icon = '🔔';
+        if ( type === 'success' ) icon = '✓';
+        if ( type === 'error' ) icon = '✕';
+        if ( type === 'warning' ) icon = '⚠';
+        
+        toast.html( '<span style="font-size:20px;">' + icon + '</span><span>' + message + '</span>' );
+        $( 'body' ).append( toast );
+        
+        setTimeout( function() {
+            toast.fadeOut( 300, function() { toast.remove(); } );
+        }, 4000 );
+    };
+    
+    // Intercetta submit form per mostrare indicatore
+    form.on( 'submit', function() {
+        autoSaveIndicator.addClass( 'visible' );
+        form.find( '.button-primary' ).prop( 'disabled', true ).css( 'opacity', '0.6' );
+    });
+    
+    // Filtri per tabella servizi rilevati
+    var detectedTable = $( '.fp-privacy-detected' );
+    if ( detectedTable.length ) {
+        var filterRow = $( '<div class="fp-privacy-table-filters"></div>' );
+        var searchInput = $( '<input type="text" placeholder="🔍 Cerca servizio..." />' );
+        var categoryFilter = $( '<select><option value="">Tutte le categorie</option><option value="marketing">Marketing</option><option value="analytics">Analytics</option><option value="necessary">Necessari</option><option value="preferences">Preferenze</option></select>' );
+        var statusFilter = $( '<select><option value="">Tutti gli stati</option><option value="detected">Rilevati</option><option value="not-detected">Non rilevati</option></select>' );
+        
+        filterRow.append( searchInput, categoryFilter, statusFilter );
+        detectedTable.before( filterRow );
+        
+        function filterTable() {
+            var searchTerm = searchInput.val().toLowerCase();
+            var categoryValue = categoryFilter.val().toLowerCase();
+            var statusValue = statusFilter.val();
+            
+            detectedTable.find( 'tbody tr' ).each( function() {
+                var row = $( this );
+                var serviceName = row.find( 'td' ).eq( 0 ).text().toLowerCase();
+                var category = row.find( 'td' ).eq( 1 ).text().toLowerCase();
+                var hasDetected = row.find( '.status-detected' ).length > 0;
+                
+                var matchSearch = serviceName.indexOf( searchTerm ) !== -1;
+                var matchCategory = ! categoryValue || category.indexOf( categoryValue ) !== -1;
+                var matchStatus = ! statusValue || 
+                    ( statusValue === 'detected' && hasDetected ) || 
+                    ( statusValue === 'not-detected' && ! hasDetected );
+                
+                if ( matchSearch && matchCategory && matchStatus ) {
+                    row.show();
+                } else {
+                    row.hide();
+                }
+            });
+        }
+        
+        searchInput.on( 'input', filterTable );
+        categoryFilter.on( 'change', filterTable );
+        statusFilter.on( 'change', filterTable );
+        
+        // Aggiungi badge alle categorie nella tabella
+        detectedTable.find( 'tbody tr' ).each( function() {
+            var row = $( this );
+            var categoryCell = row.find( 'td' ).eq( 1 );
+            var categoryText = categoryCell.text().trim().toLowerCase();
+            
+            if ( categoryText ) {
+                var badge = $( '<span class="fp-privacy-category-badge"></span>' )
+                    .addClass( categoryText )
+                    .text( categoryText );
+                categoryCell.html( badge );
+            }
+        });
+    }
+    
+    // Sistema accordion per organizzare le sezioni
+    function initAccordion() {
+        var sections = [
+            { id: 'languages', title: '🌐 Lingue', selector: 'h2:contains("Languages"), h2:contains("Lingue")' },
+            { id: 'banner', title: '📢 Contenuto Banner', selector: 'h2:contains("Banner content"), h2:contains("Banner")' },
+            { id: 'preview', title: '👁️ Anteprima', selector: '.fp-privacy-preview' },
+            { id: 'layout', title: '🎨 Layout', selector: 'h2:contains("Layout")' },
+            { id: 'palette', title: '🎨 Palette', selector: 'h2:contains("Palette")' },
+            { id: 'consent-mode', title: '⚙️ Consent Mode', selector: 'h2:contains("Consent Mode")' },
+            { id: 'gpc', title: '🌍 GPC', selector: 'h2:contains("Global Privacy Control"), h2:contains("GPC")' },
+            { id: 'retention', title: '📅 Retention', selector: 'h2:contains("Retention")' },
+            { id: 'controller', title: '🏢 Controller & DPO', selector: 'h2:contains("Controller"), h2:contains("DPO")' },
+            { id: 'alerts', title: '🔔 Alerts', selector: 'h2:contains("Integration alerts"), h2:contains("alert")' },
+            { id: 'scripts', title: '🚫 Script Blocking', selector: 'h2:contains("Script blocking"), h2:contains("Script")' }
+        ];
+        
+        // Crea sticky navigation
+        var nav = $( '<div class="fp-privacy-sticky-nav"><h4>Navigazione rapida</h4><ul></ul></div>' );
+        var navList = nav.find( 'ul' );
+        
+        sections.forEach( function( section ) {
+            var sectionElement = $( section.selector ).first();
+            if ( ! sectionElement.length ) return;
+            
+            // Wrap section in accordion
+            var nextElements = sectionElement.nextUntil( 'h2' ).addBack();
+            if ( nextElements.length === 1 ) {
+                nextElements = sectionElement.nextUntil( 'h2, .fp-privacy-preview' ).addBack();
+            }
+            
+            var accordion = $( '<div class="fp-privacy-section-accordion" id="section-' + section.id + '"></div>' );
+            var header = $( '<div class="fp-privacy-section-header"><h3>' + section.title + '</h3><span class="fp-privacy-section-toggle">▼</span></div>' );
+            var content = $( '<div class="fp-privacy-section-content"></div>' );
+            
+            nextElements.wrapAll( content );
+            content = sectionElement.nextUntil( 'h2' ).parent();
+            
+            sectionElement.before( accordion );
+            accordion.append( header );
+            
+            // Sposta contenuto nell'accordion
+            var elementsToMove = sectionElement.nextUntil( 'h2, .fp-privacy-section-accordion' );
+            if ( section.selector === '.fp-privacy-preview' ) {
+                elementsToMove = sectionElement;
+            }
+            
+            var contentWrapper = $( '<div class="fp-privacy-section-content"></div>' );
+            accordion.append( contentWrapper );
+            contentWrapper.append( sectionElement );
+            contentWrapper.append( elementsToMove );
+            
+            // Toggle accordion
+            header.on( 'click', function() {
+                accordion.toggleClass( 'collapsed' );
+                
+                // Salva stato in localStorage
+                var collapsed = accordion.hasClass( 'collapsed' );
+                localStorage.setItem( 'fp-privacy-section-' + section.id, collapsed ? 'collapsed' : 'expanded' );
+            });
+            
+            // Ripristina stato da localStorage
+            var savedState = localStorage.getItem( 'fp-privacy-section-' + section.id );
+            if ( savedState === 'collapsed' ) {
+                accordion.addClass( 'collapsed' );
+            }
+            
+            // Aggiungi link alla navigation
+            var navLink = $( '<li><a href="#section-' + section.id + '">' + section.title + '</a></li>' );
+            navList.append( navLink );
+            
+            navLink.find( 'a' ).on( 'click', function( e ) {
+                e.preventDefault();
+                accordion.removeClass( 'collapsed' );
+                $( 'html, body' ).animate({
+                    scrollTop: accordion.offset().top - 100
+                }, 500 );
+                
+                navList.find( 'a' ).removeClass( 'active' );
+                $( this ).addClass( 'active' );
+            });
+        });
+        
+        // Inserisci navigation prima del form
+        if ( navList.children().length > 0 ) {
+            form.before( nav );
+        }
+        
+        // Espandi/Collassa tutto
+        var toggleAll = $( '<div style="margin-bottom:20px;"><button type="button" class="button" id="fp-expand-all">⬇️ Espandi tutto</button> <button type="button" class="button" id="fp-collapse-all">⬆️ Collassa tutto</button></div>' );
+        form.before( toggleAll );
+        
+        $( '#fp-expand-all' ).on( 'click', function() {
+            $( '.fp-privacy-section-accordion' ).removeClass( 'collapsed' );
+        });
+        
+        $( '#fp-collapse-all' ).on( 'click', function() {
+            $( '.fp-privacy-section-accordion' ).addClass( 'collapsed' );
+        });
+    }
+    
+    // Inizializza accordion se ci sono abbastanza sezioni
+    if ( $( 'h2' ).length > 3 ) {
+        setTimeout( initAccordion, 100 );
+    }
 } );
 })( window.jQuery );
