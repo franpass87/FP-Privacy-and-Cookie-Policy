@@ -1682,6 +1682,13 @@ return isset( $_SERVER['HTTP_CDN_PULL_ZONE'] ) || isset( $_SERVER['HTTP_CDN_REQU
 ),
 );
 
+// Allow developers to add custom services
+$custom_services = \apply_filters( 'fp_privacy_custom_services', array() );
+
+if ( is_array( $custom_services ) && ! empty( $custom_services ) ) {
+$services = array_merge( $services, $custom_services );
+}
+
 return \apply_filters( 'fp_privacy_services_registry', $services );
 }
 
@@ -1702,12 +1709,237 @@ return \apply_filters( 'fp_privacy_services_registry', $services );
         }
 
         $services              = $this->run_detectors();
+        $unknown_services      = $this->detect_unknown_services();
+        $services              = array_merge( $services, $unknown_services );
         $this->runtime_cache   = $services;
         $this->cache_timestamp = time();
 
         $this->persist_cache();
 
         return $services;
+    }
+
+    /**
+     * Detect unknown/custom third-party services not in the registry.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function detect_unknown_services() {
+        $unknown = array();
+
+        // Detect external scripts
+        $external_scripts = $this->detect_external_scripts();
+        
+        // Detect third-party cookies
+        $third_party_cookies = $this->detect_third_party_cookies();
+
+        // Merge and deduplicate
+        $detected_domains = array_unique( array_merge( $external_scripts, $third_party_cookies ) );
+
+        foreach ( $detected_domains as $domain ) {
+            if ( $this->is_known_domain( $domain ) ) {
+                continue;
+            }
+
+            $service_name = $this->guess_service_name( $domain );
+            
+            $unknown[] = array(
+                'slug'         => 'unknown_' . sanitize_key( $domain ),
+                'name'         => $service_name,
+                'category'     => 'marketing',
+                'provider'     => $this->extract_company_name( $domain ),
+                'policy_url'   => 'https://' . $domain,
+                'cookies'      => array(),
+                'legal_basis'  => 'Consent',
+                'purpose'      => 'Third-party service (auto-detected)',
+                'retention'    => 'Unknown',
+                'data_location' => 'Unknown',
+                'detected'     => true,
+                'is_unknown'   => true,
+                'domain'       => $domain,
+            );
+        }
+
+        return $unknown;
+    }
+
+    /**
+     * Detect external scripts loaded on the page.
+     *
+     * @return array<int, string> Array of domains.
+     */
+    private function detect_external_scripts() {
+        $domains = array();
+
+        if ( ! function_exists( '\wp_scripts' ) ) {
+            return $domains;
+        }
+
+        $wp_scripts = \wp_scripts();
+        
+        if ( empty( $wp_scripts->registered ) || ! is_array( $wp_scripts->registered ) ) {
+            return $domains;
+        }
+
+        foreach ( $wp_scripts->registered as $handle => $script ) {
+            if ( empty( $script->src ) ) {
+                continue;
+            }
+
+            $src = (string) $script->src;
+            
+            // Skip local scripts
+            if ( $this->is_local_url( $src ) ) {
+                continue;
+            }
+
+            $domain = $this->extract_domain( $src );
+            
+            if ( $domain && ! in_array( $domain, $domains, true ) ) {
+                $domains[] = $domain;
+            }
+        }
+
+        return $domains;
+    }
+
+    /**
+     * Detect third-party cookies (placeholder - requires client-side detection).
+     *
+     * @return array<int, string> Array of domains.
+     */
+    private function detect_third_party_cookies() {
+        // Note: Server-side PHP cannot directly access browser cookies set by JavaScript.
+        // This would need to be implemented via JavaScript that sends data to the server.
+        // For now, return empty array. Can be extended with AJAX detection.
+        return array();
+    }
+
+    /**
+     * Check if a domain is already known in the registry.
+     *
+     * @param string $domain Domain to check.
+     *
+     * @return bool
+     */
+    private function is_known_domain( $domain ) {
+        $known_domains = array(
+            'google.com', 'googleapis.com', 'googletagmanager.com', 'google-analytics.com',
+            'doubleclick.net', 'googlesyndication.com', 'gstatic.com', 'googleadservices.com',
+            'facebook.com', 'facebook.net', 'connect.facebook.net',
+            'twitter.com', 'x.com', 't.co', 'ads-twitter.com',
+            'youtube.com', 'youtu.be', 'ytimg.com',
+            'vimeo.com', 'player.vimeo.com',
+            'instagram.com', 'instagr.am', 'cdninstagram.com',
+            'linkedin.com', 'licdn.com',
+            'tiktok.com', 'byteoversea.com',
+            'pinterest.com', 'pinimg.com',
+            'snapchat.com', 'sc-static.net',
+            'reddit.com', 'redd.it',
+            'hotjar.com', 'hotjar.io',
+            'clarity.ms', 'microsoft.com',
+            'matomo.org',
+            'mixpanel.com', 'mxpnl.com',
+            'amplitude.com',
+            'segment.com', 'segment.io',
+            'intercom.io', 'intercom.com', 'intercomcdn.com',
+            'drift.com', 'driftt.com',
+            'zendesk.com', 'zdassets.com', 'zopim.com',
+            'stripe.com',
+            'paypal.com',
+            'cloudflare.com', 'cloudflare.net',
+            'wistia.com', 'wistia.net',
+            'vidyard.com',
+            'spotify.com',
+            'soundcloud.com',
+            'typeform.com',
+            'calendly.com',
+            'hubspot.com', 'hubspot.net', 'hs-scripts.com',
+            'mailchimp.com',
+            'sendgrid.com', 'sendgrid.net',
+            'taboola.com',
+            'outbrain.com',
+            'criteo.com', 'criteo.net',
+            'amazon-adsystem.com', 'amazonaws.com',
+        );
+
+        foreach ( $known_domains as $known ) {
+            if ( false !== strpos( $domain, $known ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Extract domain from URL.
+     *
+     * @param string $url URL to parse.
+     *
+     * @return string|null
+     */
+    private function extract_domain( $url ) {
+        $parsed = parse_url( $url );
+        
+        if ( empty( $parsed['host'] ) ) {
+            return null;
+        }
+
+        return (string) $parsed['host'];
+    }
+
+    /**
+     * Check if URL is local/same-site.
+     *
+     * @param string $url URL to check.
+     *
+     * @return bool
+     */
+    private function is_local_url( $url ) {
+        if ( 0 === strpos( $url, '/' ) && 0 !== strpos( $url, '//' ) ) {
+            return true;
+        }
+
+        if ( ! function_exists( '\site_url' ) ) {
+            return false;
+        }
+
+        $site_domain = $this->extract_domain( \site_url() );
+        $url_domain  = $this->extract_domain( $url );
+
+        return $site_domain === $url_domain;
+    }
+
+    /**
+     * Guess service name from domain.
+     *
+     * @param string $domain Domain name.
+     *
+     * @return string
+     */
+    private function guess_service_name( $domain ) {
+        // Remove www. and common TLDs
+        $name = preg_replace( '/^www\./', '', $domain );
+        $name = preg_replace( '/\.(com|net|org|io|co|ai|app|dev)$/', '', $name );
+        
+        // Convert to title case
+        $name = ucwords( str_replace( array( '-', '_', '.' ), ' ', $name ) );
+
+        return $name;
+    }
+
+    /**
+     * Extract company name from domain.
+     *
+     * @param string $domain Domain name.
+     *
+     * @return string
+     */
+    private function extract_company_name( $domain ) {
+        $name = $this->guess_service_name( $domain );
+        
+        return $name . ' (Unknown)';
     }
 
     /**
