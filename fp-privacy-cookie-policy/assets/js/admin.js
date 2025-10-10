@@ -220,6 +220,22 @@ $( function () {
     layoutType.on( 'change', updatePreview );
     layoutPosition.on( 'change', updatePreview );
     languageSelect.on( 'change', updatePreview );
+    
+    // Monitora il checkbox dark mode per aggiornare il preview
+    form.on( 'change', 'input[name="banner_layout[enable_dark_mode]"]', function() {
+        var isDarkMode = $( this ).is( ':checked' );
+        var previewFrame = $( '.fp-privacy-preview-frame' );
+        
+        if ( isDarkMode ) {
+            previewFrame.addClass( 'dark-mode-preview' );
+            $( 'body' ).addClass( 'fp-privacy-dark-mode-enabled' );
+        } else {
+            previewFrame.removeClass( 'dark-mode-preview' );
+            $( 'body' ).removeClass( 'fp-privacy-dark-mode-enabled' );
+        }
+        
+        updatePreview();
+    });
 
     updatePreview();
     

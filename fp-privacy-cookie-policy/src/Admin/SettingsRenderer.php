@@ -237,6 +237,13 @@ class SettingsRenderer {
 		<input type="checkbox" name="banner_layout[sync_modal_and_button]" value="1" <?php \checked( $layout['sync_modal_and_button'], true ); ?> />
 		<?php \esc_html_e( 'Synchronize modal and button palette', 'fp-privacy' ); ?>
 		</label>
+		<label>
+		<input type="checkbox" name="banner_layout[enable_dark_mode]" value="1" <?php \checked( ! empty( $layout['enable_dark_mode'] ), true ); ?> />
+		<?php \esc_html_e( 'Enable dark mode (automatically adjusts colors for dark backgrounds)', 'fp-privacy' ); ?>
+		</label>
+		<p class="description" style="margin-left: 25px;">
+		<?php \esc_html_e( '⚠️ Activate this only if your site uses a dark theme and you want the banner to match. The palette will be automatically adjusted.', 'fp-privacy' ); ?>
+		</p>
 		</div>
 		<?php
 	}

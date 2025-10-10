@@ -11,20 +11,18 @@
     --fp-privacy-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --fp-privacy-surface_bg: #1f2937;
-        --fp-privacy-surface_text: #f9fafb;
-        --fp-privacy-button_primary_bg: #3b82f6;
-        --fp-privacy-button_primary_tx: #ffffff;
-        --fp-privacy-button_secondary_bg: #374151;
-        --fp-privacy-button_secondary_tx: #f9fafb;
-        --fp-privacy-link: #60a5fa;
-        --fp-privacy-border: #4b5563;
-        --fp-privacy-focus: #3b82f6;
-        --fp-privacy-shadow: 0 18px 36px rgba(0, 0, 0, 0.4);
-    }
+/* Dark mode - SOLO se abilitato dall'admin */
+body.fp-privacy-dark-mode-enabled {
+    --fp-privacy-surface_bg: #1f2937;
+    --fp-privacy-surface_text: #f9fafb;
+    --fp-privacy-button_primary_bg: #3b82f6;
+    --fp-privacy-button_primary_tx: #ffffff;
+    --fp-privacy-button_secondary_bg: #374151;
+    --fp-privacy-button_secondary_tx: #f9fafb;
+    --fp-privacy-link: #60a5fa;
+    --fp-privacy-border: #4b5563;
+    --fp-privacy-focus: #3b82f6;
+    --fp-privacy-shadow: 0 18px 36px rgba(0, 0, 0, 0.4);
 }
 
 #fp-privacy-banner-root,
@@ -173,10 +171,8 @@ gap: 12px;
     background: #f3f4f6;
 }
 
-@media (prefers-color-scheme: dark) {
-    .fp-privacy-button-secondary:hover:not(.fp-loading) {
-        background: #4b5563;
-    }
+body.fp-privacy-dark-mode-enabled .fp-privacy-button-secondary:hover:not(.fp-loading) {
+    background: #4b5563;
 }
 
 .fp-privacy-link {
@@ -254,10 +250,8 @@ backdrop-filter: blur(4px);
     to { opacity: 1; }
 }
 
-@media (prefers-color-scheme: dark) {
-    .fp-privacy-modal-overlay {
-        background: rgba(0, 0, 0, 0.75);
-    }
+body.fp-privacy-dark-mode-enabled .fp-privacy-modal-overlay {
+    background: rgba(0, 0, 0, 0.75);
 }
 
 .fp-privacy-modal {
@@ -286,12 +280,10 @@ overflow-y: auto;
     }
 }
 
-@media (prefers-color-scheme: dark) {
-    .fp-privacy-modal {
-        background: #1f2937;
-        color: #f9fafb;
-        border: 1px solid #4b5563;
-    }
+body.fp-privacy-dark-mode-enabled .fp-privacy-modal {
+    background: #1f2937;
+    color: #f9fafb;
+    border: 1px solid #4b5563;
 }
 
 .fp-privacy-modal h2 {
@@ -322,16 +314,14 @@ transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
-@media (prefers-color-scheme: dark) {
-    .fp-privacy-category {
-        border-color: #4b5563;
-        background: rgba(55, 65, 81, 0.3);
-    }
-    
-    .fp-privacy-category:hover {
-        border-color: #6b7280;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
+body.fp-privacy-dark-mode-enabled .fp-privacy-category {
+    border-color: #4b5563;
+    background: rgba(55, 65, 81, 0.3);
+}
+
+body.fp-privacy-dark-mode-enabled .fp-privacy-category:hover {
+    border-color: #6b7280;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .fp-privacy-category h3 {
