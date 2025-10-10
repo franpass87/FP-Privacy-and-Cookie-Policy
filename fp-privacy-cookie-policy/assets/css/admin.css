@@ -476,6 +476,71 @@ margin-top: 20px;
     transform: translateY(-1px);
 }
 
+/* Bottone sticky di salvataggio */
+.fp-privacy-sticky-save {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+}
+
+.fp-privacy-sticky-save.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.fp-privacy-sticky-save .button-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border: none;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s ease;
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fp-privacy-sticky-save .button-primary::before {
+    content: '💾';
+    font-size: 20px;
+}
+
+.fp-privacy-sticky-save .button-primary:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    box-shadow: 0 12px 32px rgba(37, 99, 235, 0.5);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.fp-privacy-sticky-save .button-primary:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Animazione pulsante di salvataggio */
+@keyframes saveButtonPulse {
+    0%, 100% {
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+    }
+    50% {
+        box-shadow: 0 8px 32px rgba(37, 99, 235, 0.6);
+    }
+}
+
+.fp-privacy-sticky-save .button-primary.pulse {
+    animation: saveButtonPulse 2s ease-in-out infinite;
+}
+
 /* Indicatore di salvataggio */
 .fp-privacy-saving-indicator {
     display: inline-flex;
