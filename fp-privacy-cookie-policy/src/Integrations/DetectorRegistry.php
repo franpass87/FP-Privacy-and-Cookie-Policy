@@ -1216,6 +1216,470 @@ return defined( 'IMGIX_DOMAIN' );
 return defined( 'SHOPIFY_API_KEY' ) || \has_action( 'wp_head', 'shopify_buy_button' );
 },
 ),
+// CRM & Sales Tools
+'salesforce'     => array(
+'name'        => 'Salesforce',
+'category'    => 'marketing',
+'provider'    => 'Salesforce Inc.',
+'policy_url'  => 'https://www.salesforce.com/company/privacy/',
+'cookies'     => array( 'sfdc-stream', 'CookieConsentPolicy' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Customer relationship management',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'salesforce', 'enqueued' ) || defined( 'SALESFORCE_API_KEY' );
+},
+),
+'pipedrive'      => array(
+'name'        => 'Pipedrive',
+'category'    => 'marketing',
+'provider'    => 'Pipedrive OÜ',
+'policy_url'  => 'https://www.pipedrive.com/privacy',
+'cookies'     => array( 'pipe_session_token' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Sales CRM',
+'retention'   => '1 year',
+'data_location' => 'European Union',
+'detector'    => function () {
+return \wp_script_is( 'pipedrive', 'enqueued' ) || defined( 'PIPEDRIVE_API_TOKEN' );
+},
+),
+'zoho_crm'       => array(
+'name'        => 'Zoho CRM',
+'category'    => 'marketing',
+'provider'    => 'Zoho Corporation',
+'policy_url'  => 'https://www.zoho.com/privacy.html',
+'cookies'     => array( 'JSESSIONID', 'zld*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Customer relationship management',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'zoho', 'enqueued' ) || defined( 'ZOHO_CRM_API_KEY' );
+},
+),
+'freshsales'     => array(
+'name'        => 'Freshsales',
+'category'    => 'marketing',
+'provider'    => 'Freshworks Inc.',
+'policy_url'  => 'https://www.freshworks.com/privacy/',
+'cookies'     => array( '_fw_crm_v' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Sales CRM and automation',
+'retention'   => '2 years',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'freshsales', 'enqueued' ) || defined( 'FRESHSALES_API_KEY' );
+},
+),
+// Email Service Providers
+'sendgrid'       => array(
+'name'        => 'SendGrid',
+'category'    => 'marketing',
+'provider'    => 'Twilio Inc.',
+'policy_url'  => 'https://www.twilio.com/legal/privacy',
+'cookies'     => array(),
+'legal_basis' => 'Consent',
+'purpose'     => 'Transactional email delivery',
+'retention'   => 'N/A',
+'data_location' => 'United States',
+'detector'    => function () {
+return defined( 'SENDGRID_API_KEY' ) || class_exists( 'SendGrid' );
+},
+),
+'mailgun'        => array(
+'name'        => 'Mailgun',
+'category'    => 'marketing',
+'provider'    => 'Mailgun Technologies Inc.',
+'policy_url'  => 'https://www.mailgun.com/privacy-policy/',
+'cookies'     => array(),
+'legal_basis' => 'Consent',
+'purpose'     => 'Email delivery service',
+'retention'   => 'N/A',
+'data_location' => 'United States',
+'detector'    => function () {
+return defined( 'MAILGUN_API_KEY' ) || class_exists( 'Mailgun' );
+},
+),
+'sendinblue'     => array(
+'name'        => 'Brevo (Sendinblue)',
+'category'    => 'marketing',
+'provider'    => 'Sendinblue SAS',
+'policy_url'  => 'https://www.brevo.com/legal/privacypolicy/',
+'cookies'     => array( 'sib_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Email marketing and automation',
+'retention'   => '13 months',
+'data_location' => 'European Union',
+'detector'    => function () {
+return \wp_script_is( 'sendinblue', 'enqueued' ) || defined( 'SENDINBLUE_API_KEY' );
+},
+),
+'amazon_ses'     => array(
+'name'        => 'Amazon SES',
+'category'    => 'marketing',
+'provider'    => 'Amazon Web Services Inc.',
+'policy_url'  => 'https://aws.amazon.com/privacy/',
+'cookies'     => array(),
+'legal_basis' => 'Consent',
+'purpose'     => 'Email sending service',
+'retention'   => 'N/A',
+'data_location' => 'United States',
+'detector'    => function () {
+return defined( 'AWS_SES_ACCESS_KEY' ) || class_exists( 'Aws\Ses\SesClient' );
+},
+),
+// Booking & Scheduling
+'calendly'       => array(
+'name'        => 'Calendly',
+'category'    => 'marketing',
+'provider'    => 'Calendly LLC',
+'policy_url'  => 'https://calendly.com/privacy',
+'cookies'     => array( '_calendly_session' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Meeting scheduling',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => array( $this, 'detect_calendly' ),
+),
+'acuity'         => array(
+'name'        => 'Acuity Scheduling',
+'category'    => 'marketing',
+'provider'    => 'Squarespace Inc.',
+'policy_url'  => 'https://acuityscheduling.com/privacy.php',
+'cookies'     => array( 'acuity_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Appointment scheduling',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => array( $this, 'detect_acuity' ),
+),
+'bookly'         => array(
+'name'        => 'Bookly',
+'category'    => 'necessary',
+'provider'    => 'Bookly',
+'policy_url'  => 'https://www.booking-wp-plugin.com/privacy-policy/',
+'cookies'     => array(),
+'legal_basis' => 'Contract',
+'purpose'     => 'WordPress booking system',
+'retention'   => 'N/A',
+'data_location' => 'N/A',
+'detector'    => function () {
+return defined( 'BOOKLY_VERSION' );
+},
+),
+'cal_com'        => array(
+'name'        => 'Cal.com',
+'category'    => 'marketing',
+'provider'    => 'Cal.com Inc.',
+'policy_url'  => 'https://cal.com/privacy',
+'cookies'     => array(),
+'legal_basis' => 'Consent',
+'purpose'     => 'Open source scheduling',
+'retention'   => 'N/A',
+'data_location' => 'United States',
+'detector'    => array( $this, 'detect_cal_com' ),
+),
+// Popup & Lead Generation
+'optinmonster'   => array(
+'name'        => 'OptinMonster',
+'category'    => 'marketing',
+'provider'    => 'Retyp LLC',
+'policy_url'  => 'https://optinmonster.com/privacy/',
+'cookies'     => array( 'om-*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Lead generation popups',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'optinmonster', 'enqueued' ) || defined( 'OPTINMONSTER_VERSION' );
+},
+),
+'sumo'           => array(
+'name'        => 'Sumo',
+'category'    => 'marketing',
+'provider'    => 'AppSumo LLC',
+'policy_url'  => 'https://sumo.com/privacy',
+'cookies'     => array( 'sumo_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'List building and analytics',
+'retention'   => '2 years',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'sumo', 'enqueued' ) || \has_action( 'wp_footer', 'sumo' );
+},
+),
+'privy'          => array(
+'name'        => 'Privy',
+'category'    => 'marketing',
+'provider'    => 'Privy Inc.',
+'policy_url'  => 'https://www.privy.com/privacy-policy',
+'cookies'     => array( '_privy_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Email popups and automation',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'privy', 'enqueued' );
+},
+),
+'hello_bar'      => array(
+'name'        => 'Hello Bar',
+'category'    => 'marketing',
+'provider'    => 'Hello Bar Inc.',
+'policy_url'  => 'https://www.hellobar.com/privacy-policy',
+'cookies'     => array( '_hellobar_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Popup notifications',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'hellobar', 'enqueued' );
+},
+),
+// WordPress Caching Plugins
+'wp_rocket'      => array(
+'name'        => 'WP Rocket',
+'category'    => 'necessary',
+'provider'    => 'WP Media',
+'policy_url'  => 'https://wp-rocket.me/privacy-policy/',
+'cookies'     => array( 'wp-rocket-*' ),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Performance and caching',
+'retention'   => 'Session',
+'data_location' => 'European Union',
+'detector'    => function () {
+return defined( 'WP_ROCKET_VERSION' );
+},
+),
+'w3_total_cache' => array(
+'name'        => 'W3 Total Cache',
+'category'    => 'necessary',
+'provider'    => 'BoldGrid',
+'policy_url'  => 'https://www.boldgrid.com/privacy-policy/',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'WordPress caching',
+'retention'   => 'N/A',
+'data_location' => 'N/A',
+'detector'    => function () {
+return defined( 'W3TC_VERSION' );
+},
+),
+'wp_super_cache' => array(
+'name'        => 'WP Super Cache',
+'category'    => 'necessary',
+'provider'    => 'Automattic Inc.',
+'policy_url'  => 'https://automattic.com/privacy/',
+'cookies'     => array( 'wordpress_test_cookie' ),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Page caching',
+'retention'   => 'Session',
+'data_location' => 'N/A',
+'detector'    => function () {
+return defined( 'WPCACHEHOME' );
+},
+),
+'litespeed_cache' => array(
+'name'        => 'LiteSpeed Cache',
+'category'    => 'necessary',
+'provider'    => 'LiteSpeed Technologies',
+'policy_url'  => 'https://www.litespeedtech.com/privacy-policy',
+'cookies'     => array( 'LSCACHE_VARY_COOKIE' ),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Performance optimization',
+'retention'   => 'Session',
+'data_location' => 'N/A',
+'detector'    => function () {
+return defined( 'LSCWP_V' );
+},
+),
+// Security & Firewall
+'wordfence'      => array(
+'name'        => 'Wordfence Security',
+'category'    => 'necessary',
+'provider'    => 'Defiant Inc.',
+'policy_url'  => 'https://www.wordfence.com/privacy-policy/',
+'cookies'     => array( 'wfvt_*', 'wordfence_verifiedHuman' ),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Website security and firewall',
+'retention'   => '30 minutes',
+'data_location' => 'United States',
+'detector'    => function () {
+return defined( 'WORDFENCE_VERSION' );
+},
+),
+'sucuri'         => array(
+'name'        => 'Sucuri Security',
+'category'    => 'necessary',
+'provider'    => 'Sucuri Inc.',
+'policy_url'  => 'https://sucuri.net/privacy',
+'cookies'     => array( 'sucuri_cloudproxy_uuid_*' ),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Security and malware protection',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return defined( 'SUCURISCAN_VERSION' ) || isset( $_SERVER['HTTP_X_SUCURI_ID'] );
+},
+),
+'ithemes_security' => array(
+'name'        => 'iThemes Security',
+'category'    => 'necessary',
+'provider'    => 'iThemes Media LLC',
+'policy_url'  => 'https://ithemes.com/privacy-policy/',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'WordPress security',
+'retention'   => 'N/A',
+'data_location' => 'United States',
+'detector'    => function () {
+return defined( 'ITSEC_VERSION' );
+},
+),
+'all_in_one_security' => array(
+'name'        => 'All In One WP Security',
+'category'    => 'necessary',
+'provider'    => 'UpdraftPlus',
+'policy_url'  => 'https://updraftplus.com/data-protection-and-privacy-centre/',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Security hardening',
+'retention'   => 'N/A',
+'data_location' => 'N/A',
+'detector'    => function () {
+return defined( 'AIO_WP_SECURITY_VERSION' );
+},
+),
+// Social Proof & Reviews
+'trustpilot'     => array(
+'name'        => 'Trustpilot',
+'category'    => 'marketing',
+'provider'    => 'Trustpilot A/S',
+'policy_url'  => 'https://legal.trustpilot.com/privacy-policy',
+'cookies'     => array( '_tp_', '__tp_uuid' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Customer reviews widget',
+'retention'   => '13 months',
+'data_location' => 'European Union',
+'detector'    => function () {
+return \wp_script_is( 'trustpilot', 'enqueued' ) || \has_action( 'wp_footer', 'trustpilot_widget' );
+},
+),
+'yotpo'          => array(
+'name'        => 'Yotpo',
+'category'    => 'marketing',
+'provider'    => 'Yotpo Ltd.',
+'policy_url'  => 'https://www.yotpo.com/privacy-policy/',
+'cookies'     => array( 'yotpo_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Reviews and user-generated content',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'yotpo', 'enqueued' ) || defined( 'YOTPO_APP_KEY' );
+},
+),
+'feefo'          => array(
+'name'        => 'Feefo',
+'category'    => 'marketing',
+'provider'    => 'Feefo Holdings Ltd.',
+'policy_url'  => 'https://www.feefo.com/en_GB/privacy-policy',
+'cookies'     => array(),
+'legal_basis' => 'Consent',
+'purpose'     => 'Customer feedback and reviews',
+'retention'   => 'N/A',
+'data_location' => 'United Kingdom',
+'detector'    => function () {
+return \wp_script_is( 'feefo', 'enqueued' );
+},
+),
+'proof_factor'   => array(
+'name'        => 'Proof (Social Proof)',
+'category'    => 'marketing',
+'provider'    => 'Proof Experiences Inc.',
+'policy_url'  => 'https://useproof.com/privacy',
+'cookies'     => array( 'proof_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Social proof notifications',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'proof', 'enqueued' ) || \wp_script_is( 'useproof', 'enqueued' );
+},
+),
+// Additional Services
+'trustpay'       => array(
+'name'        => 'TrustPay',
+'category'    => 'necessary',
+'provider'    => 'TrustPay a.s.',
+'policy_url'  => 'https://www.trustpay.eu/privacy-policy',
+'cookies'     => array(),
+'legal_basis' => 'Contract',
+'purpose'     => 'Payment processing',
+'retention'   => 'N/A',
+'data_location' => 'European Union',
+'detector'    => function () {
+return \wp_script_is( 'trustpay', 'enqueued' );
+},
+),
+'userway'        => array(
+'name'        => 'UserWay',
+'category'    => 'necessary',
+'provider'    => 'UserWay Inc.',
+'policy_url'  => 'https://userway.org/privacy',
+'cookies'     => array( 'USERWAYWIDGETAPP' ),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Web accessibility widget',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'userway', 'enqueued' );
+},
+),
+'accessibe'      => array(
+'name'        => 'accessiBe',
+'category'    => 'necessary',
+'provider'    => 'accessiBe Ltd.',
+'policy_url'  => 'https://accessibe.com/privacy-policy',
+'cookies'     => array( 'acsbJS' ),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'AI-powered accessibility',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'accessibe', 'enqueued' );
+},
+),
+'cdn77'          => array(
+'name'        => 'CDN77',
+'category'    => 'necessary',
+'provider'    => 'DataCamp Limited',
+'policy_url'  => 'https://www.cdn77.com/privacy-policy',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Content delivery network',
+'retention'   => 'N/A',
+'data_location' => 'European Union',
+'detector'    => function () {
+return isset( $_SERVER['HTTP_CDN77'] );
+},
+),
+'bunnycdn'       => array(
+'name'        => 'BunnyCDN',
+'category'    => 'necessary',
+'provider'    => 'BunnyWay d.o.o.',
+'policy_url'  => 'https://bunny.net/privacy',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Content delivery network',
+'retention'   => 'N/A',
+'data_location' => 'European Union',
+'detector'    => function () {
+return isset( $_SERVER['HTTP_CDN_PULL_ZONE'] ) || isset( $_SERVER['HTTP_CDN_REQUEST_ID'] );
+},
+),
 );
 
 return \apply_filters( 'fp_privacy_services_registry', $services );
@@ -1398,6 +1862,45 @@ return \apply_filters( 'fp_privacy_services_registry', $services );
         return $this->detect_embed(
             array( 'jotform.com', 'form.jotform.com' ),
             array( 'jotform' ),
+            array()
+        );
+    }
+
+    /**
+     * Detect Calendly embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_calendly() {
+        return $this->detect_embed(
+            array( 'calendly.com' ),
+            array( 'calendly' ),
+            array()
+        );
+    }
+
+    /**
+     * Detect Acuity Scheduling embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_acuity() {
+        return $this->detect_embed(
+            array( 'acuityscheduling.com' ),
+            array( 'acuity' ),
+            array()
+        );
+    }
+
+    /**
+     * Detect Cal.com embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_cal_com() {
+        return $this->detect_embed(
+            array( 'cal.com' ),
+            array( 'cal' ),
             array()
         );
     }
