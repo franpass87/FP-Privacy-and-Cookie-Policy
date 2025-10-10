@@ -88,12 +88,12 @@ class Options {
 	 */
 	private function __construct() {
 		$this->blog_id                = function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0;
+		$this->script_rules_manager   = new ScriptRulesManager();
 		$this->options                = $this->load();
 		$this->language_normalizer    = new LanguageNormalizer( $this->get_languages() );
 		$this->auto_translator        = new AutoTranslator(
 			isset( $this->options['auto_translations'] ) ? $this->options['auto_translations'] : array()
 		);
-		$this->script_rules_manager   = new ScriptRulesManager();
 		$this->page_manager           = new PageManager( $this->language_normalizer );
 	}
 
