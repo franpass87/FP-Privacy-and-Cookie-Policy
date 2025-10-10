@@ -788,6 +788,434 @@ return \wp_script_is( 'disqus', 'enqueued' ) || \has_action( 'wp_footer', 'disqu
 return \get_option( 'show_avatars' );
 },
 ),
+// WordPress Plugins & Tools
+'jetpack'        => array(
+'name'        => 'Jetpack',
+'category'    => 'statistics',
+'provider'    => 'Automattic Inc.',
+'policy_url'  => 'https://automattic.com/privacy/',
+'cookies'     => array( 'tk_ai', 'tk_qs' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Site stats, CDN, and WordPress features',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return defined( 'JETPACK__VERSION' ) || class_exists( 'Jetpack' );
+},
+),
+'yoast_seo'      => array(
+'name'        => 'Yoast SEO',
+'category'    => 'necessary',
+'provider'    => 'Yoast BV',
+'policy_url'  => 'https://yoast.com/privacy-policy/',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'SEO optimization',
+'retention'   => 'N/A',
+'data_location' => 'European Union',
+'detector'    => function () {
+return defined( 'WPSEO_VERSION' );
+},
+),
+'elementor'      => array(
+'name'        => 'Elementor',
+'category'    => 'necessary',
+'provider'    => 'Elementor Ltd.',
+'policy_url'  => 'https://elementor.com/privacy-policy/',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Page builder',
+'retention'   => 'N/A',
+'data_location' => 'European Union',
+'detector'    => function () {
+return defined( 'ELEMENTOR_VERSION' );
+},
+),
+'contact_form_7' => array(
+'name'        => 'Contact Form 7',
+'category'    => 'necessary',
+'provider'    => 'Takayuki Miyoshi',
+'policy_url'  => 'https://contactform7.com/privacy-policy/',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Contact forms',
+'retention'   => 'N/A',
+'data_location' => 'N/A',
+'detector'    => function () {
+return defined( 'WPCF7_VERSION' );
+},
+),
+'wpml'           => array(
+'name'        => 'WPML',
+'category'    => 'necessary',
+'provider'    => 'OnTheGoSystems Ltd.',
+'policy_url'  => 'https://wpml.org/privacy-policy/',
+'cookies'     => array( 'wpml_*', '_icl_*' ),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Multilingual content',
+'retention'   => 'Session',
+'data_location' => 'European Union',
+'detector'    => function () {
+return defined( 'ICL_SITEPRESS_VERSION' ) || defined( 'WPML_PLUGIN_FOLDER' );
+},
+),
+'polylang'       => array(
+'name'        => 'Polylang',
+'category'    => 'necessary',
+'provider'    => 'WP SYNTEX',
+'policy_url'  => 'https://polylang.pro/privacy-policy/',
+'cookies'     => array( 'pll_language' ),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Multilingual content',
+'retention'   => '1 year',
+'data_location' => 'European Union',
+'detector'    => function () {
+return defined( 'POLYLANG_VERSION' );
+},
+),
+// Analytics Tools (additional)
+'adobe_analytics' => array(
+'name'        => 'Adobe Analytics',
+'category'    => 'statistics',
+'provider'    => 'Adobe Inc.',
+'policy_url'  => 'https://www.adobe.com/privacy.html',
+'cookies'     => array( 's_cc', 's_sq', 's_vi' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Enterprise web analytics',
+'retention'   => '2 years',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'adobe-analytics', 'enqueued' ) || \has_action( 'wp_head', 'adobe_analytics' );
+},
+),
+'plausible'      => array(
+'name'        => 'Plausible Analytics',
+'category'    => 'statistics',
+'provider'    => 'Plausible Insights OÜ',
+'policy_url'  => 'https://plausible.io/privacy',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Privacy-friendly analytics',
+'retention'   => 'N/A',
+'data_location' => 'European Union',
+'detector'    => function () {
+return \wp_script_is( 'plausible', 'enqueued' ) || defined( 'PLAUSIBLE_DOMAIN' );
+},
+),
+'fathom'         => array(
+'name'        => 'Fathom Analytics',
+'category'    => 'statistics',
+'provider'    => 'Conva Ventures Inc.',
+'policy_url'  => 'https://usefathom.com/privacy',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Privacy-first analytics',
+'retention'   => 'N/A',
+'data_location' => 'Canada',
+'detector'    => function () {
+return \wp_script_is( 'fathom', 'enqueued' ) || defined( 'FATHOM_SITE_ID' );
+},
+),
+'statcounter'    => array(
+'name'        => 'StatCounter',
+'category'    => 'statistics',
+'provider'    => 'StatCounter',
+'policy_url'  => 'https://statcounter.com/about/legal/',
+'cookies'     => array( 'sc_is_visitor_unique' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Web analytics',
+'retention'   => '13 months',
+'data_location' => 'Ireland',
+'detector'    => function () {
+return \wp_script_is( 'statcounter', 'enqueued' ) || defined( 'STATCOUNTER_PROJECT_ID' );
+},
+),
+// Social Embeds
+'instagram'      => array(
+'name'        => 'Instagram Embeds',
+'category'    => 'marketing',
+'provider'    => 'Meta Platforms, Inc.',
+'policy_url'  => 'https://www.facebook.com/policy.php',
+'cookies'     => array( 'ig_did', 'csrftoken' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Embedded social content',
+'retention'   => '90 days',
+'data_location' => 'United States',
+'detector'    => array( $this, 'detect_instagram' ),
+),
+'twitter_embed'  => array(
+'name'        => 'Twitter/X Embeds',
+'category'    => 'marketing',
+'provider'    => 'X Corp.',
+'policy_url'  => 'https://twitter.com/privacy',
+'cookies'     => array( 'personalization_id', 'guest_id' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Embedded tweets',
+'retention'   => '2 years',
+'data_location' => 'United States',
+'detector'    => array( $this, 'detect_twitter_embed' ),
+),
+'spotify'        => array(
+'name'        => 'Spotify Embeds',
+'category'    => 'marketing',
+'provider'    => 'Spotify AB',
+'policy_url'  => 'https://www.spotify.com/privacy',
+'cookies'     => array( 'sp_t', 'sp_landing' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Embedded music player',
+'retention'   => '1 year',
+'data_location' => 'Sweden',
+'detector'    => array( $this, 'detect_spotify' ),
+),
+'soundcloud'     => array(
+'name'        => 'SoundCloud Embeds',
+'category'    => 'marketing',
+'provider'    => 'SoundCloud Global Limited',
+'policy_url'  => 'https://soundcloud.com/pages/privacy',
+'cookies'     => array( 'sc_anonymous_id' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Embedded audio player',
+'retention'   => '2 years',
+'data_location' => 'Germany',
+'detector'    => array( $this, 'detect_soundcloud' ),
+),
+// A/B Testing Tools
+'vwo'            => array(
+'name'        => 'VWO (Visual Website Optimizer)',
+'category'    => 'statistics',
+'provider'    => 'Wingify Software Pvt. Ltd.',
+'policy_url'  => 'https://vwo.com/privacy-policy/',
+'cookies'     => array( '_vis_opt_*', '_vwo_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'A/B testing and conversion optimization',
+'retention'   => '100 days',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'vwo', 'enqueued' ) || defined( 'VWO_ACCOUNT_ID' );
+},
+),
+'optimizely'     => array(
+'name'        => 'Optimizely',
+'category'    => 'statistics',
+'provider'    => 'Optimizely Inc.',
+'policy_url'  => 'https://www.optimizely.com/privacy/',
+'cookies'     => array( 'optimizelyEndUserId', 'optimizelyBuckets' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'A/B testing and experimentation',
+'retention'   => '6 months',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'optimizely', 'enqueued' ) || defined( 'OPTIMIZELY_PROJECT_ID' );
+},
+),
+'ab_tasty'       => array(
+'name'        => 'AB Tasty',
+'category'    => 'statistics',
+'provider'    => 'AB Tasty SAS',
+'policy_url'  => 'https://www.abtasty.com/privacy-policy/',
+'cookies'     => array( 'ABTasty', 'ABTastySession' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'A/B testing and personalization',
+'retention'   => '13 months',
+'data_location' => 'European Union',
+'detector'    => function () {
+return \wp_script_is( 'abtasty', 'enqueued' ) || defined( 'ABTASTY_ACCOUNT_ID' );
+},
+),
+// Forms & Feedback
+'typeform'       => array(
+'name'        => 'Typeform',
+'category'    => 'marketing',
+'provider'    => 'TYPEFORM SL',
+'policy_url'  => 'https://www.typeform.com/privacy-policy/',
+'cookies'     => array( 'tf_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Interactive forms and surveys',
+'retention'   => '1 year',
+'data_location' => 'European Union',
+'detector'    => array( $this, 'detect_typeform' ),
+),
+'surveymonkey'   => array(
+'name'        => 'SurveyMonkey',
+'category'    => 'marketing',
+'provider'    => 'Momentive Inc.',
+'policy_url'  => 'https://www.surveymonkey.com/mp/legal/privacy/',
+'cookies'     => array( 'ep*', 'sm_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Online surveys',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => array( $this, 'detect_surveymonkey' ),
+),
+'google_forms'   => array(
+'name'        => 'Google Forms',
+'category'    => 'marketing',
+'provider'    => 'Google LLC',
+'policy_url'  => 'https://policies.google.com/privacy',
+'cookies'     => array( 'NID', '1P_JAR' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Form creation and responses',
+'retention'   => '6 months',
+'data_location' => 'United States',
+'detector'    => array( $this, 'detect_google_forms' ),
+),
+'jotform'        => array(
+'name'        => 'JotForm',
+'category'    => 'marketing',
+'provider'    => 'JotForm Inc.',
+'policy_url'  => 'https://www.jotform.com/privacy/',
+'cookies'     => array( 'JOTFORM_*' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Online form builder',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => array( $this, 'detect_jotform' ),
+),
+// Error Tracking & Monitoring
+'sentry'         => array(
+'name'        => 'Sentry',
+'category'    => 'necessary',
+'provider'    => 'Functional Software Inc.',
+'policy_url'  => 'https://sentry.io/privacy/',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Error tracking and monitoring',
+'retention'   => '90 days',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'sentry', 'enqueued' ) || defined( 'SENTRY_DSN' );
+},
+),
+'rollbar'        => array(
+'name'        => 'Rollbar',
+'category'    => 'necessary',
+'provider'    => 'Rollbar Inc.',
+'policy_url'  => 'https://rollbar.com/privacy/',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Error tracking',
+'retention'   => '30 days',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'rollbar', 'enqueued' ) || defined( 'ROLLBAR_ACCESS_TOKEN' );
+},
+),
+'bugsnag'        => array(
+'name'        => 'Bugsnag',
+'category'    => 'necessary',
+'provider'    => 'SmartBear Software',
+'policy_url'  => 'https://www.bugsnag.com/privacy-policy',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Error monitoring',
+'retention'   => '30 days',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'bugsnag', 'enqueued' ) || defined( 'BUGSNAG_API_KEY' );
+},
+),
+// Additional Advertising
+'bing_ads'       => array(
+'name'        => 'Microsoft Advertising (Bing Ads)',
+'category'    => 'marketing',
+'provider'    => 'Microsoft Corporation',
+'policy_url'  => 'https://privacy.microsoft.com/',
+'cookies'     => array( 'MUID', 'MR', 'MUIDB' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Search advertising and conversion tracking',
+'retention'   => '13 months',
+'data_location' => 'United States',
+'detector'    => function () {
+return \has_action( 'wp_head', 'bing_ads' ) || defined( 'BING_UET_TAG_ID' );
+},
+),
+'yahoo_ads'      => array(
+'name'        => 'Yahoo Advertising',
+'category'    => 'marketing',
+'provider'    => 'Yahoo Inc.',
+'policy_url'  => 'https://legal.yahoo.com/privacy.html',
+'cookies'     => array( 'B', 'A1', 'A3' ),
+'legal_basis' => 'Consent',
+'purpose'     => 'Display advertising',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \has_action( 'wp_head', 'yahoo_dot' );
+},
+),
+// Additional Payments
+'square'         => array(
+'name'        => 'Square',
+'category'    => 'necessary',
+'provider'    => 'Block Inc.',
+'policy_url'  => 'https://squareup.com/legal/privacy',
+'cookies'     => array( '__cf_bm' ),
+'legal_basis' => 'Contract',
+'purpose'     => 'Payment processing',
+'retention'   => '1 year',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'square', 'enqueued' ) || defined( 'SQUARE_APPLICATION_ID' );
+},
+),
+'braintree'      => array(
+'name'        => 'Braintree',
+'category'    => 'necessary',
+'provider'    => 'PayPal Inc.',
+'policy_url'  => 'https://www.braintreepayments.com/legal/braintree-privacy-policy',
+'cookies'     => array(),
+'legal_basis' => 'Contract',
+'purpose'     => 'Payment processing',
+'retention'   => 'N/A',
+'data_location' => 'United States',
+'detector'    => function () {
+return \wp_script_is( 'braintree', 'enqueued' ) || defined( 'BRAINTREE_MERCHANT_ID' );
+},
+),
+// CDN & Performance
+'cloudinary'     => array(
+'name'        => 'Cloudinary',
+'category'    => 'necessary',
+'provider'    => 'Cloudinary Ltd.',
+'policy_url'  => 'https://cloudinary.com/privacy',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Image and video CDN',
+'retention'   => 'N/A',
+'data_location' => 'United States',
+'detector'    => function () {
+return defined( 'CLOUDINARY_URL' ) || \has_action( 'wp_head', 'cloudinary' );
+},
+),
+'imgix'          => array(
+'name'        => 'imgix',
+'category'    => 'necessary',
+'provider'    => 'imgix Inc.',
+'policy_url'  => 'https://imgix.com/privacy',
+'cookies'     => array(),
+'legal_basis' => 'Legitimate interest',
+'purpose'     => 'Image optimization CDN',
+'retention'   => 'N/A',
+'data_location' => 'United States',
+'detector'    => function () {
+return defined( 'IMGIX_DOMAIN' );
+},
+),
+// Additional E-commerce
+'shopify'        => array(
+'name'        => 'Shopify',
+'category'    => 'necessary',
+'provider'    => 'Shopify Inc.',
+'policy_url'  => 'https://www.shopify.com/legal/privacy',
+'cookies'     => array( '_shopify_*', 'cart', 'secure_session_id' ),
+'legal_basis' => 'Contract',
+'purpose'     => 'E-commerce platform',
+'retention'   => '2 weeks',
+'data_location' => 'Canada',
+'detector'    => function () {
+return defined( 'SHOPIFY_API_KEY' ) || \has_action( 'wp_head', 'shopify_buy_button' );
+},
+),
 );
 
 return \apply_filters( 'fp_privacy_services_registry', $services );
@@ -866,6 +1294,110 @@ return \apply_filters( 'fp_privacy_services_registry', $services );
         return $this->detect_embed(
             array( 'vidyard.com', 'play.vidyard.com' ),
             array( 'vidyard' ),
+            array()
+        );
+    }
+
+    /**
+     * Detect Instagram embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_instagram() {
+        return $this->detect_embed(
+            array( 'instagram.com', 'instagr.am' ),
+            array( 'instagram' ),
+            array( 'core-embed/instagram' )
+        );
+    }
+
+    /**
+     * Detect Twitter/X embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_twitter_embed() {
+        return $this->detect_embed(
+            array( 'twitter.com', 'x.com', 't.co' ),
+            array( 'twitter', 'tweet' ),
+            array( 'core-embed/twitter' )
+        );
+    }
+
+    /**
+     * Detect Spotify embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_spotify() {
+        return $this->detect_embed(
+            array( 'open.spotify.com', 'spotify.com/embed' ),
+            array( 'spotify' ),
+            array( 'core-embed/spotify' )
+        );
+    }
+
+    /**
+     * Detect SoundCloud embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_soundcloud() {
+        return $this->detect_embed(
+            array( 'soundcloud.com', 'w.soundcloud.com' ),
+            array( 'soundcloud' ),
+            array( 'core-embed/soundcloud' )
+        );
+    }
+
+    /**
+     * Detect Typeform embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_typeform() {
+        return $this->detect_embed(
+            array( 'typeform.com/to/', 'form.typeform.com' ),
+            array( 'typeform' ),
+            array()
+        );
+    }
+
+    /**
+     * Detect SurveyMonkey embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_surveymonkey() {
+        return $this->detect_embed(
+            array( 'surveymonkey.com', 'www.surveymonkey.com/r/' ),
+            array( 'surveymonkey' ),
+            array()
+        );
+    }
+
+    /**
+     * Detect Google Forms embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_google_forms() {
+        return $this->detect_embed(
+            array( 'docs.google.com/forms' ),
+            array(),
+            array()
+        );
+    }
+
+    /**
+     * Detect JotForm embeds across persisted content.
+     *
+     * @return bool
+     */
+    private function detect_jotform() {
+        return $this->detect_embed(
+            array( 'jotform.com', 'form.jotform.com' ),
+            array( 'jotform' ),
             array()
         );
     }
