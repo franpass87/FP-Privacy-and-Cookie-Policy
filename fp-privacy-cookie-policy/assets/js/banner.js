@@ -593,6 +593,7 @@ actions.appendChild( save );
 
 var acceptAll = createButton( texts.btn_accept, 'fp-privacy-button fp-privacy-button-secondary' );
 acceptAll.addEventListener( 'click', function () {
+enableAllToggles();
 handleAcceptAll();
 closeModal();
 });
@@ -785,6 +786,15 @@ function setButtonsLoading( isLoading ) {
             buttons[ i ].disabled = false;
         }
     }
+}
+
+function enableAllToggles() {
+var checkboxes = modal.querySelectorAll( 'input[type="checkbox"][data-category]' );
+for ( var i = 0; i < checkboxes.length; i++ ) {
+if ( ! checkboxes[ i ].disabled ) {
+checkboxes[ i ].checked = true;
+}
+}
 }
 
 function handleAcceptAll() {
