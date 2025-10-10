@@ -586,55 +586,6 @@ margin-top: 20px;
     margin-left: 8px;
 }
 
-/* Sticky navigation per le sezioni */
-.fp-privacy-sticky-nav {
-    position: sticky;
-    top: 32px;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    z-index: 100;
-}
-
-.fp-privacy-sticky-nav h4 {
-    margin: 0 0 8px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.fp-privacy-sticky-nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.fp-privacy-sticky-nav li {
-    margin: 0;
-}
-
-.fp-privacy-sticky-nav a {
-    display: block;
-    padding: 6px 12px;
-    color: #4b5563;
-    text-decoration: none;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    font-size: 13px;
-}
-
-.fp-privacy-sticky-nav a:hover,
-.fp-privacy-sticky-nav a.active {
-    background: #eff6ff;
-    color: #2563eb;
-    transform: translateX(4px);
-}
-
 /* Layout a due colonne per sezioni grandi */
 @media (min-width: 1200px) {
     .fp-privacy-settings-layout {

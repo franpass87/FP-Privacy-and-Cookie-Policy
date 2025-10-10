@@ -334,10 +334,6 @@ $( function () {
             { id: 'scripts', title: '🚫 Script Blocking', selector: 'h2:contains("Script blocking"), h2:contains("Script")' }
         ];
         
-        // Crea sticky navigation
-        var nav = $( '<div class="fp-privacy-sticky-nav"><h4>Navigazione rapida</h4><ul></ul></div>' );
-        var navList = nav.find( 'ul' );
-        
         sections.forEach( function( section ) {
             var sectionElement = $( section.selector ).first();
             if ( ! sectionElement.length ) return;
@@ -383,27 +379,7 @@ $( function () {
             if ( savedState === 'collapsed' ) {
                 accordion.addClass( 'collapsed' );
             }
-            
-            // Aggiungi link alla navigation
-            var navLink = $( '<li><a href="#section-' + section.id + '">' + section.title + '</a></li>' );
-            navList.append( navLink );
-            
-            navLink.find( 'a' ).on( 'click', function( e ) {
-                e.preventDefault();
-                accordion.removeClass( 'collapsed' );
-                $( 'html, body' ).animate({
-                    scrollTop: accordion.offset().top - 100
-                }, 500 );
-                
-                navList.find( 'a' ).removeClass( 'active' );
-                $( this ).addClass( 'active' );
-            });
         });
-        
-        // Inserisci navigation prima del form
-        if ( navList.children().length > 0 ) {
-            form.before( nav );
-        }
         
         // Espandi/Collassa tutto
         var toggleAll = $( '<div style="margin-bottom:20px;"><button type="button" class="button" id="fp-expand-all">⬇️ Espandi tutto</button> <button type="button" class="button" id="fp-collapse-all">⬆️ Collassa tutto</button></div>' );
