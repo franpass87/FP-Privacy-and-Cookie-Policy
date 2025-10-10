@@ -534,6 +534,35 @@ heading.id = 'fp-privacy-modal-title';
 modal.appendChild( heading );
 modal.setAttribute( 'aria-labelledby', heading.id );
 
+    // Add policy links
+    var policyUrls = data.options.policy_urls || {};
+    if ( policyUrls.privacy || policyUrls.cookie ) {
+        var linksWrapper = document.createElement( 'div' );
+        linksWrapper.className = 'fp-privacy-modal-links';
+        
+        if ( policyUrls.privacy ) {
+            var privacyLink = document.createElement( 'a' );
+            privacyLink.href = policyUrls.privacy;
+            privacyLink.className = 'fp-privacy-link';
+            privacyLink.setAttribute( 'target', '_blank' );
+            privacyLink.rel = 'noopener noreferrer';
+            privacyLink.textContent = texts.link_privacy_policy || 'Privacy Policy';
+            linksWrapper.appendChild( privacyLink );
+        }
+        
+        if ( policyUrls.cookie ) {
+            var cookieLink = document.createElement( 'a' );
+            cookieLink.href = policyUrls.cookie;
+            cookieLink.className = 'fp-privacy-link';
+            cookieLink.setAttribute( 'target', '_blank' );
+            cookieLink.rel = 'noopener noreferrer';
+            cookieLink.textContent = texts.link_cookie_policy || 'Cookie Policy';
+            linksWrapper.appendChild( cookieLink );
+        }
+        
+        modal.appendChild( linksWrapper );
+    }
+
     var savedCategories = state.categories || {};
 
     for ( var key in categories ) {

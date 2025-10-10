@@ -197,6 +197,8 @@ class Options {
 			'toggle_enabled' => \__( 'Enabled', 'fp-privacy' ),
 			'debug_label'    => \__( 'Cookie debug:', 'fp-privacy' ),
 			'link_policy'    => '',
+			'link_privacy_policy' => \__( 'Privacy Policy', 'fp-privacy' ),
+			'link_cookie_policy'  => \__( 'Cookie Policy', 'fp-privacy' ),
 		);
 
 		$category_defaults = array(
