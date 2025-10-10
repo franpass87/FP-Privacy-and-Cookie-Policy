@@ -392,7 +392,8 @@ class IntegrationAudit {
             }
 
             if ( '' === $key ) {
-                $key = \md5( (string) wp_json_encode( $service ) );
+                $encoded = wp_json_encode( $service );
+                $key = \md5( false !== $encoded ? $encoded : serialize( $service ) );
             }
 
             $indexed[ $key ] = $service;
