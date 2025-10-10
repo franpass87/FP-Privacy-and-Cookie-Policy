@@ -95,6 +95,61 @@ $( function () {
     // Auto-save indicator
     var autoSaveIndicator = $( '<div class="fp-privacy-saving-indicator"><div class="spinner"></div><span>Salvataggio...</span></div>' );
     form.find( '.button-primary' ).after( autoSaveIndicator );
+    
+    // Sticky save button
+    var originalButton = form.find( '.button-primary' );
+    var stickyContainer = $( '<div class="fp-privacy-sticky-save"></div>' );
+    var stickyButton = $( '<button type="button" class="button button-primary">Salva impostazioni</button>' );
+    stickyContainer.append( stickyButton );
+    $( 'body' ).append( stickyContainer );
+    
+    // Click handler per il bottone sticky
+    stickyButton.on( 'click', function() {
+        // Scrolla al bottone originale e cliccalo
+        $( 'html, body' ).animate({
+            scrollTop: originalButton.offset().top - 100
+        }, 500, function() {
+            originalButton.click();
+        });
+    });
+    
+    // Mostra/nascondi il bottone sticky durante lo scroll
+    var scrollTimeout;
+    var formBottom = form.offset().top + form.outerHeight();
+    
+    $( window ).on( 'scroll', function() {
+        clearTimeout( scrollTimeout );
+        
+        scrollTimeout = setTimeout( function() {
+            var scrollTop = $( window ).scrollTop();
+            var windowHeight = $( window ).height();
+            var documentHeight = $( document ).height();
+            
+            // Calcola se il bottone originale è visibile
+            var buttonTop = originalButton.offset().top;
+            var buttonBottom = buttonTop + originalButton.outerHeight();
+            var isButtonVisible = buttonTop < ( scrollTop + windowHeight ) && buttonBottom > scrollTop;
+            
+            // Mostra il bottone sticky solo se:
+            // 1. L'utente ha scrollato oltre una certa soglia (200px)
+            // 2. Il bottone originale non è visibile
+            // 3. Non siamo in fondo alla pagina
+            if ( scrollTop > 200 && ! isButtonVisible && ( scrollTop + windowHeight ) < ( documentHeight - 50 ) ) {
+                stickyContainer.addClass( 'visible' );
+                
+                // Aggiungi un effetto pulse se l'utente ha scrollato molto
+                if ( scrollTop > 500 ) {
+                    stickyButton.addClass( 'pulse' );
+                }
+            } else {
+                stickyContainer.removeClass( 'visible' );
+                stickyButton.removeClass( 'pulse' );
+            }
+        }, 50 );
+    });
+    
+    // Trigger iniziale
+    $( window ).trigger( 'scroll' );
 
     function evaluateContrast() {
         var surface = form.find( 'input[name="banner_layout[palette][surface_bg]"]' ).val();
