@@ -257,10 +257,27 @@ margin-right: 20px;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-top: 16px;
 }
 
 .fp-privacy-detected thead {
     background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+}
+
+/* Assicura che l'h2 prima della tabella detected sia ben visibile */
+.fp-privacy-settings h2:has(+ .fp-privacy-detected) {
+    background: #ffffff;
+    padding: 12px 16px;
+    margin-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    color: #1f2937;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Integra meglio la tabella con l'h2 sopra */
+.fp-privacy-settings h2:has(+ .fp-privacy-detected) + .fp-privacy-detected {
+    border-radius: 0 0 8px 8px;
+    margin-top: 0;
 }
 
 .fp-privacy-detected thead th {
