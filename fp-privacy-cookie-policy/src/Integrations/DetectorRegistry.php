@@ -1727,33 +1727,44 @@ return \apply_filters( 'fp_privacy_services_registry', $services );
     private function detect_unknown_services() {
         $unknown = array();
 
-        // Detect external scripts
+        // Detect external scripts from WordPress
         $external_scripts = $this->detect_external_scripts();
         
-        // Detect third-party cookies
-        $third_party_cookies = $this->detect_third_party_cookies();
+        // Detect external styles
+        $external_styles = $this->detect_external_styles();
+        
+        // Scan HTML output for inline scripts and iframes
+        $html_services = $this->scan_html_output();
+        
+        // Detect third-party iframes
+        $iframe_domains = $this->detect_iframes();
 
-        // Merge and deduplicate
-        $detected_domains = array_unique( array_merge( $external_scripts, $third_party_cookies ) );
+        // Merge and deduplicate all detected domains
+        $detected_domains = array_unique( array_merge( 
+            $external_scripts, 
+            $external_styles,
+            $html_services,
+            $iframe_domains
+        ) );
 
         foreach ( $detected_domains as $domain ) {
             if ( $this->is_known_domain( $domain ) ) {
                 continue;
             }
 
-            $service_name = $this->guess_service_name( $domain );
+            $service_info = $this->analyze_service( $domain );
             
             $unknown[] = array(
                 'slug'         => 'unknown_' . sanitize_key( $domain ),
-                'name'         => $service_name,
-                'category'     => 'marketing',
-                'provider'     => $this->extract_company_name( $domain ),
-                'policy_url'   => 'https://' . $domain,
+                'name'         => $service_info['name'],
+                'category'     => $service_info['category'],
+                'provider'     => $service_info['provider'],
+                'policy_url'   => $service_info['policy_url'],
                 'cookies'      => array(),
-                'legal_basis'  => 'Consent',
-                'purpose'      => 'Third-party service (auto-detected)',
+                'legal_basis'  => $service_info['legal_basis'],
+                'purpose'      => $service_info['purpose'],
                 'retention'    => 'Unknown',
-                'data_location' => 'Unknown',
+                'data_location' => $service_info['data_location'],
                 'detected'     => true,
                 'is_unknown'   => true,
                 'domain'       => $domain,
@@ -1804,15 +1815,324 @@ return \apply_filters( 'fp_privacy_services_registry', $services );
     }
 
     /**
-     * Detect third-party cookies (placeholder - requires client-side detection).
+     * Detect external styles loaded on the page.
      *
      * @return array<int, string> Array of domains.
      */
-    private function detect_third_party_cookies() {
-        // Note: Server-side PHP cannot directly access browser cookies set by JavaScript.
-        // This would need to be implemented via JavaScript that sends data to the server.
-        // For now, return empty array. Can be extended with AJAX detection.
-        return array();
+    private function detect_external_styles() {
+        $domains = array();
+
+        if ( ! function_exists( '\wp_styles' ) ) {
+            return $domains;
+        }
+
+        $wp_styles = \wp_styles();
+        
+        if ( empty( $wp_styles->registered ) || ! is_array( $wp_styles->registered ) ) {
+            return $domains;
+        }
+
+        foreach ( $wp_styles->registered as $handle => $style ) {
+            if ( empty( $style->src ) ) {
+                continue;
+            }
+
+            $src = (string) $style->src;
+            
+            if ( $this->is_local_url( $src ) ) {
+                continue;
+            }
+
+            $domain = $this->extract_domain( $src );
+            
+            if ( $domain && ! in_array( $domain, $domains, true ) ) {
+                $domains[] = $domain;
+            }
+        }
+
+        return $domains;
+    }
+
+    /**
+     * Scan HTML output for inline scripts and external resources.
+     *
+     * @return array<int, string> Array of domains.
+     */
+    private function scan_html_output() {
+        $domains = array();
+
+        // Get output buffer content if available
+        $content = $this->get_page_content();
+        
+        if ( empty( $content ) ) {
+            return $domains;
+        }
+
+        // Find all script src attributes
+        preg_match_all( '/<script[^>]+src=["\']([^"\']+)["\']/', $content, $script_matches );
+        
+        if ( ! empty( $script_matches[1] ) ) {
+            foreach ( $script_matches[1] as $src ) {
+                if ( $this->is_local_url( $src ) ) {
+                    continue;
+                }
+                
+                $domain = $this->extract_domain( $src );
+                if ( $domain && ! in_array( $domain, $domains, true ) ) {
+                    $domains[] = $domain;
+                }
+            }
+        }
+
+        // Find all link href attributes (for stylesheets, preconnect, etc)
+        preg_match_all( '/<link[^>]+href=["\']([^"\']+)["\']/', $content, $link_matches );
+        
+        if ( ! empty( $link_matches[1] ) ) {
+            foreach ( $link_matches[1] as $href ) {
+                if ( $this->is_local_url( $href ) ) {
+                    continue;
+                }
+                
+                $domain = $this->extract_domain( $href );
+                if ( $domain && ! in_array( $domain, $domains, true ) ) {
+                    $domains[] = $domain;
+                }
+            }
+        }
+
+        return $domains;
+    }
+
+    /**
+     * Detect third-party iframes.
+     *
+     * @return array<int, string> Array of domains.
+     */
+    private function detect_iframes() {
+        $domains = array();
+
+        $content = $this->get_page_content();
+        
+        if ( empty( $content ) ) {
+            return $domains;
+        }
+
+        // Find all iframe src attributes
+        preg_match_all( '/<iframe[^>]+src=["\']([^"\']+)["\']/', $content, $iframe_matches );
+        
+        if ( ! empty( $iframe_matches[1] ) ) {
+            foreach ( $iframe_matches[1] as $src ) {
+                if ( $this->is_local_url( $src ) ) {
+                    continue;
+                }
+                
+                $domain = $this->extract_domain( $src );
+                if ( $domain && ! in_array( $domain, $domains, true ) ) {
+                    $domains[] = $domain;
+                }
+            }
+        }
+
+        return $domains;
+    }
+
+    /**
+     * Get page content for scanning.
+     *
+     * @return string
+     */
+    private function get_page_content() {
+        // Try to get from recent posts
+        if ( ! function_exists( '\get_posts' ) ) {
+            return '';
+        }
+
+        $posts = \get_posts( array(
+            'post_type'      => 'any',
+            'post_status'    => 'publish',
+            'posts_per_page' => 5,
+            'orderby'        => 'modified',
+            'order'          => 'DESC',
+        ) );
+
+        $content = '';
+        
+        foreach ( $posts as $post ) {
+            if ( ! empty( $post->post_content ) ) {
+                $content .= $post->post_content . "\n\n";
+            }
+        }
+
+        return $content;
+    }
+
+    /**
+     * Analyze a domain to extract service information intelligently.
+     *
+     * @param string $domain Domain to analyze.
+     *
+     * @return array<string, string>
+     */
+    private function analyze_service( $domain ) {
+        $name          = $this->guess_service_name( $domain );
+        $category      = $this->guess_category( $domain );
+        $purpose       = $this->guess_purpose( $domain, $category );
+        $legal_basis   = $this->guess_legal_basis( $category );
+        $data_location = $this->guess_data_location( $domain );
+        
+        return array(
+            'name'          => $name,
+            'category'      => $category,
+            'provider'      => $name . ' (Third-party)',
+            'policy_url'    => 'https://' . $domain . '/privacy',
+            'legal_basis'   => $legal_basis,
+            'purpose'       => $purpose,
+            'data_location' => $data_location,
+        );
+    }
+
+    /**
+     * Guess service category based on domain patterns.
+     *
+     * @param string $domain Domain to analyze.
+     *
+     * @return string
+     */
+    private function guess_category( $domain ) {
+        $domain_lower = strtolower( $domain );
+
+        // Analytics patterns
+        $analytics_patterns = array( 'analytics', 'stats', 'track', 'metric', 'measure', 'insight', 'data' );
+        foreach ( $analytics_patterns as $pattern ) {
+            if ( false !== strpos( $domain_lower, $pattern ) ) {
+                return 'statistics';
+            }
+        }
+
+        // Marketing/Advertising patterns
+        $marketing_patterns = array( 'ads', 'ad-', 'advert', 'marketing', 'promo', 'campaign', 'pixel', 'tag', 'retarget' );
+        foreach ( $marketing_patterns as $pattern ) {
+            if ( false !== strpos( $domain_lower, $pattern ) ) {
+                return 'marketing';
+            }
+        }
+
+        // CDN patterns (necessary)
+        $cdn_patterns = array( 'cdn', 'static', 'assets', 'media', 'img', 'image' );
+        foreach ( $cdn_patterns as $pattern ) {
+            if ( false !== strpos( $domain_lower, $pattern ) ) {
+                return 'necessary';
+            }
+        }
+
+        // Chat/Support patterns
+        $chat_patterns = array( 'chat', 'support', 'help', 'talk', 'message' );
+        foreach ( $chat_patterns as $pattern ) {
+            if ( false !== strpos( $domain_lower, $pattern ) ) {
+                return 'marketing';
+            }
+        }
+
+        // Video patterns
+        $video_patterns = array( 'video', 'player', 'embed', 'stream' );
+        foreach ( $video_patterns as $pattern ) {
+            if ( false !== strpos( $domain_lower, $pattern ) ) {
+                return 'marketing';
+            }
+        }
+
+        // Default to marketing (most conservative for GDPR)
+        return 'marketing';
+    }
+
+    /**
+     * Guess service purpose based on category and domain.
+     *
+     * @param string $domain   Domain name.
+     * @param string $category Service category.
+     *
+     * @return string
+     */
+    private function guess_purpose( $domain, $category ) {
+        $purposes = array(
+            'statistics' => 'Analytics and user behavior tracking',
+            'marketing'  => 'Marketing, advertising, or user engagement',
+            'necessary'  => 'Core website functionality and performance',
+        );
+
+        $base_purpose = isset( $purposes[ $category ] ) ? $purposes[ $category ] : 'Third-party service integration';
+
+        // Add more specific purpose based on domain keywords
+        $domain_lower = strtolower( $domain );
+        
+        if ( false !== strpos( $domain_lower, 'font' ) ) {
+            return 'Web font delivery';
+        }
+        if ( false !== strpos( $domain_lower, 'map' ) ) {
+            return 'Interactive map display';
+        }
+        if ( false !== strpos( $domain_lower, 'payment' ) || false !== strpos( $domain_lower, 'pay' ) ) {
+            return 'Payment processing';
+        }
+        if ( false !== strpos( $domain_lower, 'social' ) || false !== strpos( $domain_lower, 'share' ) ) {
+            return 'Social media integration';
+        }
+
+        return $base_purpose . ' (auto-detected)';
+    }
+
+    /**
+     * Guess legal basis based on category.
+     *
+     * @param string $category Service category.
+     *
+     * @return string
+     */
+    private function guess_legal_basis( $category ) {
+        $legal_basis = array(
+            'statistics' => 'Consent',
+            'marketing'  => 'Consent',
+            'necessary'  => 'Legitimate interest',
+        );
+
+        return isset( $legal_basis[ $category ] ) ? $legal_basis[ $category ] : 'Consent';
+    }
+
+    /**
+     * Guess data location based on domain TLD.
+     *
+     * @param string $domain Domain name.
+     *
+     * @return string
+     */
+    private function guess_data_location( $domain ) {
+        // Extract TLD
+        $parts = explode( '.', $domain );
+        $tld   = end( $parts );
+
+        $eu_tlds = array( 'eu', 'de', 'fr', 'it', 'es', 'nl', 'be', 'pl', 'se', 'dk', 'fi', 'at', 'ie', 'pt', 'gr', 'cz', 'ro', 'hu' );
+        
+        if ( in_array( $tld, $eu_tlds, true ) ) {
+            return 'European Union';
+        }
+
+        $us_indicators = array( 'com', 'net', 'io', 'co' );
+        if ( in_array( $tld, $us_indicators, true ) ) {
+            return 'United States (presumed)';
+        }
+
+        $country_mapping = array(
+            'uk' => 'United Kingdom',
+            'ca' => 'Canada',
+            'au' => 'Australia',
+            'jp' => 'Japan',
+            'cn' => 'China',
+            'in' => 'India',
+            'br' => 'Brazil',
+            'ru' => 'Russia',
+        );
+
+        return isset( $country_mapping[ $tld ] ) ? $country_mapping[ $tld ] : 'Unknown';
     }
 
     /**
