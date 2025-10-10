@@ -230,6 +230,8 @@ class SettingsController {
 			'email'      => isset( $_POST['detector_notifications']['email'] ),
 			'recipients' => isset( $_POST['detector_notifications']['recipients'] ) ? \wp_unslash( $_POST['detector_notifications']['recipients'] ) : '',
 		),
+		'auto_update_services'   => isset( $_POST['auto_update_services'] ),
+		'auto_update_policies'   => isset( $_POST['auto_update_policies'] ),
 	);
 
 		$this->options->set( $payload );

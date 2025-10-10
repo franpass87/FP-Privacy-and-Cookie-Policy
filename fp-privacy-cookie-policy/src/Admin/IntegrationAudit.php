@@ -110,6 +110,11 @@ class IntegrationAudit {
 
         $this->options->set_detector_alert( $alert );
         $this->maybe_send_email_alert( $alert );
+
+        // Auto-update services if enabled
+        if ( $this->options->get( 'auto_update_services', false ) ) {
+            $this->auto_update_services( $current, $timestamp );
+        }
     }
 
     /**
@@ -426,6 +431,88 @@ class IntegrationAudit {
         }
 
         return $summaries;
+    }
+
+    /**
+     * Automatically update services snapshot and optionally regenerate policies.
+     *
+     * @param array<int, array<string, mixed>> $services   Current detected services.
+     * @param int                              $timestamp  Current timestamp.
+     *
+     * @return void
+     */
+    private function auto_update_services( array $services, $timestamp ) {
+        $snapshots = $this->options->get( 'snapshots', array() );
+        
+        // Update services snapshot
+        $snapshots['services'] = array(
+            'detected'     => $services,
+            'generated_at' => $timestamp,
+        );
+
+        // Auto-update policies if enabled
+        if ( $this->options->get( 'auto_update_policies', false ) ) {
+            $languages = $this->options->get_languages();
+            
+            if ( ! isset( $snapshots['policies'] ) || ! is_array( $snapshots['policies'] ) ) {
+                $snapshots['policies'] = array(
+                    'privacy' => array(),
+                    'cookie'  => array(),
+                );
+            }
+
+            // Generate policies for each language
+            foreach ( $languages as $lang ) {
+                $lang = $this->options->normalize_language( $lang );
+
+                // Generate privacy policy
+                $privacy_content = $this->generator->generate_privacy_policy( $lang );
+                $snapshots['policies']['privacy'][ $lang ] = array(
+                    'content'      => $privacy_content,
+                    'generated_at' => $timestamp,
+                );
+
+                // Generate cookie policy
+                $cookie_content = $this->generator->generate_cookie_policy( $lang );
+                $snapshots['policies']['cookie'][ $lang ] = array(
+                    'content'      => $cookie_content,
+                    'generated_at' => $timestamp,
+                );
+
+                // Update the actual pages
+                $privacy_page_id = $this->options->get_page_id( 'privacy_policy', $lang );
+                if ( $privacy_page_id ) {
+                    \wp_update_post(
+                        array(
+                            'ID'           => $privacy_page_id,
+                            'post_content' => $privacy_content,
+                        )
+                    );
+                }
+
+                $cookie_page_id = $this->options->get_page_id( 'cookie_policy', $lang );
+                if ( $cookie_page_id ) {
+                    \wp_update_post(
+                        array(
+                            'ID'           => $cookie_page_id,
+                            'post_content' => $cookie_content,
+                        )
+                    );
+                }
+            }
+
+            // Bump revision number
+            $this->options->bump_revision();
+        }
+
+        // Save updated snapshots
+        $payload             = $this->options->all();
+        $payload['snapshots'] = $snapshots;
+
+        $this->options->set( $payload );
+
+        // Trigger action for other integrations
+        \do_action( 'fp_privacy_auto_update_completed', $snapshots, $services );
     }
 
     /**

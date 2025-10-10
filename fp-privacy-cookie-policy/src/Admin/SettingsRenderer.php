@@ -363,7 +363,29 @@ class SettingsRenderer {
 	 * @return void
 	 */
 	private function render_detector_notifications( $notifications, $recipients ) {
+		$auto_update_services = $this->options->get( 'auto_update_services', false );
+		$auto_update_policies = $this->options->get( 'auto_update_policies', false );
 		?>
+		<p class="description"><?php \esc_html_e( 'Configure automatic detection and updates for third-party services.', 'fp-privacy' ); ?></p>
+		
+		<label>
+			<input type="checkbox" name="auto_update_services" value="1" <?php \checked( $auto_update_services, true ); ?> />
+			<?php \esc_html_e( 'Automatically add newly detected services to the system', 'fp-privacy' ); ?>
+		</label>
+		<p class="description" style="margin-left: 1.5em; margin-top: 0.5em;">
+			<?php \esc_html_e( 'When enabled, new services detected by the daily scan will be automatically added to your snapshots.', 'fp-privacy' ); ?>
+		</p>
+
+		<label>
+			<input type="checkbox" name="auto_update_policies" value="1" <?php \checked( $auto_update_policies, true ); ?> />
+			<?php \esc_html_e( 'Automatically regenerate privacy and cookie policies', 'fp-privacy' ); ?>
+		</label>
+		<p class="description" style="margin-left: 1.5em; margin-top: 0.5em;">
+			<?php \esc_html_e( 'When enabled, policies will be automatically regenerated when new services are detected. Requires "Automatically add newly detected services" to be enabled.', 'fp-privacy' ); ?>
+		</p>
+
+		<hr style="margin: 1.5em 0;">
+
 		<label>
 			<input type="checkbox" name="detector_notifications[email]" value="1" <?php \checked( ! empty( $notifications['email'] ) ); ?> />
 			<?php \esc_html_e( 'Send an email when new services are detected or existing ones disappear.', 'fp-privacy' ); ?>
