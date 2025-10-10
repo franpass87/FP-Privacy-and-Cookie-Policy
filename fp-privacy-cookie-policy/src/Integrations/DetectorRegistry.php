@@ -417,7 +417,7 @@ return \apply_filters( 'fp_privacy_services_registry', $services );
 
         foreach ( $registry as $slug => $service ) {
             $detector = isset( $service['detector'] ) ? $service['detector'] : null;
-            $detected = true;
+            $detected = false;
 
             if ( is_callable( $detector ) ) {
                 try {
