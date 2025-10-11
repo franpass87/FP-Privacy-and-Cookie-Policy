@@ -303,6 +303,16 @@ margin-right: 20px;
 .fp-privacy-detected tbody td {
     padding: 12px 16px;
     border-bottom: 1px solid #e5e7eb;
+    color: #1f2937;
+}
+
+/* Assicura che la prima riga del tbody abbia sempre lo sfondo chiaro e testo scuro */
+.fp-privacy-detected tbody tr:first-child {
+    background: #ffffff !important;
+}
+
+.fp-privacy-detected tbody tr:first-child td {
+    color: #1f2937 !important;
 }
 
 .fp-privacy-detected .status-detected {
