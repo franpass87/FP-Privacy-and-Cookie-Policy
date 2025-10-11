@@ -677,3 +677,40 @@ margin-top: 20px;
         align-items: start;
     }
 }
+
+/* Script blocking category - area scrollabile */
+.fp-privacy-script-category {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.fp-privacy-script-category legend {
+    font-weight: 600;
+    color: #1f2937;
+    padding: 0 8px;
+}
+
+.fp-privacy-script-category::-webkit-scrollbar {
+    width: 8px;
+}
+
+.fp-privacy-script-category::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 4px;
+}
+
+.fp-privacy-script-category::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.fp-privacy-script-category::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
