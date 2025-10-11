@@ -438,12 +438,21 @@ border-radius: 8px;
     }
     
     .fp-privacy-banner-buttons {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
     }
     
     .fp-privacy-banner-buttons .fp-privacy-button {
         width: 100%;
         text-align: center;
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Il bottone delle preferenze (terzo bottone) occupa tutta la larghezza */
+    .fp-privacy-banner-buttons .fp-privacy-button:nth-child(3) {
+        grid-column: 1 / -1;
     }
 }
 
@@ -457,9 +466,13 @@ border-radius: 8px;
         font-size: 1rem;
     }
     
-    .fp-privacy-button {
-        padding: 0.5rem 1.2rem;
-        font-size: 0.9rem;
+    .fp-privacy-banner-buttons {
+        gap: 8px;
+    }
+    
+    .fp-privacy-banner-buttons .fp-privacy-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
     }
     
     .fp-privacy-reopen {
