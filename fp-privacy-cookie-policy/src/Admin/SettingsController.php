@@ -83,6 +83,9 @@ class SettingsController {
 			$script_categories[ $normalized ] = $this->options->get_categories_for_language( $normalized );
 		}
 
+		// Auto-populate link_policy with Privacy Policy page URL if empty
+		$this->auto_populate_policy_links( $options, $languages );
+
 		$notifications           = $this->options->get_detector_notifications();
 		$notification_recipients = isset( $notifications['recipients'] ) && \is_array( $notifications['recipients'] )
 			? implode( ', ', $notifications['recipients'] )
@@ -100,6 +103,92 @@ class SettingsController {
 			'notifications'           => $notifications,
 			'notification_recipients' => $notification_recipients,
 		);
+	}
+
+	/**
+	 * Auto-populate policy links for each language if empty.
+	 *
+	 * @param array<string, mixed> &$options   Options to update.
+	 * @param array<int, string>   $languages  Active languages.
+	 *
+	 * @return void
+	 */
+	private function auto_populate_policy_links( &$options, $languages ) {
+		if ( ! isset( $options['pages'] ) || ! \is_array( $options['pages'] ) ) {
+			return;
+		}
+
+		$pages = $options['pages'];
+
+		foreach ( $languages as $language ) {
+			$normalized = $this->options->normalize_language( $language );
+
+			// Get Privacy Policy page ID for this language
+			$privacy_page_id = 0;
+			if ( isset( $pages['privacy_policy_page_id'][ $normalized ] ) ) {
+				$privacy_page_id = (int) $pages['privacy_policy_page_id'][ $normalized ];
+			}
+
+			// If we have a Privacy Policy page, auto-populate link_policy if empty
+			if ( $privacy_page_id > 0 ) {
+				$permalink = \get_permalink( $privacy_page_id );
+
+				if ( $permalink && ! \is_wp_error( $permalink ) ) {
+					// Initialize banner_texts for this language if needed
+					if ( ! isset( $options['banner_texts'][ $normalized ] ) || ! \is_array( $options['banner_texts'][ $normalized ] ) ) {
+						$options['banner_texts'][ $normalized ] = array();
+					}
+
+					// Auto-populate only if link_policy is empty
+					if ( empty( $options['banner_texts'][ $normalized ]['link_policy'] ) ) {
+						$options['banner_texts'][ $normalized ]['link_policy'] = $permalink;
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Auto-populate policy links before saving.
+	 *
+	 * @param array<string, mixed> &$payload   Payload to update.
+	 * @param array<int, string>   $languages  Active languages.
+	 *
+	 * @return void
+	 */
+	private function auto_populate_policy_links_before_save( &$payload, $languages ) {
+		// Get current pages configuration
+		$pages = $this->options->get( 'pages' );
+		if ( ! \is_array( $pages ) ) {
+			return;
+		}
+
+		foreach ( $languages as $language ) {
+			$normalized = $this->options->normalize_language( $language );
+
+			// Get Privacy Policy page ID for this language
+			$privacy_page_id = 0;
+			if ( isset( $pages['privacy_policy_page_id'][ $normalized ] ) ) {
+				$privacy_page_id = (int) $pages['privacy_policy_page_id'][ $normalized ];
+			}
+
+			// If we have a Privacy Policy page, auto-populate link_policy if empty
+			if ( $privacy_page_id > 0 ) {
+				$permalink = \get_permalink( $privacy_page_id );
+
+				if ( $permalink && ! \is_wp_error( $permalink ) ) {
+					// Initialize banner_texts for this language if needed
+					if ( ! isset( $payload['banner_texts'][ $normalized ] ) || ! \is_array( $payload['banner_texts'][ $normalized ] ) ) {
+						$payload['banner_texts'][ $normalized ] = array();
+					}
+
+					// Auto-populate only if link_policy is empty
+					if ( empty( $payload['banner_texts'][ $normalized ]['link_policy'] ) ) {
+						$payload['banner_texts'][ $normalized ]['link_policy'] = $permalink;
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -233,6 +322,9 @@ class SettingsController {
 		'auto_update_services'   => isset( $_POST['auto_update_services'] ),
 		'auto_update_policies'   => isset( $_POST['auto_update_policies'] ),
 	);
+
+		// Auto-populate link_policy fields before saving
+		$this->auto_populate_policy_links_before_save( $payload, $languages );
 
 		$this->options->set( $payload );
 
