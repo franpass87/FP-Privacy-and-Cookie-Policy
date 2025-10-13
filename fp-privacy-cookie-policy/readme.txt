@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,10 +71,12 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
-= 0.1.2 (unreleased) =
+= 0.1.2 =
 * Documented the Google Consent Mode v2 helper defaults/updates across the handbook and linked the dedicated implementation guide.
 * Publicised the floating reopen preferences button and refreshed accessibility attributes in the UX documentation.
 * Expanded privacy/cookie policy template descriptions to mirror the October 2025 GDPR guidance baked into the generator.
+* Fixed: Secured input handling in settings controller to properly manage both string and array inputs for language configuration.
+* Fixed: Improved hash generation in auto-translator with secure fallback when JSON encoding fails, preventing cache collisions.
 
 = 0.1.1 =
 * Improved banner bootstrapping for shortcode placements, strengthened accessibility guards, and ensured Consent Mode defaults fire even when `gtag` is asynchronous.
@@ -85,6 +87,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 * Initial alpha release with banner, consent registry, CSV export, policy detector/generator, WP-CLI, REST API, Google Consent Mode v2, shortcodes, Gutenberg blocks, multisite support, and i18n.
 
 == Upgrade Notice ==
+
+= 0.1.2 =
+Security improvements: enhanced input validation and cache hash generation. Recommended update for all users.
 
 = 0.1.1 =
 Review banner behavior if you rely on shortcode placement and confirm consent settings after the hardened logging/filters.
