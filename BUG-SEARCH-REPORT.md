@@ -55,6 +55,7 @@
 **Severità:** 🟡 MEDIA  
 **File:** `fp-privacy-cookie-policy/src/Admin/SettingsController.php`  
 **Linea:** 297 (originale)
+**Sessione:** 1
 
 **Problema:**
 
@@ -105,6 +106,54 @@ if ( empty( $languages ) ) {
 
 ---
 
+### 2. **Generazione Hash Non Sicura in AutoTranslator.php** 🆕
+
+**Severità:** 🟡 MEDIA  
+**File:** `fp-privacy-cookie-policy/src/Utils/AutoTranslator.php`  
+**Linee:** 70, 144 (originali)
+**Sessione:** 3
+
+**Problema:**
+
+Il metodo `translate_banner_texts()` e `translate_categories()` usavano `wp_json_encode()` con un cast a stringa prima di calcolare l'hash MD5. Se `wp_json_encode()` fallisce e restituisce `false`, il cast a stringa produce la stringa letterale `"false"`, generando sempre lo stesso hash MD5 per input diversi. Questo causa collisioni di cache e comportamenti imprevedibili.
+
+```php
+// PRIMA (non sicuro) - Linea 70
+$hash = \md5( (string) \wp_json_encode( $source ) );
+
+// PRIMA (non sicuro) - Linea 144
+$hash = \md5( (string) \wp_json_encode( $hash_payload ) );
+```
+
+**Problemi Specifici:**
+1. ❌ Se `wp_json_encode()` restituisce `false`, viene convertito nella stringa `"false"`
+2. ❌ Tutti i fallimenti di encoding produrrebbero lo stesso hash: `md5("false")`
+3. ❌ Cache collision: traduzioni diverse potrebbero avere lo stesso hash
+4. ❌ Stesso bug già risolto in `IntegrationAudit.php` ma non in `AutoTranslator.php`
+
+**Soluzione Implementata:**
+
+Aggiunto controllo del valore di ritorno con fallback a `serialize()` quando JSON encoding fallisce.
+
+```php
+// DOPO (sicuro) - Linea 70-71
+$encoded = \wp_json_encode( $source );
+$hash    = \md5( false !== $encoded ? $encoded : serialize( $source ) );
+
+// DOPO (sicuro) - Linea 145-146
+$encoded = \wp_json_encode( $hash_payload );
+$hash    = \md5( false !== $encoded ? $encoded : serialize( $hash_payload ) );
+```
+
+**Benefici:**
+- ✅ Garantisce hash univoci anche quando JSON encoding fallisce
+- ✅ Previene collisioni di cache nelle traduzioni automatiche
+- ✅ Fallback sicuro a `serialize()` che funziona sempre
+- ✅ Consistente con la correzione già implementata in `IntegrationAudit.php`
+- ✅ Migliora l'affidabilità del sistema di cache delle traduzioni
+
+---
+
 ## ✅ Verifiche di Sicurezza Confermate
 
 ### Protezione CSRF
@@ -144,7 +193,7 @@ if ( empty( $languages ) ) {
 
 ### Bug Trovati
 - **Bug critici:** 0
-- **Bug medi:** 1 (risolto)
+- **Bug medi:** 2 (risolti)
 - **Bug bassi:** 0
 - **Vulnerabilità:** 0
 
@@ -211,6 +260,7 @@ if ( empty( $languages ) ) {
 
 ### Priorità Alta
 1. ✅ **COMPLETATO:** Gestire correttamente input di tipo misto in `SettingsController.php`
+2. ✅ **COMPLETATO:** Risolvere generazione hash non sicura in `AutoTranslator.php`
 
 ### Priorità Media
 1. Considerare l'aggiunta di type hints più rigorosi nei metodi pubblici
@@ -253,9 +303,10 @@ $_POST['languages_active'] = array( 'en_US', '', 'it_IT' );
 
 ## 🏆 Conclusione
 
-L'analisi ha rivelato un'architettura di sicurezza **solida** con solo **1 problema nuovo** identificato e risolto:
+L'analisi approfondita ha rivelato un'architettura di sicurezza **solida** con solo **2 problemi nuovi** identificati e risolti:
 
-1. 🟡 **MEDIO**: Gestione non sicura di input tipo misto in `SettingsController.php` (ora risolto)
+1. 🟡 **MEDIO**: Gestione non sicura di input tipo misto in `SettingsController.php` (risolto in Sessione 1)
+2. 🟡 **MEDIO**: Generazione hash non sicura in `AutoTranslator.php` (risolto in Sessione 3)
 
 Il plugin continua a seguire le best practices di WordPress e implementa correttamente:
 - ✅ Protezione CSRF
@@ -274,9 +325,17 @@ Il codice è robusto, ben strutturato e segue le best practices di sicurezza. La
 
 ## 📝 File Modificati in Questa Sessione
 
+### Sessione 1
 1. **`fp-privacy-cookie-policy/src/Admin/SettingsController.php`**  
    - 🟡 **MEDIO**: Aggiunto controllo del tipo per `$_POST['languages_active']` con gestione sia di stringhe che array
    - Linee modificate: 297-300 → 297-312 (da 4 righe a 16 righe per maggiore chiarezza e robustezza)
+
+### Sessione 3
+2. **`fp-privacy-cookie-policy/src/Utils/AutoTranslator.php`**  
+   - 🟡 **MEDIO**: Corretta generazione hash con gestione sicura di `wp_json_encode()` fallito (2 occorrenze)
+   - Linea 70: Aggiunto check e fallback a `serialize()` per `translate_banner_texts()`
+   - Linea 144: Aggiunto check e fallback a `serialize()` per `translate_categories()`
+   - Linee totali modificate: 4 (2 occorrenze × 2 righe ciascuna)
 
 ---
 
