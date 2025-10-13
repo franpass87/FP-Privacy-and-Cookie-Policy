@@ -140,7 +140,7 @@ if ( empty( $languages ) ) {
 - **File PHP sorgente:** 35
 - **Template PHP:** 3
 - **Pattern di sicurezza verificati:** 37 occorrenze di superglobals
-- **Funzioni a rischio verificate:** `explode()`, `reset()`, `wp_json_encode()`, `in_array()`
+- **Funzioni a rischio verificate:** `explode()`, `reset()`, `wp_json_encode()`, `in_array()`, `while()`, `setcookie()`, `file_get_contents()`, `wp_remote_get()`
 
 ### Bug Trovati
 - **Bug critici:** 0
@@ -154,6 +154,56 @@ if ( empty( $languages ) ) {
 - ✅ 100% dei template analizzati
 - ✅ Tutti gli usi di superglobals verificati
 - ✅ Tutte le funzioni a rischio verificate
+- ✅ Tutti i loop while(true) verificati per condizioni di uscita
+- ✅ Tutte le operazioni di file I/O verificate
+- ✅ Tutti gli usi di `wp_remote_get()` verificati per gestione errori
+- ✅ Tutti i cookie operations verificati
+- ✅ Tutte le query database verificate per SQL injection
+
+---
+
+## ✅ Verifiche Aggiuntive Completate
+
+### Operazioni File I/O
+- ✅ `file_get_contents()` in SettingsController: protetto da limite dimensione file (5MB)
+- ✅ `fopen()` in CLI/Commands: gestione errori corretta
+- ✅ `file_put_contents()` in CLI/Commands: verifica scrittura
+- ✅ Export CSV in ConsentLogTable: gestione stream corretta
+
+### Loop e Iterazioni
+- ✅ Loop `while(true)` in CLI/Commands.php: ha incremento `$paged++` e break su array vuoto
+- ✅ Loop `while(true)` in ConsentLogTable.php: ha incremento `$page++` e doppia condizione di uscita
+- ✅ Nessun rischio di loop infinito identificato
+
+### Remote Requests
+- ✅ `wp_remote_get()` in Translator.php: correttamente verificato con `is_wp_error()`
+- ✅ Timeout impostato (15 secondi)
+- ✅ Gestione errori JSON appropriata
+
+### Cookie Operations
+- ✅ `setcookie()` in ConsentState.php: verifica `headers_sent()` prima di impostare cookie
+- ✅ Opzioni cookie sicure (`secure`, `httponly`) configurate correttamente
+- ✅ Gestione SITECOOKIEPATH appropriata
+
+### Database Operations
+- ✅ Tutte le query usano `$wpdb->prepare()` correttamente
+- ✅ Calcolo offset sicuro: `( max( 1, (int) $page ) - 1 ) * $per_page`
+- ✅ Parametri LIMIT e OFFSET sempre interi
+
+### Timestamp e Date
+- ✅ Uso consistente di `time()` e `current_time()`
+- ✅ Formato date SQL corretto con `gmdate('Y-m-d H:i:s', ...)`
+- ✅ Threshold e cooldown calcolati correttamente
+
+### Escape e Sanitizzazione Template
+- ✅ Template usano `esc_html()` per output sicuro
+- ✅ `wp_kses_post()` usato appropriatamente per HTML controllato
+- ✅ Nessun output diretto di variabili non escapate
+
+### Validazione Input REST API
+- ✅ `get_param()` sempre sanitizzato dopo il recupero
+- ✅ Array `$states` verificato con `is_array()` prima dell'uso
+- ✅ Nonce verification presente su endpoint pubblici
 
 ---
 
