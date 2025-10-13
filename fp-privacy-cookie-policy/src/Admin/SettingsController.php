@@ -292,12 +292,24 @@ class SettingsController {
 			\wp_die( \esc_html__( 'Permission denied.', 'fp-privacy' ) );
 		}
 
-		\check_admin_referer( 'fp_privacy_save_settings', 'fp_privacy_nonce' );
+	\check_admin_referer( 'fp_privacy_save_settings', 'fp_privacy_nonce' );
 
-		$languages = isset( $_POST['languages_active'] ) ? array_filter( array_map( 'trim', explode( ',', \wp_unslash( $_POST['languages_active'] ) ) ) ) : array();
-		if ( empty( $languages ) ) {
-			$languages = array( \get_locale() );
-		}
+	// Safely extract languages - handle both string (comma-separated) and array inputs
+	$languages_raw = isset( $_POST['languages_active'] ) ? \wp_unslash( $_POST['languages_active'] ) : '';
+	if ( \is_array( $languages_raw ) ) {
+		// If already an array, just trim each value
+		$languages = array_filter( array_map( 'trim', $languages_raw ) );
+	} elseif ( \is_string( $languages_raw ) && '' !== $languages_raw ) {
+		// If string, sanitize and split by comma
+		$languages_raw = \sanitize_text_field( $languages_raw );
+		$languages     = array_filter( array_map( 'trim', explode( ',', $languages_raw ) ) );
+	} else {
+		$languages = array();
+	}
+
+	if ( empty( $languages ) ) {
+		$languages = array( \get_locale() );
+	}
 
 	$payload = array(
 		'languages_active'       => $languages,
