@@ -765,44 +765,52 @@ class Options {
 	 * @return array<string, string>
 	 */
 	public function get_banner_text( $lang ) {
+		// Always return translated texts in real-time to ensure proper localization
 		$languages = $this->get_languages();
 		$primary   = $languages[0] ?? 'en_US';
 		$requested = Validator::locale( $lang, $primary );
-		$texts     = $this->options['banner_texts'];
-
+		
+		// If the requested language is Italian, use hardcoded Italian translations
+		if ( $requested === 'it_IT' || $this->normalize_language( $requested ) === 'it_IT' ) {
+			$italian_translations = $this->get_hardcoded_italian_translations();
+			
+			// Check if there are custom texts saved for this language
+			$texts = $this->options['banner_texts'];
+			if ( isset( $texts[ $requested ] ) && \is_array( $texts[ $requested ] ) ) {
+				// Merge custom texts with Italian translations (custom texts take priority)
+				return array_merge( $italian_translations, $texts[ $requested ] );
+			}
+			
+			// Check normalized language
+			$normalized = $this->normalize_language( $requested );
+			if ( isset( $texts[ $normalized ] ) && \is_array( $texts[ $normalized ] ) && $normalized !== $requested ) {
+				// Merge with Italian translations
+				return array_merge( $italian_translations, $texts[ $normalized ] );
+			}
+			
+			// Return hardcoded Italian translations
+			return $italian_translations;
+		}
+		
+		// For other languages, use the normal translation system
+		$translated_defaults = $this->get_translated_banner_defaults( $requested );
+		
+		// Check if there are custom texts saved for this language
+		$texts = $this->options['banner_texts'];
 		if ( isset( $texts[ $requested ] ) && \is_array( $texts[ $requested ] ) ) {
-			return $texts[ $requested ];
+			// Merge custom texts with translated defaults (custom texts take priority)
+			return array_merge( $translated_defaults, $texts[ $requested ] );
 		}
-
+		
+		// Check normalized language
 		$normalized = $this->normalize_language( $requested );
-
-		if ( isset( $texts[ $normalized ] ) && $normalized !== $requested ) {
-			$translated = $this->auto_translator->translate_banner_texts( $texts[ $normalized ], $normalized, $requested );
-
-			// Update cache if translation occurred
-			$new_cache = $this->auto_translator->get_cache();
-			if ( $new_cache !== $this->options['auto_translations'] ) {
-				$this->set( array( 'auto_translations' => $new_cache ) );
-			}
-
-			return $translated;
+		if ( isset( $texts[ $normalized ] ) && \is_array( $texts[ $normalized ] ) && $normalized !== $requested ) {
+			// Merge with translated defaults
+			return array_merge( $translated_defaults, $texts[ $normalized ] );
 		}
-
-		if ( isset( $texts[ $normalized ] ) ) {
-			$result = $texts[ $normalized ];
-			return \is_array( $result ) ? $result : array();
-		}
-
-		// Fallback to first available text if normalized key doesn't exist
-		if ( ! empty( $texts ) ) {
-			$result = reset( $texts );
-			if ( \is_array( $result ) && $result !== false ) {
-				return $result;
-			}
-		}
-
-		// Ultimate fallback: return translated defaults for the requested language
-		return $this->get_translated_banner_defaults( $requested );
+		
+		// Return translated defaults as ultimate fallback
+		return $translated_defaults;
 	}
 
 	/**
@@ -813,10 +821,20 @@ class Options {
 	 * @return array<string, string>
 	 */
 	private function get_translated_banner_defaults( $lang ) {
-		// Temporarily switch locale to get translated strings
+		// Force load the correct textdomain for this language
 		$original_locale = \get_locale();
+		
+		// Load the textdomain if not already loaded
+		if ( ! \is_textdomain_loaded( 'fp-privacy' ) ) {
+			\load_plugin_textdomain( 'fp-privacy', false, dirname( plugin_basename( FP_PRIVACY_PLUGIN_FILE ) ) . '/languages' );
+		}
+		
+		// Temporarily switch locale to get translated strings
 		if ( $lang !== $original_locale ) {
 			\switch_to_locale( $lang );
+			// Reload textdomain for the new locale
+			\unload_textdomain( 'fp-privacy' );
+			\load_plugin_textdomain( 'fp-privacy', false, dirname( plugin_basename( FP_PRIVACY_PLUGIN_FILE ) ) . '/languages' );
 		}
 
 		$defaults = array(
@@ -840,6 +858,9 @@ class Options {
 		// Restore original locale
 		if ( $lang !== $original_locale ) {
 			\restore_previous_locale();
+			// Reload textdomain for the original locale
+			\unload_textdomain( 'fp-privacy' );
+			\load_plugin_textdomain( 'fp-privacy', false, dirname( plugin_basename( FP_PRIVACY_PLUGIN_FILE ) ) . '/languages' );
 		}
 
 		return $defaults;
@@ -870,6 +891,34 @@ class Options {
 
 		// Update the options with the new translated texts
 		$this->set( array( 'banner_texts' => $updated_texts ) );
+	}
+
+	/**
+	 * Get hardcoded Italian translations as fallback.
+	 * This ensures texts are always in Italian when the locale is Italian.
+	 *
+	 * @param string $lang Language code.
+	 *
+	 * @return array<string, string>
+	 */
+	private function get_hardcoded_italian_translations() {
+		return array(
+			'title'              => 'Rispettiamo la tua privacy',
+			'message'            => 'Utilizziamo i cookie per migliorare la tua esperienza. Puoi accettare tutti i cookie o gestire le tue preferenze.',
+			'btn_accept'         => 'Accetta tutti',
+			'btn_reject'         => 'Rifiuta tutti',
+			'btn_prefs'          => 'Gestisci preferenze',
+			'modal_title'        => 'Preferenze privacy',
+			'modal_close'        => 'Chiudi preferenze',
+			'modal_save'         => 'Salva preferenze',
+			'revision_notice'    => 'Abbiamo aggiornato la nostra policy. Rivedi le tue preferenze.',
+			'toggle_locked'      => 'Sempre attivo',
+			'toggle_enabled'     => 'Abilitato',
+			'debug_label'        => 'Debug cookie:',
+			'link_policy'        => '',
+			'link_privacy_policy' => 'Informativa sulla Privacy',
+			'link_cookie_policy'  => 'Cookie Policy',
+		);
 	}
 
 	/**

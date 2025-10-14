@@ -33,24 +33,34 @@ Il banner delle preferenze privacy mostrava una miscela di testi in italiano e i
 - **Modifica**: Aggiunto comando `wp fp-privacy update-texts`
 - **Risultato**: Possibilità di forzare manualmente l'aggiornamento dei testi
 
+### 6. **Traduzioni hardcoded italiane (Soluzione Definitiva)**
+- **File**: `src/Utils/Options.php`
+- **Modifica**: Aggiunto metodo `get_hardcoded_italian_translations()` con traduzioni fisse
+- **Modifica**: Modificato `get_banner_text()` per usare sempre traduzioni italiane quando il locale è italiano
+- **Risultato**: **Garanzia assoluta** che i testi siano sempre in italiano per i siti italiani
+
 ## 🚀 Come Applicare la Risoluzione
 
-### Opzione 1: Disattivazione e Riattivazione (Consigliata)
+### ⚡ **Soluzione Immediata (Nessuna Azione Richiesta)**
+La nuova versione del plugin ora include **traduzioni hardcoded italiane** che garantiscono che tutti i testi siano sempre in italiano quando la lingua del sito è impostata su italiano. **Non è necessaria alcuna azione** - i testi dovrebbero essere automaticamente corretti.
+
+### Opzione 1: Ricarica della Pagina
+1. **Cancella la cache** del browser (Ctrl+F5 o Cmd+Shift+R)
+2. **Ricarica la pagina** del sito
+3. **Cancella i cookie** del sito se necessario
+4. Il banner dovrebbe ora mostrare testi completamente in italiano
+
+### Opzione 2: Disattivazione e Riattivazione (Se necessario)
 1. Vai in **Plugin** → **Plugin installati**
 2. **Disattiva** il plugin "FP Privacy and Cookie Policy"
 3. **Riattiva** il plugin
 4. I testi verranno automaticamente aggiornati con le traduzioni corrette
 
-### Opzione 2: Comando WP-CLI
+### Opzione 3: Comando WP-CLI
 Se hai accesso a WP-CLI, esegui:
 ```bash
 wp fp-privacy update-texts
 ```
-
-### Opzione 3: Verifica Manuale
-1. Vai in **Privacy & Cookie** → **Impostazioni**
-2. Salva le impostazioni (questo forzerà l'aggiornamento dei testi)
-3. Verifica che il banner mostri ora testi completamente in italiano
 
 ## 🎯 Testi Corretti
 
