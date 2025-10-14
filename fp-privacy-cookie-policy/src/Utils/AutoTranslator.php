@@ -33,9 +33,9 @@ class AutoTranslator implements AutoTranslatorInterface {
 	 * Constructor.
 	 *
 	 * @param array<string, mixed> $cache      Translation cache.
-	 * @param Translator           $translator Translator instance.
+	 * @param Translator|null      $translator Translator instance.
 	 */
-	public function __construct( array $cache = array(), Translator $translator = null ) {
+	public function __construct( array $cache = array(), ?Translator $translator = null ) {
 		$this->cache      = $cache;
 		$this->translator = $translator ?? new Translator();
 	}
