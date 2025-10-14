@@ -846,6 +846,33 @@ class Options {
 	}
 
 	/**
+	 * Force update banner texts for all active languages with proper translations.
+	 *
+	 * @return void
+	 */
+	public function force_update_banner_texts_translations() {
+		$languages = $this->get_languages();
+		$current_texts = $this->options['banner_texts'] ?? array();
+		$updated_texts = array();
+
+		foreach ( $languages as $lang ) {
+			$lang = Validator::locale( $lang, 'en_US' );
+			
+			// Get current texts for this language
+			$current_lang_texts = $current_texts[ $lang ] ?? array();
+			
+			// Get translated defaults for this language
+			$translated_defaults = $this->get_translated_banner_defaults( $lang );
+			
+			// Merge current texts with translated defaults (current texts take priority)
+			$updated_texts[ $lang ] = array_merge( $translated_defaults, $current_lang_texts );
+		}
+
+		// Update the options with the new translated texts
+		$this->set( array( 'banner_texts' => $updated_texts ) );
+	}
+
+	/**
 	 * Get categories for the requested language.
 	 *
 	 * @param string $lang Locale.

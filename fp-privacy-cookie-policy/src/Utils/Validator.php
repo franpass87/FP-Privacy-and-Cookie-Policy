@@ -236,27 +236,70 @@ class Validator {
                         $language = self::locale( $language, 'en_US' );
 			$source   = isset( $texts[ $language ] ) && is_array( $texts[ $language ] ) ? $texts[ $language ] : array();
 
+                        // Get translated defaults for this language
+                        $translated_defaults = self::get_translated_banner_defaults_for_language( $language );
+
                         $sanitized[ $language ] = array(
-                                'title'           => self::text( $source['title'] ?? ( $defaults['title'] ?? '' ) ),
-                                'message'         => self::textarea( $source['message'] ?? ( $defaults['message'] ?? '' ) ),
-                                'btn_accept'      => self::text( $source['btn_accept'] ?? ( $defaults['btn_accept'] ?? '' ) ),
-                                'btn_reject'      => self::text( $source['btn_reject'] ?? ( $defaults['btn_reject'] ?? '' ) ),
-                                'btn_prefs'       => self::text( $source['btn_prefs'] ?? ( $defaults['btn_prefs'] ?? '' ) ),
-                                'modal_title'     => self::text( $source['modal_title'] ?? ( $defaults['modal_title'] ?? '' ) ),
-                                'modal_close'     => self::text( $source['modal_close'] ?? ( $defaults['modal_close'] ?? '' ) ),
-                                'modal_save'      => self::text( $source['modal_save'] ?? ( $defaults['modal_save'] ?? '' ) ),
-                                'revision_notice' => self::text( $source['revision_notice'] ?? ( $defaults['revision_notice'] ?? '' ) ),
-                                'toggle_locked'   => self::text( $source['toggle_locked'] ?? ( $defaults['toggle_locked'] ?? '' ) ),
-                                'toggle_enabled'  => self::text( $source['toggle_enabled'] ?? ( $defaults['toggle_enabled'] ?? '' ) ),
-                                'debug_label'     => self::text( $source['debug_label'] ?? ( $defaults['debug_label'] ?? '' ) ),
-                                'link_policy'     => self::url( $source['link_policy'] ?? ( $defaults['link_policy'] ?? '' ) ),
-                                'link_privacy_policy' => self::text( $source['link_privacy_policy'] ?? ( $defaults['link_privacy_policy'] ?? '' ) ),
-                                'link_cookie_policy'  => self::text( $source['link_cookie_policy'] ?? ( $defaults['link_cookie_policy'] ?? '' ) ),
+                                'title'           => self::text( $source['title'] ?? $translated_defaults['title'] ),
+                                'message'         => self::textarea( $source['message'] ?? $translated_defaults['message'] ),
+                                'btn_accept'      => self::text( $source['btn_accept'] ?? $translated_defaults['btn_accept'] ),
+                                'btn_reject'      => self::text( $source['btn_reject'] ?? $translated_defaults['btn_reject'] ),
+                                'btn_prefs'       => self::text( $source['btn_prefs'] ?? $translated_defaults['btn_prefs'] ),
+                                'modal_title'     => self::text( $source['modal_title'] ?? $translated_defaults['modal_title'] ),
+                                'modal_close'     => self::text( $source['modal_close'] ?? $translated_defaults['modal_close'] ),
+                                'modal_save'      => self::text( $source['modal_save'] ?? $translated_defaults['modal_save'] ),
+                                'revision_notice' => self::text( $source['revision_notice'] ?? $translated_defaults['revision_notice'] ),
+                                'toggle_locked'   => self::text( $source['toggle_locked'] ?? $translated_defaults['toggle_locked'] ),
+                                'toggle_enabled'  => self::text( $source['toggle_enabled'] ?? $translated_defaults['toggle_enabled'] ),
+                                'debug_label'     => self::text( $source['debug_label'] ?? $translated_defaults['debug_label'] ),
+                                'link_policy'     => self::url( $source['link_policy'] ?? $translated_defaults['link_policy'] ),
+                                'link_privacy_policy' => self::text( $source['link_privacy_policy'] ?? $translated_defaults['link_privacy_policy'] ),
+                                'link_cookie_policy'  => self::text( $source['link_cookie_policy'] ?? $translated_defaults['link_cookie_policy'] ),
                         );
 		}
 
-		return $sanitized;
-	}
+                return $sanitized;
+        }
+
+        /**
+         * Get translated banner defaults for a specific language.
+         *
+         * @param string $lang Language code.
+         *
+         * @return array<string, string>
+         */
+        private static function get_translated_banner_defaults_for_language( $lang ) {
+                // Temporarily switch locale to get translated strings
+                $original_locale = \get_locale();
+                if ( $lang !== $original_locale ) {
+                        \switch_to_locale( $lang );
+                }
+
+                $defaults = array(
+                        'title'              => \__( 'We value your privacy', 'fp-privacy' ),
+                        'message'            => \__( 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.', 'fp-privacy' ),
+                        'btn_accept'         => \__( 'Accept all', 'fp-privacy' ),
+                        'btn_reject'         => \__( 'Reject all', 'fp-privacy' ),
+                        'btn_prefs'          => \__( 'Manage preferences', 'fp-privacy' ),
+                        'modal_title'        => \__( 'Privacy preferences', 'fp-privacy' ),
+                        'modal_close'        => \__( 'Close preferences', 'fp-privacy' ),
+                        'modal_save'         => \__( 'Save preferences', 'fp-privacy' ),
+                        'revision_notice'    => \__( 'We have updated our policy. Please review your preferences.', 'fp-privacy' ),
+                        'toggle_locked'      => \__( 'Always active', 'fp-privacy' ),
+                        'toggle_enabled'     => \__( 'Enabled', 'fp-privacy' ),
+                        'debug_label'        => \__( 'Cookie debug:', 'fp-privacy' ),
+                        'link_policy'        => '',
+                        'link_privacy_policy' => \__( 'Privacy Policy', 'fp-privacy' ),
+                        'link_cookie_policy'  => \__( 'Cookie Policy', 'fp-privacy' ),
+                );
+
+                // Restore original locale
+                if ( $lang !== $original_locale ) {
+                        \restore_previous_locale();
+                }
+
+                return $defaults;
+        }
 
 	/**
 	 * Sanitize consent mode defaults.

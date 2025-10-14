@@ -93,6 +93,9 @@ public function boot() {
 $this->options = Options::instance();
 $this->options->ensure_pages_exist();
 
+// Force update banner texts translations on boot to ensure they're always up to date
+$this->options->force_update_banner_texts_translations();
+
 $this->log_model     = new LogModel();
 $this->cleanup       = new Cleanup( $this->log_model, $this->options );
 $this->consent_state = new ConsentState( $this->options, $this->log_model );
@@ -247,6 +250,9 @@ public function setup_site() {
 $options = Options::instance();
 $options->set( $options->all() );
 $options->ensure_pages_exist();
+
+// Force update banner texts translations for all active languages
+$options->force_update_banner_texts_translations();
 
 $log_model = new LogModel();
 $log_model->maybe_create_table();

@@ -505,4 +505,30 @@ public function generate_pages( $args, $assoc_args ) {
 		WP_CLI::log( 'Rimuovi --dry-run per applicare le modifiche' );
 	}
 }
+
+/**
+ * Force update banner texts translations for all active languages.
+ *
+ * ## EXAMPLES
+ *
+ *     wp fp-privacy update-texts
+ *
+ * @when after_wp_load
+ */
+public function update_texts() {
+	WP_CLI::log( '🔄 Aggiornamento testi del banner per tutte le lingue attive...' );
+
+	try {
+		$this->options->force_update_banner_texts_translations();
+		
+		$languages = $this->options->get_languages();
+		WP_CLI::log( sprintf( '📝 Lingue aggiornate: %s', implode( ', ', $languages ) ) );
+		
+		WP_CLI::success( '✅ Testi del banner aggiornati con successo!' );
+		WP_CLI::log( 'I testi ora dovrebbero essere correttamente tradotti per tutte le lingue attive.' );
+		
+	} catch ( \Exception $e ) {
+		WP_CLI::error( sprintf( 'Errore durante l\'aggiornamento: %s', $e->getMessage() ) );
+	}
+}
 }
