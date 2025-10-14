@@ -66,8 +66,9 @@ class AutoTranslator implements AutoTranslatorInterface {
 			return $source;
 		}
 
-		$banner_cache = isset( $this->cache['banner'] ) && \is_array( $this->cache['banner'] ) ? $this->cache['banner'] : array();
-		$hash         = \md5( (string) \wp_json_encode( $source ) );
+	$banner_cache = isset( $this->cache['banner'] ) && \is_array( $this->cache['banner'] ) ? $this->cache['banner'] : array();
+	$encoded      = \wp_json_encode( $source );
+	$hash         = \md5( false !== $encoded ? $encoded : serialize( $source ) );
 
 		if ( isset( $banner_cache[ $target_lang ] ) && \is_array( $banner_cache[ $target_lang ] ) ) {
 			$cached = $banner_cache[ $target_lang ];
@@ -137,11 +138,12 @@ class AutoTranslator implements AutoTranslatorInterface {
 			);
 		}
 
-		if ( empty( $hash_payload ) ) {
-			return $categories;
-		}
+	if ( empty( $hash_payload ) ) {
+		return $categories;
+	}
 
-		$hash = \md5( (string) \wp_json_encode( $hash_payload ) );
+	$encoded = \wp_json_encode( $hash_payload );
+	$hash    = \md5( false !== $encoded ? $encoded : serialize( $hash_payload ) );
 
 		if ( isset( $categories_cache[ $target_lang ] ) && \is_array( $categories_cache[ $target_lang ] ) ) {
 			$cached = $categories_cache[ $target_lang ];

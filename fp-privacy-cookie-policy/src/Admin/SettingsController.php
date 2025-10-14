@@ -83,6 +83,9 @@ class SettingsController {
 			$script_categories[ $normalized ] = $this->options->get_categories_for_language( $normalized );
 		}
 
+		// Auto-populate link_policy with Privacy Policy page URL if empty
+		$this->auto_populate_policy_links( $options, $languages );
+
 		$notifications           = $this->options->get_detector_notifications();
 		$notification_recipients = isset( $notifications['recipients'] ) && \is_array( $notifications['recipients'] )
 			? implode( ', ', $notifications['recipients'] )
@@ -100,6 +103,92 @@ class SettingsController {
 			'notifications'           => $notifications,
 			'notification_recipients' => $notification_recipients,
 		);
+	}
+
+	/**
+	 * Auto-populate policy links for each language if empty.
+	 *
+	 * @param array<string, mixed> &$options   Options to update.
+	 * @param array<int, string>   $languages  Active languages.
+	 *
+	 * @return void
+	 */
+	private function auto_populate_policy_links( &$options, $languages ) {
+		if ( ! isset( $options['pages'] ) || ! \is_array( $options['pages'] ) ) {
+			return;
+		}
+
+		$pages = $options['pages'];
+
+		foreach ( $languages as $language ) {
+			$normalized = $this->options->normalize_language( $language );
+
+			// Get Privacy Policy page ID for this language
+			$privacy_page_id = 0;
+			if ( isset( $pages['privacy_policy_page_id'][ $normalized ] ) ) {
+				$privacy_page_id = (int) $pages['privacy_policy_page_id'][ $normalized ];
+			}
+
+			// If we have a Privacy Policy page, auto-populate link_policy if empty
+			if ( $privacy_page_id > 0 ) {
+				$permalink = \get_permalink( $privacy_page_id );
+
+				if ( $permalink && ! \is_wp_error( $permalink ) ) {
+					// Initialize banner_texts for this language if needed
+					if ( ! isset( $options['banner_texts'][ $normalized ] ) || ! \is_array( $options['banner_texts'][ $normalized ] ) ) {
+						$options['banner_texts'][ $normalized ] = array();
+					}
+
+					// Auto-populate only if link_policy is empty
+					if ( empty( $options['banner_texts'][ $normalized ]['link_policy'] ) ) {
+						$options['banner_texts'][ $normalized ]['link_policy'] = $permalink;
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Auto-populate policy links before saving.
+	 *
+	 * @param array<string, mixed> &$payload   Payload to update.
+	 * @param array<int, string>   $languages  Active languages.
+	 *
+	 * @return void
+	 */
+	private function auto_populate_policy_links_before_save( &$payload, $languages ) {
+		// Get current pages configuration
+		$pages = $this->options->get( 'pages' );
+		if ( ! \is_array( $pages ) ) {
+			return;
+		}
+
+		foreach ( $languages as $language ) {
+			$normalized = $this->options->normalize_language( $language );
+
+			// Get Privacy Policy page ID for this language
+			$privacy_page_id = 0;
+			if ( isset( $pages['privacy_policy_page_id'][ $normalized ] ) ) {
+				$privacy_page_id = (int) $pages['privacy_policy_page_id'][ $normalized ];
+			}
+
+			// If we have a Privacy Policy page, auto-populate link_policy if empty
+			if ( $privacy_page_id > 0 ) {
+				$permalink = \get_permalink( $privacy_page_id );
+
+				if ( $permalink && ! \is_wp_error( $permalink ) ) {
+					// Initialize banner_texts for this language if needed
+					if ( ! isset( $payload['banner_texts'][ $normalized ] ) || ! \is_array( $payload['banner_texts'][ $normalized ] ) ) {
+						$payload['banner_texts'][ $normalized ] = array();
+					}
+
+					// Auto-populate only if link_policy is empty
+					if ( empty( $payload['banner_texts'][ $normalized ]['link_policy'] ) ) {
+						$payload['banner_texts'][ $normalized ]['link_policy'] = $permalink;
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -203,34 +292,51 @@ class SettingsController {
 			\wp_die( \esc_html__( 'Permission denied.', 'fp-privacy' ) );
 		}
 
-		\check_admin_referer( 'fp_privacy_save_settings', 'fp_privacy_nonce' );
+	\check_admin_referer( 'fp_privacy_save_settings', 'fp_privacy_nonce' );
 
-		$languages = isset( $_POST['languages_active'] ) ? array_filter( array_map( 'trim', explode( ',', \wp_unslash( $_POST['languages_active'] ) ) ) ) : array();
-		if ( empty( $languages ) ) {
-			$languages = array( \get_locale() );
-		}
+	// Safely extract languages - handle both string (comma-separated) and array inputs
+	$languages_raw = isset( $_POST['languages_active'] ) ? \wp_unslash( $_POST['languages_active'] ) : '';
+	if ( \is_array( $languages_raw ) ) {
+		// If already an array, just trim each value
+		$languages = array_filter( array_map( 'trim', $languages_raw ) );
+	} elseif ( \is_string( $languages_raw ) && '' !== $languages_raw ) {
+		// If string, sanitize and split by comma
+		$languages_raw = \sanitize_text_field( $languages_raw );
+		$languages     = array_filter( array_map( 'trim', explode( ',', $languages_raw ) ) );
+	} else {
+		$languages = array();
+	}
 
-		$payload = array(
-			'languages_active'       => $languages,
-			'banner_texts'           => isset( $_POST['banner_texts'] ) ? \wp_unslash( $_POST['banner_texts'] ) : array(),
-			'banner_layout'          => isset( $_POST['banner_layout'] ) ? \wp_unslash( $_POST['banner_layout'] ) : array(),
-			'consent_mode_defaults'  => isset( $_POST['consent_mode_defaults'] ) ? \wp_unslash( $_POST['consent_mode_defaults'] ) : array(),
-			'gpc_enabled'            => isset( $_POST['gpc_enabled'] ),
-			'preview_mode'           => isset( $_POST['preview_mode'] ),
-			'org_name'               => isset( $_POST['org_name'] ) ? \wp_unslash( $_POST['org_name'] ) : '',
-			'vat'                    => isset( $_POST['vat'] ) ? \wp_unslash( $_POST['vat'] ) : '',
-			'address'                => isset( $_POST['address'] ) ? \wp_unslash( $_POST['address'] ) : '',
-			'dpo_name'               => isset( $_POST['dpo_name'] ) ? \wp_unslash( $_POST['dpo_name'] ) : '',
-			'dpo_email'              => isset( $_POST['dpo_email'] ) ? \wp_unslash( $_POST['dpo_email'] ) : '',
-			'privacy_email'          => isset( $_POST['privacy_email'] ) ? \wp_unslash( $_POST['privacy_email'] ) : '',
-			'categories'             => $this->options->get( 'categories' ),
-			'retention_days'         => isset( $_POST['retention_days'] ) ? (int) $_POST['retention_days'] : $this->options->get( 'retention_days' ),
-			'scripts'                => isset( $_POST['scripts'] ) ? \wp_unslash( $_POST['scripts'] ) : array(),
-			'detector_notifications' => array(
-				'email'      => isset( $_POST['detector_notifications']['email'] ),
-				'recipients' => isset( $_POST['detector_notifications']['recipients'] ) ? \wp_unslash( $_POST['detector_notifications']['recipients'] ) : '',
-			),
-		);
+	if ( empty( $languages ) ) {
+		$languages = array( \get_locale() );
+	}
+
+	$payload = array(
+		'languages_active'       => $languages,
+		'banner_texts'           => isset( $_POST['banner_texts'] ) ? \wp_unslash( $_POST['banner_texts'] ) : array(),
+		'banner_layout'          => isset( $_POST['banner_layout'] ) ? \wp_unslash( $_POST['banner_layout'] ) : array(),
+		'consent_mode_defaults'  => isset( $_POST['consent_mode_defaults'] ) ? \wp_unslash( $_POST['consent_mode_defaults'] ) : array(),
+		'gpc_enabled'            => isset( $_POST['gpc_enabled'] ),
+		'preview_mode'           => isset( $_POST['preview_mode'] ),
+		'org_name'               => isset( $_POST['org_name'] ) ? \wp_unslash( $_POST['org_name'] ) : '',
+		'vat'                    => isset( $_POST['vat'] ) ? \wp_unslash( $_POST['vat'] ) : '',
+		'address'                => isset( $_POST['address'] ) ? \wp_unslash( $_POST['address'] ) : '',
+		'dpo_name'               => isset( $_POST['dpo_name'] ) ? \wp_unslash( $_POST['dpo_name'] ) : '',
+		'dpo_email'              => isset( $_POST['dpo_email'] ) ? \wp_unslash( $_POST['dpo_email'] ) : '',
+		'privacy_email'          => isset( $_POST['privacy_email'] ) ? \wp_unslash( $_POST['privacy_email'] ) : '',
+		'categories'             => $this->options->get( 'categories' ),
+		'retention_days'         => isset( $_POST['retention_days'] ) ? (int) $_POST['retention_days'] : $this->options->get( 'retention_days' ),
+		'scripts'                => isset( $_POST['scripts'] ) ? \wp_unslash( $_POST['scripts'] ) : array(),
+		'detector_notifications' => array(
+			'email'      => isset( $_POST['detector_notifications']['email'] ),
+			'recipients' => isset( $_POST['detector_notifications']['recipients'] ) ? \wp_unslash( $_POST['detector_notifications']['recipients'] ) : '',
+		),
+		'auto_update_services'   => isset( $_POST['auto_update_services'] ),
+		'auto_update_policies'   => isset( $_POST['auto_update_policies'] ),
+	);
+
+		// Auto-populate link_policy fields before saving
+		$this->auto_populate_policy_links_before_save( $payload, $languages );
 
 		$this->options->set( $payload );
 
@@ -294,16 +400,23 @@ class SettingsController {
 
 		$redirect = \wp_get_referer() ? \wp_get_referer() : \admin_url( 'admin.php?page=fp-privacy-tools' );
 
-		if ( empty( $_FILES['settings_file']['tmp_name'] ) || ! \is_uploaded_file( $_FILES['settings_file']['tmp_name'] ) ) {
-			\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'missing', $redirect ) );
-			exit;
-		}
+	if ( empty( $_FILES['settings_file']['tmp_name'] ) || ! \is_uploaded_file( $_FILES['settings_file']['tmp_name'] ) ) {
+		\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'missing', $redirect ) );
+		exit;
+	}
 
-		$content = \file_get_contents( $_FILES['settings_file']['tmp_name'] );
-		if ( false === $content ) {
-			\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'error', $redirect ) );
-			exit;
-		}
+	// Check file size to prevent memory exhaustion (limit to 5MB)
+	$max_size = 5 * 1024 * 1024; // 5MB
+	if ( ! empty( $_FILES['settings_file']['size'] ) && $_FILES['settings_file']['size'] > $max_size ) {
+		\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'too-large', $redirect ) );
+		exit;
+	}
+
+	$content = \file_get_contents( $_FILES['settings_file']['tmp_name'] );
+	if ( false === $content ) {
+		\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'error', $redirect ) );
+		exit;
+	}
 
 		$data = \json_decode( $content, true );
 		if ( ! is_array( $data ) ) {

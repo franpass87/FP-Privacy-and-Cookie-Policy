@@ -534,6 +534,35 @@ heading.id = 'fp-privacy-modal-title';
 modal.appendChild( heading );
 modal.setAttribute( 'aria-labelledby', heading.id );
 
+    // Add policy links
+    var policyUrls = data.options.policy_urls || {};
+    if ( policyUrls.privacy || policyUrls.cookie ) {
+        var linksWrapper = document.createElement( 'div' );
+        linksWrapper.className = 'fp-privacy-modal-links';
+        
+        if ( policyUrls.privacy ) {
+            var privacyLink = document.createElement( 'a' );
+            privacyLink.href = policyUrls.privacy;
+            privacyLink.className = 'fp-privacy-link';
+            privacyLink.setAttribute( 'target', '_blank' );
+            privacyLink.rel = 'noopener noreferrer';
+            privacyLink.textContent = texts.link_privacy_policy || 'Privacy Policy';
+            linksWrapper.appendChild( privacyLink );
+        }
+        
+        if ( policyUrls.cookie ) {
+            var cookieLink = document.createElement( 'a' );
+            cookieLink.href = policyUrls.cookie;
+            cookieLink.className = 'fp-privacy-link';
+            cookieLink.setAttribute( 'target', '_blank' );
+            cookieLink.rel = 'noopener noreferrer';
+            cookieLink.textContent = texts.link_cookie_policy || 'Cookie Policy';
+            linksWrapper.appendChild( cookieLink );
+        }
+        
+        modal.appendChild( linksWrapper );
+    }
+
     var savedCategories = state.categories || {};
 
     for ( var key in categories ) {
@@ -593,6 +622,7 @@ actions.appendChild( save );
 
 var acceptAll = createButton( texts.btn_accept, 'fp-privacy-button fp-privacy-button-secondary' );
 acceptAll.addEventListener( 'click', function () {
+enableAllToggles();
 handleAcceptAll();
 closeModal();
 });
@@ -774,17 +804,42 @@ function mapToConsentMode( payload ) {
     return result;
 }
 
+function setButtonsLoading( isLoading ) {
+    var buttons = document.querySelectorAll( '.fp-privacy-button' );
+    for ( var i = 0; i < buttons.length; i++ ) {
+        if ( isLoading ) {
+            buttons[ i ].classList.add( 'fp-loading' );
+            buttons[ i ].disabled = true;
+        } else {
+            buttons[ i ].classList.remove( 'fp-loading' );
+            buttons[ i ].disabled = false;
+        }
+    }
+}
+
+function enableAllToggles() {
+var checkboxes = modal.querySelectorAll( 'input[type="checkbox"][data-category]' );
+for ( var i = 0; i < checkboxes.length; i++ ) {
+if ( ! checkboxes[ i ].disabled ) {
+checkboxes[ i ].checked = true;
+}
+}
+}
+
 function handleAcceptAll() {
+setButtonsLoading( true );
 var payload = buildConsentPayload( true, false );
 persistConsent( 'accept_all', payload );
 }
 
 function handleRejectAll() {
+setButtonsLoading( true );
 var payload = buildConsentPayload( false, true );
 persistConsent( 'reject_all', payload );
 }
 
 function handleSavePreferences() {
+setButtonsLoading( true );
 var payload = buildConsentPayload( false, false );
 persistConsent( 'consent', payload );
 closeModal();
@@ -828,6 +883,8 @@ function persistConsent( event, payload ) {
     var lang = state.lang || ( data.options.state ? data.options.state.lang : '' ) || document.documentElement.lang || 'en';
 
     var markSuccess = function ( result ) {
+        setButtonsLoading( false );
+        
         if ( typeof handleConsentResponse === 'function' ) {
             handleConsentResponse( result );
         } else if ( result && result.consent_id ) {
@@ -849,6 +906,7 @@ function persistConsent( event, payload ) {
     };
 
     var handleFailure = function () {
+        setButtonsLoading( false );
         state.should_display = true;
         showBanner();
     };

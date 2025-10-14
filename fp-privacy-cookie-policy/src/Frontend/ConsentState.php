@@ -84,6 +84,12 @@ $this->log_model = $log_model;
 
         $text       = $this->options->get_banner_text( $requested );
         $categories = $this->options->get_categories_for_language( $normalized );
+        
+        // Get policy page URLs
+        $privacy_page_id = $this->options->get_page_id( 'privacy_policy_page_id', $normalized );
+        $cookie_page_id = $this->options->get_page_id( 'cookie_policy_page_id', $normalized );
+        $privacy_url = $privacy_page_id ? \get_permalink( $privacy_page_id ) : '';
+        $cookie_url = $cookie_page_id ? \get_permalink( $cookie_page_id ) : '';
 
         return array(
             'texts'     => $text,
@@ -91,6 +97,10 @@ $this->log_model = $log_model;
             'categories'=> $categories,
             'state'     => $states,
             'mode'      => $this->options->get( 'consent_mode_defaults' ),
+            'policy_urls' => array(
+                'privacy' => $privacy_url,
+                'cookie' => $cookie_url,
+            ),
         );
     }
 
@@ -146,8 +156,6 @@ $this->log_model = $log_model;
             }
 
             \do_action( 'fp_consent_update', $states, $event, $revision );
-        }
-        if ( ! $preview ) {
             $this->set_cookie( $cookie['id'], $revision );
         }
 

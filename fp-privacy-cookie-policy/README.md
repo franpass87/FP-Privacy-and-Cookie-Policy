@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 0.1.1 |
+| Version | 0.1.2 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |
@@ -20,6 +20,26 @@
 ## About
 
 FP Privacy and Cookie Policy provides a privacy compliance toolkit for WordPress that fuses an accessible consent banner with automated privacy and cookie policy generation. It focuses on maintainable, build-step-free JavaScript, integrates Google Consent Mode v2, and exposes REST and WP-CLI interfaces to help site owners and developers orchestrate consent workflows across multisite environments.
+
+## ⚡ Quick Start - Generazione Automatica Policy
+
+Genera automaticamente le pagine Privacy Policy e Cookie Policy in pochi secondi:
+
+```bash
+# Con WP-CLI (consigliato)
+wp fp-privacy generate-pages --all-languages
+
+# Senza WP-CLI
+php bin/generate-policies.php --all-languages
+```
+
+Il sistema:
+- ✅ Rileva automaticamente i servizi integrati (Google Analytics, Facebook Pixel, ecc.)
+- ✅ Genera contenuto completo conforme a GDPR, ePrivacy Directive e linee guida EDPB 2025
+- ✅ Crea/aggiorna le pagine WordPress automaticamente
+- ✅ Supporta multilingua
+
+📖 **[Guida Completa alla Generazione Automatica](QUICK-START-GENERAZIONE.md)** | **[Documentazione Dettagliata](docs/GENERAZIONE-AUTOMATICA.md)**
 
 ## Features
 
@@ -59,6 +79,50 @@ FP Privacy and Cookie Policy provides a privacy compliance toolkit for WordPress
 1. Inspect **Privacy & Cookie → Consent log** for per-event breakdowns, filters, and CSV export.
 2. Use REST or WP-CLI commands (`wp fp-privacy ...`) to audit state, reset tables, or export/import settings.
 3. Dispatch custom triggers via `fp-consent-change` or `dataLayer` listeners in your front-end scripts.
+
+## WP-CLI Commands
+
+Il plugin include comandi WP-CLI completi per automatizzare la gestione delle policy:
+
+### Generazione Automatica Policy
+
+```bash
+# Genera le pagine Privacy e Cookie Policy
+wp fp-privacy generate-pages [--all-languages] [--lang=<code>] [--force] [--bump-revision] [--dry-run]
+
+# Esempi
+wp fp-privacy generate-pages --all-languages
+wp fp-privacy generate-pages --lang=it_IT --force
+wp fp-privacy generate-pages --dry-run
+```
+
+### Altri Comandi
+
+```bash
+# Visualizza lo stato del sistema
+wp fp-privacy status
+
+# Rileva i servizi integrati
+wp fp-privacy detect
+
+# Esporta i log del consenso
+wp fp-privacy export --file=consent-log.csv
+
+# Esporta/Importa impostazioni
+wp fp-privacy settings-export --file=settings.json
+wp fp-privacy settings-import --file=settings.json
+
+# Rigenerazione policy (solo output, senza salvare)
+wp fp-privacy regenerate [--lang=<code>] [--bump-revision]
+
+# Cleanup dei log
+wp fp-privacy cleanup
+
+# Ricrea la tabella del database
+wp fp-privacy recreate [--force]
+```
+
+Per dettagli completi: `wp help fp-privacy <comando>`
 
 ## Hooks / Filters
 

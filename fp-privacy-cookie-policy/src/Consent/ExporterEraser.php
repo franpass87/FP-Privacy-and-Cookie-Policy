@@ -137,17 +137,23 @@ return $erasers;
 $data = array();
 
 foreach ( $results as $row ) {
-$data[] = array(
-'name'  => \__( 'Consent Log Entry', 'fp-privacy' ),
-            'value' => \wp_json_encode( array(
-                'event'   => $row['event'],
-                'lang'    => $row['lang'],
-                'rev'     => (int) $row['rev'],
-                'time'    => $row['created_at'],
-                'states'  => $this->log_model->normalize_states( $row['states'] ),
-                'user_agent' => $row['ua'],
-            ) ),
-        );
+	$encoded = \wp_json_encode( array(
+		'event'   => $row['event'],
+		'lang'    => $row['lang'],
+		'rev'     => (int) $row['rev'],
+		'time'    => $row['created_at'],
+		'states'  => $this->log_model->normalize_states( $row['states'] ),
+		'user_agent' => $row['ua'],
+	) );
+
+	if ( false === $encoded ) {
+		$encoded = '{}';
+	}
+
+	$data[] = array(
+		'name'  => \__( 'Consent Log Entry', 'fp-privacy' ),
+		'value' => $encoded,
+	);
 }
 
 $done = count( $results ) < $per_page;
@@ -210,9 +216,15 @@ $ids = \wp_list_pluck( $rows, 'id' );
 
 $removed = 0;
 if ( $ids ) {
-$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-$wpdb->query( $wpdb->prepare( "DELETE FROM {$this->log_model->get_table()} WHERE id IN ({$placeholders})", $ids ) );
-$removed = count( $ids );
+	// Sanitize IDs as integers to prevent SQL injection
+	$ids = array_map( 'absint', $ids );
+	$ids = array_filter( $ids ); // Remove any zero values
+	
+	if ( ! empty( $ids ) ) {
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$this->log_model->get_table()} WHERE id IN ({$placeholders})", $ids ) );
+		$removed = count( $ids );
+	}
 }
 
 $done = count( $rows ) < $per_page;

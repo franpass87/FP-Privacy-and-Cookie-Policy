@@ -88,12 +88,12 @@ class Options {
 	 */
 	private function __construct() {
 		$this->blog_id                = function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0;
+		$this->script_rules_manager   = new ScriptRulesManager();
 		$this->options                = $this->load();
 		$this->language_normalizer    = new LanguageNormalizer( $this->get_languages() );
 		$this->auto_translator        = new AutoTranslator(
 			isset( $this->options['auto_translations'] ) ? $this->options['auto_translations'] : array()
 		);
-		$this->script_rules_manager   = new ScriptRulesManager();
 		$this->page_manager           = new PageManager( $this->language_normalizer );
 	}
 
@@ -197,6 +197,8 @@ class Options {
 			'toggle_enabled' => \__( 'Enabled', 'fp-privacy' ),
 			'debug_label'    => \__( 'Cookie debug:', 'fp-privacy' ),
 			'link_policy'    => '',
+			'link_privacy_policy' => \__( 'Privacy Policy', 'fp-privacy' ),
+			'link_cookie_policy'  => \__( 'Cookie Policy', 'fp-privacy' ),
 		);
 
 		$category_defaults = array(
@@ -235,12 +237,13 @@ class Options {
 			'banner_texts'          => array(
 				$default_locale => $banner_default,
 			),
-			'banner_layout'         => array(
-				'type'                  => 'floating',
-				'position'              => 'bottom',
-				'palette'               => $default_palette,
-				'sync_modal_and_button' => true,
-			),
+		'banner_layout'         => array(
+			'type'                  => 'floating',
+			'position'              => 'bottom',
+			'palette'               => $default_palette,
+			'sync_modal_and_button' => true,
+			'enable_dark_mode'      => false,
+		),
 			'categories'            => $category_defaults,
 			'consent_mode_defaults' => array(
 				'analytics_storage'       => 'denied',
@@ -278,6 +281,8 @@ class Options {
 			'scripts'               => $script_defaults,
 			'detector_alert'        => $this->get_default_detector_alert(),
 			'detector_notifications' => $this->get_default_detector_notifications(),
+			'auto_update_services'  => false,
+			'auto_update_policies'  => false,
 			'auto_translations'     => array(),
 		);
 	}
@@ -291,10 +296,13 @@ class Options {
 	 * @return array<string, mixed>
 	 */
 	private function sanitize( array $value, array $defaults ) {
-		$default_locale = $defaults['languages_active'][0];
+		$default_locale = ! empty( $defaults['languages_active'] ) ? $defaults['languages_active'][0] : 'en_US';
 		$languages      = Validator::locale_list( $value['languages_active'] ?? $defaults['languages_active'], $default_locale );
 
-		$banner_defaults = $defaults['banner_texts'][ $default_locale ] ?? reset( $defaults['banner_texts'] );
+		$banner_defaults_raw = isset( $defaults['banner_texts'][ $default_locale ] ) 
+			? $defaults['banner_texts'][ $default_locale ] 
+			: ( ! empty( $defaults['banner_texts'] ) ? reset( $defaults['banner_texts'] ) : array() );
+		$banner_defaults = is_array( $banner_defaults_raw ) ? $banner_defaults_raw : array();
 		$layout_raw      = isset( $value['banner_layout'] ) && \is_array( $value['banner_layout'] ) ? $value['banner_layout'] : array();
 		$categories_raw  = isset( $value['categories'] ) && \is_array( $value['categories'] ) ? $value['categories'] : $defaults['categories'];
 		$pages_raw       = isset( $value['pages'] ) && \is_array( $value['pages'] ) ? $value['pages'] : array();
@@ -314,12 +322,13 @@ class Options {
 			)
 		);
 
-		$layout = array(
-			'type'                  => Validator::choice( $layout_raw['type'] ?? '', array( 'floating', 'bar' ), $defaults['banner_layout']['type'] ),
-			'position'              => Validator::choice( $layout_raw['position'] ?? '', array( 'top', 'bottom' ), $defaults['banner_layout']['position'] ),
-			'palette'               => Validator::sanitize_palette( isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ? $layout_raw['palette'] : array(), $defaults['banner_layout']['palette'] ),
-			'sync_modal_and_button' => Validator::bool( $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'] ),
-		);
+	$layout = array(
+		'type'                  => Validator::choice( $layout_raw['type'] ?? '', array( 'floating', 'bar' ), $defaults['banner_layout']['type'] ),
+		'position'              => Validator::choice( $layout_raw['position'] ?? '', array( 'top', 'bottom' ), $defaults['banner_layout']['position'] ),
+		'palette'               => Validator::sanitize_palette( isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ? $layout_raw['palette'] : array(), $defaults['banner_layout']['palette'] ),
+		'sync_modal_and_button' => Validator::bool( $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'] ),
+		'enable_dark_mode'      => Validator::bool( $layout_raw['enable_dark_mode'] ?? ( $defaults['banner_layout']['enable_dark_mode'] ?? false ) ),
+	);
 
 		$default_categories = Validator::sanitize_categories( $defaults['categories'], $languages );
 		$categories         = Validator::sanitize_categories( $categories_raw, $languages );
@@ -387,6 +396,8 @@ class Options {
 			'scripts'               => $this->script_rules_manager->sanitize_rules( $scripts_raw, $languages, $categories, $existing_scripts, $temp_normalizer ),
 			'detector_alert'        => $this->sanitize_detector_alert( $alert_raw ),
 			'detector_notifications' => $this->sanitize_detector_notifications( $notifications_raw, $this->get_detector_notifications() ),
+			'auto_update_services'  => Validator::bool( $value['auto_update_services'] ?? $defaults['auto_update_services'] ),
+			'auto_update_policies'  => Validator::bool( $value['auto_update_policies'] ?? $defaults['auto_update_policies'] ),
 			'auto_translations'     => Validator::sanitize_auto_translations( isset( $value['auto_translations'] ) && \is_array( $value['auto_translations'] ) ? $value['auto_translations'] : array(), $banner_defaults ),
 		);
 	}
@@ -777,9 +788,18 @@ class Options {
 			return $translated;
 		}
 
-		$result = $texts[ $normalized ] ?? reset( $texts );
+		if ( isset( $texts[ $normalized ] ) ) {
+			$result = $texts[ $normalized ];
+			return \is_array( $result ) ? $result : array();
+		}
 
-		return \is_array( $result ) ? $result : array();
+		// Fallback to first available text if normalized key doesn't exist
+		if ( ! empty( $texts ) ) {
+			$result = reset( $texts );
+			return \is_array( $result ) && $result !== false ? $result : array();
+		}
+
+		return array();
 	}
 
 	/**
