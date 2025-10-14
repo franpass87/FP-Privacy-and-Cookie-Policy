@@ -796,10 +796,53 @@ class Options {
 		// Fallback to first available text if normalized key doesn't exist
 		if ( ! empty( $texts ) ) {
 			$result = reset( $texts );
-			return \is_array( $result ) && $result !== false ? $result : array();
+			if ( \is_array( $result ) && $result !== false ) {
+				return $result;
+			}
 		}
 
-		return array();
+		// Ultimate fallback: return translated defaults for the requested language
+		return $this->get_translated_banner_defaults( $requested );
+	}
+
+	/**
+	 * Get translated banner defaults for a specific language.
+	 *
+	 * @param string $lang Language code.
+	 *
+	 * @return array<string, string>
+	 */
+	private function get_translated_banner_defaults( $lang ) {
+		// Temporarily switch locale to get translated strings
+		$original_locale = \get_locale();
+		if ( $lang !== $original_locale ) {
+			\switch_to_locale( $lang );
+		}
+
+		$defaults = array(
+			'title'              => \__( 'We value your privacy', 'fp-privacy' ),
+			'message'            => \__( 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.', 'fp-privacy' ),
+			'btn_accept'         => \__( 'Accept all', 'fp-privacy' ),
+			'btn_reject'         => \__( 'Reject all', 'fp-privacy' ),
+			'btn_prefs'          => \__( 'Manage preferences', 'fp-privacy' ),
+			'modal_title'        => \__( 'Privacy preferences', 'fp-privacy' ),
+			'modal_close'        => \__( 'Close preferences', 'fp-privacy' ),
+			'modal_save'         => \__( 'Save preferences', 'fp-privacy' ),
+			'revision_notice'    => \__( 'We have updated our policy. Please review your preferences.', 'fp-privacy' ),
+			'toggle_locked'      => \__( 'Always active', 'fp-privacy' ),
+			'toggle_enabled'     => \__( 'Enabled', 'fp-privacy' ),
+			'debug_label'        => \__( 'Cookie debug:', 'fp-privacy' ),
+			'link_policy'        => '',
+			'link_privacy_policy' => \__( 'Privacy Policy', 'fp-privacy' ),
+			'link_cookie_policy'  => \__( 'Cookie Policy', 'fp-privacy' ),
+		);
+
+		// Restore original locale
+		if ( $lang !== $original_locale ) {
+			\restore_previous_locale();
+		}
+
+		return $defaults;
 	}
 
 	/**

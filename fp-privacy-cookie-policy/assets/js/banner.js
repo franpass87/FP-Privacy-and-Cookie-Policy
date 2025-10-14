@@ -464,7 +464,7 @@ if ( policyUrls.privacy || policyUrls.cookie ) {
         privacyLink.className = 'fp-privacy-link';
         privacyLink.setAttribute( 'target', '_blank' );
         privacyLink.rel = 'noopener noreferrer';
-        privacyLink.textContent = texts.link_privacy_policy || 'Privacy Policy';
+        privacyLink.textContent = texts.link_privacy_policy || '';
         linksWrapper.appendChild( privacyLink );
     }
     
@@ -474,7 +474,7 @@ if ( policyUrls.privacy || policyUrls.cookie ) {
         cookieLink.className = 'fp-privacy-link';
         cookieLink.setAttribute( 'target', '_blank' );
         cookieLink.rel = 'noopener noreferrer';
-        cookieLink.textContent = texts.link_cookie_policy || 'Cookie Policy';
+        cookieLink.textContent = texts.link_cookie_policy || '';
         linksWrapper.appendChild( cookieLink );
     }
     
@@ -565,7 +565,7 @@ modal.setAttribute( 'aria-labelledby', heading.id );
             privacyLink.className = 'fp-privacy-link';
             privacyLink.setAttribute( 'target', '_blank' );
             privacyLink.rel = 'noopener noreferrer';
-            privacyLink.textContent = texts.link_privacy_policy || 'Privacy Policy';
+            privacyLink.textContent = texts.link_privacy_policy || '';
             linksWrapper.appendChild( privacyLink );
         }
         
@@ -575,7 +575,7 @@ modal.setAttribute( 'aria-labelledby', heading.id );
             cookieLink.className = 'fp-privacy-link';
             cookieLink.setAttribute( 'target', '_blank' );
             cookieLink.rel = 'noopener noreferrer';
-            cookieLink.textContent = texts.link_cookie_policy || 'Cookie Policy';
+            cookieLink.textContent = texts.link_cookie_policy || '';
             linksWrapper.appendChild( cookieLink );
         }
         
@@ -624,7 +624,7 @@ modal.setAttribute( 'aria-labelledby', heading.id );
 toggle.appendChild( checkbox );
 
 var toggleText = document.createElement( 'span' );
-        toggleText.textContent = cat.locked ? texts.toggle_locked || '' : texts.toggle_enabled || '';
+        toggleText.textContent = cat.locked ? (texts.toggle_locked || '') : (texts.toggle_enabled || '');
 toggle.appendChild( toggleText );
 
 wrapper.appendChild( toggle );
