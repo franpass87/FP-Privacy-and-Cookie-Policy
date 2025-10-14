@@ -176,6 +176,13 @@ body.fp-privacy-dark-mode-enabled .fp-privacy-button-secondary:hover:not(.fp-loa
     background: #4b5563;
 }
 
+.fp-privacy-banner-links {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
 .fp-privacy-link {
     color: var(--fp-privacy-link);
     text-decoration: none;

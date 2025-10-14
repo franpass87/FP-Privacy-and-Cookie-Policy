@@ -452,14 +452,33 @@ if ( texts.revision_notice ) {
 }
 banner.appendChild( revisionNotice );
 
-if ( texts.link_policy ) {
-var link = document.createElement( 'a' );
-link.href = texts.link_policy;
-link.className = 'fp-privacy-link';
-link.setAttribute( 'target', '_blank' );
-link.rel = 'noopener noreferrer';
-link.textContent = texts.link_policy;
-banner.appendChild( link );
+// Add policy links
+var policyUrls = data.options.policy_urls || {};
+if ( policyUrls.privacy || policyUrls.cookie ) {
+    var linksWrapper = document.createElement( 'div' );
+    linksWrapper.className = 'fp-privacy-banner-links';
+    
+    if ( policyUrls.privacy ) {
+        var privacyLink = document.createElement( 'a' );
+        privacyLink.href = policyUrls.privacy;
+        privacyLink.className = 'fp-privacy-link';
+        privacyLink.setAttribute( 'target', '_blank' );
+        privacyLink.rel = 'noopener noreferrer';
+        privacyLink.textContent = texts.link_privacy_policy || 'Privacy Policy';
+        linksWrapper.appendChild( privacyLink );
+    }
+    
+    if ( policyUrls.cookie ) {
+        var cookieLink = document.createElement( 'a' );
+        cookieLink.href = policyUrls.cookie;
+        cookieLink.className = 'fp-privacy-link';
+        cookieLink.setAttribute( 'target', '_blank' );
+        cookieLink.rel = 'noopener noreferrer';
+        cookieLink.textContent = texts.link_cookie_policy || 'Cookie Policy';
+        linksWrapper.appendChild( cookieLink );
+    }
+    
+    banner.appendChild( linksWrapper );
 }
 
 var buttons = document.createElement( 'div' );

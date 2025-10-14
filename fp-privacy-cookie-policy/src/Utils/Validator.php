@@ -250,6 +250,8 @@ class Validator {
                                 'toggle_enabled'  => self::text( $source['toggle_enabled'] ?? ( $defaults['toggle_enabled'] ?? '' ) ),
                                 'debug_label'     => self::text( $source['debug_label'] ?? ( $defaults['debug_label'] ?? '' ) ),
                                 'link_policy'     => self::url( $source['link_policy'] ?? ( $defaults['link_policy'] ?? '' ) ),
+                                'link_privacy_policy' => self::text( $source['link_privacy_policy'] ?? ( $defaults['link_privacy_policy'] ?? '' ) ),
+                                'link_cookie_policy'  => self::text( $source['link_cookie_policy'] ?? ( $defaults['link_cookie_policy'] ?? '' ) ),
                         );
 		}
 

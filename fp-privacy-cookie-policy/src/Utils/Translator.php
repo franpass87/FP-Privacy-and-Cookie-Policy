@@ -39,6 +39,8 @@ class Translator {
         'toggle_locked',
         'toggle_enabled',
         'debug_label',
+        'link_privacy_policy',
+        'link_cookie_policy',
     );
 
     /**
