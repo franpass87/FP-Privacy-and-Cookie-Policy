@@ -454,6 +454,12 @@ banner.appendChild( revisionNotice );
 
 // Add policy links
 var policyUrls = data.options.policy_urls || {};
+
+// Debug: Log the policy URLs to help identify the issue
+if ( typeof console !== 'undefined' && console.log ) {
+    console.log( 'FP Privacy Debug - Policy URLs:', policyUrls );
+}
+
 if ( policyUrls.privacy || policyUrls.cookie ) {
     var linksWrapper = document.createElement( 'div' );
     linksWrapper.className = 'fp-privacy-banner-links';
@@ -555,6 +561,12 @@ modal.setAttribute( 'aria-labelledby', heading.id );
 
     // Add policy links
     var policyUrls = data.options.policy_urls || {};
+    
+    // Debug: Log the policy URLs in modal
+    if ( typeof console !== 'undefined' && console.log ) {
+        console.log( 'FP Privacy Debug - Modal Policy URLs:', policyUrls );
+    }
+    
     if ( policyUrls.privacy || policyUrls.cookie ) {
         var linksWrapper = document.createElement( 'div' );
         linksWrapper.className = 'fp-privacy-modal-links';

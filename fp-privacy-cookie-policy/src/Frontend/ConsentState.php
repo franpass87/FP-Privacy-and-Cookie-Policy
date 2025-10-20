@@ -88,8 +88,30 @@ $this->log_model = $log_model;
         // Get policy page URLs
         $privacy_page_id = $this->options->get_page_id( 'privacy_policy_page_id', $normalized );
         $cookie_page_id = $this->options->get_page_id( 'cookie_policy_page_id', $normalized );
-        $privacy_url = $privacy_page_id ? \get_permalink( $privacy_page_id ) : '';
-        $cookie_url = $cookie_page_id ? \get_permalink( $cookie_page_id ) : '';
+        
+        // Ensure we have valid page IDs and they are different
+        $privacy_url = '';
+        $cookie_url = '';
+        
+        if ( $privacy_page_id && $privacy_page_id > 0 ) {
+            $privacy_permalink = \get_permalink( $privacy_page_id );
+            if ( $privacy_permalink && ! \is_wp_error( $privacy_permalink ) ) {
+                $privacy_url = $privacy_permalink;
+            }
+        }
+        
+        if ( $cookie_page_id && $cookie_page_id > 0 && $cookie_page_id !== $privacy_page_id ) {
+            $cookie_permalink = \get_permalink( $cookie_page_id );
+            if ( $cookie_permalink && ! \is_wp_error( $cookie_permalink ) ) {
+                $cookie_url = $cookie_permalink;
+            }
+        }
+        
+        // Debug: Log the page IDs and URLs to help identify the issue
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+            error_log( 'FP Privacy Debug - Privacy Page ID: ' . $privacy_page_id . ', URL: ' . $privacy_url );
+            error_log( 'FP Privacy Debug - Cookie Page ID: ' . $cookie_page_id . ', URL: ' . $cookie_url );
+        }
 
         return array(
             'texts'     => $text,

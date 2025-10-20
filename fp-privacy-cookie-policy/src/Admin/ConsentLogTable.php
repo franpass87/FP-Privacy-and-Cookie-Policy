@@ -72,10 +72,35 @@ $args     = array(
 'to'       => isset( $_GET['to'] ) ? \sanitize_text_field( \wp_unslash( $_GET['to'] ) ) : '',
 );
 
-$entries = $this->log_model->query( $args );
-$total   = $this->log_model->count( $args );
-$summary = $this->log_model->summary_last_30_days();
-$pages   = (int) ceil( $total / $per_page );
+// Defensive guards: avoid fatals if DB/table is missing or data is malformed.
+try {
+    $entries = $this->log_model->query( $args );
+} catch ( \Throwable $e ) {
+    $entries = array();
+    $query_error = true;
+}
+
+try {
+    $total = $this->log_model->count( $args );
+} catch ( \Throwable $e ) {
+    $total = 0;
+    $query_error = true;
+}
+
+try {
+    $summary = $this->log_model->summary_last_30_days();
+} catch ( \Throwable $e ) {
+    $summary = array(
+        'accept_all'    => 0,
+        'reject_all'    => 0,
+        'consent'       => 0,
+        'reset'         => 0,
+        'revision_bump' => 0,
+    );
+    $query_error = true;
+}
+
+$pages = (int) ceil( max( 0, (int) $total ) / max( 1, (int) $per_page ) );
 
 $pagination_args = array(
 	'page' => 'fp-privacy-consent-log',
@@ -100,6 +125,10 @@ $export_url      = \add_query_arg( $export_args, \admin_url( 'admin-post.php' ) 
 <div class="wrap fp-privacy-consent-log">
 <h1><?php \esc_html_e( 'Consent log', 'fp-privacy' ); ?></h1>
 <p><?php \esc_html_e( 'Review consent events and export them for compliance.', 'fp-privacy' ); ?></p>
+
+<?php if ( ! empty( $query_error ) ) : ?>
+<div class="notice notice-error"><p><?php echo \esc_html__( 'There was a problem loading consent log data. The table may be missing or the database is temporarily unavailable. The view is still shown below so you can adjust filters or try again.', 'fp-privacy' ); ?></p></div>
+<?php endif; ?>
 
 <form method="get" class="fp-privacy-filters">
 <input type="hidden" name="page" value="fp-privacy-consent-log" />

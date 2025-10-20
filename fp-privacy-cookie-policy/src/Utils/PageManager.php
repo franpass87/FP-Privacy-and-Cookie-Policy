@@ -238,13 +238,31 @@ class PageManager implements PageManagerInterface {
 		$key  = 'privacy_policy' === $type ? 'privacy_policy_page_id' : 'cookie_policy_page_id';
 		$map  = isset( $pages[ $key ] ) && \is_array( $pages[ $key ] ) ? $pages[ $key ] : array();
 
+		// First try to get the page ID for the specific language
 		if ( ! empty( $map[ $lang ] ) ) {
 			return (int) $map[ $lang ];
 		}
 
+		// If no specific language page, try to get any page for this type
+		// but only if it's not the same as the other type
+		$other_key = 'privacy_policy' === $type ? 'cookie_policy_page_id' : 'privacy_policy_page_id';
+		$other_map = isset( $pages[ $other_key ] ) && \is_array( $pages[ $other_key ] ) ? $pages[ $other_key ] : array();
+		
 		foreach ( $map as $page_id ) {
 			if ( $page_id ) {
-				return (int) $page_id;
+				// Check if this page ID is not the same as any page in the other type
+				$is_duplicate = false;
+				foreach ( $other_map as $other_page_id ) {
+					if ( $page_id == $other_page_id ) {
+						$is_duplicate = true;
+						break;
+					}
+				}
+				
+				// Only return this page ID if it's not a duplicate
+				if ( ! $is_duplicate ) {
+					return (int) $page_id;
+				}
 			}
 		}
 
