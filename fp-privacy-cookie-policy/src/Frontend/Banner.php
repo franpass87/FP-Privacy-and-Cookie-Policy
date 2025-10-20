@@ -107,6 +107,10 @@ $this->state   = $state;
 
         \wp_register_script( $consent_handle, FP_PRIVACY_PLUGIN_URL . 'assets/js/consent-mode.js', array(), FP_PRIVACY_PLUGIN_VERSION, true );
 
+		// Propagate GPC enablement to the front-end so consent-mode.js can honor it client-side
+		$gpc_enabled = (bool) $this->options->get( 'gpc_enabled', false );
+		\wp_add_inline_script( $consent_handle, 'window.fpPrivacyEnableGPC=' . ( $gpc_enabled ? 'true' : 'false' ) . ';', 'before' );
+
         \wp_localize_script(
             $consent_handle,
             'FP_PRIVACY_DATA',
