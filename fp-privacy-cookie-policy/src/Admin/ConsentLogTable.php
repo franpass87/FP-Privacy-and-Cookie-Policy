@@ -17,6 +17,19 @@ use FP\Privacy\Utils\Options;
  */
 class ConsentLogTable {
 /**
+ * Events list.
+ *
+ * @var array<int, string>
+ */
+private $events = array( 'accept_all', 'reject_all', 'consent', 'reset', 'revision_bump' );
+
+/**
+ * Default per-page size.
+ *
+ * @var int
+ */
+private $default_per_page = 50;
+/**
  * Log model.
  *
  * @var LogModel
@@ -61,95 +74,30 @@ if ( ! \current_user_can( 'manage_options' ) ) {
 \wp_die( \esc_html__( 'Permission denied.', 'fp-privacy' ) );
 }
 
-$paged    = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1;
-$per_page = 50;
-$args     = array(
-'paged'    => $paged,
-'per_page' => $per_page,
-'event'    => isset( $_GET['event'] ) ? \sanitize_text_field( \wp_unslash( $_GET['event'] ) ) : '',
-'search'   => isset( $_GET['s'] ) ? \sanitize_text_field( \wp_unslash( $_GET['s'] ) ) : '',
-'from'     => isset( $_GET['from'] ) ? \sanitize_text_field( \wp_unslash( $_GET['from'] ) ) : '',
-'to'       => isset( $_GET['to'] ) ? \sanitize_text_field( \wp_unslash( $_GET['to'] ) ) : '',
-);
+$args = $this->get_request_args();
 
-// Defensive guards: avoid fatals if DB/table is missing or data is malformed.
-try {
-    $entries = $this->log_model->query( $args );
-} catch ( \Throwable $e ) {
-    $entries = array();
-    $query_error = true;
-}
+$data = $this->load_data_safe( $args );
+$paged = $args['paged'];
+$pages = (int) ceil( max( 0, (int) $data['total'] ) / max( 1, (int) $args['per_page'] ) );
 
-try {
-    $total = $this->log_model->count( $args );
-} catch ( \Throwable $e ) {
-    $total = 0;
-    $query_error = true;
-}
-
-try {
-    $summary = $this->log_model->summary_last_30_days();
-} catch ( \Throwable $e ) {
-    $summary = array(
-        'accept_all'    => 0,
-        'reject_all'    => 0,
-        'consent'       => 0,
-        'reset'         => 0,
-        'revision_bump' => 0,
-    );
-    $query_error = true;
-}
-
-$pages = (int) ceil( max( 0, (int) $total ) / max( 1, (int) $per_page ) );
-
-$pagination_args = array(
-	'page' => 'fp-privacy-consent-log',
-);
-
-$export_args = array(
-	'action'   => 'fp_privacy_export_csv',
-	'_wpnonce' => \wp_create_nonce( 'fp_privacy_export_csv' ),
-);
-
-foreach ( array( 'event' => 'event', 'search' => 's', 'from' => 'from', 'to' => 'to' ) as $key => $query_key ) {
-	if ( ! empty( $args[ $key ] ) ) {
-		$pagination_args[ $query_key ] = $args[ $key ];
-		$export_args[ $query_key ]      = $args[ $key ];
-	}
-}
-
-$pagination_base = \esc_url_raw( \add_query_arg( array_merge( $pagination_args, array( 'paged' => '%#%' ) ), \admin_url( 'admin.php' ) ) );
-$export_url      = \add_query_arg( $export_args, \admin_url( 'admin-post.php' ) );
+$urls = $this->build_urls( $args );
 
 ?>
 <div class="wrap fp-privacy-consent-log">
 <h1><?php \esc_html_e( 'Consent log', 'fp-privacy' ); ?></h1>
 <p><?php \esc_html_e( 'Review consent events and export them for compliance.', 'fp-privacy' ); ?></p>
 
-<?php if ( ! empty( $query_error ) ) : ?>
+<?php if ( ! empty( $data['error'] ) ) : ?>
 <div class="notice notice-error"><p><?php echo \esc_html__( 'There was a problem loading consent log data. The table may be missing or the database is temporarily unavailable. The view is still shown below so you can adjust filters or try again.', 'fp-privacy' ); ?></p></div>
 <?php endif; ?>
 
-<form method="get" class="fp-privacy-filters">
-<input type="hidden" name="page" value="fp-privacy-consent-log" />
-<input type="search" name="s" value="<?php echo \esc_attr( $args['search'] ); ?>" placeholder="<?php \esc_attr_e( 'Search by ID, user agent or language', 'fp-privacy' ); ?>" />
-<select name="event">
-<option value=""><?php \esc_html_e( 'All events', 'fp-privacy' ); ?></option>
-<?php foreach ( array( 'accept_all', 'reject_all', 'consent', 'reset', 'revision_bump' ) as $event ) : ?>
-<option value="<?php echo \esc_attr( $event ); ?>" <?php\selected( $args['event'], $event ); ?>><?php echo \esc_html( ucfirst( str_replace( '_', ' ', $event ) ) ); ?></option>
-<?php endforeach; ?>
-</select>
-<label><?php \esc_html_e( 'From', 'fp-privacy' ); ?> <input type="date" name="from" value="<?php echo \esc_attr( $args['from'] ); ?>" /></label>
-<label><?php \esc_html_e( 'To', 'fp-privacy' ); ?> <input type="date" name="to" value="<?php echo \esc_attr( $args['to'] ); ?>" /></label>
-<button type="submit" class="button"><?php \esc_html_e( 'Filter', 'fp-privacy' ); ?></button>
-<a href="<?php echo \esc_url( $export_url ); ?>" class="button button-secondary"><?php \esc_html_e( 'Export CSV', 'fp-privacy' ); ?></a>
-</form>
+<?php $this->render_filters( $args, $urls['export'] ); ?>
 
 <div class="fp-privacy-summary">
 <h2><?php \esc_html_e( 'Last 30 days overview', 'fp-privacy' ); ?></h2>
 <ul>
-<?php foreach ( $summary as $event => $count ) : ?>
-<li><strong><?php echo \esc_html( ucfirst( str_replace( '_', ' ', $event ) ) ); ?>:</strong> <?php echo (int) $count; ?></li>
+<?php foreach ( $data['summary'] as $event => $count ) : ?>
+<li><strong><?php echo \esc_html( $this->event_label( $event ) ); ?>:</strong> <?php echo (int) $count; ?></li>
 <?php endforeach; ?>
 </ul>
 </div>
@@ -167,13 +115,13 @@ $export_url      = \add_query_arg( $export_args, \admin_url( 'admin-post.php' ) 
 </tr>
 </thead>
 <tbody>
-<?php if ( empty( $entries ) ) : ?>
+<?php if ( empty( $data['entries'] ) ) : ?>
 <tr><td colspan="7"><?php \esc_html_e( 'No entries found.', 'fp-privacy' ); ?></td></tr>
 <?php else : ?>
-<?php foreach ( $entries as $entry ) : ?>
+<?php foreach ( $data['entries'] as $entry ) : ?>
 <tr>
 <td><?php echo \esc_html( \mysql2date( \get_option( 'date_format' ) . ' ' . \get_option( 'time_format' ), $entry['created_at'] ) ); ?></td>
-<td><span class="fp-privacy-event fp-privacy-event-<?php echo \esc_attr( $entry['event'] ); ?>"><?php echo \esc_html( ucfirst( str_replace( '_', ' ', $entry['event'] ) ) ); ?></span></td>
+<td><span class="fp-privacy-event fp-privacy-event-<?php echo \esc_attr( $entry['event'] ); ?>"><?php echo \esc_html( $this->event_label( $entry['event'] ) ); ?></span></td>
 <td><?php echo \esc_html( $entry['consent_id'] ); ?></td>
 <td><?php echo \esc_html( $entry['lang'] ); ?></td>
 <td><?php echo (int) $entry['rev']; ?></td>
@@ -191,7 +139,7 @@ $export_url      = \add_query_arg( $export_args, \admin_url( 'admin-post.php' ) 
 <?php echo \paginate_links( array(
 'current' => $paged,
 'total'   => $pages,
-'base'    => $pagination_base,
+'base'    => $urls['pagination_base'],
 'format'  => '',
 ) ); ?>
 </div>
@@ -313,5 +261,147 @@ public function handle_export_csv() {
         $cut = max( 0, $width - strlen( $ellipsis ) );
 
         return substr( $ua, 0, $cut ) . $ellipsis;
+    }
+
+    /**
+     * Parse request args with sanitization.
+     *
+     * @return array<string, mixed>
+     */
+    private function get_request_args() {
+        $paged = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1;
+        $per_page = $this->default_per_page;
+
+        return array(
+            'paged'    => $paged,
+            'per_page' => $per_page,
+            'event'    => isset( $_GET['event'] ) ? \sanitize_text_field( \wp_unslash( $_GET['event'] ) ) : '',
+            'search'   => isset( $_GET['s'] ) ? \sanitize_text_field( \wp_unslash( $_GET['s'] ) ) : '',
+            'from'     => isset( $_GET['from'] ) ? \sanitize_text_field( \wp_unslash( $_GET['from'] ) ) : '',
+            'to'       => isset( $_GET['to'] ) ? \sanitize_text_field( \wp_unslash( $_GET['to'] ) ) : '',
+        );
+    }
+
+    /**
+     * Load data with defensive guards.
+     *
+     * @param array<string, mixed> $args Args.
+     *
+     * @return array<string, mixed>
+     */
+    private function load_data_safe( array $args ) {
+        $error = false;
+
+        try {
+            $entries = $this->log_model->query( $args );
+        } catch ( \Throwable $e ) {
+            $entries = array();
+            $error = true;
+        }
+
+        try {
+            $total = $this->log_model->count( $args );
+        } catch ( \Throwable $e ) {
+            $total = 0;
+            $error = true;
+        }
+
+        try {
+            $summary = $this->log_model->summary_last_30_days();
+        } catch ( \Throwable $e ) {
+            $summary = array(
+                'accept_all'    => 0,
+                'reject_all'    => 0,
+                'consent'       => 0,
+                'reset'         => 0,
+                'revision_bump' => 0,
+            );
+            $error = true;
+        }
+
+        return array(
+            'entries' => $entries,
+            'total'   => $total,
+            'summary' => $summary,
+            'error'   => $error,
+        );
+    }
+
+    /**
+     * Build export and pagination URLs preserving filters.
+     *
+     * @param array<string, mixed> $args Args.
+     *
+     * @return array{export:string,pagination_base:string}
+     */
+    private function build_urls( array $args ) {
+        $pagination_args = array(
+            'page' => 'fp-privacy-consent-log',
+        );
+
+        $export_args = array(
+            'action'   => 'fp_privacy_export_csv',
+            '_wpnonce' => \wp_create_nonce( 'fp_privacy_export_csv' ),
+        );
+
+        foreach ( array( 'event' => 'event', 'search' => 's', 'from' => 'from', 'to' => 'to' ) as $key => $query_key ) {
+            if ( ! empty( $args[ $key ] ) ) {
+                $pagination_args[ $query_key ] = $args[ $key ];
+                $export_args[ $query_key ]      = $args[ $key ];
+            }
+        }
+
+        $pagination_base = \esc_url_raw( \add_query_arg( array_merge( $pagination_args, array( 'paged' => '%#%' ) ), \admin_url( 'admin.php' ) ) );
+        $export_url      = \add_query_arg( $export_args, \admin_url( 'admin-post.php' ) );
+
+        return array(
+            'export' => $export_url,
+            'pagination_base' => $pagination_base,
+        );
+    }
+
+    /**
+     * Render filters form.
+     *
+     * @param array<string, mixed> $args Args.
+     * @param string               $export_url Export URL.
+     *
+     * @return void
+     */
+    private function render_filters( array $args, $export_url ) {
+        ?>
+<form method="get" class="fp-privacy-filters">
+<input type="hidden" name="page" value="fp-privacy-consent-log" />
+<input type="search" name="s" value="<?php echo \esc_attr( $args['search'] ); ?>" placeholder="<?php \esc_attr_e( 'Search by ID, user agent or language', 'fp-privacy' ); ?>" />
+<select name="event">
+<option value=""><?php \esc_html_e( 'All events', 'fp-privacy' ); ?></option>
+<?php foreach ( $this->events as $event ) : ?>
+<option value="<?php echo \esc_attr( $event ); ?>" <?php\selected( $args['event'], $event ); ?>><?php echo \esc_html( $this->event_label( $event ) ); ?></option>
+<?php endforeach; ?>
+</select>
+<label><?php \esc_html_e( 'From', 'fp-privacy' ); ?> <input type="date" name="from" value="<?php echo \esc_attr( $args['from'] ); ?>" /></label>
+<label><?php \esc_html_e( 'To', 'fp-privacy' ); ?> <input type="date" name="to" value="<?php echo \esc_attr( $args['to'] ); ?>" /></label>
+<button type="submit" class="button"><?php \esc_html_e( 'Filter', 'fp-privacy' ); ?></button>
+<a href="<?php echo \esc_url( $export_url ); ?>" class="button button-secondary"><?php \esc_html_e( 'Export CSV', 'fp-privacy' ); ?></a>
+</form>
+<?php
+    }
+
+    /**
+     * Human label for event key.
+     *
+     * @param string $event Event key.
+     *
+     * @return string
+     */
+    private function event_label( $event ) {
+        $event = (string) $event;
+        $label = str_replace( '_', ' ', $event );
+
+        if ( function_exists( 'mb_convert_case' ) ) {
+            return mb_convert_case( $label, MB_CASE_TITLE, 'UTF-8' );
+        }
+
+        return ucfirst( $label );
     }
 }
