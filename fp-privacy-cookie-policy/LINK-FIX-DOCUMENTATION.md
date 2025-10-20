@@ -78,3 +78,4 @@ Una volta verificato che tutto funziona correttamente, puoi rimuovere i messaggi
 - Il debug è condizionale e si attiva solo quando `WP_DEBUG` è abilitato
 - La logica di fallback è stata migliorata ma non rimossa completamente
 - Le modifiche sono backward-compatible
+

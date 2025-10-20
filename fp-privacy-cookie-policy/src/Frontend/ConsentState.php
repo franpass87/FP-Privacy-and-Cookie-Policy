@@ -86,8 +86,10 @@ $this->log_model = $log_model;
         $categories = $this->options->get_categories_for_language( $normalized );
         
         // Get policy page URLs
-        $privacy_page_id = $this->options->get_page_id( 'privacy_policy_page_id', $normalized );
-        $cookie_page_id = $this->options->get_page_id( 'cookie_policy_page_id', $normalized );
+        // NOTE: Options::get_page_id expects 'privacy_policy' or 'cookie_policy' as type.
+        // Passing the *_page_id keys would cause both to resolve to the cookie policy.
+        $privacy_page_id = $this->options->get_page_id( 'privacy_policy', $normalized );
+        $cookie_page_id  = $this->options->get_page_id( 'cookie_policy', $normalized );
         
         // Ensure we have valid page IDs and they are different
         $privacy_url = '';
