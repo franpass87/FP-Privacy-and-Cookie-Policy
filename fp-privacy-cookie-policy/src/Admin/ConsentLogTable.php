@@ -376,7 +376,7 @@ public function handle_export_csv() {
 <select name="event">
 <option value=""><?php \esc_html_e( 'All events', 'fp-privacy' ); ?></option>
 <?php foreach ( $this->events as $event ) : ?>
-<option value="<?php echo \esc_attr( $event ); ?>" <?php\selected( $args['event'], $event ); ?>><?php echo \esc_html( $this->event_label( $event ) ); ?></option>
+<option value="<?php echo \esc_attr( $event ); ?>" <?php selected( $args['event'], $event ); ?>><?php echo \esc_html( $this->event_label( $event ) ); ?></option>
 <?php endforeach; ?>
 </select>
 <label><?php \esc_html_e( 'From', 'fp-privacy' ); ?> <input type="date" name="from" value="<?php echo \esc_attr( $args['from'] ); ?>" /></label>
