@@ -95,7 +95,7 @@ array(
 'fp-privacy/v1',
 '/consent',
 array(
-'permission_callback' => '__return_true',
+'permission_callback' => array( $this, 'check_consent_permission' ),
 'methods'             => 'POST',
 'callback'            => array( $this, 'post_consent' ),
 )
@@ -138,10 +138,8 @@ return new WP_REST_Response( $data, 200 );
  * @return WP_REST_Response|WP_Error
  */
 public function post_consent( WP_REST_Request $request ) {
-        $nonce = $request->get_header( 'X-WP-Nonce' );
-        if ( ! $nonce || ! \wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-            return $this->rest_nonce_error();
-        }
+        // Nonce validation is now handled by check_consent_permission
+        // This allows same-origin requests without nonce for better compatibility
 
 $ip      = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : ''; // for rate limiting only.
 $salt    = function_exists( '\fp_privacy_get_ip_salt' ) ? \fp_privacy_get_ip_salt() : 'fp-privacy-cookie-policy-salt';
@@ -183,6 +181,42 @@ $states = array();
         $this->options->set( $this->options->all() );
 
         return new WP_REST_Response( array( 'revision' => $this->options->get( 'consent_revision' ) ), 200 );
+    }
+
+    /**
+     * Check permission for consent endpoint.
+     * Allows consent requests without nonce for public access.
+     *
+     * @param WP_REST_Request $request Request.
+     * @return bool|WP_Error
+     */
+    public function check_consent_permission( $request ) {
+        // Allow consent requests from same origin without nonce
+        $origin = $request->get_header( 'Origin' );
+        $referer = $request->get_header( 'Referer' );
+        $site_url = \home_url();
+        
+        // Check if request is from same origin
+        if ( $origin && \strpos( $origin, \parse_url( $site_url, PHP_URL_HOST ) ) !== false ) {
+            return true;
+        }
+        
+        if ( $referer && \strpos( $referer, \parse_url( $site_url, PHP_URL_HOST ) ) !== false ) {
+            return true;
+        }
+        
+        // Fallback: check nonce if provided
+        $nonce = $request->get_header( 'X-WP-Nonce' );
+        if ( $nonce && \wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+            return true;
+        }
+        
+        // Allow for localhost/development
+        if ( \in_array( \parse_url( $site_url, PHP_URL_HOST ), array( 'localhost', '127.0.0.1' ), true ) ) {
+            return true;
+        }
+        
+        return new \WP_Error( 'fp_privacy_consent_permission_denied', \__( 'Consent request not allowed from this origin.', 'fp-privacy' ), array( 'status' => 403 ) );
     }
 
     /**

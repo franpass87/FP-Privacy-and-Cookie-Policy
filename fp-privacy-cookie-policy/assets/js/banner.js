@@ -1026,8 +1026,14 @@ function persistConsent( event, payload ) {
     };
 
     if ( state.preview_mode || ! rest.url ) {
+        debugTiming( 'Preview mode or no REST URL, using local success' );
         markSuccess( { consent_id: consentId } );
         return;
+    }
+    
+    // If no nonce is available, try without it (for same-origin requests)
+    if ( ! rest.nonce ) {
+        debugTiming( 'No nonce available, attempting request without nonce' );
     }
 
     var requestBody = JSON.stringify( {
@@ -1040,13 +1046,20 @@ function persistConsent( event, payload ) {
     var sendConsentRequest = function ( retry ) {
         debugTiming( 'sendConsentRequest called with retry: ' + retry + ', nonce: ' + rest.nonce );
         
+        // Prepare headers
+        var headers = {
+            'Content-Type': 'application/json',
+        };
+        
+        // Only add nonce if available
+        if ( rest.nonce ) {
+            headers['X-WP-Nonce'] = rest.nonce;
+        }
+        
         if ( typeof window.fetch === 'function' ) {
             return window.fetch( rest.url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-WP-Nonce': rest.nonce,
-                },
+                headers: headers,
                 credentials: 'same-origin',
                 body: requestBody,
             } ).then( function ( response ) {
