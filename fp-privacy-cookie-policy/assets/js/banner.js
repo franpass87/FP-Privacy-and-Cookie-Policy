@@ -908,12 +908,17 @@ function mapToConsentMode( payload ) {
 }
 
 function setButtonsLoading( isLoading ) {
+    debugTiming( 'setButtonsLoading called with isLoading: ' + isLoading );
     var buttons = document.querySelectorAll( '.fp-privacy-button' );
+    debugTiming( 'Found ' + buttons.length + ' buttons to update' );
+    
     for ( var i = 0; i < buttons.length; i++ ) {
         if ( isLoading ) {
+            debugTiming( 'Setting button ' + i + ' to loading state' );
             buttons[ i ].classList.add( 'fp-loading' );
             buttons[ i ].disabled = true;
         } else {
+            debugTiming( 'Removing loading state from button ' + i );
             buttons[ i ].classList.remove( 'fp-loading' );
             buttons[ i ].disabled = false;
         }
@@ -930,15 +935,19 @@ checkboxes[ i ].checked = true;
 }
 
 function handleAcceptAll() {
-setButtonsLoading( true );
-var payload = buildConsentPayload( true, false );
-persistConsent( 'accept_all', payload );
+    debugTiming( 'handleAcceptAll called' );
+    setButtonsLoading( true );
+    var payload = buildConsentPayload( true, false );
+    debugTiming( 'Payload built, calling persistConsent' );
+    persistConsent( 'accept_all', payload );
 }
 
 function handleRejectAll() {
-setButtonsLoading( true );
-var payload = buildConsentPayload( false, true );
-persistConsent( 'reject_all', payload );
+    debugTiming( 'handleRejectAll called' );
+    setButtonsLoading( true );
+    var payload = buildConsentPayload( false, true );
+    debugTiming( 'Payload built, calling persistConsent' );
+    persistConsent( 'reject_all', payload );
 }
 
 function handleSavePreferences() {
@@ -986,6 +995,7 @@ function persistConsent( event, payload ) {
     var lang = state.lang || ( data.options.state ? data.options.state.lang : '' ) || document.documentElement.lang || 'en';
 
     var markSuccess = function ( result ) {
+        debugTiming( 'markSuccess called' );
         setButtonsLoading( false );
         
         if ( typeof handleConsentResponse === 'function' ) {
@@ -1009,6 +1019,7 @@ function persistConsent( event, payload ) {
     };
 
     var handleFailure = function () {
+        debugTiming( 'handleFailure called' );
         setButtonsLoading( false );
         state.should_display = true;
         showBanner();
@@ -1027,6 +1038,8 @@ function persistConsent( event, payload ) {
     } );
 
     var sendConsentRequest = function ( retry ) {
+        debugTiming( 'sendConsentRequest called with retry: ' + retry + ', nonce: ' + rest.nonce );
+        
         if ( typeof window.fetch === 'function' ) {
             return window.fetch( rest.url, {
                 method: 'POST',
@@ -1037,6 +1050,7 @@ function persistConsent( event, payload ) {
                 credentials: 'same-origin',
                 body: requestBody,
             } ).then( function ( response ) {
+                debugTiming( 'Fetch response status: ' + response.status );
                 if ( response && response.ok ) {
                     return response.json().catch( function () {
                         return { consent_id: consentId };
@@ -1044,28 +1058,35 @@ function persistConsent( event, payload ) {
                 }
 
                 if ( ! retry && response && response.status === 403 ) {
+                    debugTiming( 'Received 403, attempting to refresh nonce' );
                     return response
                         .json()
                         .then( function ( payload ) {
+                            debugTiming( '403 response payload: ' + JSON.stringify( payload ) );
                             var nextNonce = payload && payload.data ? payload.data.refresh_nonce : undefined;
 
                             if ( nextNonce ) {
+                                debugTiming( 'Got new nonce, retrying request' );
                                 rest.nonce = nextNonce;
                                 return sendConsentRequest( true );
                             }
 
+                            debugTiming( 'No refresh nonce available, failing' );
                             throw new Error( 'consent_request_failed' );
                         } )
-                        .catch( function () {
+                        .catch( function ( error ) {
+                            debugTiming( 'Error parsing 403 response: ' + error.message );
                             throw new Error( 'consent_request_failed' );
                         } );
                 }
 
+                debugTiming( 'Fetch request failed with status: ' + response.status );
                 throw new Error( 'consent_request_failed' );
             } );
         }
 
         return new Promise( function ( resolve, reject ) {
+            debugTiming( 'Using XMLHttpRequest fallback with nonce: ' + rest.nonce );
             var xhr = new XMLHttpRequest();
             xhr.open( 'POST', rest.url, true );
             xhr.withCredentials = true;
@@ -1079,6 +1100,7 @@ function persistConsent( event, payload ) {
                 }
 
                 if ( xhr.status >= 200 && xhr.status < 300 ) {
+                    debugTiming( 'XHR request successful with status: ' + xhr.status );
                     var result = { consent_id: consentId };
 
                     try {
@@ -1086,7 +1108,9 @@ function persistConsent( event, payload ) {
                         if ( parsed && typeof parsed === 'object' ) {
                             result = parsed;
                         }
+                        debugTiming( 'XHR parsed response: ' + JSON.stringify( result ) );
                     } catch ( error ) {
+                        debugTiming( 'XHR JSON parse error: ' + error.message );
                         // Ignore malformed JSON responses.
                     }
 
@@ -1095,20 +1119,26 @@ function persistConsent( event, payload ) {
                 }
 
                 if ( ! retry && xhr.status === 403 ) {
+                    debugTiming( 'XHR received 403, attempting to refresh nonce' );
                     try {
                         var payload = JSON.parse( xhr.responseText );
+                        debugTiming( 'XHR 403 response payload: ' + JSON.stringify( payload ) );
                         var refresh = payload && payload.data ? payload.data.refresh_nonce : undefined;
 
                         if ( refresh ) {
+                            debugTiming( 'XHR got new nonce, retrying request' );
                             rest.nonce = refresh;
                             sendConsentRequest( true ).then( resolve ).catch( reject );
                             return;
                         }
+                        debugTiming( 'XHR no refresh nonce available' );
                     } catch ( error ) {
+                        debugTiming( 'XHR error parsing 403 response: ' + error.message );
                         // Ignore JSON parsing issues so the failure can bubble up.
                     }
                 }
 
+                debugTiming( 'XHR request failed with status: ' + xhr.status );
                 reject( new Error( 'consent_request_failed' ) );
             };
             xhr.send( requestBody );
@@ -1117,7 +1147,8 @@ function persistConsent( event, payload ) {
 
     sendConsentRequest( false )
         .then( markSuccess )
-        .catch( function () {
+        .catch( function ( error ) {
+            debugTiming( 'sendConsentRequest failed: ' + error.message );
             handleFailure();
         } );
 }
