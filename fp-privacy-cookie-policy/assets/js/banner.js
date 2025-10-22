@@ -23,7 +23,15 @@ function createCustomEvent( name, detail ) {
 
 var data = window.FP_PRIVACY_DATA;
 if ( ! data ) {
-return;
+    console.warn( 'FP Privacy: FP_PRIVACY_DATA not found' );
+    return;
+}
+
+// Debug function for timing issues
+function debugTiming( message ) {
+    if ( typeof console !== 'undefined' && console.log ) {
+        console.log( 'FP Privacy Debug: ' + message + ' (readyState: ' + document.readyState + ')' );
+    }
 }
 
 var root = document.querySelector( '[data-fp-privacy-banner]' );
@@ -350,6 +358,16 @@ function handleExternalOpeners( event ) {
 
             if ( ! banner ) {
                 initializeBanner();
+                // Wait for banner to be initialized before opening modal
+                var checkBanner = function() {
+                    if ( banner ) {
+                        openModal();
+                    } else {
+                        setTimeout( checkBanner, 10 );
+                    }
+                };
+                checkBanner();
+                return;
             }
 
             openModal();
@@ -393,30 +411,63 @@ var banner;
 var revisionNotice;
 var preferencesButton = null;
 
-if ( document.readyState === 'loading' ) {
-    document.addEventListener( 'DOMContentLoaded', function () {
-        restoreBlockedNodes( state.categories || {} );
-        startPlaceholderObserver();
-    } );
-    document.addEventListener( 'DOMContentLoaded', initializeBanner );
-} else {
-    restoreBlockedNodes( state.categories || {} );
-    startPlaceholderObserver();
-    initializeBanner();
+// Improved DOM ready handling with retry logic
+function ensureDOMReady() {
+    debugTiming( 'Starting DOM ready check' );
+    
+    if ( document.readyState === 'loading' ) {
+        debugTiming( 'DOM still loading, waiting for DOMContentLoaded' );
+        document.addEventListener( 'DOMContentLoaded', function () {
+            debugTiming( 'DOMContentLoaded fired' );
+            restoreBlockedNodes( state.categories || {} );
+            startPlaceholderObserver();
+            initializeBanner();
+        } );
+    } else {
+        debugTiming( 'DOM already ready, initializing with timeout' );
+        // DOM is already ready, but ensure elements exist
+        setTimeout(function() {
+            debugTiming( 'Timeout executed, initializing banner' );
+            restoreBlockedNodes( state.categories || {} );
+            startPlaceholderObserver();
+            initializeBanner();
+        }, 0);
+    }
 }
 
+ensureDOMReady();
+
 function initializeBanner() {
+    debugTiming( 'initializeBanner called' );
+    
     if ( banner ) {
+        debugTiming( 'Banner already exists, returning' );
         return;
     }
 
+    // Ensure root element exists before building banner
+    var root = document.querySelector( '[data-fp-privacy-banner]' );
+    if ( ! root ) {
+        root = document.getElementById( 'fp-privacy-banner-root' );
+    }
+    
+    if ( ! root ) {
+        debugTiming( 'Root element not found, retrying in 50ms' );
+        // Retry after a short delay if root element is not found
+        setTimeout( initializeBanner, 50 );
+        return;
+    }
+
+    debugTiming( 'Root element found, building banner' );
     buildBanner();
     refreshExternalOpeners();
     updateOpenersExpanded( false );
 
     if ( state.should_display || forceDisplay ) {
+        debugTiming( 'Showing banner' );
         showBanner();
     } else {
+        debugTiming( 'Hiding banner' );
         hideBanner();
     }
 }
@@ -491,14 +542,20 @@ var buttons = document.createElement( 'div' );
 buttons.className = 'fp-privacy-banner-buttons';
 
 var accept = createButton( texts.btn_accept, 'fp-privacy-button fp-privacy-button-primary' );
-accept.addEventListener( 'click', function () {
-handleAcceptAll();
+accept.addEventListener( 'click', function ( event ) {
+    debugTiming( 'Accept button clicked' );
+    event.preventDefault();
+    event.stopPropagation();
+    handleAcceptAll();
 });
 buttons.appendChild( accept );
 
 var reject = createButton( texts.btn_reject, 'fp-privacy-button fp-privacy-button-primary' );
-reject.addEventListener( 'click', function () {
-handleRejectAll();
+reject.addEventListener( 'click', function ( event ) {
+    debugTiming( 'Reject button clicked' );
+    event.preventDefault();
+    event.stopPropagation();
+    handleRejectAll();
 });
 buttons.appendChild( reject );
 
@@ -508,8 +565,10 @@ prefs.setAttribute( 'aria-expanded', 'false' );
 prefs.setAttribute( 'aria-haspopup', 'dialog' );
 prefs.setAttribute( 'data-fp-privacy-open', 'true' );
 prefs.addEventListener( 'click', function ( event ) {
-event.preventDefault();
-openModal();
+    debugTiming( 'Preferences button clicked' );
+    event.preventDefault();
+    event.stopPropagation();
+    openModal();
 } );
 buttons.appendChild( prefs );
 
@@ -550,7 +609,11 @@ close.type = 'button';
 close.className = 'close';
     close.setAttribute( 'aria-label', texts.modal_close || texts.btn_prefs || '' );
 close.innerHTML = '&times;';
-close.addEventListener( 'click', closeModal );
+close.addEventListener( 'click', function( event ) {
+    event.preventDefault();
+    event.stopPropagation();
+    closeModal();
+});
 modal.appendChild( close );
 
 var heading = document.createElement( 'h2' );
@@ -648,14 +711,20 @@ actions.className = 'fp-privacy-modal-actions';
 
     var saveLabel = texts.modal_save || texts.btn_prefs || '';
     var save = createButton( saveLabel, 'fp-privacy-button fp-privacy-button-primary' );
-save.addEventListener( 'click', handleSavePreferences );
+save.addEventListener( 'click', function( event ) {
+    event.preventDefault();
+    event.stopPropagation();
+    handleSavePreferences();
+});
 actions.appendChild( save );
 
 var acceptAll = createButton( texts.btn_accept, 'fp-privacy-button fp-privacy-button-secondary' );
-acceptAll.addEventListener( 'click', function () {
-enableAllToggles();
-handleAcceptAll();
-closeModal();
+acceptAll.addEventListener( 'click', function ( event ) {
+    event.preventDefault();
+    event.stopPropagation();
+    enableAllToggles();
+    handleAcceptAll();
+    closeModal();
 });
 actions.appendChild( acceptAll );
 
@@ -664,9 +733,11 @@ modalOverlay.appendChild( modal );
 document.body.appendChild( modalOverlay );
 
 modalOverlay.addEventListener( 'click', function ( event ) {
-if ( event.target === modalOverlay ) {
-closeModal();
-}
+    if ( event.target === modalOverlay ) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeModal();
+    }
 });
 
 document.addEventListener( 'keydown', handleModalKeydown );
@@ -714,6 +785,7 @@ function buildReopenButton() {
 
     reopenButton.addEventListener( 'click', function ( event ) {
         event.preventDefault();
+        event.stopPropagation();
         openModal();
     } );
 

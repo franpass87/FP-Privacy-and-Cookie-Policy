@@ -105,7 +105,7 @@ $this->state   = $state;
         $consent_handle = 'fp-privacy-consent-mode';
         $banner_handle  = 'fp-privacy-banner';
 
-        \wp_register_script( $consent_handle, FP_PRIVACY_PLUGIN_URL . 'assets/js/consent-mode.js', array(), FP_PRIVACY_PLUGIN_VERSION, true );
+        \wp_register_script( $consent_handle, FP_PRIVACY_PLUGIN_URL . 'assets/js/consent-mode.js', array(), FP_PRIVACY_PLUGIN_VERSION, false );
 
 		// Propagate GPC enablement to the front-end so consent-mode.js can honor it client-side
 		$gpc_enabled = (bool) $this->options->get( 'gpc_enabled', false );
@@ -130,6 +130,14 @@ $this->state   = $state;
         );
 
         \wp_enqueue_script( $consent_handle );
+        
+        // Add script loading optimization
+        \add_filter( 'script_loader_tag', function( $tag, $handle, $src ) use ( $consent_handle, $banner_handle ) {
+            if ( $handle === $consent_handle || $handle === $banner_handle ) {
+                return str_replace( '<script ', '<script defer ', $tag );
+            }
+            return $tag;
+        }, 10, 3 );
 
         if ( ! $should && ! $preview && ! $shortcode ) {
             $bootstrap = "(function(){try{var data=window.FP_PRIVACY_DATA;if(!data||!data.options){return;}var state=data.options.state||{};if(state.should_display||state.preview_mode){return;}var consent=window.fpPrivacyConsent;if(!consent||typeof consent.update!==\"function\"){return;}var mapper=typeof consent.mapBannerPayload===\"function\"?consent.mapBannerPayload:null;var categories=state.categories||{};var defaults=(data.options.mode)||{};if(mapper){var payload=mapper(categories,{defaults:defaults});if(payload){consent.update(payload);}}}catch(e){}})();";
@@ -140,7 +148,7 @@ $this->state   = $state;
         }
 
         \wp_register_style( $banner_handle, FP_PRIVACY_PLUGIN_URL . 'assets/css/banner.css', array(), FP_PRIVACY_PLUGIN_VERSION );
-        \wp_register_script( $banner_handle, FP_PRIVACY_PLUGIN_URL . 'assets/js/banner.js', array( $consent_handle ), FP_PRIVACY_PLUGIN_VERSION, true );
+        \wp_register_script( $banner_handle, FP_PRIVACY_PLUGIN_URL . 'assets/js/banner.js', array( $consent_handle ), FP_PRIVACY_PLUGIN_VERSION, false );
 
         \wp_enqueue_style( $banner_handle );
         \wp_add_inline_style(
