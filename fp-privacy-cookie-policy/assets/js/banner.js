@@ -27,6 +27,102 @@ if ( ! data ) {
     return;
 }
 
+// Auto-detect user language from browser
+function detectUserLanguage() {
+    // First, try to get from WordPress locale if available
+    if ( data.options && data.options.state && data.options.state.lang ) {
+        return data.options.state.lang;
+    }
+    
+    // Try to detect from browser language
+    var browserLang = navigator.language || navigator.userLanguage || 'en';
+    
+    // Check for Italian
+    if ( browserLang.indexOf( 'it' ) === 0 ) {
+        return 'it_IT';
+    }
+    
+    // Check for English
+    if ( browserLang.indexOf( 'en' ) === 0 ) {
+        return 'en_US';
+    }
+    
+    // Default to English
+    return 'en_US';
+}
+
+// Override language detection if not set
+if ( ! state.lang ) {
+    state.lang = detectUserLanguage();
+    debugTiming( 'Lingua utente rilevata: ' + state.lang );
+}
+
+// Update the language in the data object for consistency
+if ( data.options && data.options.state ) {
+    data.options.state.lang = state.lang;
+}
+
+// Force language detection for banner texts
+if ( data.options && data.options.texts ) {
+    // If we have Italian language, ensure we get Italian texts
+    if ( state.lang === 'it_IT' || state.lang.indexOf( 'it' ) === 0 ) {
+        debugTiming( 'Forzando testi italiani per lingua: ' + state.lang );
+    }
+    // If we have English language, ensure we get English texts
+    else if ( state.lang === 'en_US' || state.lang.indexOf( 'en' ) === 0 ) {
+        debugTiming( 'Forzando testi inglesi per lingua: ' + state.lang );
+    }
+}
+
+// Override texts with language-specific versions if needed
+if ( data.options && data.options.texts ) {
+    var currentTexts = data.options.texts;
+    
+    // If we have Italian language, use Italian texts
+    if ( state.lang === 'it_IT' || state.lang.indexOf( 'it' ) === 0 ) {
+        if ( ! currentTexts.title || currentTexts.title.indexOf( 'privacy' ) === -1 ) {
+            currentTexts.title = 'Rispettiamo la tua privacy';
+            currentTexts.message = 'Utilizziamo i cookie per migliorare la tua esperienza. Puoi accettare tutti i cookie o gestire le tue preferenze.';
+            currentTexts.btn_accept = 'Accetta tutti';
+            currentTexts.btn_reject = 'Rifiuta tutti';
+            currentTexts.btn_prefs = 'Gestisci preferenze';
+            currentTexts.modal_title = 'Preferenze privacy';
+            currentTexts.modal_close = 'Chiudi preferenze';
+            currentTexts.modal_save = 'Salva preferenze';
+            currentTexts.revision_notice = 'Abbiamo aggiornato la nostra policy. Rivedi le tue preferenze.';
+            currentTexts.toggle_locked = 'Sempre attivo';
+            currentTexts.toggle_enabled = 'Abilitato';
+            currentTexts.link_privacy_policy = 'Informativa sulla Privacy';
+            currentTexts.link_cookie_policy = 'Cookie Policy';
+            debugTiming( 'Testi italiani applicati' );
+        }
+    }
+    // If we have English language, use English texts
+    else if ( state.lang === 'en_US' || state.lang.indexOf( 'en' ) === 0 ) {
+        if ( ! currentTexts.title || currentTexts.title.indexOf( 'privacy' ) === -1 ) {
+            currentTexts.title = 'We respect your privacy';
+            currentTexts.message = 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.';
+            currentTexts.btn_accept = 'Accept all';
+            currentTexts.btn_reject = 'Reject all';
+            currentTexts.btn_prefs = 'Manage preferences';
+            currentTexts.modal_title = 'Privacy preferences';
+            currentTexts.modal_close = 'Close preferences';
+            currentTexts.modal_save = 'Save preferences';
+            currentTexts.revision_notice = 'We have updated our policy. Please review your preferences.';
+            currentTexts.toggle_locked = 'Always active';
+            currentTexts.toggle_enabled = 'Enabled';
+            currentTexts.link_privacy_policy = 'Privacy Policy';
+            currentTexts.link_cookie_policy = 'Cookie Policy';
+            debugTiming( 'Testi inglesi applicati' );
+        }
+    }
+}
+
+// Update the texts object reference
+if ( data.options && data.options.texts ) {
+    texts = data.options.texts;
+}
+
 // Debug function for timing issues
 function debugTiming( message ) {
     if ( typeof console !== 'undefined' && console.log ) {
@@ -463,12 +559,38 @@ function initializeBanner() {
     refreshExternalOpeners();
     updateOpenersExpanded( false );
 
+    // Verifica se c'è un cookie di consenso esistente
+    var existingConsentId = readConsentIdFromCookie();
+    if ( existingConsentId && ! state.consent_id ) {
+        state.consent_id = existingConsentId;
+        debugTiming( 'Consent ID recuperato dal cookie: ' + existingConsentId );
+        
+        // Verifica se la revisione è aggiornata
+        if ( state.last_revision && state.last_revision >= state.revision ) {
+            debugTiming( 'Revisione aggiornata, nascondendo banner' );
+            state.should_display = false;
+        }
+    }
+    
+    // Se abbiamo un consent ID ma il banner viene mostrato comunque, 
+    // significa che il consenso è già stato dato
+    if ( state.consent_id && state.should_display ) {
+        debugTiming( 'Consenso già dato, nascondendo banner' );
+        state.should_display = false;
+    }
+
     if ( state.should_display || forceDisplay ) {
         debugTiming( 'Showing banner' );
         showBanner();
     } else {
         debugTiming( 'Hiding banner' );
         hideBanner();
+    }
+    
+    // Se il consenso è già stato dato, ripristina i nodi bloccati
+    if ( ! state.should_display && state.categories ) {
+        debugTiming( 'Ripristinando nodi bloccati con consenso esistente' );
+        restoreBlockedNodes( state.categories );
     }
 }
 
@@ -1008,6 +1130,9 @@ function persistConsent( event, payload ) {
             state.consent_id = consentId;
         }
 
+        // Imposta il cookie del browser per persistenza
+        setConsentCookie( state.consent_id, state.revision );
+
         state.last_event = timestamp;
         state.categories = Object.assign( {}, payload );
         state.last_revision = state.revision;
@@ -1175,10 +1300,18 @@ function readConsentIdFromCookie() {
         if ( cookie.indexOf( name ) === 0 ) {
             var value = cookie.substring( name.length );
             var segments = value.split( '|' );
+            debugTiming( 'Cookie trovato: ' + value + ', ID: ' + ( segments[ 0 ] || '' ) + ', Rev: ' + ( segments[ 1 ] || '0' ) );
+            
+            // Aggiorna anche la revisione se presente
+            if ( segments[ 1 ] ) {
+                state.last_revision = parseInt( segments[ 1 ], 10 ) || 0;
+            }
+            
             return segments[ 0 ] || '';
         }
     }
 
+    debugTiming( 'Nessun cookie di consenso trovato' );
     return '';
 }
 
@@ -1214,6 +1347,40 @@ function generateConsentId() {
     }
 
     return 'fpconsent' + Math.random().toString( 36 ).slice( 2 ) + Date.now().toString( 36 );
+}
+
+function setConsentCookie( consentId, revision ) {
+    if ( ! consentId ) {
+        return;
+    }
+
+    var cookieName = consentCookie.name || 'fp_consent_state_id';
+    var days = consentCookie.duration || 180;
+    var expires = new Date();
+    expires.setTime( expires.getTime() + ( days * 24 * 60 * 60 * 1000 ) );
+    
+    var cookieValue = consentId + '|' + revision;
+    var cookieString = cookieName + '=' + cookieValue + '; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
+    
+    // Aggiungi secure se siamo su HTTPS
+    if ( window.location.protocol === 'https:' ) {
+        cookieString += '; Secure';
+    }
+    
+    // Aggiungi il dominio se necessario
+    var domain = window.location.hostname;
+    if ( domain && domain !== 'localhost' && ! domain.match( /^\d+\.\d+\.\d+\.\d+$/ ) ) {
+        // Per domini, usa solo il dominio principale
+        var domainParts = domain.split( '.' );
+        if ( domainParts.length > 1 ) {
+            var mainDomain = '.' + domainParts.slice( -2 ).join( '.' );
+            cookieString += '; domain=' + mainDomain;
+        }
+    }
+    
+    document.cookie = cookieString;
+    
+    debugTiming( 'Cookie impostato: ' + cookieString );
 }
 
 function updateRevisionNotice() {

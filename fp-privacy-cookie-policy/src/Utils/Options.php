@@ -765,6 +765,11 @@ class Options {
 	 * @return array<string, string>
 	 */
 	public function get_banner_text( $lang ) {
+		// Auto-detect user language if not specified
+		if ( empty( $lang ) ) {
+			$lang = $this->detect_user_language();
+		}
+		
 		// Always return translated texts in real-time to ensure proper localization
 		$languages = $this->get_languages();
 		$primary   = $languages[0] ?? 'en_US';
@@ -790,6 +795,28 @@ class Options {
 			
 			// Return hardcoded Italian translations
 			return $italian_translations;
+		}
+		
+		// If the requested language is English, use hardcoded English translations
+		if ( $requested === 'en_US' || $this->normalize_language( $requested ) === 'en_US' ) {
+			$english_translations = $this->get_hardcoded_english_translations();
+			
+			// Check if there are custom texts saved for this language
+			$texts = $this->options['banner_texts'];
+			if ( isset( $texts[ $requested ] ) && \is_array( $texts[ $requested ] ) ) {
+				// Merge custom texts with English translations (custom texts take priority)
+				return array_merge( $english_translations, $texts[ $requested ] );
+			}
+			
+			// Check normalized language
+			$normalized = $this->normalize_language( $requested );
+			if ( isset( $texts[ $normalized ] ) && \is_array( $texts[ $normalized ] ) && $normalized !== $requested ) {
+				// Merge with English translations
+				return array_merge( $english_translations, $texts[ $normalized ] );
+			}
+			
+			// Return hardcoded English translations
+			return $english_translations;
 		}
 		
 		// For other languages, use the normal translation system
@@ -919,6 +946,70 @@ class Options {
 			'link_privacy_policy' => 'Informativa sulla Privacy',
 			'link_cookie_policy'  => 'Cookie Policy',
 		);
+	}
+
+	/**
+	 * Get hardcoded English translations as fallback.
+	 * This ensures texts are always in English when the locale is English.
+	 *
+	 * @return array<string, string>
+	 */
+	private function get_hardcoded_english_translations() {
+		return array(
+			'title'              => 'We respect your privacy',
+			'message'            => 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.',
+			'btn_accept'         => 'Accept all',
+			'btn_reject'         => 'Reject all',
+			'btn_prefs'          => 'Manage preferences',
+			'modal_title'        => 'Privacy preferences',
+			'modal_close'        => 'Close preferences',
+			'modal_save'         => 'Save preferences',
+			'revision_notice'    => 'We have updated our policy. Please review your preferences.',
+			'toggle_locked'      => 'Always active',
+			'toggle_enabled'     => 'Enabled',
+			'debug_label'        => 'Debug cookie:',
+			'link_policy'        => '',
+			'link_privacy_policy' => 'Privacy Policy',
+			'link_cookie_policy'  => 'Cookie Policy',
+		);
+	}
+
+	/**
+	 * Detect user language from browser or WordPress locale.
+	 *
+	 * @return string
+	 */
+	public function detect_user_language() {
+		// First, try to get from WordPress locale
+		$wp_locale = function_exists( '\get_locale' ) ? \get_locale() : 'en_US';
+		
+		// If WordPress locale is Italian, return Italian
+		if ( $wp_locale === 'it_IT' || strpos( $wp_locale, 'it' ) === 0 ) {
+			return 'it_IT';
+		}
+		
+		// If WordPress locale is English, return English
+		if ( $wp_locale === 'en_US' || strpos( $wp_locale, 'en' ) === 0 ) {
+			return 'en_US';
+		}
+		
+		// Try to detect from browser headers
+		if ( isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
+			$browser_lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+			
+			// Check for Italian
+			if ( strpos( $browser_lang, 'it' ) !== false ) {
+				return 'it_IT';
+			}
+			
+			// Check for English
+			if ( strpos( $browser_lang, 'en' ) !== false ) {
+				return 'en_US';
+			}
+		}
+		
+		// Default to English
+		return 'en_US';
 	}
 
 	/**

@@ -55,6 +55,12 @@ $this->log_model = $log_model;
     public function get_frontend_state( $lang ) {
         $languages  = $this->options->get_languages();
         $primary    = $languages[0] ?? 'en_US';
+        
+        // Auto-detect user language if not specified
+        if ( empty( $lang ) ) {
+            $lang = $this->options->detect_user_language();
+        }
+        
         $requested  = Validator::locale( $lang, $primary );
         $normalized = $this->options->normalize_language( $requested );
         $cookie     = $this->get_cookie_payload();
