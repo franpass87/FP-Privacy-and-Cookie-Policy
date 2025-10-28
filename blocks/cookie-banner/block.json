@@ -1,0 +1,32 @@
+{
+    "apiVersion": 2,
+    "name": "fp-privacy/cookie-banner",
+    "title": "FP Cookie Banner",
+    "category": "widgets",
+    "icon": "megaphone",
+    "description": "Manually place the cookie banner in content.",
+    "textdomain": "fp-privacy",
+    "editorScript": "fp-privacy-cookie-banner-block-editor",
+    "editorStyle": "fp-privacy-cookie-banner-block-editor-style",
+    "supports": {
+        "html": false
+    },
+    "attributes": {
+        "layoutType": {
+            "type": "string",
+            "default": "floating"
+        },
+        "position": {
+            "type": "string",
+            "default": "bottom"
+        },
+        "lang": {
+            "type": "string",
+            "default": ""
+        },
+        "forceDisplay": {
+            "type": "boolean",
+            "default": false
+        }
+    }
+}

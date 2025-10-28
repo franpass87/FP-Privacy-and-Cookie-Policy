@@ -1,0 +1,66 @@
+{
+  "plugin": "fp-privacy-cookie-policy",
+  "version": "0.1.1",
+  "phase": "audit",
+  "progress_percent": 100,
+  "sections": {
+    "security": {
+      "done": true,
+      "score": 100
+    },
+    "performance": {
+      "done": true,
+      "score": 100
+    },
+    "multisite": {
+      "done": true,
+      "score": 100
+    },
+    "consent_mode": {
+      "done": true,
+      "score": 100
+    },
+    "data_layer_events": {
+      "done": true,
+      "score": 100
+    },
+    "db_schema_retention": {
+      "done": true,
+      "score": 100
+    },
+    "rest_api": {
+      "done": true,
+      "score": 100
+    },
+    "wp_cli": {
+      "done": true,
+      "score": 100
+    },
+    "i18n": {
+      "done": true,
+      "score": 100
+    },
+    "accessibility": {
+      "done": true,
+      "score": 100
+    },
+    "ux_admin": {
+      "done": true,
+      "score": 100
+    },
+    "frontend_banner": {
+      "done": true,
+      "score": 100
+    },
+    "detector_generator": {
+      "done": true,
+      "score": 100
+    },
+    "docs_ci_packaging": {
+      "done": true,
+      "score": 100
+    }
+  },
+  "last_updated": "2025-10-01T10:15:00Z",
+  "notes": "Release 0.1.1: documentazione e artefatti audit sincronizzati con gli hardening applicati."
+}

@@ -1,0 +1,147 @@
+═══════════════════════════════════════════════════════════════════════════════
+  GENERAZIONE AUTOMATICA PAGINE PRIVACY E COOKIE POLICY
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ IMPLEMENTAZIONE COMPLETATA!
+
+Il tuo plugin FP Privacy & Cookie Policy ora include un sistema completo per la
+generazione automatica delle pagine Privacy Policy e Cookie Policy.
+
+═══════════════════════════════════════════════════════════════════════════════
+  COME USARLO - 3 METODI DISPONIBILI
+═══════════════════════════════════════════════════════════════════════════════
+
+📌 METODO 1: WP-CLI (CONSIGLIATO) 
+────────────────────────────────────────────────────────────────────────────────
+# Genera per tutte le lingue
+wp fp-privacy generate-pages --all-languages
+
+# Genera solo per l'italiano
+wp fp-privacy generate-pages --lang=it_IT
+
+# Test senza salvare (consigliato la prima volta)
+wp fp-privacy generate-pages --dry-run
+
+
+📌 METODO 2: SCRIPT STANDALONE
+────────────────────────────────────────────────────────────────────────────────
+# Esegui dalla directory del plugin
+cd wp-content/plugins/fp-privacy-cookie-policy
+./bin/generate-policies.php --all-languages
+
+# Oppure con percorso completo
+php wp-content/plugins/fp-privacy-cookie-policy/bin/generate-policies.php --all-languages
+
+
+📌 METODO 3: INTERFACCIA ADMIN
+────────────────────────────────────────────────────────────────────────────────
+1. Vai su: WordPress Admin → Privacy & Cookie → Policy Editor
+2. Clicca: "Detect integrations and regenerate"
+3. Fatto!
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  COSA FA IL SISTEMA
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ Rileva automaticamente i servizi integrati sul sito:
+  - Google Analytics, Facebook Pixel, YouTube, ecc.
+
+✓ Crea le pagine se non esistono
+
+✓ Genera contenuto GDPR-compliant basato sui servizi rilevati
+
+✓ Aggiorna le pagine WordPress automaticamente
+
+✓ Salva uno snapshot dei servizi per riferimento futuro
+
+✓ Supporta multilingua
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  OPZIONI DISPONIBILI
+═══════════════════════════════════════════════════════════════════════════════
+
+--all-languages     Genera per tutte le lingue configurate
+--lang=it_IT        Genera solo per la lingua specificata
+--force             Forza la sovrascrittura (anche se modificate manualmente)
+--bump-revision     Incrementa la revisione del consenso
+--dry-run           Simula senza salvare (utile per test)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  ESEMPI PRATICI
+═══════════════════════════════════════════════════════════════════════════════
+
+➤ Prima installazione - Genera tutto
+  wp fp-privacy generate-pages --all-languages
+
+➤ Hai aggiunto un nuovo servizio - Rigenera e incrementa revisione
+  wp fp-privacy generate-pages --all-languages --bump-revision
+
+➤ Vuoi vedere cosa succederebbe - Test senza salvare
+  wp fp-privacy generate-pages --dry-run
+
+➤ Le pagine sono state modificate - Forza la sovrascrittura
+  wp fp-privacy generate-pages --force
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  DOCUMENTAZIONE DISPONIBILE
+═══════════════════════════════════════════════════════════════════════════════
+
+📖 Quick Start:          QUICK-START-GENERAZIONE.md
+📖 Guida Completa:       docs/GENERAZIONE-AUTOMATICA.md
+📖 Riepilogo:            GENERAZIONE-POLICY-RIEPILOGO.md
+📖 Script Standalone:    bin/README.md
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  FILE CREATI/MODIFICATI
+═══════════════════════════════════════════════════════════════════════════════
+
+NUOVI:
+  ✓ bin/generate-policies.php                 - Script eseguibile standalone
+  ✓ bin/README.md                             - Guida script standalone
+  ✓ docs/GENERAZIONE-AUTOMATICA.md            - Documentazione completa
+  ✓ QUICK-START-GENERAZIONE.md                - Quick start guide
+  ✓ GENERAZIONE-POLICY-RIEPILOGO.md           - Riepilogo implementazione
+  ✓ ISTRUZIONI-UTILIZZO.txt                   - Questo file
+
+MODIFICATI:
+  ✓ src/CLI/Commands.php                      - Aggiunto comando generate-pages
+  ✓ README.md                                 - Aggiunta documentazione
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  INIZIA SUBITO
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Prima verifica cosa succederebbe:
+   wp fp-privacy generate-pages --dry-run
+
+2. Se tutto ok, genera per davvero:
+   wp fp-privacy generate-pages --all-languages
+
+3. Verifica le pagine generate nel browser
+
+4. Personalizza il contenuto se necessario tramite:
+   WordPress Admin → Privacy & Cookie → Policy Editor
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  SUPPORTO
+═══════════════════════════════════════════════════════════════════════════════
+
+Per domande o problemi:
+- Consulta la documentazione completa in docs/GENERAZIONE-AUTOMATICA.md
+- Usa --help per vedere tutte le opzioni: wp fp-privacy generate-pages --help
+- Contatta: info@francescopasseri.com
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Data implementazione: 10 ottobre 2025
+Versione plugin: 0.1.1
+
+═══════════════════════════════════════════════════════════════════════════════

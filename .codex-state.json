@@ -1,0 +1,9 @@
+{
+  "task": "sync-author-and-docs",
+  "version": 1,
+  "progress_percent": 100,
+  "steps_completed": ["scan","context","description","author-meta","readmes","changelog","docs","lint","final"],
+  "dry_run": false,
+  "short_description": "Provides a GDPR-ready consent banner, consent logging, and automated privacy/cookie policies with Google Consent Mode v2 for WordPress. Includes REST, WP-CLI, and Gutenberg tooling for privacy workflows.",
+  "last_run": "2025-10-02T09:31:48+00:00"
+}

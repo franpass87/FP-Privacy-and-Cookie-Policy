@@ -1,0 +1,20 @@
+{
+    "apiVersion": 2,
+    "name": "fp-privacy/privacy-policy",
+    "title": "FP Privacy Policy",
+    "category": "widgets",
+    "icon": "shield",
+    "description": "Displays the generated privacy policy.",
+    "textdomain": "fp-privacy",
+    "attributes": {
+        "lang": {
+            "type": "string",
+            "default": ""
+        }
+    },
+    "editorScript": "fp-privacy-privacy-policy-block-editor",
+    "editorStyle": "fp-privacy-privacy-policy-block-editor-style",
+    "supports": {
+        "html": false
+    }
+}
