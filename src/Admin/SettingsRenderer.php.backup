@@ -256,11 +256,23 @@ class SettingsRenderer {
 	 * @return void
 	 */
 	private function render_palette_settings( $palette ) {
+		// Etichette descrittive in italiano per i colori della palette
+		$labels = array(
+			'surface_bg'          => \__( 'Sfondo banner', 'fp-privacy' ),
+			'surface_text'        => \__( 'Testo banner', 'fp-privacy' ),
+			'button_primary_bg'   => \__( 'Sfondo pulsante principale', 'fp-privacy' ),
+			'button_primary_tx'   => \__( 'Testo pulsante principale', 'fp-privacy' ),
+			'button_secondary_bg' => \__( 'Sfondo pulsanti secondari', 'fp-privacy' ),
+			'button_secondary_tx' => \__( 'Testo pulsanti secondari', 'fp-privacy' ),
+			'link'                => \__( 'Colore link', 'fp-privacy' ),
+			'border'              => \__( 'Bordo', 'fp-privacy' ),
+			'focus'               => \__( 'Colore focus', 'fp-privacy' ),
+		);
 		?>
 		<div class="fp-privacy-palette">
 		<?php foreach ( $palette as $key => $color ) : ?>
 		<label>
-		<span><?php echo \esc_html( ucwords( str_replace( '_', ' ', $key ) ) ); ?></span>
+		<span><?php echo \esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', $key ) ) ); ?></span>
 		<input type="text" 
 		       name="banner_layout[palette][<?php echo \esc_attr( $key ); ?>]" 
 		       value="<?php echo \esc_attr( $color ); ?>" 

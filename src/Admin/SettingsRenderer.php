@@ -62,9 +62,31 @@ class SettingsRenderer {
 ?>
 <div class="notice notice-warning fp-privacy-stale-notice"><p><?php echo \esc_html( $message ); ?> <a href="<?php echo \esc_url( $tools_link ); ?>"><?php \esc_html_e( 'Open Tools', 'fp-privacy' ); ?></a></p></div>
 <?php endif; ?>
+
+<!-- Tabs Navigation -->
+<nav class="fp-privacy-tabs-nav">
+	<button type="button" class="fp-privacy-tab-button active" data-tab="banner">
+		<span class="dashicons dashicons-admin-appearance"></span>
+		<span><?php \esc_html_e( 'Banner e Aspetto', 'fp-privacy' ); ?></span>
+	</button>
+	<button type="button" class="fp-privacy-tab-button" data-tab="cookies">
+		<span class="dashicons dashicons-admin-generic"></span>
+		<span><?php \esc_html_e( 'Cookie e Script', 'fp-privacy' ); ?></span>
+	</button>
+	<button type="button" class="fp-privacy-tab-button" data-tab="privacy">
+		<span class="dashicons dashicons-shield"></span>
+		<span><?php \esc_html_e( 'Privacy e Consenso', 'fp-privacy' ); ?></span>
+	</button>
+	<button type="button" class="fp-privacy-tab-button" data-tab="advanced">
+		<span class="dashicons dashicons-admin-tools"></span>
+		<span><?php \esc_html_e( 'Avanzate', 'fp-privacy' ); ?></span>
+	</button>
+</nav>
 <form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-settings-form">
 <?php \wp_nonce_field( 'fp_privacy_save_settings', 'fp_privacy_nonce' ); ?>
 <input type="hidden" name="action" value="fp_privacy_save_settings" />
+
+<div class="fp-privacy-tab-content active" data-tab-content="banner">
 
 <h2><?php \esc_html_e( 'Languages', 'fp-privacy' ); ?></h2>
 		<p class="description"><?php \esc_html_e( 'Provide active languages (comma separated locale codes).', 'fp-privacy' ); ?></p>
@@ -94,6 +116,13 @@ class SettingsRenderer {
 <h2><?php \esc_html_e( 'Palette', 'fp-privacy' ); ?></h2>
 <?php $this->render_palette_settings( $options['banner_layout']['palette'] ); ?>
 
+
+
+<?php \submit_button( \__( 'Salva impostazioni banner', 'fp-privacy' ), 'primary', 'submit-banner', false ); ?>
+</div>
+
+<div class="fp-privacy-tab-content" data-tab-content="privacy">
+
 <h2><?php \esc_html_e( 'Consent Mode defaults', 'fp-privacy' ); ?></h2>
 <?php $this->render_consent_mode_settings( $options['consent_mode_defaults'] ); ?>
 
@@ -106,19 +135,38 @@ class SettingsRenderer {
 <h2><?php \esc_html_e( 'Controller & DPO', 'fp-privacy' ); ?></h2>
 <?php $this->render_organization_settings( $options ); ?>
 
+
+
+<?php \submit_button( \__( 'Salva impostazioni privacy', 'fp-privacy' ), 'primary', 'submit-privacy', false ); ?>
+</div>
+
+<div class="fp-privacy-tab-content" data-tab-content="advanced">
+
 <h2><?php \esc_html_e( 'Integration alerts', 'fp-privacy' ); ?></h2>
 <?php $this->render_detector_notifications( $data['notifications'], $notification_recipients ); ?>
+
+
+
+<?php \submit_button( \__( 'Salva impostazioni avanzate', 'fp-privacy' ), 'primary', 'submit-advanced', false ); ?>
+</div>
+
+<div class="fp-privacy-tab-content" data-tab-content="cookies">
 
 <h2><?php \esc_html_e( 'Script blocking', 'fp-privacy' ); ?></h2>
 <?php $this->render_script_blocking_settings( $languages, $script_rules, $script_categories ); ?>
 
-<?php \submit_button( \__( 'Save settings', 'fp-privacy' ) ); ?>
-</form>
+
 
 <h2><?php \esc_html_e( 'Detected services', 'fp-privacy' ); ?></h2>
 <?php $this->render_detected_services( $detected ); ?>
 
 <p class="description"><?php \esc_html_e( 'Use the policy editor to regenerate your documents after services change.', 'fp-privacy' ); ?></p>
+
+<?php \submit_button( \__( 'Salva impostazioni cookie', 'fp-privacy' ), 'primary', 'submit-cookies', false ); ?>
+</div>
+</form>
+
+
 </div>
 		<?php
 	}
@@ -256,11 +304,23 @@ class SettingsRenderer {
 	 * @return void
 	 */
 	private function render_palette_settings( $palette ) {
+		// Etichette descrittive in italiano per i colori della palette
+		$labels = array(
+			'surface_bg'          => \__( 'Sfondo banner', 'fp-privacy' ),
+			'surface_text'        => \__( 'Testo banner', 'fp-privacy' ),
+			'button_primary_bg'   => \__( 'Sfondo pulsante principale', 'fp-privacy' ),
+			'button_primary_tx'   => \__( 'Testo pulsante principale', 'fp-privacy' ),
+			'button_secondary_bg' => \__( 'Sfondo pulsanti secondari', 'fp-privacy' ),
+			'button_secondary_tx' => \__( 'Testo pulsanti secondari', 'fp-privacy' ),
+			'link'                => \__( 'Colore link', 'fp-privacy' ),
+			'border'              => \__( 'Bordo', 'fp-privacy' ),
+			'focus'               => \__( 'Colore focus', 'fp-privacy' ),
+		);
 		?>
 		<div class="fp-privacy-palette">
 		<?php foreach ( $palette as $key => $color ) : ?>
 		<label>
-		<span><?php echo \esc_html( ucwords( str_replace( '_', ' ', $key ) ) ); ?></span>
+		<span><?php echo \esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', $key ) ) ); ?></span>
 		<input type="text" 
 		       name="banner_layout[palette][<?php echo \esc_attr( $key ); ?>]" 
 		       value="<?php echo \esc_attr( $color ); ?>" 

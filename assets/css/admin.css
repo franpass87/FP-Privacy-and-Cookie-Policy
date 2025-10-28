@@ -1,3 +1,92 @@
+/* ========================================
+   TABS NAVIGATION
+   ======================================== */
+.fp-privacy-tabs-nav {
+    display: flex;
+    gap: 4px;
+    margin: 20px 0;
+    background: #f9fafb;
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.fp-privacy-tab-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.fp-privacy-tab-button:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.fp-privacy-tab-button.active {
+    background: #fff;
+    color: #2563eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.fp-privacy-tab-button .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.fp-privacy-tab-button span:not(.dashicons) {
+    font-weight: 600;
+}
+
+.fp-privacy-tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.fp-privacy-tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive tabs */
+@media (max-width: 782px) {
+    .fp-privacy-tabs-nav {
+        flex-wrap: wrap;
+    }
+    
+    .fp-privacy-tab-button {
+        flex: 1 1 45%;
+    }
+    
+    .fp-privacy-tab-button span:not(.dashicons) {
+        font-size: 13px;
+    }
+}
+
+/* ========================================
+   CARDS E LAYOUT
+   ======================================== */
 /* Miglioramento card con design moderno */
 .fp-privacy-settings .fp-privacy-language-panel,
 .fp-privacy-settings .fp-privacy-org,
@@ -119,11 +208,9 @@ transition: border-color 0.2s ease;
 }
 
 .fp-privacy-palette label {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    display: block;
     margin-bottom: 16px;
-    padding: 12px;
+    padding: 16px;
     background: #f9fafb;
     border-radius: 8px;
     transition: background 0.2s ease;
@@ -134,9 +221,12 @@ transition: border-color 0.2s ease;
 }
 
 .fp-privacy-palette label span {
-    min-width: 180px;
-    font-weight: 500;
-    color: #374151;
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    color: #1f2937;
+    margin-bottom: 10px;
+    text-transform: none;
 }
 
 /* Toggle per visualizzazione mobile/desktop */
@@ -495,11 +585,6 @@ margin-bottom: 4px;
     border-radius: 6px;
     border-left: 3px solid #f59e0b;
     margin-top: 8px;
-}
-
-.fp-privacy-palette label {
-display: inline-block;
-margin-right: 20px;
 }
 
 /* Miglioramento tabella servizi rilevati */

@@ -183,6 +183,20 @@ class Validator {
 			$locales[] = self::locale( $fallback, 'en_US' );
 		}
 
+		// IMPORTANTE: Assicura che it_IT sia sempre la prima lingua (principale)
+		// Questo garantisce che la Cookie Policy venga generata prima in italiano
+		$italian_index = array_search( 'it_IT', $locales, true );
+		if ( false !== $italian_index && $italian_index !== 0 ) {
+			// it_IT è presente ma non è il primo: spostalo all'inizio
+			unset( $locales[ $italian_index ] );
+			// Re-index array dopo unset
+			$locales = array_values( $locales );
+			// Metti it_IT all'inizio
+			array_unshift( $locales, 'it_IT' );
+		}
+		// Se it_IT non è presente, non lo aggiungiamo forzatamente
+		// (l'utente potrebbe voler usare solo altre lingue)
+
 		return $locales;
 	}
 

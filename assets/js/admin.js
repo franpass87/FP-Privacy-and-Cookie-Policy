@@ -66,6 +66,36 @@ $( function () {
     var notice = $( '<div class="notice notice-warning" style="display:none;"><p></p></div>' );
     form.prepend( notice );
     
+    // ========================================
+    // GESTIONE TABS
+    // ========================================
+    var tabButtons = $( '.fp-privacy-tab-button' );
+    var tabContents = $( '.fp-privacy-tab-content' );
+    
+    // Ripristina tab attiva dal localStorage
+    var activeTab = localStorage.getItem( 'fpPrivacyActiveTab' ) || 'banner';
+    switchTab( activeTab );
+    
+    // Click sui pulsanti tab
+    tabButtons.on( 'click', function() {
+        var tab = $( this ).data( 'tab' );
+        switchTab( tab );
+        localStorage.setItem( 'fpPrivacyActiveTab', tab );
+    });
+    
+    function switchTab( tab ) {
+        // Rimuovi classe active da tutti
+        tabButtons.removeClass( 'active' );
+        tabContents.removeClass( 'active' );
+        
+        // Aggiungi active al tab selezionato
+        tabButtons.filter( '[data-tab="' + tab + '"]' ).addClass( 'active' );
+        tabContents.filter( '[data-tab-content="' + tab + '"]' ).addClass( 'active' );
+        
+        // Scroll to top dopo cambio tab
+        $( 'html, body' ).animate({ scrollTop: $( '.fp-privacy-tabs-nav' ).offset().top - 32 }, 300 );
+    }
+    
     // QUICK WIN #1: Inizializza WordPress Color Picker
     if ( $.fn.wpColorPicker ) {
         $( '.fp-privacy-color-picker' ).wpColorPicker({

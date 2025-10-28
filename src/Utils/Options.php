@@ -170,7 +170,12 @@ class Options {
 	 * @return array<string, mixed>
 	 */
 	public function get_default_options() {
-		$default_locale = \get_locale();
+		// IMPORTANTE: Italiano come lingua principale di default
+		// WordPress può essere in qualsiasi lingua, ma per questo plugin
+		// l'italiano deve essere la lingua primaria
+		$wp_locale = \get_locale();
+		$default_locale = ( $wp_locale === 'it_IT' ) ? 'it_IT' : 'it_IT'; // Forza sempre it_IT come default
+		
 		$default_palette = array(
 			'surface_bg'          => '#F9FAFB',
 			'surface_text'        => '#1F2937',
@@ -184,17 +189,17 @@ class Options {
 		);
 
 		$banner_default = array(
-			'title'          => \__( 'We value your privacy', 'fp-privacy' ),
-			'message'        => \__( 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.', 'fp-privacy' ),
-			'btn_accept'     => \__( 'Accept all', 'fp-privacy' ),
-			'btn_reject'     => \__( 'Reject all', 'fp-privacy' ),
-			'btn_prefs'      => \__( 'Manage preferences', 'fp-privacy' ),
-			'modal_title'    => \__( 'Privacy preferences', 'fp-privacy' ),
-			'modal_close'    => \__( 'Close preferences', 'fp-privacy' ),
-			'modal_save'     => \__( 'Save preferences', 'fp-privacy' ),
-			'revision_notice'=> \__( 'We have updated our policy. Please review your preferences.', 'fp-privacy' ),
-			'toggle_locked'  => \__( 'Always active', 'fp-privacy' ),
-			'toggle_enabled' => \__( 'Enabled', 'fp-privacy' ),
+			'title'          => \__( 'Rispettiamo la tua privacy', 'fp-privacy' ),
+			'message'        => \__( 'Utilizziamo i cookie per migliorare la tua esperienza. Puoi accettare tutti i cookie o gestire le tue preferenze.', 'fp-privacy' ),
+			'btn_accept'     => \__( 'Accetta tutto', 'fp-privacy' ),
+			'btn_reject'     => \__( 'Rifiuta tutto', 'fp-privacy' ),
+			'btn_prefs'      => \__( 'Gestisci preferenze', 'fp-privacy' ),
+			'modal_title'    => \__( 'Preferenze privacy', 'fp-privacy' ),
+			'modal_close'    => \__( 'Chiudi preferenze', 'fp-privacy' ),
+			'modal_save'     => \__( 'Salva preferenze', 'fp-privacy' ),
+			'revision_notice'=> \__( 'Abbiamo aggiornato la nostra policy. Ti invitiamo a rivedere le tue preferenze.', 'fp-privacy' ),
+			'toggle_locked'  => \__( 'Sempre attivo', 'fp-privacy' ),
+			'toggle_enabled' => \__( 'Abilitato', 'fp-privacy' ),
 			'debug_label'    => \__( 'Cookie debug:', 'fp-privacy' ),
 			'link_policy'    => '',
 			'link_privacy_policy' => \__( 'Privacy Policy', 'fp-privacy' ),
@@ -203,26 +208,26 @@ class Options {
 
 		$category_defaults = array(
 			'necessary'   => array(
-				'label'       => array( 'default' => \__('Strictly necessary', 'fp-privacy' ) ),
-				'description' => array( 'default' => \__('Essential cookies required for the website to function and cannot be disabled.', 'fp-privacy' ) ),
+				'label'       => array( 'default' => \__('Strettamente necessari', 'fp-privacy' ) ),
+				'description' => array( 'default' => \__('Cookie essenziali richiesti per il funzionamento del sito web e non possono essere disabilitati.', 'fp-privacy' ) ),
 				'locked'      => true,
 				'services'    => array(),
 			),
 			'preferences' => array(
-				'label'       => array( 'default' => \__('Preferences', 'fp-privacy' ) ),
-				'description' => array( 'default' => \__('Store user preferences such as language or location.', 'fp-privacy' ) ),
+				'label'       => array( 'default' => \__('Preferenze', 'fp-privacy' ) ),
+				'description' => array( 'default' => \__('Memorizzano le preferenze utente come lingua o posizione.', 'fp-privacy' ) ),
 				'locked'      => false,
 				'services'    => array(),
 			),
 			'statistics'  => array(
-				'label'       => array( 'default' => \__('Statistics', 'fp-privacy' ) ),
-				'description' => array( 'default' => \__('Collect anonymous statistics to improve our services.', 'fp-privacy' ) ),
+				'label'       => array( 'default' => \__('Statistiche', 'fp-privacy' ) ),
+				'description' => array( 'default' => \__('Raccolgono statistiche anonime per migliorare i nostri servizi.', 'fp-privacy' ) ),
 				'locked'      => false,
 				'services'    => array(),
 			),
 			'marketing'   => array(
 				'label'       => array( 'default' => \__('Marketing', 'fp-privacy' ) ),
-				'description' => array( 'default' => \__('Enable personalized advertising and tracking.', 'fp-privacy' ) ),
+				'description' => array( 'default' => \__('Abilitano la pubblicità personalizzata e il tracciamento.', 'fp-privacy' ) ),
 				'locked'      => false,
 				'services'    => array(),
 			),
@@ -865,17 +870,17 @@ class Options {
 		}
 
 		$defaults = array(
-			'title'              => \__( 'We value your privacy', 'fp-privacy' ),
-			'message'            => \__( 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.', 'fp-privacy' ),
-			'btn_accept'         => \__( 'Accept all', 'fp-privacy' ),
-			'btn_reject'         => \__( 'Reject all', 'fp-privacy' ),
-			'btn_prefs'          => \__( 'Manage preferences', 'fp-privacy' ),
-			'modal_title'        => \__( 'Privacy preferences', 'fp-privacy' ),
-			'modal_close'        => \__( 'Close preferences', 'fp-privacy' ),
-			'modal_save'         => \__( 'Save preferences', 'fp-privacy' ),
-			'revision_notice'    => \__( 'We have updated our policy. Please review your preferences.', 'fp-privacy' ),
-			'toggle_locked'      => \__( 'Always active', 'fp-privacy' ),
-			'toggle_enabled'     => \__( 'Enabled', 'fp-privacy' ),
+			'title'              => \__( 'Rispettiamo la tua privacy', 'fp-privacy' ),
+			'message'            => \__( 'Utilizziamo i cookie per migliorare la tua esperienza. Puoi accettare tutti i cookie o gestire le tue preferenze.', 'fp-privacy' ),
+			'btn_accept'         => \__( 'Accetta tutto', 'fp-privacy' ),
+			'btn_reject'         => \__( 'Rifiuta tutto', 'fp-privacy' ),
+			'btn_prefs'          => \__( 'Gestisci preferenze', 'fp-privacy' ),
+			'modal_title'        => \__( 'Preferenze privacy', 'fp-privacy' ),
+			'modal_close'        => \__( 'Chiudi preferenze', 'fp-privacy' ),
+			'modal_save'         => \__( 'Salva preferenze', 'fp-privacy' ),
+			'revision_notice'    => \__( 'Abbiamo aggiornato la nostra policy. Ti invitiamo a rivedere le tue preferenze.', 'fp-privacy' ),
+			'toggle_locked'      => \__( 'Sempre attivo', 'fp-privacy' ),
+			'toggle_enabled'     => \__( 'Abilitato', 'fp-privacy' ),
 			'debug_label'        => \__( 'Cookie debug:', 'fp-privacy' ),
 			'link_policy'        => '',
 			'link_privacy_policy' => \__( 'Privacy Policy', 'fp-privacy' ),
