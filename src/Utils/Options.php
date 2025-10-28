@@ -188,46 +188,47 @@ class Options {
 			'focus'               => '#2563EB',
 		);
 
+		// Default italiani hardcoded (lingua principale del plugin)
 		$banner_default = array(
-			'title'          => \__( 'Rispettiamo la tua privacy', 'fp-privacy' ),
-			'message'        => \__( 'Utilizziamo i cookie per migliorare la tua esperienza. Puoi accettare tutti i cookie o gestire le tue preferenze.', 'fp-privacy' ),
-			'btn_accept'     => \__( 'Accetta tutto', 'fp-privacy' ),
-			'btn_reject'     => \__( 'Rifiuta tutto', 'fp-privacy' ),
-			'btn_prefs'      => \__( 'Gestisci preferenze', 'fp-privacy' ),
-			'modal_title'    => \__( 'Preferenze privacy', 'fp-privacy' ),
-			'modal_close'    => \__( 'Chiudi preferenze', 'fp-privacy' ),
-			'modal_save'     => \__( 'Salva preferenze', 'fp-privacy' ),
-			'revision_notice'=> \__( 'Abbiamo aggiornato la nostra policy. Ti invitiamo a rivedere le tue preferenze.', 'fp-privacy' ),
-			'toggle_locked'  => \__( 'Sempre attivo', 'fp-privacy' ),
-			'toggle_enabled' => \__( 'Abilitato', 'fp-privacy' ),
-			'debug_label'    => \__( 'Cookie debug:', 'fp-privacy' ),
-			'link_policy'    => '',
-			'link_privacy_policy' => \__( 'Privacy Policy', 'fp-privacy' ),
-			'link_cookie_policy'  => \__( 'Cookie Policy', 'fp-privacy' ),
+			'title'          => 'Rispettiamo la tua privacy',
+			'message'        => 'Utilizziamo i cookie per migliorare la tua esperienza. Puoi accettare tutti i cookie o gestire le tue preferenze.',
+			'btn_accept'     => 'Accetta tutti',
+			'btn_reject'     => 'Rifiuta tutti',
+			'btn_prefs'      => 'Gestisci preferenze',
+			'modal_title'    => 'Preferenze privacy',
+			'modal_close'    => 'Chiudi preferenze',
+			'modal_save'          => 'Salva preferenze',
+			'revision_notice'     => 'Abbiamo aggiornato la nostra policy. Rivedi le tue preferenze.',
+			'toggle_locked'       => 'Sempre attivo',
+			'toggle_enabled'      => 'Abilitato',
+			'debug_label'         => 'Debug cookie:',
+			'link_policy'         => '',
+			'link_privacy_policy' => 'Informativa sulla Privacy',
+			'link_cookie_policy'  => 'Cookie Policy',
 		);
 
 		$category_defaults = array(
 			'necessary'   => array(
-				'label'       => array( 'default' => \__('Strettamente necessari', 'fp-privacy' ) ),
-				'description' => array( 'default' => \__('Cookie essenziali richiesti per il funzionamento del sito web e non possono essere disabilitati.', 'fp-privacy' ) ),
+				'label'       => array( 'default' => 'Strettamente necessari' ),
+				'description' => array( 'default' => 'Cookie essenziali richiesti per il funzionamento del sito web e non possono essere disabilitati.' ),
 				'locked'      => true,
 				'services'    => array(),
 			),
 			'preferences' => array(
-				'label'       => array( 'default' => \__('Preferenze', 'fp-privacy' ) ),
-				'description' => array( 'default' => \__('Memorizzano le preferenze utente come lingua o posizione.', 'fp-privacy' ) ),
+				'label'       => array( 'default' => 'Preferenze' ),
+				'description' => array( 'default' => 'Memorizzano le preferenze utente come lingua o posizione.' ),
 				'locked'      => false,
 				'services'    => array(),
 			),
 			'statistics'  => array(
-				'label'       => array( 'default' => \__('Statistiche', 'fp-privacy' ) ),
-				'description' => array( 'default' => \__('Raccolgono statistiche anonime per migliorare i nostri servizi.', 'fp-privacy' ) ),
+				'label'       => array( 'default' => 'Statistiche' ),
+				'description' => array( 'default' => 'Raccolgono statistiche anonime per migliorare i nostri servizi.' ),
 				'locked'      => false,
 				'services'    => array(),
 			),
 			'marketing'   => array(
-				'label'       => array( 'default' => \__('Marketing', 'fp-privacy' ) ),
-				'description' => array( 'default' => \__('Abilitano la pubblicità personalizzata e il tracciamento.', 'fp-privacy' ) ),
+				'label'       => array( 'default' => 'Marketing' ),
+				'description' => array( 'default' => 'Abilitano la pubblicità personalizzata e il tracciamento.' ),
 				'locked'      => false,
 				'services'    => array(),
 			),
@@ -955,25 +956,24 @@ class Options {
 
 	/**
 	 * Get hardcoded English translations as fallback.
-	 * This ensures texts are always in English when the locale is English.
 	 *
 	 * @return array<string, string>
 	 */
 	private function get_hardcoded_english_translations() {
 		return array(
-			'title'              => 'We respect your privacy',
-			'message'            => 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.',
-			'btn_accept'         => 'Accept all',
-			'btn_reject'         => 'Reject all',
-			'btn_prefs'          => 'Manage preferences',
-			'modal_title'        => 'Privacy preferences',
-			'modal_close'        => 'Close preferences',
-			'modal_save'         => 'Save preferences',
-			'revision_notice'    => 'We have updated our policy. Please review your preferences.',
-			'toggle_locked'      => 'Always active',
-			'toggle_enabled'     => 'Enabled',
-			'debug_label'        => 'Debug cookie:',
-			'link_policy'        => '',
+			'title'               => 'We respect your privacy',
+			'message'             => 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.',
+			'btn_accept'          => 'Accept all',
+			'btn_reject'          => 'Reject all',
+			'btn_prefs'           => 'Manage preferences',
+			'modal_title'         => 'Privacy preferences',
+			'modal_close'         => 'Close preferences',
+			'modal_save'          => 'Save preferences',
+			'revision_notice'     => 'We have updated our policy. Please review your preferences.',
+			'toggle_locked'       => 'Always active',
+			'toggle_enabled'      => 'Enabled',
+			'debug_label'         => 'Debug cookie:',
+			'link_policy'         => '',
 			'link_privacy_policy' => 'Privacy Policy',
 			'link_cookie_policy'  => 'Cookie Policy',
 		);

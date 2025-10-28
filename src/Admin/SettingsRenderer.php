@@ -48,7 +48,6 @@ class SettingsRenderer {
 		$primary_lang    = $data['primary_lang'];
 		$detected        = $data['detected'];
 		$snapshot_notice = $data['snapshot_notice'];
-		$default_texts_raw = $data['default_texts_raw'];
 		$script_rules      = $data['script_rules'];
 		$script_categories = $data['script_categories'];
 		$notification_recipients = $data['notification_recipients'];
@@ -95,8 +94,11 @@ class SettingsRenderer {
 		<h2><?php \esc_html_e( 'Banner content', 'fp-privacy' ); ?></h2>
 		<?php foreach ( $languages as $lang ) :
 			$lang = $this->options->normalize_language( $lang );
+			
+			// Ottieni i default specifici per questa lingua
+			$lang_specific_defaults = $this->options->get_banner_text( $lang );
 			$text = isset( $options['banner_texts'][ $lang ] ) && \is_array( $options['banner_texts'][ $lang ] ) ? $options['banner_texts'][ $lang ] : array();
-			$text = \wp_parse_args( $text, $default_texts_raw );
+			$text = \wp_parse_args( $text, $lang_specific_defaults );
 ?>
 <div class="fp-privacy-language-panel" data-lang="<?php echo \esc_attr( $lang ); ?>">
 <h3><?php echo \esc_html( \sprintf( \__( 'Language: %s', 'fp-privacy' ), $lang ) ); ?></h3>

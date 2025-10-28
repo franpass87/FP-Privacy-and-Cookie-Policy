@@ -68,11 +68,7 @@ class SettingsController {
 		$languages    = $this->options->get_languages();
 		$primary_lang = $languages[0] ?? $this->options->normalize_language( \function_exists( '\get_locale' ) ? \get_locale() : 'en_US' );
 
-		$default_options   = $this->options->get_default_options();
-		$default_locale    = $this->options->normalize_language( $default_options['languages_active'][0] ?? $primary_lang );
-		$default_texts_raw = isset( $default_options['banner_texts'][ $default_locale ] ) && \is_array( $default_options['banner_texts'][ $default_locale ] )
-			? $default_options['banner_texts'][ $default_locale ]
-			: array();
+		// I default specifici per lingua vengono ora gestiti direttamente nel renderer
 
 		$script_rules      = array();
 		$script_categories = array();
@@ -97,7 +93,6 @@ class SettingsController {
 			'primary_lang'            => $primary_lang,
 			'detected'                => $this->detector->detect_services(),
 			'snapshot_notice'         => $this->get_snapshot_notice( $options['snapshots'] ),
-			'default_texts_raw'       => $default_texts_raw,
 			'script_rules'            => $script_rules,
 			'script_categories'       => $script_categories,
 			'notifications'           => $notifications,

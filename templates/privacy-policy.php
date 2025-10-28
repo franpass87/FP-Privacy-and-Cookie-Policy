@@ -196,11 +196,11 @@ if ( ! function_exists( 'fp_privacy_get_service_value' ) ) {
 <table>
 <thead>
 <tr>
-<th><?php echo esc_html__( 'Servizio', 'fp-privacy' ); ?></th>
-<th><?php echo esc_html__( 'Fornitore', 'fp-privacy' ); ?></th>
-<th><?php echo esc_html__( 'Finalità', 'fp-privacy' ); ?></th>
-<th><?php echo esc_html__( 'Cookie e conservazione', 'fp-privacy' ); ?></th>
-<th><?php echo esc_html__( 'Base giuridica', 'fp-privacy' ); ?></th>
+<th>Servizio</th>
+<th>Fornitore</th>
+<th>Finalità</th>
+<th>Cookie e conservazione</th>
+<th>Base giuridica</th>
 </tr>
 </thead>
 <tbody>
@@ -220,7 +220,7 @@ if ( ! function_exists( 'fp_privacy_get_service_value' ) ) {
 <tr>
 <td>
     <?php echo esc_html( $name ); ?>
-    <?php if ( '' !== $policy_url ) : ?> — <a href="<?php echo esc_url( $policy_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html__( 'Informativa sulla privacy', 'fp-privacy' ); ?></a><?php endif; ?>
+    <?php if ( '' !== $policy_url ) : ?> — <a href="<?php echo esc_url( $policy_url ); ?>" target="_blank" rel="noopener noreferrer">Informativa sulla privacy</a><?php endif; ?>
 </td>
 <td><?php echo esc_html( $provider ); ?></td>
 <td><?php echo wp_kses_post( $purpose ); ?></td>
@@ -228,7 +228,7 @@ if ( ! function_exists( 'fp_privacy_get_service_value' ) ) {
     <?php if ( ! empty( $service_cookies ) ) : ?>
         <span><?php echo esc_html( implode( '; ', $service_cookies ) ); ?></span>
     <?php else : ?>
-        <span><?php echo esc_html__( 'Nessun cookie dichiarato.', 'fp-privacy' ); ?></span>
+        <span>Nessun cookie dichiarato.</span>
     <?php endif; ?>
     <?php if ( '' !== $retention ) : ?>
         <span> — <?php echo esc_html( $retention ); ?></span>
@@ -242,6 +242,6 @@ if ( ! function_exists( 'fp_privacy_get_service_value' ) ) {
 </div>
 <?php endforeach; ?>
 
-<h2><?php echo esc_html__( 'Ultimo aggiornamento', 'fp-privacy' ); ?></h2>
-<p><?php echo esc_html( sprintf( __( 'Questa informativa è stata generata il %s.', 'fp-privacy' ), $last_generated ) ); ?></p>
+<h2>Ultimo aggiornamento</h2>
+<p><?php echo esc_html( sprintf( 'Questa informativa è stata generata il %s.', $last_generated ) ); ?></p>
 </section>
