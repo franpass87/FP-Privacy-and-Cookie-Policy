@@ -17,6 +17,7 @@ use FP\Privacy\Admin\Settings;
 use FP\Privacy\Admin\ConsentLogTable;
 use FP\Privacy\Admin\IntegrationAudit;
 use FP\Privacy\Admin\AnalyticsPage;
+use FP\Privacy\Admin\DiagnosticTools;
 use FP\Privacy\CLI\Commands;
 use FP\Privacy\Consent\Cleanup;
 use FP\Privacy\Consent\ExporterEraser;
@@ -137,6 +138,9 @@ $shortcodes->hooks();
 
 // QUICK WIN #3: Analytics Dashboard
 ( new AnalyticsPage( $this->log_model, $this->options ) )->hooks();
+
+// Diagnostic Tools
+( new DiagnosticTools( $this->options, $this->log_model ) )->hooks();
 
 ( new Controller( $this->consent_state, $this->options, $generator, $this->log_model ) )->hooks();
 ( new ExporterEraser( $this->log_model, $this->options ) )->hooks();

@@ -56,6 +56,10 @@ $this->state   = $state;
         \add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
         \add_action( 'fp_privacy_enqueue_banner_assets', array( $this, 'enqueue_assets_forced' ), 10, 1 );
         \add_action( 'wp_body_open', array( $this, 'render_banner' ), 20 );
+        
+        // Compatibilità con tema Salient (usa hook personalizzato invece di wp_body_open)
+        \add_action( 'nectar_hook_after_body_open', array( $this, 'render_banner' ), 20 );
+        
         \add_action( 'wp_footer', array( $this, 'render_banner' ), 5 );
     }
 

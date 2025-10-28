@@ -51,6 +51,40 @@ function detectUserLanguage() {
     return 'en_US';
 }
 
+// Debug function for timing issues
+function debugTiming( message ) {
+    if ( typeof console !== 'undefined' && console.log ) {
+        console.log( 'FP Privacy Debug: ' + message + ' (readyState: ' + document.readyState + ')' );
+    }
+}
+
+var root = document.querySelector( '[data-fp-privacy-banner]' );
+if ( ! root ) {
+root = document.getElementById( 'fp-privacy-banner-root' );
+}
+
+if ( ! root ) {
+return;
+}
+
+var state = data.options.state || {};
+var categories = data.options.categories || {};
+var layout = data.options.layout || {};
+var texts = data.options.texts || {};
+var rest = data.rest || {};
+var consentDefaults = data.options.mode || {};
+var consentCookie = data.cookie || {};
+var focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+var lastFocusedElement = null;
+
+var dataset = root.dataset || {};
+var forceDisplay = false;
+var externalOpeners = [];
+var externalListenerBound = false;
+var placeholderObserver = null;
+var observerTeardownBound = false;
+var reopenButton = null;
+
 // Override language detection if not set
 if ( ! state.lang ) {
     state.lang = detectUserLanguage();
@@ -60,18 +94,6 @@ if ( ! state.lang ) {
 // Update the language in the data object for consistency
 if ( data.options && data.options.state ) {
     data.options.state.lang = state.lang;
-}
-
-// Force language detection for banner texts
-if ( data.options && data.options.texts ) {
-    // If we have Italian language, ensure we get Italian texts
-    if ( state.lang === 'it_IT' || state.lang.indexOf( 'it' ) === 0 ) {
-        debugTiming( 'Forzando testi italiani per lingua: ' + state.lang );
-    }
-    // If we have English language, ensure we get English texts
-    else if ( state.lang === 'en_US' || state.lang.indexOf( 'en' ) === 0 ) {
-        debugTiming( 'Forzando testi inglesi per lingua: ' + state.lang );
-    }
 }
 
 // Override texts with language-specific versions if needed
@@ -122,40 +144,6 @@ if ( data.options && data.options.texts ) {
 if ( data.options && data.options.texts ) {
     texts = data.options.texts;
 }
-
-// Debug function for timing issues
-function debugTiming( message ) {
-    if ( typeof console !== 'undefined' && console.log ) {
-        console.log( 'FP Privacy Debug: ' + message + ' (readyState: ' + document.readyState + ')' );
-    }
-}
-
-var root = document.querySelector( '[data-fp-privacy-banner]' );
-if ( ! root ) {
-root = document.getElementById( 'fp-privacy-banner-root' );
-}
-
-if ( ! root ) {
-return;
-}
-
-var state = data.options.state || {};
-var categories = data.options.categories || {};
-var layout = data.options.layout || {};
-var texts = data.options.texts || {};
-var rest = data.rest || {};
-var consentDefaults = data.options.mode || {};
-var consentCookie = data.cookie || {};
-var focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-var lastFocusedElement = null;
-
-var dataset = root.dataset || {};
-var forceDisplay = false;
-var externalOpeners = [];
-var externalListenerBound = false;
-var placeholderObserver = null;
-var observerTeardownBound = false;
-var reopenButton = null;
 
 function decodePlaceholder( value ) {
     if ( ! value ) {
