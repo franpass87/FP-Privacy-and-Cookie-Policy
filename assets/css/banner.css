@@ -1,0 +1,296 @@
+/**
+ * Cookie Banner Styles
+ * FP Privacy & Cookie Policy
+ */
+
+:root {
+    --fp-privacy-primary-color: #0073aa;
+    --fp-privacy-text-color: #333;
+    --fp-privacy-bg-color: #fff;
+    --fp-privacy-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Banner Base */
+.fp-privacy-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
+    background: var(--fp-privacy-bg-color);
+    box-shadow: var(--fp-privacy-shadow);
+    z-index: 999999;
+    padding: 20px;
+    animation: fpPrivacySlideIn 0.5s ease;
+}
+
+.fp-privacy-banner--bottom {
+    bottom: 0;
+}
+
+.fp-privacy-banner--top {
+    top: 0;
+}
+
+@keyframes fpPrivacySlideIn {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Banner Content */
+.fp-privacy-banner__content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.fp-privacy-banner__text {
+    flex: 1;
+    min-width: 300px;
+}
+
+.fp-privacy-banner__text h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: var(--fp-privacy-text-color);
+}
+
+.fp-privacy-banner__text p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Actions */
+.fp-privacy-banner__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Buttons */
+.fp-privacy-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.fp-privacy-btn--primary {
+    background: var(--fp-privacy-primary-color);
+    color: #fff;
+}
+
+.fp-privacy-btn--primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.fp-privacy-btn--secondary {
+    background: #f0f0f0;
+    color: var(--fp-privacy-text-color);
+}
+
+.fp-privacy-btn--secondary:hover {
+    background: #e0e0e0;
+}
+
+.fp-privacy-btn--text {
+    background: transparent;
+    color: var(--fp-privacy-primary-color);
+    text-decoration: underline;
+}
+
+.fp-privacy-btn--text:hover {
+    opacity: 0.8;
+}
+
+/* Modal */
+.fp-privacy-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000000;
+    display: none;
+}
+
+.fp-privacy-modal.is-open {
+    display: block;
+}
+
+.fp-privacy-modal__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    animation: fpPrivacyFadeIn 0.3s ease;
+}
+
+@keyframes fpPrivacyFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fp-privacy-modal__content {
+    position: relative;
+    max-width: 600px;
+    max-height: 80vh;
+    margin: 50px auto;
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    overflow-y: auto;
+    animation: fpPrivacyModalSlideIn 0.3s ease;
+}
+
+@keyframes fpPrivacyModalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.fp-privacy-modal__close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.3s;
+}
+
+.fp-privacy-modal__close:hover {
+    color: #333;
+}
+
+/* Categories */
+.fp-privacy-categories {
+    margin: 20px 0;
+}
+
+.fp-privacy-category {
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.fp-privacy-category__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.fp-privacy-category__header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.fp-privacy-category__description {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Switch Toggle */
+.fp-privacy-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.fp-privacy-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.fp-privacy-switch__slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 24px;
+}
+
+.fp-privacy-switch__slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+.fp-privacy-switch input:checked + .fp-privacy-switch__slider {
+    background-color: var(--fp-privacy-primary-color);
+}
+
+.fp-privacy-switch input:focus + .fp-privacy-switch__slider {
+    box-shadow: 0 0 1px var(--fp-privacy-primary-color);
+}
+
+.fp-privacy-switch input:checked + .fp-privacy-switch__slider:before {
+    transform: translateX(26px);
+}
+
+.fp-privacy-switch input:disabled + .fp-privacy-switch__slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Modal Actions */
+.fp-privacy-modal__actions {
+    margin-top: 20px;
+    text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .fp-privacy-banner__content {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .fp-privacy-banner__actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .fp-privacy-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .fp-privacy-modal__content {
+        margin: 20px;
+        padding: 20px;
+    }
+}
+

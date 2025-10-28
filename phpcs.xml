@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<ruleset name="FP Privacy Cookie Policy">
+    <description>WordPress Coding Standards for FP Privacy &amp; Cookie Policy</description>
+
+    <!-- Check all PHP files -->
+    <file>.</file>
+
+    <!-- Exclude patterns -->
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <exclude-pattern>/node_modules/*</exclude-pattern>
+    <exclude-pattern>/assets/*</exclude-pattern>
+
+    <!-- Use WordPress Coding Standards -->
+    <rule ref="WordPress">
+        <!-- Allow short array syntax -->
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+        
+        <!-- Allow multiple assignments per line for efficiency -->
+        <exclude name="Squiz.PHP.DisallowMultipleAssignments"/>
+    </rule>
+
+    <!-- PHP 7.4+ compatibility -->
+    <config name="testVersion" value="7.4-"/>
+    <rule ref="PHPCompatibility"/>
+
+    <!-- Text Domain -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array" value="fp-privacy-cookie"/>
+        </properties>
+    </rule>
+
+    <!-- Naming Conventions -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array" value="fp_privacy,FP\Privacy"/>
+        </properties>
+    </rule>
+</ruleset>
+

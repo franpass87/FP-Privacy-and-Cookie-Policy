@@ -66,7 +66,18 @@ $this->log_model = $log_model;
         $cookie     = $this->get_cookie_payload();
         $revision   = (int) $this->options->get( 'consent_revision', 1 );
         $preview    = (bool) $this->options->get( 'preview_mode', false );
+        
+        // CORREZIONE: Migliora la logica per determinare se il consenso è necessario
+        // Il banner deve essere mostrato solo se:
+        // 1. È in modalità preview, OPPURE
+        // 2. Non c'è un cookie ID valido, OPPURE  
+        // 3. La revisione del cookie è inferiore alla revisione corrente
         $needs_consent = $preview || empty( $cookie['id'] ) || ( (int) $cookie['rev'] < $revision );
+        
+        // Debug logging per aiutare a identificare problemi
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+            error_log( 'FP Privacy Debug - Cookie ID: ' . $cookie['id'] . ', Revision: ' . $cookie['rev'] . ', Current Revision: ' . $revision . ', Needs Consent: ' . ( $needs_consent ? 'true' : 'false' ) );
+        }
 
         $states = array(
             'categories'     => array(),
@@ -349,21 +360,41 @@ $this->log_model = $log_model;
  * @return array{id:string,rev:int}
  */
 private function get_cookie_payload() {
-if ( empty( $_COOKIE[ self::COOKIE_NAME ] ) ) {
-return array(
-'id'  => '',
-'rev' => 0,
-);
-}
+    if ( empty( $_COOKIE[ self::COOKIE_NAME ] ) ) {
+        return array(
+            'id'  => '',
+            'rev' => 0,
+        );
+    }
 
-$value = \sanitize_text_field( \wp_unslash( $_COOKIE[ self::COOKIE_NAME ] ) );
+    $value = \sanitize_text_field( \wp_unslash( $_COOKIE[ self::COOKIE_NAME ] ) );
+    
+    // CORREZIONE: Verifica che il valore del cookie non sia vuoto
+    if ( empty( $value ) ) {
+        return array(
+            'id'  => '',
+            'rev' => 0,
+        );
+    }
 
-$parts = explode( '|', $value );
+    $parts = explode( '|', $value );
+    
+    // CORREZIONE: Assicurati che abbiamo almeno l'ID del consenso
+    $consent_id = isset( $parts[0] ) ? trim( $parts[0] ) : '';
+    $revision = isset( $parts[1] ) ? (int) $parts[1] : 0;
+    
+    // CORREZIONE: Verifica che l'ID del consenso sia valido (non vuoto e di lunghezza ragionevole)
+    if ( empty( $consent_id ) || strlen( $consent_id ) < 8 ) {
+        return array(
+            'id'  => '',
+            'rev' => 0,
+        );
+    }
 
-return array(
-'id'  => isset( $parts[0] ) ? $parts[0] : '',
-'rev' => isset( $parts[1] ) ? (int) $parts[1] : 0,
-);
+    return array(
+        'id'  => $consent_id,
+        'rev' => $revision,
+    );
 }
 
 /**

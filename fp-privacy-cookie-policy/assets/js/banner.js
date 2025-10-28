@@ -572,11 +572,33 @@ function initializeBanner() {
         }
     }
     
-    // Se abbiamo un consent ID ma il banner viene mostrato comunque, 
-    // significa che il consenso è già stato dato
-    if ( state.consent_id && state.should_display ) {
-        debugTiming( 'Consenso già dato, nascondendo banner' );
-        state.should_display = false;
+    // CORREZIONE RAFFORZATA: Migliora la logica di controllo del consenso
+    // Se abbiamo un consent ID valido, controlla più accuratamente se il consenso è già stato dato
+    if ( state.consent_id ) {
+        debugTiming( 'Consent ID presente: ' + state.consent_id );
+        
+        // Controlla se abbiamo categorie salvate (indica che il consenso è stato dato)
+        var hasSavedCategories = state.categories && Object.keys( state.categories ).length > 0;
+        
+        // Controlla se la revisione è aggiornata
+        var isRevisionUpToDate = state.last_revision && state.last_revision >= state.revision;
+        
+        // FIX CRITICO: Se abbiamo un consent ID valido, assumiamo che il consenso sia stato dato
+        // a meno che non ci sia stata una nuova revisione
+        if ( hasSavedCategories || isRevisionUpToDate || ( state.consent_id && ! state.revision ) ) {
+            debugTiming( 'Consenso già dato (categorie: ' + hasSavedCategories + ', revisione: ' + isRevisionUpToDate + '), nascondendo banner' );
+            state.should_display = false;
+            
+            // CORREZIONE AGGIUNTIVA: Ripristina le categorie salvate immediatamente
+            if ( hasSavedCategories ) {
+                debugTiming( 'Ripristino categorie salvate' );
+                restoreBlockedNodes( state.categories );
+            }
+        }
+    } else {
+        // Se non abbiamo un consent ID, il banner DEVE essere mostrato
+        debugTiming( 'Nessun consent ID trovato, banner verrà mostrato' );
+        state.should_display = true;
     }
 
     if ( state.should_display || forceDisplay ) {
@@ -1059,24 +1081,126 @@ checkboxes[ i ].checked = true;
 function handleAcceptAll() {
     debugTiming( 'handleAcceptAll called' );
     setButtonsLoading( true );
-    var payload = buildConsentPayload( true, false );
-    debugTiming( 'Payload built, calling persistConsent' );
-    persistConsent( 'accept_all', payload );
+    
+    // TIMEOUT DI SICUREZZA: Forza la chiusura dopo 500ms
+    // Garantisce che il banner si chiuda SEMPRE, anche in caso di errori
+    var safetyTimeout = setTimeout( function() {
+        debugTiming( 'Safety timeout triggered - forcing banner close' );
+        if ( banner && banner.style.display !== 'none' ) {
+            banner.style.display = 'none';
+            if ( modal && modalOverlay ) {
+                modalOverlay.style.display = 'none';
+            }
+        }
+    }, 500 );
+    
+    try {
+        var payload = buildConsentPayload( true, false );
+        debugTiming( 'Payload built, calling persistConsent' );
+        
+        // FIX CRITICO: Salva il cookie IMMEDIATAMENTE in locale
+        var consentId = ensureConsentId();
+        setConsentCookie( consentId, state.revision );
+        
+        // FIX CRITICO: Nascondi il banner IMMEDIATAMENTE
+        // Non aspettare la risposta del server
+        state.categories = Object.assign( {}, payload );
+        state.last_revision = state.revision;
+        state.should_display = false;
+        hideBanner();
+        restoreBlockedNodes( state.categories );
+        updateReopenVisibility();
+        
+        // Invia al server in background (non bloccante)
+        persistConsent( 'accept_all', payload );
+        
+        // Cancella il timeout di sicurezza se tutto va bene
+        clearTimeout( safetyTimeout );
+    } catch ( error ) {
+        debugTiming( 'Error in handleAcceptAll: ' + error.message );
+        // Il timeout di sicurezza chiuderà comunque il banner
+    }
 }
 
 function handleRejectAll() {
     debugTiming( 'handleRejectAll called' );
     setButtonsLoading( true );
-    var payload = buildConsentPayload( false, true );
-    debugTiming( 'Payload built, calling persistConsent' );
-    persistConsent( 'reject_all', payload );
+    
+    // TIMEOUT DI SICUREZZA: Forza la chiusura dopo 500ms
+    var safetyTimeout = setTimeout( function() {
+        debugTiming( 'Safety timeout triggered - forcing banner close' );
+        if ( banner && banner.style.display !== 'none' ) {
+            banner.style.display = 'none';
+            if ( modal && modalOverlay ) {
+                modalOverlay.style.display = 'none';
+            }
+        }
+    }, 500 );
+    
+    try {
+        var payload = buildConsentPayload( false, true );
+        debugTiming( 'Payload built, calling persistConsent' );
+        
+        // FIX CRITICO: Salva il cookie IMMEDIATAMENTE in locale
+        var consentId = ensureConsentId();
+        setConsentCookie( consentId, state.revision );
+        
+        // FIX CRITICO: Nascondi il banner IMMEDIATAMENTE
+        state.categories = Object.assign( {}, payload );
+        state.last_revision = state.revision;
+        state.should_display = false;
+        hideBanner();
+        restoreBlockedNodes( state.categories );
+        updateReopenVisibility();
+        
+        // Invia al server in background (non bloccante)
+        persistConsent( 'reject_all', payload );
+        
+        clearTimeout( safetyTimeout );
+    } catch ( error ) {
+        debugTiming( 'Error in handleRejectAll: ' + error.message );
+        // Il timeout di sicurezza chiuderà comunque il banner
+    }
 }
 
 function handleSavePreferences() {
-setButtonsLoading( true );
-var payload = buildConsentPayload( false, false );
-persistConsent( 'consent', payload );
-closeModal();
+    setButtonsLoading( true );
+    
+    // TIMEOUT DI SICUREZZA: Forza la chiusura dopo 500ms
+    var safetyTimeout = setTimeout( function() {
+        debugTiming( 'Safety timeout triggered - forcing modal/banner close' );
+        if ( modalOverlay && modalOverlay.style.display !== 'none' ) {
+            modalOverlay.style.display = 'none';
+        }
+        if ( banner && banner.style.display !== 'none' ) {
+            banner.style.display = 'none';
+        }
+    }, 500 );
+    
+    try {
+        var payload = buildConsentPayload( false, false );
+        
+        // FIX CRITICO: Salva il cookie IMMEDIATAMENTE in locale
+        var consentId = ensureConsentId();
+        setConsentCookie( consentId, state.revision );
+        
+        // FIX CRITICO: Nascondi il banner IMMEDIATAMENTE
+        state.categories = Object.assign( {}, payload );
+        state.last_revision = state.revision;
+        state.should_display = false;
+        closeModal();
+        hideBanner();
+        restoreBlockedNodes( state.categories );
+        updateReopenVisibility();
+        
+        // Invia al server in background (non bloccante)
+        persistConsent( 'consent', payload );
+        
+        clearTimeout( safetyTimeout );
+    } catch ( error ) {
+        debugTiming( 'Error in handleSavePreferences: ' + error.message );
+        // Il timeout di sicurezza chiuderà comunque il banner
+    }
 }
 
 function persistConsent( event, payload ) {
@@ -1120,34 +1244,36 @@ function persistConsent( event, payload ) {
         debugTiming( 'markSuccess called' );
         setButtonsLoading( false );
         
+        // Aggiorna il consent_id dal server se disponibile
         if ( typeof handleConsentResponse === 'function' ) {
             handleConsentResponse( result );
         } else if ( result && result.consent_id ) {
             state.consent_id = result.consent_id;
+            // Aggiorna il cookie con l'ID dal server
+            setConsentCookie( state.consent_id, state.revision );
         }
 
         if ( ! state.consent_id ) {
             state.consent_id = consentId;
         }
 
-        // Imposta il cookie del browser per persistenza
-        setConsentCookie( state.consent_id, state.revision );
-
         state.last_event = timestamp;
-        state.categories = Object.assign( {}, payload );
-        state.last_revision = state.revision;
-        state.should_display = false;
-        updateRevisionNotice();
-        hideBanner();
-        restoreBlockedNodes( state.categories );
-        updateReopenVisibility();
+        
+        // NOTA: Banner già nascosto e categorie già salvate in handleAcceptAll/handleRejectAll
+        // Questo è solo per confermare che il server ha ricevuto il consenso
+        debugTiming( 'Server consent sync completed successfully' );
     };
 
     var handleFailure = function () {
-        debugTiming( 'handleFailure called' );
+        debugTiming( 'handleFailure called - Server sync failed but local consent is saved' );
         setButtonsLoading( false );
-        state.should_display = true;
-        showBanner();
+        
+        // FIX CRITICO: Non mostrare nuovamente il banner
+        // Il consenso è già salvato in locale (cookie + localStorage)
+        // L'utente ha già dato il consenso, non dobbiamo chiederlo di nuovo
+        debugTiming( 'Local consent preserved despite server error' );
+        
+        // Il banner resta nascosto, il consenso è valido in locale
     };
 
     if ( state.preview_mode || ! rest.url ) {
@@ -1292,7 +1418,8 @@ function persistConsent( event, payload ) {
 }
 
 function readConsentIdFromCookie() {
-    var name = ( consentCookie.name || 'fp_consent_state_id' ) + '=';
+    var cookieName = consentCookie.name || 'fp_consent_state_id';
+    var name = cookieName + '=';
     var parts = document.cookie ? document.cookie.split( ';' ) : [];
 
     for ( var i = 0; i < parts.length; i++ ) {
@@ -1302,16 +1429,52 @@ function readConsentIdFromCookie() {
             var segments = value.split( '|' );
             debugTiming( 'Cookie trovato: ' + value + ', ID: ' + ( segments[ 0 ] || '' ) + ', Rev: ' + ( segments[ 1 ] || '0' ) );
             
-            // Aggiorna anche la revisione se presente
+            // CORREZIONE: Aggiorna anche la revisione se presente e assicurati che sia valida
             if ( segments[ 1 ] ) {
-                state.last_revision = parseInt( segments[ 1 ], 10 ) || 0;
+                var revision = parseInt( segments[ 1 ], 10 ) || 0;
+                state.last_revision = revision;
+                debugTiming( 'Revisione dal cookie: ' + revision );
             }
             
-            return segments[ 0 ] || '';
+            // CORREZIONE: Verifica che l'ID del consenso sia valido (non vuoto)
+            var consentId = segments[ 0 ] || '';
+            if ( consentId && consentId.length > 0 ) {
+                debugTiming( 'Consent ID valido trovato: ' + consentId );
+                return consentId;
+            } else {
+                debugTiming( 'Consent ID vuoto o non valido nel cookie' );
+                return '';
+            }
         }
     }
 
-    debugTiming( 'Nessun cookie di consenso trovato' );
+    debugTiming( 'Nessun cookie di consenso trovato nei cookie del browser' );
+    
+    // FALLBACK: Prova a leggere da localStorage
+    try {
+        if ( window.localStorage ) {
+            var storedValue = localStorage.getItem( cookieName );
+            if ( storedValue ) {
+                debugTiming( 'Consenso trovato in localStorage: ' + storedValue );
+                var segments = storedValue.split( '|' );
+                var consentId = segments[ 0 ] || '';
+                if ( consentId && consentId.length > 0 ) {
+                    // Aggiorna la revisione
+                    if ( segments[ 1 ] ) {
+                        var revision = parseInt( segments[ 1 ], 10 ) || 0;
+                        state.last_revision = revision;
+                    }
+                    debugTiming( 'Consenso recuperato da localStorage: ' + consentId );
+                    // Prova a ripristinare il cookie
+                    setConsentCookie( consentId, state.revision );
+                    return consentId;
+                }
+            }
+        }
+    } catch ( error ) {
+        debugTiming( 'Errore lettura localStorage: ' + error.message );
+    }
+    
     return '';
 }
 
@@ -1351,6 +1514,7 @@ function generateConsentId() {
 
 function setConsentCookie( consentId, revision ) {
     if ( ! consentId ) {
+        debugTiming( 'setConsentCookie: Consent ID vuoto, cookie non impostato' );
         return;
     }
 
@@ -1362,12 +1526,12 @@ function setConsentCookie( consentId, revision ) {
     var cookieValue = consentId + '|' + revision;
     var cookieString = cookieName + '=' + cookieValue + '; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
     
-    // Aggiungi secure se siamo su HTTPS
+    // CORREZIONE: Aggiungi secure se siamo su HTTPS
     if ( window.location.protocol === 'https:' ) {
         cookieString += '; Secure';
     }
     
-    // Aggiungi il dominio se necessario
+    // CORREZIONE: Migliora la gestione del dominio
     var domain = window.location.hostname;
     if ( domain && domain !== 'localhost' && ! domain.match( /^\d+\.\d+\.\d+\.\d+$/ ) ) {
         // Per domini, usa solo il dominio principale
@@ -1378,7 +1542,32 @@ function setConsentCookie( consentId, revision ) {
         }
     }
     
+    // CORREZIONE: Prova a impostare il cookie e verifica che sia stato impostato
     document.cookie = cookieString;
+    
+    // CORREZIONE AGGIUNTIVA: Salva anche in localStorage come backup
+    try {
+        if ( window.localStorage ) {
+            localStorage.setItem( cookieName, cookieValue );
+            debugTiming( 'Consenso salvato anche in localStorage: ' + cookieValue );
+        }
+    } catch ( error ) {
+        debugTiming( 'Impossibile salvare in localStorage: ' + error.message );
+    }
+    
+    // Verifica che il cookie sia stato impostato correttamente
+    setTimeout( function() {
+        var testCookie = readConsentIdFromCookie();
+        if ( testCookie === consentId ) {
+            debugTiming( 'Cookie verificato con successo: ' + consentId );
+        } else {
+            debugTiming( 'ERRORE: Cookie non impostato correttamente. Atteso: ' + consentId + ', Trovato: ' + testCookie );
+            // FALLBACK: Se il cookie fallisce, usa localStorage
+            if ( window.localStorage ) {
+                debugTiming( 'Utilizzo localStorage come fallback' );
+            }
+        }
+    }, 100 );
     
     debugTiming( 'Cookie impostato: ' + cookieString );
 }

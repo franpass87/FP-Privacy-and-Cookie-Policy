@@ -24,6 +24,9 @@ define( 'FP_PRIVACY_PLUGIN_FILE', __FILE__ );
 
 define( 'FP_PRIVACY_PLUGIN_VERSION', '0.1.2' );
 
+// Alias per integrazione con FP Performance Suite
+define( 'FP_PRIVACY_VERSION', '0.1.2' );
+
 define( 'FP_PRIVACY_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
 define( 'FP_PRIVACY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
