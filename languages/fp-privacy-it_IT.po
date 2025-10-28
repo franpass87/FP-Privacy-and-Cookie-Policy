@@ -956,3 +956,39 @@ msgstr "Cookie Policy"
 #: assets/js/admin.js:51
 msgid "Update the banner texts above to preview the banner."
 msgstr "Aggiorna i testi del banner sopra per visualizzarne l'anteprima."
+
+#: src/Admin/SettingsRenderer.php:311
+msgid "Banner background"
+msgstr "Sfondo banner"
+
+#: src/Admin/SettingsRenderer.php:312
+msgid "Banner text"
+msgstr "Testo banner"
+
+#: src/Admin/SettingsRenderer.php:313
+msgid "Primary button background"
+msgstr "Sfondo pulsante principale"
+
+#: src/Admin/SettingsRenderer.php:314
+msgid "Primary button text"
+msgstr "Testo pulsante principale"
+
+#: src/Admin/SettingsRenderer.php:315
+msgid "Secondary buttons background"
+msgstr "Sfondo pulsanti secondari"
+
+#: src/Admin/SettingsRenderer.php:316
+msgid "Secondary buttons text"
+msgstr "Testo pulsanti secondari"
+
+#: src/Admin/SettingsRenderer.php:317
+msgid "Link color"
+msgstr "Colore link"
+
+#: src/Admin/SettingsRenderer.php:318
+msgid "Border"
+msgstr "Bordo"
+
+#: src/Admin/SettingsRenderer.php:319
+msgid "Focus color"
+msgstr "Colore focus"

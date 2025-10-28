@@ -33,10 +33,23 @@ class I18n {
 	 * @return void
 	 */
 	public function load_textdomain(): void {
-		load_plugin_textdomain(
-			'fp-privacy',
-			false,
-			dirname( plugin_basename( FP_PRIVACY_PLUGIN_FILE ) ) . '/languages'
-		);
+		// CRITICAL FIX: Use absolute path for junction/symlink compatibility
+		// load_plugin_textdomain() with relative path doesn't work with junctions
+		$locale = \apply_filters( 'plugin_locale', \determine_locale(), 'fp-privacy' );
+		$mofile = FP_PRIVACY_PLUGIN_PATH . 'languages/fp-privacy-' . $locale . '.mo';
+		
+		// Try absolute path first (works with junctions)
+		if ( file_exists( $mofile ) ) {
+			\load_textdomain( 'fp-privacy', $mofile );
+		}
+		
+		// Fallback to standard method for compatibility
+		if ( ! \is_textdomain_loaded( 'fp-privacy' ) ) {
+			\load_plugin_textdomain(
+				'fp-privacy',
+				false,
+				dirname( plugin_basename( FP_PRIVACY_PLUGIN_FILE ) ) . '/languages'
+			);
+		}
 	}
 }

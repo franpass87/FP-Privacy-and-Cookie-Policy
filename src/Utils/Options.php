@@ -859,7 +859,7 @@ class Options {
 		
 		// Load the textdomain if not already loaded
 		if ( ! \is_textdomain_loaded( 'fp-privacy' ) ) {
-			\load_plugin_textdomain( 'fp-privacy', false, dirname( plugin_basename( FP_PRIVACY_PLUGIN_FILE ) ) . '/languages' );
+			$this->load_textdomain_for_locale( $original_locale );
 		}
 		
 		// Temporarily switch locale to get translated strings
@@ -867,21 +867,21 @@ class Options {
 			\switch_to_locale( $lang );
 			// Reload textdomain for the new locale
 			\unload_textdomain( 'fp-privacy' );
-			\load_plugin_textdomain( 'fp-privacy', false, dirname( plugin_basename( FP_PRIVACY_PLUGIN_FILE ) ) . '/languages' );
+			$this->load_textdomain_for_locale( $lang );
 		}
 
 		$defaults = array(
-			'title'              => \__( 'Rispettiamo la tua privacy', 'fp-privacy' ),
-			'message'            => \__( 'Utilizziamo i cookie per migliorare la tua esperienza. Puoi accettare tutti i cookie o gestire le tue preferenze.', 'fp-privacy' ),
-			'btn_accept'         => \__( 'Accetta tutto', 'fp-privacy' ),
-			'btn_reject'         => \__( 'Rifiuta tutto', 'fp-privacy' ),
-			'btn_prefs'          => \__( 'Gestisci preferenze', 'fp-privacy' ),
-			'modal_title'        => \__( 'Preferenze privacy', 'fp-privacy' ),
-			'modal_close'        => \__( 'Chiudi preferenze', 'fp-privacy' ),
-			'modal_save'         => \__( 'Salva preferenze', 'fp-privacy' ),
-			'revision_notice'    => \__( 'Abbiamo aggiornato la nostra policy. Ti invitiamo a rivedere le tue preferenze.', 'fp-privacy' ),
-			'toggle_locked'      => \__( 'Sempre attivo', 'fp-privacy' ),
-			'toggle_enabled'     => \__( 'Abilitato', 'fp-privacy' ),
+			'title'              => \__( 'We value your privacy', 'fp-privacy' ),
+			'message'            => \__( 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.', 'fp-privacy' ),
+			'btn_accept'         => \__( 'Accept all', 'fp-privacy' ),
+			'btn_reject'         => \__( 'Reject all', 'fp-privacy' ),
+			'btn_prefs'          => \__( 'Manage preferences', 'fp-privacy' ),
+			'modal_title'        => \__( 'Privacy preferences', 'fp-privacy' ),
+			'modal_close'        => \__( 'Close preferences', 'fp-privacy' ),
+			'modal_save'         => \__( 'Save preferences', 'fp-privacy' ),
+			'revision_notice'    => \__( 'We have updated our policy. Please review your preferences.', 'fp-privacy' ),
+			'toggle_locked'      => \__( 'Always active', 'fp-privacy' ),
+			'toggle_enabled'     => \__( 'Enabled', 'fp-privacy' ),
 			'debug_label'        => \__( 'Cookie debug:', 'fp-privacy' ),
 			'link_policy'        => '',
 			'link_privacy_policy' => \__( 'Privacy Policy', 'fp-privacy' ),
@@ -893,10 +893,27 @@ class Options {
 			\restore_previous_locale();
 			// Reload textdomain for the original locale
 			\unload_textdomain( 'fp-privacy' );
-			\load_plugin_textdomain( 'fp-privacy', false, dirname( plugin_basename( FP_PRIVACY_PLUGIN_FILE ) ) . '/languages' );
+			$this->load_textdomain_for_locale( $original_locale );
 		}
 
 		return $defaults;
+	}
+	
+	/**
+	 * Load textdomain for specific locale using absolute path (junction-safe).
+	 *
+	 * @param string $locale Locale code.
+	 *
+	 * @return bool
+	 */
+	private function load_textdomain_for_locale( $locale ) {
+		$mofile = FP_PRIVACY_PLUGIN_PATH . 'languages/fp-privacy-' . $locale . '.mo';
+		
+		if ( file_exists( $mofile ) ) {
+			return \load_textdomain( 'fp-privacy', $mofile );
+		}
+		
+		return false;
 	}
 
 	/**

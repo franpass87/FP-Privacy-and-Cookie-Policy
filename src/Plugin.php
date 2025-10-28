@@ -109,12 +109,15 @@ $this->log_model     = new LogModel();
 $this->cleanup       = new Cleanup( $this->log_model, $this->options );
 $this->consent_state = new ConsentState( $this->options, $this->log_model );
 
-$view      = new View();
-$i18n      = new I18n();
-$detector  = new DetectorRegistry();
-$generator = new PolicyGenerator( $this->options, $detector, $view );
+	$view      = new View();
+	$i18n      = new I18n();
+	$detector  = new DetectorRegistry();
+	$generator = new PolicyGenerator( $this->options, $detector, $view );
 
-$i18n->hooks();
+	// Load textdomain immediately - CRITICAL FIX
+	// Previously this was registered on 'plugins_loaded' hook which was already running
+	$i18n->load_textdomain();
+	$i18n->hooks();
 
 ( new ConsentMode( $this->options ) )->hooks();
 

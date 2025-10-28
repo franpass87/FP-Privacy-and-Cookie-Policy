@@ -253,12 +253,29 @@ transition: border-color 0.2s ease;
 }
 
 .fp-privacy-palette label > span {
-    display: block;
+    display: block !important;
     font-weight: 600;
     font-size: 13px;
     color: #374151;
     text-transform: none;
     letter-spacing: 0;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin-bottom: 8px;
+}
+
+/* CRITICAL FIX: Styled label for color picker */
+.fp-privacy-palette .fp-palette-label {
+    display: block !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    color: #374151 !important;
+    margin-bottom: 10px !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    line-height: 1.4 !important;
 }
 
 /* Nascondi il testo del color result */

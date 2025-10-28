@@ -98,16 +98,33 @@ $( function () {
     
     // QUICK WIN #1: Inizializza WordPress Color Picker
     if ( $.fn.wpColorPicker ) {
-        $( '.fp-privacy-color-picker' ).wpColorPicker({
-            change: function( event, ui ) {
-                // Trigger update preview in tempo reale
-                $( this ).trigger( 'input' );
-                evaluateContrast();
-            },
-            clear: function() {
-                // Quando si clicca "Clear", ripristina colore default
-                $( this ).trigger( 'input' );
-                evaluateContrast();
+        $( '.fp-privacy-color-picker' ).each( function() {
+            var $input = $( this );
+            var $label = $input.closest( 'label' );
+            var labelText = $label.find( '> span' ).first().text();
+            
+            // Initialize color picker
+            $input.wpColorPicker({
+                change: function( event, ui ) {
+                    // Trigger update preview in tempo reale
+                    $( this ).trigger( 'input' );
+                    evaluateContrast();
+                },
+                clear: function() {
+                    // Quando si clicca "Clear", ripristina colore default
+                    $( this ).trigger( 'input' );
+                    evaluateContrast();
+                }
+            });
+            
+            // CRITICAL FIX: Move the label text ABOVE the color picker container
+            if ( labelText ) {
+                var $container = $input.closest( '.wp-picker-container' );
+                if ( $container.length ) {
+                    // Create a visible label element
+                    var $visibleLabel = $( '<span class="fp-palette-label"></span>' ).text( labelText );
+                    $label.prepend( $visibleLabel );
+                }
             }
         });
     }

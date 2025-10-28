@@ -1065,3 +1065,39 @@ msgstr "We have updated our policy. Please review your preferences."
 #: assets/js/admin.js:51
 msgid "Update the banner texts above to preview the banner."
 msgstr "Update the banner texts above to preview the banner."
+
+#: src/Admin/SettingsRenderer.php:311
+msgid "Banner background"
+msgstr "Banner background"
+
+#: src/Admin/SettingsRenderer.php:312
+msgid "Banner text"
+msgstr "Banner text"
+
+#: src/Admin/SettingsRenderer.php:313
+msgid "Primary button background"
+msgstr "Primary button background"
+
+#: src/Admin/SettingsRenderer.php:314
+msgid "Primary button text"
+msgstr "Primary button text"
+
+#: src/Admin/SettingsRenderer.php:315
+msgid "Secondary buttons background"
+msgstr "Secondary buttons background"
+
+#: src/Admin/SettingsRenderer.php:316
+msgid "Secondary buttons text"
+msgstr "Secondary buttons text"
+
+#: src/Admin/SettingsRenderer.php:317
+msgid "Link color"
+msgstr "Link color"
+
+#: src/Admin/SettingsRenderer.php:318
+msgid "Border"
+msgstr "Border"
+
+#: src/Admin/SettingsRenderer.php:319
+msgid "Focus color"
+msgstr "Focus color"

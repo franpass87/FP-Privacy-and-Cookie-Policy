@@ -306,17 +306,17 @@ class SettingsRenderer {
 	 * @return void
 	 */
 	private function render_palette_settings( $palette ) {
-		// Etichette descrittive in italiano per i colori della palette
+		// Descriptive labels for palette colors
 		$labels = array(
-			'surface_bg'          => \__( 'Sfondo banner', 'fp-privacy' ),
-			'surface_text'        => \__( 'Testo banner', 'fp-privacy' ),
-			'button_primary_bg'   => \__( 'Sfondo pulsante principale', 'fp-privacy' ),
-			'button_primary_tx'   => \__( 'Testo pulsante principale', 'fp-privacy' ),
-			'button_secondary_bg' => \__( 'Sfondo pulsanti secondari', 'fp-privacy' ),
-			'button_secondary_tx' => \__( 'Testo pulsanti secondari', 'fp-privacy' ),
-			'link'                => \__( 'Colore link', 'fp-privacy' ),
-			'border'              => \__( 'Bordo', 'fp-privacy' ),
-			'focus'               => \__( 'Colore focus', 'fp-privacy' ),
+			'surface_bg'          => \__( 'Banner background', 'fp-privacy' ),
+			'surface_text'        => \__( 'Banner text', 'fp-privacy' ),
+			'button_primary_bg'   => \__( 'Primary button background', 'fp-privacy' ),
+			'button_primary_tx'   => \__( 'Primary button text', 'fp-privacy' ),
+			'button_secondary_bg' => \__( 'Secondary buttons background', 'fp-privacy' ),
+			'button_secondary_tx' => \__( 'Secondary buttons text', 'fp-privacy' ),
+			'link'                => \__( 'Link color', 'fp-privacy' ),
+			'border'              => \__( 'Border', 'fp-privacy' ),
+			'focus'               => \__( 'Focus color', 'fp-privacy' ),
 		);
 		?>
 		<div class="fp-privacy-palette">
