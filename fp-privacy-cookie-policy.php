@@ -7,7 +7,7 @@
  * Author URI: https://francescopasseri.com
  * Text Domain: fp-privacy
  * Domain Path: /languages
- * GitHub Plugin URI: franpass87/FP-Privacy-and-Cookie-Policy
+ * GitHub Plugin URI: franpass87/FP-Privacy-and-Cookie-Policy-1
  * Primary Branch: main
  * Release Asset: true
  * Requires PHP: 7.4
