@@ -321,14 +321,15 @@ class SettingsRenderer {
 		?>
 		<div class="fp-privacy-palette">
 		<?php foreach ( $palette as $key => $color ) : ?>
-		<label>
-		<span><?php echo \esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', $key ) ) ); ?></span>
+		<div class="fp-privacy-palette-item">
+		<strong class="fp-palette-label-text"><?php echo \esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', $key ) ) ); ?></strong>
 		<input type="text" 
 		       name="banner_layout[palette][<?php echo \esc_attr( $key ); ?>]" 
 		       value="<?php echo \esc_attr( $color ); ?>" 
 		       class="fp-privacy-color-picker" 
-		       data-default-color="<?php echo \esc_attr( $color ); ?>" />
-		</label>
+		       data-default-color="<?php echo \esc_attr( $color ); ?>" 
+		       data-label="<?php echo \esc_attr( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', $key ) ) ); ?>" />
+		</div>
 		<?php endforeach; ?>
 		</div>
 		<?php

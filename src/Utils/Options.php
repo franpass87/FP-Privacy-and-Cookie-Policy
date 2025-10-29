@@ -209,26 +209,50 @@ class Options {
 
 		$category_defaults = array(
 			'necessary'   => array(
-				'label'       => array( 'default' => 'Strettamente necessari' ),
-				'description' => array( 'default' => 'Cookie essenziali richiesti per il funzionamento del sito web e non possono essere disabilitati.' ),
+				'label'       => array( 
+					'default' => \__( 'Strictly necessary', 'fp-privacy' ),
+					'it_IT'   => \__( 'Strictly necessary', 'fp-privacy' ),
+				),
+				'description' => array( 
+					'default' => \__( 'Essential cookies required for the website to function and cannot be disabled.', 'fp-privacy' ),
+					'it_IT'   => \__( 'Essential cookies required for the website to function and cannot be disabled.', 'fp-privacy' ),
+				),
 				'locked'      => true,
 				'services'    => array(),
 			),
 			'preferences' => array(
-				'label'       => array( 'default' => 'Preferenze' ),
-				'description' => array( 'default' => 'Memorizzano le preferenze utente come lingua o posizione.' ),
+				'label'       => array( 
+					'default' => \__( 'Preferences', 'fp-privacy' ),
+					'it_IT'   => \__( 'Preferences', 'fp-privacy' ),
+				),
+				'description' => array( 
+					'default' => \__( 'Store user preferences such as language or location.', 'fp-privacy' ),
+					'it_IT'   => \__( 'Store user preferences such as language or location.', 'fp-privacy' ),
+				),
 				'locked'      => false,
 				'services'    => array(),
 			),
 			'statistics'  => array(
-				'label'       => array( 'default' => 'Statistiche' ),
-				'description' => array( 'default' => 'Raccolgono statistiche anonime per migliorare i nostri servizi.' ),
+				'label'       => array( 
+					'default' => \__( 'Statistics', 'fp-privacy' ),
+					'it_IT'   => \__( 'Statistics', 'fp-privacy' ),
+				),
+				'description' => array( 
+					'default' => \__( 'Collect anonymous statistics to improve our services.', 'fp-privacy' ),
+					'it_IT'   => \__( 'Collect anonymous statistics to improve our services.', 'fp-privacy' ),
+				),
 				'locked'      => false,
 				'services'    => array(),
 			),
 			'marketing'   => array(
-				'label'       => array( 'default' => 'Marketing' ),
-				'description' => array( 'default' => 'Abilitano la pubblicità personalizzata e il tracciamento.' ),
+				'label'       => array( 
+					'default' => \__( 'Marketing', 'fp-privacy' ),
+					'it_IT'   => \__( 'Marketing', 'fp-privacy' ),
+				),
+				'description' => array( 
+					'default' => \__( 'Enable personalized advertising and tracking.', 'fp-privacy' ),
+					'it_IT'   => \__( 'Enable personalized advertising and tracking.', 'fp-privacy' ),
+				),
 				'locked'      => false,
 				'services'    => array(),
 			),

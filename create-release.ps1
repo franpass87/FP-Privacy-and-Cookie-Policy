@@ -6,7 +6,7 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Versione corrente
-$VERSION = "0.1.2"
+$VERSION = "0.2.0"
 
 Write-Host "Versione corrente: $VERSION" -ForegroundColor Yellow
 Write-Host ""

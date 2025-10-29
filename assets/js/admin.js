@@ -100,10 +100,10 @@ $( function () {
     if ( $.fn.wpColorPicker ) {
         $( '.fp-privacy-color-picker' ).each( function() {
             var $input = $( this );
-            var $label = $input.closest( 'label' );
-            var labelText = $label.find( '> span' ).first().text();
             
             // Initialize color picker
+            // The label is now in the HTML as <strong class="fp-palette-label-text">
+            // so we don't need to manipulate it via JavaScript
             $input.wpColorPicker({
                 change: function( event, ui ) {
                     // Trigger update preview in tempo reale
@@ -116,16 +116,6 @@ $( function () {
                     evaluateContrast();
                 }
             });
-            
-            // CRITICAL FIX: Move the label text ABOVE the color picker container
-            if ( labelText ) {
-                var $container = $input.closest( '.wp-picker-container' );
-                if ( $container.length ) {
-                    // Create a visible label element
-                    var $visibleLabel = $( '<span class="fp-palette-label"></span>' ).text( labelText );
-                    $label.prepend( $visibleLabel );
-                }
-            }
         });
     }
     

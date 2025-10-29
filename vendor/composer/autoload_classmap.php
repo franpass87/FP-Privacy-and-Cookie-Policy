@@ -10,6 +10,7 @@ return array(
     'FP\\Privacy\\Admin\\AnalyticsPage' => $baseDir . '/src/Admin/AnalyticsPage.php',
     'FP\\Privacy\\Admin\\ConsentLogTable' => $baseDir . '/src/Admin/ConsentLogTable.php',
     'FP\\Privacy\\Admin\\DashboardWidget' => $baseDir . '/src/Admin/DashboardWidget.php',
+    'FP\\Privacy\\Admin\\DiagnosticTools' => $baseDir . '/src/Admin/DiagnosticTools.php',
     'FP\\Privacy\\Admin\\IntegrationAudit' => $baseDir . '/src/Admin/IntegrationAudit.php',
     'FP\\Privacy\\Admin\\Menu' => $baseDir . '/src/Admin/Menu.php',
     'FP\\Privacy\\Admin\\PolicyEditor' => $baseDir . '/src/Admin/PolicyEditor.php',

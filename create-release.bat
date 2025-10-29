@@ -7,7 +7,7 @@ echo ========================================
 echo.
 
 REM Versione corrente
-set VERSION=0.1.2
+set VERSION=0.2.0
 
 echo Versione corrente: %VERSION%
 echo.

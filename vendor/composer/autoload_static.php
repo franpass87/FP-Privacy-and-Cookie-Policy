@@ -25,6 +25,7 @@ class ComposerStaticInit31e5fff2e9c47dbf50f77f0f4d7a25b7
         'FP\\Privacy\\Admin\\AnalyticsPage' => __DIR__ . '/../..' . '/src/Admin/AnalyticsPage.php',
         'FP\\Privacy\\Admin\\ConsentLogTable' => __DIR__ . '/../..' . '/src/Admin/ConsentLogTable.php',
         'FP\\Privacy\\Admin\\DashboardWidget' => __DIR__ . '/../..' . '/src/Admin/DashboardWidget.php',
+        'FP\\Privacy\\Admin\\DiagnosticTools' => __DIR__ . '/../..' . '/src/Admin/DiagnosticTools.php',
         'FP\\Privacy\\Admin\\IntegrationAudit' => __DIR__ . '/../..' . '/src/Admin/IntegrationAudit.php',
         'FP\\Privacy\\Admin\\Menu' => __DIR__ . '/../..' . '/src/Admin/Menu.php',
         'FP\\Privacy\\Admin\\PolicyEditor' => __DIR__ . '/../..' . '/src/Admin/PolicyEditor.php',

@@ -235,10 +235,7 @@ transition: border-color 0.2s ease;
     font-family: 'Courier New', monospace !important;
 }
 
-.fp-privacy-palette label {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.fp-privacy-palette-item {
     padding: 16px;
     background: #f9fafb;
     border-radius: 10px;
@@ -246,36 +243,49 @@ transition: border-color 0.2s ease;
     border: 1px solid transparent;
 }
 
-.fp-privacy-palette label:hover {
+.fp-privacy-palette-item:hover {
     background: #fff;
     border-color: #e5e7eb;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.fp-privacy-palette label > span {
-    display: block !important;
-    font-weight: 600;
-    font-size: 13px;
-    color: #374151;
-    text-transform: none;
-    letter-spacing: 0;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin-bottom: 8px;
-}
-
-/* CRITICAL FIX: Styled label for color picker */
-.fp-privacy-palette .fp-palette-label {
+/* CRITICAL FIX: Styled label for color picker - NEW APPROACH */
+.fp-privacy-palette-item .fp-palette-label-text {
     display: block !important;
     font-weight: 600 !important;
-    font-size: 13px !important;
-    color: #374151 !important;
-    margin-bottom: 10px !important;
+    font-size: 14px !important;
+    color: #1f2937 !important;
+    margin-bottom: 8px !important;
     text-transform: none !important;
     letter-spacing: 0 !important;
     visibility: visible !important;
     opacity: 1 !important;
-    line-height: 1.4 !important;
+    line-height: 1.5 !important;
+    position: relative !important;
+    z-index: 10 !important;
+    pointer-events: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+.fp-privacy-palette-label-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+/* Force visibility of label even if WordPress tries to hide it */
+.fp-privacy-palette .fp-palette-label-text,
+.fp-privacy-palette-item .fp-palette-label-text,
+.fp-privacy-palette-item strong.fp-palette-label-text {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    width: auto !important;
+    clip: auto !important;
+    overflow: visible !important;
+    position: static !important;
 }
 
 /* Nascondi il testo del color result */
