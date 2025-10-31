@@ -116,6 +116,75 @@ $( function () {
                     evaluateContrast();
                 }
             });
+            
+            // Migliora l'input manuale del campo HEX
+            var $hexInput = $input.closest( '.wp-picker-container' ).find( '.wp-picker-input-wrap input[type="text"]' );
+            
+            if ( $hexInput.length ) {
+                // Aggiungi placeholder informativo
+                $hexInput.attr( 'placeholder', '#000000' );
+                
+                // Gestisci paste e input
+                $hexInput.on( 'paste input', function() {
+                    var $this = $( this );
+                    var val = $this.val().trim().toUpperCase();
+                    
+                    // Rimuovi caratteri non validi
+                    val = val.replace( /[^0-9A-F#]/gi, '' );
+                    
+                    // Aggiungi # se manca
+                    if ( val.length > 0 && val[0] !== '#' ) {
+                        val = '#' + val;
+                    }
+                    
+                    // Limita lunghezza (# + 6 caratteri)
+                    if ( val.length > 7 ) {
+                        val = val.substring( 0, 7 );
+                    }
+                    
+                    // Aggiorna solo se il valore è cambiato
+                    if ( $this.val() !== val ) {
+                        $this.val( val );
+                    }
+                    
+                    // Valida e mostra feedback visivo
+                    var isValid = /^#[0-9A-F]{6}$/i.test( val );
+                    if ( isValid ) {
+                        // Animazione di successo
+                        $this.addClass( 'hex-valid' );
+                        $this.css( 'border-color', '#10b981' );
+                        
+                        setTimeout( function() {
+                            $this.removeClass( 'hex-valid' );
+                            $this.css( 'border-color', '' );
+                        }, 800 );
+                        
+                        // Mostra badge di successo
+                        var $wrapper = $this.closest( '.wp-picker-input-wrap' );
+                        if ( ! $wrapper.find( '.copy-success' ).length ) {
+                            var $badge = $( '<span class="copy-success">✓ Valido</span>' );
+                            $wrapper.append( $badge );
+                            
+                            setTimeout( function() {
+                                $badge.addClass( 'show' );
+                            }, 100 );
+                            
+                            setTimeout( function() {
+                                $badge.removeClass( 'show' );
+                                setTimeout( function() {
+                                    $badge.remove();
+                                }, 300 );
+                            }, 1500 );
+                        }
+                    } else if ( val.length === 7 ) {
+                        // Formato completo ma non valido
+                        $this.css( 'border-color', '#ef4444' );
+                    }
+                });
+                
+                // Tooltip su focus
+                $hexInput.attr( 'title', 'Incolla o digita un codice HEX (es: #FF5733)' );
+            }
         });
     }
     
