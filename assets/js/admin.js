@@ -105,6 +105,8 @@ $( function () {
             // The label is now in the HTML as <strong class="fp-palette-label-text">
             // so we don't need to manipulate it via JavaScript
             $input.wpColorPicker({
+                // CRITICAL: Forza la visualizzazione del campo input HEX
+                hide: false,
                 change: function( event, ui ) {
                     // Trigger update preview in tempo reale
                     $( this ).trigger( 'input' );
