@@ -146,6 +146,21 @@ $( function () {
             var $hexInput = $input.closest( '.wp-picker-container' ).find( '.wp-picker-input-wrap input[type="text"]' );
             
             if ( $hexInput.length ) {
+                // CRITICAL: Impedisci che il click sul campo input apra la palette
+                $hexInput.on( 'click focus', function( e ) {
+                    e.stopPropagation();
+                    // Assicurati che la palette sia chiusa quando fai focus sull'input
+                    var $holder = $container.find( '.wp-picker-holder' );
+                    if ( $holder.is( ':visible' ) ) {
+                        $container.find( '.wp-color-result' ).click();
+                    }
+                });
+                
+                // Impedisci anche al wrapper di propagare il click
+                $inputWrap.on( 'click', function( e ) {
+                    e.stopPropagation();
+                });
+                
                 // Aggiungi placeholder informativo
                 $hexInput.attr( 'placeholder', '#000000' );
                 
