@@ -105,8 +105,6 @@ $( function () {
             // The label is now in the HTML as <strong class="fp-palette-label-text">
             // so we don't need to manipulate it via JavaScript
             $input.wpColorPicker({
-                // CRITICAL: Forza la visualizzazione del campo input HEX
-                hide: false,
                 change: function( event, ui ) {
                     // Trigger update preview in tempo reale
                     $( this ).trigger( 'input' );
@@ -117,6 +115,31 @@ $( function () {
                     $( this ).trigger( 'input' );
                     evaluateContrast();
                 }
+            });
+            
+            // CRITICAL: Forza la visibilità del campo input HEX anche quando il picker è chiuso
+            var $container = $input.closest( '.wp-picker-container' );
+            var $inputWrap = $container.find( '.wp-picker-input-wrap' );
+            
+            // Funzione per forzare la visibilità
+            function forceInputVisible() {
+                $inputWrap.show().css({
+                    'display': 'flex',
+                    'visibility': 'visible',
+                    'opacity': '1'
+                });
+            }
+            
+            // Applica subito
+            forceInputVisible();
+            
+            // Riapplica dopo un breve delay (per override di WordPress)
+            setTimeout( forceInputVisible, 100 );
+            setTimeout( forceInputVisible, 500 );
+            
+            // Monitora i cambiamenti e mantieni sempre visibile
+            $container.on( 'click', '.wp-color-result', function() {
+                setTimeout( forceInputVisible, 50 );
             });
             
             // Migliora l'input manuale del campo HEX

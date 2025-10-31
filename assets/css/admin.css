@@ -226,6 +226,9 @@ transition: border-color 0.2s ease;
 .fp-privacy-palette .wp-picker-input-wrap {
     flex: 1;
     position: relative;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Campo input HEX migliorato con etichetta e icona */
