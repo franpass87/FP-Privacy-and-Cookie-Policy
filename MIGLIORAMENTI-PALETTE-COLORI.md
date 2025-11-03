@@ -154,3 +154,23 @@ Puoi incollare i codici in **qualsiasi formato**:
 **Data Modifica**: 31 Ottobre 2025  
 **Autore**: Francesco Passeri
 
+---
+
+## 🔧 Bugfix Profondo del 31 Ottobre 2025
+
+Dopo il rilascio iniziale, è stato eseguito un **refactoring completo** del sistema color picker per risolvere problemi critici:
+
+### 🐛 Bug Risolti
+1. ✅ **Tutti i picker aperti simultaneamente** - Ora solo uno aperto alla volta
+2. ✅ **Click su campo HEX apriva la palette** - Ora il campo è completamente indipendente
+3. ✅ **Campo HEX nascosto** - Ora sempre visibile grazie a MutationObserver
+
+### 🏗️ Miglioramenti Tecnici
+- **MutationObserver API**: Garantisce visibilità campo HEX
+- **Gestione centralizzata**: Array `allPickers[]` per stato globale
+- **Auto-chiusura**: Apertura di un picker chiude automaticamente gli altri
+- **Click fuori**: Click esterno chiude tutti i picker
+- **Sincronizzazione bidirezionale**: HEX input ↔ Visual picker
+
+Per dettagli tecnici completi, vedi: `BUGFIX-COLOR-PICKER-PROFONDO.md`
+

@@ -229,6 +229,8 @@ transition: border-color 0.2s ease;
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
+    align-items: center;
+    gap: 8px;
 }
 
 /* Campo input HEX migliorato con etichetta e icona */
@@ -1247,4 +1249,66 @@ margin-top: 20px;
 
 .fp-privacy-script-category::-webkit-scrollbar-thumb:hover {
     background: #9ca3af;
+}
+
+/* ========================================
+   COPY TO CLIPBOARD BUTTON
+   ======================================== */
+.fp-hex-copy-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fp-hex-copy-btn:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+    transform: scale(1.05);
+}
+
+.fp-hex-copy-btn:active {
+    transform: scale(0.95);
+}
+
+.fp-hex-copy-btn.copied {
+    background: #d1fae5;
+    border-color: #10b981;
+}
+
+.fp-hex-copy-btn .dashicons {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: #6b7280;
+}
+
+.fp-hex-copy-btn:hover .dashicons {
+    color: #374151;
+}
+
+.fp-hex-copy-btn.copied .dashicons {
+    color: #10b981;
+}
+
+/* Animazione copy success */
+@keyframes copySuccess {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+.fp-hex-copy-btn.copied {
+    animation: copySuccess 0.4s ease;
 }
