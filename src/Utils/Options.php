@@ -9,15 +9,23 @@
 
 namespace FP\Privacy\Utils;
 
+use FP\Privacy\Domain\ValueObjects\BannerLayout;
+use FP\Privacy\Domain\ValueObjects\ColorPalette;
+use FP\Privacy\Domain\ValueObjects\ConsentModeDefaults;
 use FP\Privacy\Integrations\DetectorRegistry;
+use FP\Privacy\Shared\Constants;
+use FP\Privacy\Utils\DetectorAlertManager;
 use WP_Post;
+use function __;
+use function did_action;
+use function function_exists;
 
 /**
  * Options utility class.
  */
 class Options {
-	const OPTION_KEY = 'fp_privacy_options';
-	const PAGE_MANAGED_META_KEY = '_fp_privacy_managed_signature';
+	const OPTION_KEY = Constants::OPTION_KEY;
+	const PAGE_MANAGED_META_KEY = Constants::PAGE_MANAGED_META_KEY;
 
 	/**
 	 * Cached options.
@@ -62,6 +70,27 @@ class Options {
 	private $page_manager;
 
 	/**
+	 * Banner texts manager.
+	 *
+	 * @var BannerTextsManager
+	 */
+	private $banner_texts_manager;
+
+	/**
+	 * Detector alert manager.
+	 *
+	 * @var DetectorAlertManager|null
+	 */
+	private $detector_alert_manager;
+
+	/**
+	 * Categories manager.
+	 *
+	 * @var CategoriesManager
+	 */
+	private $categories_manager;
+
+	/**
 	 * Instance.
 	 *
 	 * @var Options
@@ -69,11 +98,46 @@ class Options {
 	private static $instance;
 
 	/**
+	 * Translate a string only once translations are available.
+	 *
+	 * @param string $text
+	 * @return string
+	 */
+	public static function maybe_translate( string $text ): string {
+		if ( function_exists( '__' ) ) {
+			return __( $text, 'fp-privacy' );
+		}
+
+		return $text;
+	}
+
+	/**
 	 * Get singleton instance.
+	 *
+	 * @deprecated Use dependency injection via service container instead.
+	 *             This method is kept for backward compatibility only.
+	 *             New code should request Options via constructor injection.
+	 *             The container automatically handles multisite blog_id switching.
 	 *
 	 * @return Options
 	 */
 	public static function instance() {
+		// Try to get from container first if available.
+		if ( class_exists( '\\FP\\Privacy\\Core\\Kernel' ) ) {
+			try {
+				$kernel = \FP\Privacy\Core\Kernel::make();
+				$container = $kernel->getContainer();
+				if ( $container->has( self::class ) ) {
+					// Container handles multisite automatically via Options constructor.
+					return $container->get( self::class );
+				}
+			} catch ( \Exception $e ) {
+				// Fall through to singleton pattern.
+			}
+		}
+
+		// Fallback to singleton pattern for backward compatibility.
+		// Note: This maintains multisite blog_id switching behavior.
 		$current_blog_id = function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0;
 
 		if ( ! self::$instance || self::$instance->blog_id !== $current_blog_id ) {
@@ -95,6 +159,11 @@ class Options {
 			isset( $this->options['auto_translations'] ) ? $this->options['auto_translations'] : array()
 		);
 		$this->page_manager           = new PageManager( $this->language_normalizer );
+		
+		// Initialize managers
+		$this->banner_texts_manager   = new BannerTextsManager( $this, $this->language_normalizer );
+		$this->detector_alert_manager = new DetectorAlertManager( $this );
+		$this->categories_manager     = new CategoriesManager( $this, $this->auto_translator, $this->language_normalizer );
 	}
 
 	/**
@@ -120,6 +189,15 @@ class Options {
 		}
 
 		return $default;
+	}
+
+	/**
+	 * Verifica se il logging debug è abilitato.
+	 *
+	 * @return bool
+	 */
+	public function is_debug_enabled(): bool {
+		return ! empty( $this->options['debug_logging'] );
 	}
 
 	/**
@@ -173,20 +251,11 @@ class Options {
 		// IMPORTANTE: Italiano come lingua principale di default
 		// WordPress può essere in qualsiasi lingua, ma per questo plugin
 		// l'italiano deve essere la lingua primaria
-		$wp_locale = \get_locale();
-		$default_locale = ( $wp_locale === 'it_IT' ) ? 'it_IT' : 'it_IT'; // Forza sempre it_IT come default
+		$default_locale = Constants::DEFAULT_LOCALE;
 		
-		$default_palette = array(
-			'surface_bg'          => '#F9FAFB',
-			'surface_text'        => '#1F2937',
-			'button_primary_bg'   => '#2563EB',
-			'button_primary_tx'   => '#FFFFFF',
-			'button_secondary_bg' => '#FFFFFF',
-			'button_secondary_tx' => '#1F2937',
-			'link'                => '#1D4ED8',
-			'border'              => '#D1D5DB',
-			'focus'               => '#2563EB',
-		);
+		// Use ColorPalette value object for default palette.
+		$default_palette_vo = new ColorPalette();
+		$default_palette = $default_palette_vo->to_array();
 
 		// Default italiani hardcoded (lingua principale del plugin)
 		$banner_default = array(
@@ -210,48 +279,48 @@ class Options {
 		$category_defaults = array(
 			'necessary'   => array(
 				'label'       => array( 
-					'default' => \__( 'Strictly necessary', 'fp-privacy' ),
-					'it_IT'   => \__( 'Strictly necessary', 'fp-privacy' ),
+					'default' => self::maybe_translate('Strictly necessary'),
+					Constants::DEFAULT_LOCALE => self::maybe_translate('Strictly necessary'),
 				),
 				'description' => array( 
-					'default' => \__( 'Essential cookies required for the website to function and cannot be disabled.', 'fp-privacy' ),
-					'it_IT'   => \__( 'Essential cookies required for the website to function and cannot be disabled.', 'fp-privacy' ),
+					'default' => self::maybe_translate('Essential cookies required for the website to function and cannot be disabled.'),
+					Constants::DEFAULT_LOCALE => self::maybe_translate('Essential cookies required for the website to function and cannot be disabled.'),
 				),
 				'locked'      => true,
 				'services'    => array(),
 			),
 			'preferences' => array(
 				'label'       => array( 
-					'default' => \__( 'Preferences', 'fp-privacy' ),
-					'it_IT'   => \__( 'Preferences', 'fp-privacy' ),
+					'default' => self::maybe_translate('Preferences'),
+					Constants::DEFAULT_LOCALE => self::maybe_translate('Preferences'),
 				),
 				'description' => array( 
-					'default' => \__( 'Store user preferences such as language or location.', 'fp-privacy' ),
-					'it_IT'   => \__( 'Store user preferences such as language or location.', 'fp-privacy' ),
+					'default' => self::maybe_translate('Store user preferences such as language or location.'),
+					Constants::DEFAULT_LOCALE => self::maybe_translate('Store user preferences such as language or location.'),
 				),
 				'locked'      => false,
 				'services'    => array(),
 			),
 			'statistics'  => array(
 				'label'       => array( 
-					'default' => \__( 'Statistics', 'fp-privacy' ),
-					'it_IT'   => \__( 'Statistics', 'fp-privacy' ),
+					'default' => self::maybe_translate('Statistics'),
+					Constants::DEFAULT_LOCALE => self::maybe_translate('Statistics'),
 				),
 				'description' => array( 
-					'default' => \__( 'Collect anonymous statistics to improve our services.', 'fp-privacy' ),
-					'it_IT'   => \__( 'Collect anonymous statistics to improve our services.', 'fp-privacy' ),
+					'default' => self::maybe_translate('Collect anonymous statistics to improve our services.'),
+					Constants::DEFAULT_LOCALE => self::maybe_translate('Collect anonymous statistics to improve our services.'),
 				),
 				'locked'      => false,
 				'services'    => array(),
 			),
 			'marketing'   => array(
 				'label'       => array( 
-					'default' => \__( 'Marketing', 'fp-privacy' ),
-					'it_IT'   => \__( 'Marketing', 'fp-privacy' ),
+					'default' => self::maybe_translate('Marketing'),
+					Constants::DEFAULT_LOCALE => self::maybe_translate('Marketing'),
 				),
 				'description' => array( 
-					'default' => \__( 'Enable personalized advertising and tracking.', 'fp-privacy' ),
-					'it_IT'   => \__( 'Enable personalized advertising and tracking.', 'fp-privacy' ),
+					'default' => self::maybe_translate('Enable personalized advertising and tracking.'),
+					Constants::DEFAULT_LOCALE => self::maybe_translate('Enable personalized advertising and tracking.'),
 				),
 				'locked'      => false,
 				'services'    => array(),
@@ -262,32 +331,31 @@ class Options {
 			$default_locale => $this->build_script_language_defaults( $category_defaults ),
 		);
 
+		// Use BannerLayout value object for default layout.
+		$default_banner_layout = new BannerLayout(
+			'floating',
+			'bottom',
+			$default_palette_vo,
+			true,
+			false
+		);
+		
+		// Use ConsentModeDefaults value object for default consent mode.
+		$default_consent_mode = new ConsentModeDefaults();
+		
 		return array(
 			'languages_active'      => array( $default_locale ),
 			'banner_texts'          => array(
 				$default_locale => $banner_default,
 			),
-		'banner_layout'         => array(
-			'type'                  => 'floating',
-			'position'              => 'bottom',
-			'palette'               => $default_palette,
-			'sync_modal_and_button' => true,
-			'enable_dark_mode'      => false,
-		),
+			'banner_layout'         => $default_banner_layout->to_array(),
 			'categories'            => $category_defaults,
-			'consent_mode_defaults' => array(
-				'analytics_storage'       => 'denied',
-				'ad_storage'              => 'denied',
-				'ad_user_data'            => 'denied',
-				'ad_personalization'      => 'denied',
-				'functionality_storage'   => 'granted',
-				'personalization_storage' => 'denied',
-				'security_storage'        => 'granted',
-			),
-			'retention_days'        => 180,
-			'consent_revision'      => 1,
+			'consent_mode_defaults' => $default_consent_mode->to_array(),
+			'retention_days'        => Constants::RETENTION_DAYS_DEFAULT,
+			'consent_revision'      => Constants::CONSENT_REVISION_INITIAL,
 			'gpc_enabled'           => false,
 			'preview_mode'          => false,
+			'debug_logging'         => false,
 			'pages'                 => array(
 				'privacy_policy_page_id' => array( $default_locale => 0 ),
 				'cookie_policy_page_id'  => array( $default_locale => 0 ),
@@ -352,13 +420,21 @@ class Options {
 			)
 		);
 
-	$layout = array(
-		'type'                  => Validator::choice( $layout_raw['type'] ?? '', array( 'floating', 'bar' ), $defaults['banner_layout']['type'] ),
-		'position'              => Validator::choice( $layout_raw['position'] ?? '', array( 'top', 'bottom' ), $defaults['banner_layout']['position'] ),
-		'palette'               => Validator::sanitize_palette( isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ? $layout_raw['palette'] : array(), $defaults['banner_layout']['palette'] ),
-		'sync_modal_and_button' => Validator::bool( $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'] ),
-		'enable_dark_mode'      => Validator::bool( $layout_raw['enable_dark_mode'] ?? ( $defaults['banner_layout']['enable_dark_mode'] ?? false ) ),
+	// Use BannerLayout value object for validation and sanitization.
+	$layout_data = array_merge(
+		$defaults['banner_layout'],
+		array(
+			'type'                  => $layout_raw['type'] ?? $defaults['banner_layout']['type'],
+			'position'              => $layout_raw['position'] ?? $defaults['banner_layout']['position'],
+			'palette'               => isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ? $layout_raw['palette'] : $defaults['banner_layout']['palette'],
+			'sync_modal_and_button' => $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'],
+			'enable_dark_mode'      => $layout_raw['enable_dark_mode'] ?? ( $defaults['banner_layout']['enable_dark_mode'] ?? false ),
+		)
 	);
+	
+	// Create BannerLayout value object which validates and sanitizes automatically.
+	$banner_layout = BannerLayout::from_array( $layout_data );
+	$layout = $banner_layout->to_array();
 
 		$default_categories = Validator::sanitize_categories( $defaults['categories'], $languages );
 		$categories         = Validator::sanitize_categories( $categories_raw, $languages );
@@ -410,11 +486,13 @@ class Options {
 			'banner_texts'          => Validator::sanitize_banner_texts( isset( $value['banner_texts'] ) && \is_array( $value['banner_texts'] ) ? $value['banner_texts'] : array(), $languages, $banner_defaults ),
 			'banner_layout'         => $layout,
 			'categories'            => $categories,
-			'consent_mode_defaults' => Validator::sanitize_consent_mode( isset( $value['consent_mode_defaults'] ) && \is_array( $value['consent_mode_defaults'] ) ? $value['consent_mode_defaults'] : array(), $defaults['consent_mode_defaults'] ),
+			// Use ConsentModeDefaults value object for validation and sanitization.
+			'consent_mode_defaults' => $this->sanitize_consent_mode_defaults( $value['consent_mode_defaults'] ?? array(), $defaults['consent_mode_defaults'] ),
 			'retention_days'        => Validator::int( $value['retention_days'] ?? $defaults['retention_days'], $defaults['retention_days'], 1 ),
 			'consent_revision'      => Validator::int( $value['consent_revision'] ?? $defaults['consent_revision'], $defaults['consent_revision'], 1 ),
 			'gpc_enabled'           => Validator::bool( $value['gpc_enabled'] ?? $defaults['gpc_enabled'] ),
 			'preview_mode'          => Validator::bool( $value['preview_mode'] ?? $defaults['preview_mode'] ),
+			'debug_logging'         => Validator::bool( $value['debug_logging'] ?? $defaults['debug_logging'] ),
 			'pages'                 => Validator::sanitize_pages( $pages_raw, $languages ),
 			'org_name'              => $owner_fields['org_name'],
 			'vat'                   => $owner_fields['vat'],
@@ -422,206 +500,47 @@ class Options {
 			'dpo_name'              => $owner_fields['dpo_name'],
 			'dpo_email'             => $owner_fields['dpo_email'],
 			'privacy_email'         => $owner_fields['privacy_email'],
-			'snapshots'             => $this->sanitize_snapshots( isset( $value['snapshots'] ) && \is_array( $value['snapshots'] ) ? $value['snapshots'] : array(), $languages ),
+			'snapshots'             => OptionsSanitizer::sanitize_snapshots( isset( $value['snapshots'] ) && \is_array( $value['snapshots'] ) ? $value['snapshots'] : array(), $languages ),
 			'scripts'               => $this->script_rules_manager->sanitize_rules( $scripts_raw, $languages, $categories, $existing_scripts, $temp_normalizer ),
-			'detector_alert'        => $this->sanitize_detector_alert( $alert_raw ),
-			'detector_notifications' => $this->sanitize_detector_notifications( $notifications_raw, $this->get_detector_notifications() ),
+			'detector_alert'        => OptionsSanitizer::sanitize_detector_alert( $alert_raw ),
+			'detector_notifications' => OptionsSanitizer::sanitize_detector_notifications( $notifications_raw, $this->get_detector_notifications() ),
 			'auto_update_services'  => Validator::bool( $value['auto_update_services'] ?? $defaults['auto_update_services'] ),
 			'auto_update_policies'  => Validator::bool( $value['auto_update_policies'] ?? $defaults['auto_update_policies'] ),
 			'auto_translations'     => Validator::sanitize_auto_translations( isset( $value['auto_translations'] ) && \is_array( $value['auto_translations'] ) ? $value['auto_translations'] : array(), $banner_defaults ),
 		);
 	}
 
-	/**
-	 * Sanitize stored snapshots.
-	 *
-	 * @param array<string, mixed> $snapshots Snapshots payload.
-	 * @param array<int, string>   $languages Active languages.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function sanitize_snapshots( array $snapshots, array $languages ) {
-		$services = array(
-			'detected'     => array(),
-			'generated_at' => 0,
-		);
-
-		if ( isset( $snapshots['services'] ) && \is_array( $snapshots['services'] ) ) {
-			$services['detected']     = isset( $snapshots['services']['detected'] ) && \is_array( $snapshots['services']['detected'] ) ? array_values( $snapshots['services']['detected'] ) : array();
-			$services['generated_at'] = (int) ( $snapshots['services']['generated_at'] ?? 0 );
-		}
-
-		$policies = array(
-			'privacy' => array(),
-			'cookie'  => array(),
-		);
-
-		foreach ( array( 'privacy', 'cookie' ) as $type ) {
-			$entries = array();
-			if ( isset( $snapshots['policies'][ $type ] ) && \is_array( $snapshots['policies'][ $type ] ) ) {
-				$entries = $snapshots['policies'][ $type ];
-			}
-
-			foreach ( $languages as $language ) {
-				$language = Validator::locale( $language, $languages[0] );
-				$content  = isset( $entries[ $language ]['content'] ) ? \wp_kses_post( $entries[ $language ]['content'] ) : '';
-				$generated = isset( $entries[ $language ]['generated_at'] ) ? (int) $entries[ $language ]['generated_at'] : 0;
-
-				$policies[ $type ][ $language ] = array(
-					'content'      => $content,
-					'generated_at' => $generated,
-				);
-			}
-		}
-
-		return array(
-			'services' => $services,
-			'policies' => $policies,
-		);
-	}
-
-	/**
-	 * Sanitize detector alert payload.
-	 *
-	 * @param array<string, mixed> $alert Raw alert payload.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function sanitize_detector_alert( array $alert ) {
-		return array(
-			'active'       => Validator::bool( $alert['active'] ?? false ),
-			'detected_at'  => Validator::int( $alert['detected_at'] ?? 0, 0, 0 ),
-			'last_checked' => Validator::int( $alert['last_checked'] ?? 0, 0, 0 ),
-			'added'        => $this->sanitize_service_summaries( $alert['added'] ?? array() ),
-			'removed'      => $this->sanitize_service_summaries( $alert['removed'] ?? array() ),
-		);
-	}
-
-	/**
-	 * Normalize service summaries stored alongside detector alerts.
-	 *
-	 * @param mixed $services Raw services list.
-	 *
-	 * @return array<int, array<string, string>>
-	 */
-	private function sanitize_service_summaries( $services ) {
-		if ( ! \is_array( $services ) ) {
-			return array();
-		}
-
-		$normalized = array();
-
-		foreach ( $services as $service ) {
-			if ( ! \is_array( $service ) ) {
-				continue;
-			}
-
-			$normalized[] = array(
-				'slug'     => \sanitize_key( $service['slug'] ?? '' ),
-				'name'     => Validator::text( $service['name'] ?? '' ),
-				'category' => \sanitize_key( $service['category'] ?? '' ),
-				'provider' => Validator::text( $service['provider'] ?? '' ),
-			);
-		}
-
-		return $normalized;
-	}
-
-	/**
-	 * Sanitize detector notification settings.
-	 *
-	 * @param array<string, mixed> $settings Raw settings.
-	 * @param array<string, mixed> $defaults Existing defaults.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function sanitize_detector_notifications( array $settings, array $defaults ) {
-		$defaults = empty( $defaults ) ? $this->get_default_detector_notifications() : $defaults;
-
-		$email      = isset( $settings['email'] ) ? Validator::bool( $settings['email'] ) : $defaults['email'];
-		$recipients = isset( $settings['recipients'] ) ? $settings['recipients'] : $defaults['recipients'];
-		$last_sent  = isset( $settings['last_sent'] ) ? Validator::int( $settings['last_sent'], (int) $defaults['last_sent'], 0 ) : $defaults['last_sent'];
-
-		return array(
-			'email'      => $email,
-			'recipients' => $this->sanitize_email_list( $recipients ),
-			'last_sent'  => $last_sent,
-		);
-	}
-
-	/**
-	 * Normalize list of email recipients.
-	 *
-	 * @param mixed $emails Raw emails.
-	 *
-	 * @return array<int, string>
-	 */
-	private function sanitize_email_list( $emails ) {
-		if ( \is_string( $emails ) ) {
-			$emails = \preg_split( '/[\s,;]+/', $emails ) ?: array();
-		}
-
-		if ( ! \is_array( $emails ) ) {
-			return array();
-		}
-
-		$normalized = array();
-
-		foreach ( $emails as $email ) {
-			$clean = Validator::email( $email );
-
-			if ( '' === $clean || in_array( $clean, $normalized, true ) ) {
-				continue;
-			}
-
-			$normalized[] = $clean;
-		}
-
-		return $normalized;
-	}
 
 	/**
 	 * Get default detector notification settings.
+	 * Delegates to DetectorAlertManager.
 	 *
 	 * @return array<string, mixed>
 	 */
 	public function get_default_detector_notifications() {
-		return array(
-			'email'      => true,
-			'recipients' => array(),
-			'last_sent'  => 0,
-		);
+		return $this->get_detector_alert_manager()->get_default_detector_notifications();
 	}
 
 	/**
 	 * Retrieve detector notification settings.
+	 * Delegates to DetectorAlertManager.
 	 *
 	 * @return array<string, mixed>
 	 */
 	public function get_detector_notifications() {
-		if ( isset( $this->options['detector_notifications'] ) && \is_array( $this->options['detector_notifications'] ) ) {
-			return \array_merge( $this->get_default_detector_notifications(), $this->options['detector_notifications'] );
-		}
-
-		return $this->get_default_detector_notifications();
+		return $this->get_detector_alert_manager()->get_detector_notifications();
 	}
 
 	/**
 	 * Persist detector notification settings.
+	 * Delegates to DetectorAlertManager.
 	 *
 	 * @param array<string, mixed> $settings Settings to merge.
 	 *
 	 * @return void
 	 */
 	public function update_detector_notifications( array $settings ) {
-		$current = $this->get_detector_notifications();
-		$merged  = \array_merge( $current, $settings );
-
-		$this->set(
-			array(
-				'detector_notifications' => $merged,
-			)
-		);
+		$this->get_detector_alert_manager()->update_detector_notifications( $settings );
 	}
 
 	/**
@@ -712,54 +631,57 @@ class Options {
 
 	/**
 	 * Get the detector alert payload.
+	 * Delegates to DetectorAlertManager.
 	 *
 	 * @return array<string, mixed>
 	 */
 	public function get_detector_alert() {
-		if ( isset( $this->options['detector_alert'] ) && \is_array( $this->options['detector_alert'] ) ) {
-			return $this->options['detector_alert'];
-		}
-
-		return $this->get_default_detector_alert();
+		return $this->get_detector_alert_manager()->get_detector_alert();
 	}
 
 	/**
 	 * Persist detector alert payload.
+	 * Delegates to DetectorAlertManager.
 	 *
 	 * @param array<string, mixed> $payload Alert payload.
 	 *
 	 * @return void
 	 */
 	public function set_detector_alert( array $payload ) {
-		$this->set(
-			array(
-				'detector_alert' => $payload,
-			)
-		);
+		$this->get_detector_alert_manager()->set_detector_alert( $payload );
 	}
 
 	/**
 	 * Reset detector alert to defaults.
+	 * Delegates to DetectorAlertManager.
 	 *
 	 * @return void
 	 */
 	public function clear_detector_alert() {
-		$this->set_detector_alert( $this->get_default_detector_alert() );
+		$this->get_detector_alert_manager()->clear_detector_alert();
+	}
+
+	/**
+	 * Get detector alert manager instance.
+	 * Lazy initialization to avoid circular dependencies.
+	 *
+	 * @return DetectorAlertManager
+	 */
+	private function get_detector_alert_manager() {
+		if ( null === $this->detector_alert_manager ) {
+			$this->detector_alert_manager = new DetectorAlertManager( $this );
+		}
+		return $this->detector_alert_manager;
 	}
 
 	/**
 	 * Get default detector alert payload.
+	 * Delegates to DetectorAlertManager.
 	 *
 	 * @return array<string, mixed>
 	 */
 	public function get_default_detector_alert() {
-		return array(
-			'active'       => false,
-			'detected_at'  => 0,
-			'last_checked' => 0,
-			'added'        => array(),
-			'removed'      => array(),
-		);
+		return $this->get_detector_alert_manager()->get_default_detector_alert();
 	}
 
 	/**
@@ -795,388 +717,39 @@ class Options {
 	 * @return array<string, string>
 	 */
 	public function get_banner_text( $lang ) {
-		// Auto-detect user language if not specified
-		if ( empty( $lang ) ) {
-			$lang = $this->detect_user_language();
-		}
-		
-		// Always return translated texts in real-time to ensure proper localization
-		$languages = $this->get_languages();
-		$primary   = $languages[0] ?? 'en_US';
-		$requested = Validator::locale( $lang, $primary );
-		
-		// If the requested language is Italian, use hardcoded Italian translations
-		if ( $requested === 'it_IT' || $this->normalize_language( $requested ) === 'it_IT' ) {
-			$italian_translations = $this->get_hardcoded_italian_translations();
-			
-			// Check if there are custom texts saved for this language
-			$texts = $this->options['banner_texts'];
-			if ( isset( $texts[ $requested ] ) && \is_array( $texts[ $requested ] ) ) {
-				// Merge custom texts with Italian translations (custom texts take priority)
-				return array_merge( $italian_translations, $texts[ $requested ] );
-			}
-			
-			// Check normalized language
-			$normalized = $this->normalize_language( $requested );
-			if ( isset( $texts[ $normalized ] ) && \is_array( $texts[ $normalized ] ) && $normalized !== $requested ) {
-				// Merge with Italian translations
-				return array_merge( $italian_translations, $texts[ $normalized ] );
-			}
-			
-			// Return hardcoded Italian translations
-			return $italian_translations;
-		}
-		
-		// If the requested language is English, use hardcoded English translations
-		if ( $requested === 'en_US' || $this->normalize_language( $requested ) === 'en_US' ) {
-			$english_translations = $this->get_hardcoded_english_translations();
-			
-			// Check if there are custom texts saved for this language
-			$texts = $this->options['banner_texts'];
-			if ( isset( $texts[ $requested ] ) && \is_array( $texts[ $requested ] ) ) {
-				// Merge custom texts with English translations (custom texts take priority)
-				return array_merge( $english_translations, $texts[ $requested ] );
-			}
-			
-			// Check normalized language
-			$normalized = $this->normalize_language( $requested );
-			if ( isset( $texts[ $normalized ] ) && \is_array( $texts[ $normalized ] ) && $normalized !== $requested ) {
-				// Merge with English translations
-				return array_merge( $english_translations, $texts[ $normalized ] );
-			}
-			
-			// Return hardcoded English translations
-			return $english_translations;
-		}
-		
-		// For other languages, use the normal translation system
-		$translated_defaults = $this->get_translated_banner_defaults( $requested );
-		
-		// Check if there are custom texts saved for this language
-		$texts = $this->options['banner_texts'];
-		if ( isset( $texts[ $requested ] ) && \is_array( $texts[ $requested ] ) ) {
-			// Merge custom texts with translated defaults (custom texts take priority)
-			return array_merge( $translated_defaults, $texts[ $requested ] );
-		}
-		
-		// Check normalized language
-		$normalized = $this->normalize_language( $requested );
-		if ( isset( $texts[ $normalized ] ) && \is_array( $texts[ $normalized ] ) && $normalized !== $requested ) {
-			// Merge with translated defaults
-			return array_merge( $translated_defaults, $texts[ $normalized ] );
-		}
-		
-		// Return translated defaults as ultimate fallback
-		return $translated_defaults;
-	}
-
-	/**
-	 * Get translated banner defaults for a specific language.
-	 *
-	 * @param string $lang Language code.
-	 *
-	 * @return array<string, string>
-	 */
-	private function get_translated_banner_defaults( $lang ) {
-		// Force load the correct textdomain for this language
-		$original_locale = \get_locale();
-		
-		// Load the textdomain if not already loaded
-		if ( ! \is_textdomain_loaded( 'fp-privacy' ) ) {
-			$this->load_textdomain_for_locale( $original_locale );
-		}
-		
-		// Temporarily switch locale to get translated strings
-		if ( $lang !== $original_locale ) {
-			\switch_to_locale( $lang );
-			// Reload textdomain for the new locale
-			\unload_textdomain( 'fp-privacy' );
-			$this->load_textdomain_for_locale( $lang );
-		}
-
-		$defaults = array(
-			'title'              => \__( 'We value your privacy', 'fp-privacy' ),
-			'message'            => \__( 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.', 'fp-privacy' ),
-			'btn_accept'         => \__( 'Accept all', 'fp-privacy' ),
-			'btn_reject'         => \__( 'Reject all', 'fp-privacy' ),
-			'btn_prefs'          => \__( 'Manage preferences', 'fp-privacy' ),
-			'modal_title'        => \__( 'Privacy preferences', 'fp-privacy' ),
-			'modal_close'        => \__( 'Close preferences', 'fp-privacy' ),
-			'modal_save'         => \__( 'Save preferences', 'fp-privacy' ),
-			'revision_notice'    => \__( 'We have updated our policy. Please review your preferences.', 'fp-privacy' ),
-			'toggle_locked'      => \__( 'Always active', 'fp-privacy' ),
-			'toggle_enabled'     => \__( 'Enabled', 'fp-privacy' ),
-			'debug_label'        => \__( 'Cookie debug:', 'fp-privacy' ),
-			'link_policy'        => '',
-			'link_privacy_policy' => \__( 'Privacy Policy', 'fp-privacy' ),
-			'link_cookie_policy'  => \__( 'Cookie Policy', 'fp-privacy' ),
-		);
-
-		// Restore original locale
-		if ( $lang !== $original_locale ) {
-			\restore_previous_locale();
-			// Reload textdomain for the original locale
-			\unload_textdomain( 'fp-privacy' );
-			$this->load_textdomain_for_locale( $original_locale );
-		}
-
-		return $defaults;
-	}
-	
-	/**
-	 * Load textdomain for specific locale using absolute path (junction-safe).
-	 *
-	 * @param string $locale Locale code.
-	 *
-	 * @return bool
-	 */
-	private function load_textdomain_for_locale( $locale ) {
-		$mofile = FP_PRIVACY_PLUGIN_PATH . 'languages/fp-privacy-' . $locale . '.mo';
-		
-		if ( file_exists( $mofile ) ) {
-			return \load_textdomain( 'fp-privacy', $mofile );
-		}
-		
-		return false;
+		return $this->banner_texts_manager->get_banner_text( $lang );
 	}
 
 	/**
 	 * Force update banner texts for all active languages with proper translations.
+	 * Delegates to BannerTextsManager.
 	 *
 	 * @return void
 	 */
 	public function force_update_banner_texts_translations() {
-		$languages = $this->get_languages();
-		$current_texts = $this->options['banner_texts'] ?? array();
-		$updated_texts = array();
-
-		foreach ( $languages as $lang ) {
-			$lang = Validator::locale( $lang, 'en_US' );
-			
-			// Get current texts for this language
-			$current_lang_texts = $current_texts[ $lang ] ?? array();
-			
-			// Get translated defaults for this language
-			$translated_defaults = $this->get_translated_banner_defaults( $lang );
-			
-			// Merge current texts with translated defaults (current texts take priority)
-			$updated_texts[ $lang ] = array_merge( $translated_defaults, $current_lang_texts );
-		}
-
-		// Update the options with the new translated texts
-		$this->set( array( 'banner_texts' => $updated_texts ) );
-	}
-
-	/**
-	 * Get hardcoded Italian translations as fallback.
-	 * This ensures texts are always in Italian when the locale is Italian.
-	 *
-	 * @param string $lang Language code.
-	 *
-	 * @return array<string, string>
-	 */
-	private function get_hardcoded_italian_translations() {
-		return array(
-			'title'              => 'Rispettiamo la tua privacy',
-			'message'            => 'Utilizziamo i cookie per migliorare la tua esperienza. Puoi accettare tutti i cookie o gestire le tue preferenze.',
-			'btn_accept'         => 'Accetta tutti',
-			'btn_reject'         => 'Rifiuta tutti',
-			'btn_prefs'          => 'Gestisci preferenze',
-			'modal_title'        => 'Preferenze privacy',
-			'modal_close'        => 'Chiudi preferenze',
-			'modal_save'         => 'Salva preferenze',
-			'revision_notice'    => 'Abbiamo aggiornato la nostra policy. Rivedi le tue preferenze.',
-			'toggle_locked'      => 'Sempre attivo',
-			'toggle_enabled'     => 'Abilitato',
-			'debug_label'        => 'Debug cookie:',
-			'link_policy'        => '',
-			'link_privacy_policy' => 'Informativa sulla Privacy',
-			'link_cookie_policy'  => 'Cookie Policy',
-		);
-	}
-
-	/**
-	 * Get hardcoded English translations as fallback.
-	 *
-	 * @return array<string, string>
-	 */
-	private function get_hardcoded_english_translations() {
-		return array(
-			'title'               => 'We respect your privacy',
-			'message'             => 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.',
-			'btn_accept'          => 'Accept all',
-			'btn_reject'          => 'Reject all',
-			'btn_prefs'           => 'Manage preferences',
-			'modal_title'         => 'Privacy preferences',
-			'modal_close'         => 'Close preferences',
-			'modal_save'          => 'Save preferences',
-			'revision_notice'     => 'We have updated our policy. Please review your preferences.',
-			'toggle_locked'       => 'Always active',
-			'toggle_enabled'      => 'Enabled',
-			'debug_label'         => 'Debug cookie:',
-			'link_policy'         => '',
-			'link_privacy_policy' => 'Privacy Policy',
-			'link_cookie_policy'  => 'Cookie Policy',
-		);
+		$this->banner_texts_manager->force_update_banner_texts_translations();
 	}
 
 	/**
 	 * Detect user language from browser or WordPress locale.
+	 * Delegates to BannerTextsManager.
 	 *
 	 * @return string
 	 */
 	public function detect_user_language() {
-		// First, try to get from WordPress locale
-		$wp_locale = function_exists( '\get_locale' ) ? \get_locale() : 'en_US';
-		
-		// If WordPress locale is Italian, return Italian
-		if ( $wp_locale === 'it_IT' || strpos( $wp_locale, 'it' ) === 0 ) {
-			return 'it_IT';
-		}
-		
-		// If WordPress locale is English, return English
-		if ( $wp_locale === 'en_US' || strpos( $wp_locale, 'en' ) === 0 ) {
-			return 'en_US';
-		}
-		
-		// Try to detect from browser headers
-		if ( isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
-			$browser_lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
-			
-			// Check for Italian
-			if ( strpos( $browser_lang, 'it' ) !== false ) {
-				return 'it_IT';
-			}
-			
-			// Check for English
-			if ( strpos( $browser_lang, 'en' ) !== false ) {
-				return 'en_US';
-			}
-		}
-		
-		// Default to English
-		return 'en_US';
+		return $this->banner_texts_manager->detect_user_language();
 	}
 
 	/**
 	 * Get categories for the requested language.
+	 * Delegates to CategoriesManager.
 	 *
 	 * @param string $lang Locale.
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
 	public function get_categories_for_language( $lang ) {
-		$languages = $this->get_languages();
-		$primary   = $languages[0] ?? 'en_US';
-		$requested = Validator::locale( $lang, $primary );
-		$lang      = $this->normalize_language( $requested );
-		$fallback  = $primary;
-		$result    = array();
-
-		foreach ( $this->options['categories'] as $key => $category ) {
-			$label = '';
-			if ( isset( $category['label'][ $lang ] ) && '' !== $category['label'][ $lang ] ) {
-				$label = $category['label'][ $lang ];
-			} elseif ( isset( $category['label']['default'] ) ) {
-				$label = $category['label']['default'];
-			} elseif ( isset( $category['label'][ $fallback ] ) ) {
-				$label = $category['label'][ $fallback ];
-			}
-
-			$description = '';
-			if ( isset( $category['description'][ $lang ] ) && '' !== $category['description'][ $lang ] ) {
-				$description = $category['description'][ $lang ];
-			} elseif ( isset( $category['description']['default'] ) ) {
-				$description = $category['description']['default'];
-			} elseif ( isset( $category['description'][ $fallback ] ) ) {
-				$description = $category['description'][ $fallback ];
-			}
-
-			$services_map = isset( $category['services'] ) && \is_array( $category['services'] ) ? $category['services'] : array();
-			$services     = $this->resolve_services_for_language( $services_map, $lang, $fallback );
-
-			$result[ $key ] = array(
-				'label'       => $label,
-				'description' => $description,
-				'locked'      => ! empty( $category['locked'] ),
-				'services'    => $services,
-			);
-		}
-
-		if ( $requested !== $lang ) {
-			$translated = $this->auto_translator->translate_categories( $result, $lang, $requested );
-
-			// Update cache if translation occurred
-			$new_cache = $this->auto_translator->get_cache();
-			if ( $new_cache !== $this->options['auto_translations'] ) {
-				$this->set( array( 'auto_translations' => $new_cache ) );
-			}
-
-			return $translated;
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Resolve services list for a given language with fallbacks.
-	 *
-	 * @param array<string|int, mixed> $services_map Raw services map.
-	 * @param string                   $lang         Requested language code.
-	 * @param string                   $fallback     Fallback language code.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function resolve_services_for_language( array $services_map, $lang, $fallback ) {
-		if ( empty( $services_map ) ) {
-			return array();
-		}
-
-		// Legacy data may store services as a plain list without language keys.
-		if ( array_values( $services_map ) === $services_map ) {
-			return $this->normalize_services_list( $services_map );
-		}
-
-		$candidates = array( $lang );
-
-		if ( 'default' !== $lang ) {
-			$candidates[] = 'default';
-		}
-
-		if ( $fallback && ! in_array( $fallback, $candidates, true ) ) {
-			$candidates[] = $fallback;
-		}
-
-		foreach ( $candidates as $code ) {
-			if ( isset( $services_map[ $code ] ) && \is_array( $services_map[ $code ] ) && ! empty( $services_map[ $code ] ) ) {
-				return $this->normalize_services_list( $services_map[ $code ] );
-			}
-		}
-
-		return array();
-	}
-
-	/**
-	 * Normalize a list of service definitions.
-	 *
-	 * @param mixed $services Raw services list.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function normalize_services_list( $services ) {
-		if ( ! \is_array( $services ) ) {
-			return array();
-		}
-
-		$normalized = array();
-
-		foreach ( $services as $service ) {
-			if ( \is_array( $service ) ) {
-				$normalized[] = $service;
-			}
-		}
-
-		return $normalized;
+		return $this->categories_manager->get_categories_for_language( $lang );
 	}
 
 	/**
@@ -1196,12 +769,69 @@ class Options {
 	}
 
 	/**
+	 * Get banner layout as value object.
+	 *
+	 * @return BannerLayout
+	 */
+	public function get_banner_layout() {
+		$layout_data = isset( $this->options['banner_layout'] ) && \is_array( $this->options['banner_layout'] )
+			? $this->options['banner_layout']
+			: $this->get_default_options()['banner_layout'];
+
+		return BannerLayout::from_array( $layout_data );
+	}
+
+	/**
+	 * Get color palette as value object.
+	 *
+	 * @return ColorPalette
+	 */
+	public function get_color_palette() {
+		$layout = $this->get_banner_layout();
+		return $layout->get_palette();
+	}
+
+	/**
+	 * Get consent mode defaults as value object.
+	 *
+	 * @return ConsentModeDefaults
+	 */
+	public function get_consent_mode_defaults() {
+		$consent_mode_data = isset( $this->options['consent_mode_defaults'] ) && \is_array( $this->options['consent_mode_defaults'] )
+			? $this->options['consent_mode_defaults']
+			: $this->get_default_options()['consent_mode_defaults'];
+
+		return ConsentModeDefaults::from_array( $consent_mode_data );
+	}
+
+	/**
+	 * Sanitize consent mode defaults using value object.
+	 *
+	 * @param array<string, string> $value    Raw consent mode values.
+	 * @param array<string, string> $defaults Default consent mode values.
+	 *
+	 * @return array<string, string>
+	 */
+	private function sanitize_consent_mode_defaults( array $value, array $defaults ): array {
+		// Merge with defaults first.
+		$consent_mode_data = array_merge( $defaults, $value );
+		
+		// Use ConsentModeDefaults value object for validation and sanitization.
+		$consent_mode = ConsentModeDefaults::from_array( $consent_mode_data );
+		
+		// Return as array for backward compatibility.
+		return $consent_mode->to_array();
+	}
+
+	/**
 	 * Increment consent revision.
 	 *
 	 * @return void
 	 */
 	public function bump_revision() {
-		$this->options['consent_revision'] = isset( $this->options['consent_revision'] ) ? (int) $this->options['consent_revision'] + 1 : 1;
+		$this->options['consent_revision'] = isset( $this->options['consent_revision'] ) 
+			? (int) $this->options['consent_revision'] + 1 
+			: Constants::CONSENT_REVISION_INITIAL;
 		\update_option( self::OPTION_KEY, $this->options, false );
 	}
 

@@ -128,6 +128,12 @@ class PageManager implements PageManagerInterface {
 			);
 		}
 
+		global $wp_rewrite;
+		if ( ! ( $wp_rewrite instanceof \WP_Rewrite ) ) {
+			require_once ABSPATH . 'wp-includes/rewrite.php';
+			$wp_rewrite = new \WP_Rewrite();
+		}
+
 		$title = $config['title'];
 		if ( $multilang ) {
 			$title = sprintf(

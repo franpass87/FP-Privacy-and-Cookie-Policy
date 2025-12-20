@@ -854,9 +854,23 @@ var acceptAll = createButton( texts.btn_accept, 'fp-privacy-button fp-privacy-bu
 acceptAll.addEventListener( 'click', function ( event ) {
     event.preventDefault();
     event.stopPropagation();
+    
+    // Abilita tutti i toggle visivamente PRIMA di salvare
     enableAllToggles();
+    
+    // Forza un reflow per assicurarsi che i cambiamenti visivi siano applicati
+    if ( modal ) {
+        modal.offsetHeight; // Trigger reflow
+    }
+    
+    // Salva il consenso con tutte le categorie abilitate
+    // Il payload verrà costruito con grantAll=true, quindi tutte le categorie saranno abilitate
     handleAcceptAll();
-    closeModal();
+    
+    // Chiudi il modal dopo un breve delay per permettere l'aggiornamento visivo
+    setTimeout( function() {
+        closeModal();
+    }, 150 );
 });
 actions.appendChild( acceptAll );
 
@@ -1058,12 +1072,28 @@ function setButtonsLoading( isLoading ) {
 }
 
 function enableAllToggles() {
-var checkboxes = modal.querySelectorAll( 'input[type="checkbox"][data-category]' );
-for ( var i = 0; i < checkboxes.length; i++ ) {
-if ( ! checkboxes[ i ].disabled ) {
-checkboxes[ i ].checked = true;
-}
-}
+    var checkboxes = modal.querySelectorAll( 'input[type="checkbox"][data-category]' );
+    for ( var i = 0; i < checkboxes.length; i++ ) {
+        // Abilita tutti i toggle che non sono disabilitati (locked)
+        if ( ! checkboxes[ i ].disabled ) {
+            checkboxes[ i ].checked = true;
+            // Triggera l'evento change per aggiornare eventuali listener
+            var changeEvent = document.createEvent( 'HTMLEvents' );
+            changeEvent.initEvent( 'change', false, true );
+            checkboxes[ i ].dispatchEvent( changeEvent );
+        }
+    }
+    // Aggiorna anche lo stato locale per riflettere i cambiamenti
+    if ( state.categories ) {
+        for ( var key in categories ) {
+            if ( categories.hasOwnProperty( key ) ) {
+                var cat = categories[ key ];
+                if ( ! cat.locked ) {
+                    state.categories[ key ] = true;
+                }
+            }
+        }
+    }
 }
 
 function handleAcceptAll() {

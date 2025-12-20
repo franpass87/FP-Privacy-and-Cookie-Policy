@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 0.1.2
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,12 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+= 0.2.0 =
+* Added WordPress Color Picker for professional color palette management
+* Enhanced live preview with Desktop/Mobile toggle
+* Added Analytics Dashboard with Chart.js integration
+* Improved UX admin interface
+
 = 0.1.2 =
 * Documented the Google Consent Mode v2 helper defaults/updates across the handbook and linked the dedicated implementation guide.
 * Publicised the floating reopen preferences button and refreshed accessibility attributes in the UX documentation.
@@ -87,6 +93,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 * Initial alpha release with banner, consent registry, CSV export, policy detector/generator, WP-CLI, REST API, Google Consent Mode v2, shortcodes, Gutenberg blocks, multisite support, and i18n.
 
 == Upgrade Notice ==
+
+= 0.2.0 =
+New features: Color picker, enhanced preview, and analytics dashboard. Recommended update for all users.
 
 = 0.1.2 =
 Security improvements: enhanced input validation and cache hash generation. Recommended update for all users.

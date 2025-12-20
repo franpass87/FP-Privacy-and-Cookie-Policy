@@ -24,29 +24,7 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 	 * @return array<int, string>
 	 */
 	public function sanitize_handle_list( $handles ) {
-		if ( \is_string( $handles ) ) {
-			$handles = \preg_split( '/[\r\n,]+/', $handles ) ?: array();
-		}
-
-		if ( ! \is_array( $handles ) ) {
-			return array();
-		}
-
-		$normalized = array();
-
-		foreach ( $handles as $handle ) {
-			$clean = \sanitize_key( (string) $handle );
-
-			if ( '' === $clean ) {
-				continue;
-			}
-
-			if ( ! in_array( $clean, $normalized, true ) ) {
-				$normalized[] = $clean;
-			}
-		}
-
-		return $normalized;
+		return ScriptRulesSanitizer::sanitize_handle_list( $handles );
 	}
 
 	/**
@@ -57,29 +35,7 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 	 * @return array<int, string>
 	 */
 	public function sanitize_pattern_list( $patterns ) {
-		if ( \is_string( $patterns ) ) {
-			$patterns = \preg_split( '/[\r\n]+/', $patterns ) ?: array();
-		}
-
-		if ( ! \is_array( $patterns ) ) {
-			return array();
-		}
-
-		$normalized = array();
-
-		foreach ( $patterns as $pattern ) {
-			$clean = Validator::text( $pattern );
-
-			if ( '' === $clean ) {
-				continue;
-			}
-
-			if ( ! in_array( $clean, $normalized, true ) ) {
-				$normalized[] = $clean;
-			}
-		}
-
-		return $normalized;
+		return ScriptRulesSanitizer::sanitize_pattern_list( $patterns );
 	}
 
 	/**
@@ -90,13 +46,7 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 	 * @return array<string, mixed>
 	 */
 	public function normalize_entry( array $entry ) {
-		return array(
-			'script_handles' => $this->sanitize_handle_list( $entry['script_handles'] ?? array() ),
-			'style_handles'  => $this->sanitize_handle_list( $entry['style_handles'] ?? array() ),
-			'patterns'       => $this->sanitize_pattern_list( $entry['patterns'] ?? array() ),
-			'iframes'        => $this->sanitize_pattern_list( $entry['iframes'] ?? array() ),
-			'managed'        => isset( $entry['managed'] ) ? Validator::bool( $entry['managed'] ) : false,
-		);
+		return ScriptRulesSanitizer::normalize_entry( $entry );
 	}
 
 	/**
@@ -108,53 +58,7 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 	 * @return array<string, mixed>
 	 */
 	public function merge_with_defaults( array $current, array $preset ) {
-		$current_normalized = $this->normalize_entry( $current );
-		$preset_normalized  = $this->normalize_entry( $preset );
-
-		$merged = array(
-			'script_handles' => $this->merge_unique_list( $current_normalized['script_handles'], $preset_normalized['script_handles'] ),
-			'style_handles'  => $this->merge_unique_list( $current_normalized['style_handles'], $preset_normalized['style_handles'] ),
-			'patterns'       => $this->merge_unique_list( $current_normalized['patterns'], $preset_normalized['patterns'] ),
-			'iframes'        => $this->merge_unique_list( $current_normalized['iframes'], $preset_normalized['iframes'] ),
-			'managed'        => false,
-		);
-
-		$has_current = $this->has_values( $current_normalized );
-		$has_preset  = $this->has_values( $preset_normalized );
-
-		if ( $current_normalized['managed'] && $has_current ) {
-			$merged['managed'] = true;
-		} elseif ( ! $has_current && $has_preset ) {
-			$merged['managed'] = true;
-		}
-
-		if ( ! $merged['managed'] && $has_current && ! $this->has_custom_rules( $current_normalized ) && $has_preset ) {
-			$merged['managed'] = true;
-		}
-
-		return $merged;
-	}
-
-	/**
-	 * Merge unique values preserving order.
-	 *
-	 * @param array<int, string> $base       Base list.
-	 * @param array<int, string> $additional Additional values.
-	 *
-	 * @return array<int, string>
-	 */
-	private function merge_unique_list( array $base, array $additional ) {
-		foreach ( $additional as $value ) {
-			if ( '' === $value ) {
-				continue;
-			}
-
-			if ( ! in_array( $value, $base, true ) ) {
-				$base[] = $value;
-			}
-		}
-
-		return $base;
+		return ScriptRulesMerger::merge_with_defaults( $current, $preset );
 	}
 
 	/**
@@ -165,10 +69,7 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 	 * @return bool
 	 */
 	public function has_values( array $entry ) {
-		return ! empty( $entry['script_handles'] )
-			|| ! empty( $entry['style_handles'] )
-			|| ! empty( $entry['patterns'] )
-			|| ! empty( $entry['iframes'] );
+		return ScriptRulesMerger::has_values( $entry );
 	}
 
 	/**
@@ -179,9 +80,7 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 	 * @return bool
 	 */
 	public function has_custom_rules( array $entry ) {
-		$managed = isset( $entry['managed'] ) ? Validator::bool( $entry['managed'] ) : false;
-
-		return ! $managed && $this->has_values( $entry );
+		return ScriptRulesMerger::has_custom_rules( $entry );
 	}
 
 	/**
@@ -193,10 +92,7 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 	 * @return bool
 	 */
 	public function are_equal( array $a, array $b ) {
-		return $a['script_handles'] === $b['script_handles']
-			&& $a['style_handles'] === $b['style_handles']
-			&& $a['patterns'] === $b['patterns']
-			&& $a['iframes'] === $b['iframes'];
+		return ScriptRulesMerger::are_equal( $a, $b );
 	}
 
 	/**
@@ -222,14 +118,14 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 				$entry            = isset( $raw[ $slug ] ) && \is_array( $raw[ $slug ] ) ? $raw[ $slug ] : array();
 				$previous_entry   = isset( $existing[ $language ][ $slug ] ) && \is_array( $existing[ $language ][ $slug ] ) ? $existing[ $language ][ $slug ] : array();
 				$previous_managed = isset( $previous_entry['managed'] ) ? Validator::bool( $previous_entry['managed'] ) : false;
-				$previous_rules   = $this->normalize_entry( $previous_entry );
-				$normalized       = $this->normalize_entry( $entry );
+				$previous_rules   = ScriptRulesSanitizer::normalize_entry( $previous_entry );
+				$normalized       = ScriptRulesSanitizer::normalize_entry( $entry );
 
 				$managed = false;
 
 				if ( isset( $entry['managed'] ) ) {
 					$managed = Validator::bool( $entry['managed'] );
-				} elseif ( $previous_managed && $this->are_equal( $previous_rules, $normalized ) ) {
+				} elseif ( $previous_managed && ScriptRulesMerger::are_equal( $previous_rules, $normalized ) ) {
 					$managed = true;
 				}
 
@@ -251,18 +147,7 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 	 * @return array<string, array<string, array<int, string>>>
 	 */
 	public function build_language_defaults( $categories, $services ) {
-		$defaults       = array();
-		$snapshot_rules = $this->collect_presets_by_category( $services );
-
-		foreach ( $categories as $slug => $meta ) {
-			$defaults[ $slug ] = $this->normalize_entry( array() );
-
-			if ( isset( $snapshot_rules[ $slug ] ) ) {
-				$defaults[ $slug ] = $this->merge_with_defaults( $defaults[ $slug ], $snapshot_rules[ $slug ] );
-			}
-		}
-
-		return $defaults;
+		return ScriptRulesBuilder::build_language_defaults( $categories, $services );
 	}
 
 	/**
@@ -273,42 +158,7 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 	 * @return array<string, array<string, mixed>>
 	 */
 	public function collect_presets_by_category( array $services ) {
-		$presets        = DetectorRegistry::get_blocking_presets();
-		$category_rules = array();
-
-		if ( empty( $presets ) ) {
-			return $category_rules;
-		}
-
-		foreach ( $services as $service ) {
-			if ( ! \is_array( $service ) ) {
-				continue;
-			}
-
-			if ( isset( $service['detected'] ) && ! $service['detected'] ) {
-				continue;
-			}
-
-			$slug = isset( $service['slug'] ) ? \sanitize_key( $service['slug'] ) : '';
-
-			if ( '' === $slug || ! isset( $presets[ $slug ] ) ) {
-				continue;
-			}
-
-			$category = isset( $service['category'] ) ? \sanitize_key( $service['category'] ) : '';
-
-			if ( '' === $category ) {
-				continue;
-			}
-
-			if ( ! isset( $category_rules[ $category ] ) ) {
-				$category_rules[ $category ] = $this->normalize_entry( array() );
-			}
-
-			$category_rules[ $category ] = $this->merge_with_defaults( $category_rules[ $category ], $presets[ $slug ] );
-		}
-
-		return $category_rules;
+		return ScriptRulesBuilder::collect_presets_by_category( $services );
 	}
 
 	/**
@@ -323,7 +173,7 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 	 * @return array<string, mixed>|null Updated scripts or null if no changes.
 	 */
 	public function prime_from_services( array $services, array $languages, array $scripts, callable $get_categories_callback, LanguageNormalizer $normalizer ) {
-		$presets_by_category = $this->collect_presets_by_category( $services );
+		$presets_by_category = ScriptRulesBuilder::collect_presets_by_category( $services );
 
 		if ( empty( $presets_by_category ) ) {
 			return null;
@@ -345,9 +195,9 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 
 			foreach ( $categories as $slug => $meta ) {
 				$current_entry      = isset( $scripts[ $language ][ $slug ] ) && \is_array( $scripts[ $language ][ $slug ] ) ? $scripts[ $language ][ $slug ] : array();
-				$normalized_current = $this->normalize_entry( $current_entry );
+				$normalized_current = ScriptRulesSanitizer::normalize_entry( $current_entry );
 
-				if ( $this->has_custom_rules( $normalized_current ) ) {
+				if ( ScriptRulesMerger::has_custom_rules( $normalized_current ) ) {
 					continue;
 				}
 
@@ -355,9 +205,9 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 					continue;
 				}
 
-				$merged = $this->merge_with_defaults( $normalized_current, $presets_by_category[ $slug ] );
+				$merged = ScriptRulesMerger::merge_with_defaults( $normalized_current, $presets_by_category[ $slug ] );
 
-				if ( $this->are_equal( $normalized_current, $merged ) && $normalized_current['managed'] === $merged['managed'] ) {
+				if ( ScriptRulesMerger::are_equal( $normalized_current, $merged ) && $normalized_current['managed'] === $merged['managed'] ) {
 					continue;
 				}
 
@@ -390,22 +240,22 @@ class ScriptRulesManager implements ScriptRulesManagerInterface {
 					$entry = array();
 				}
 
-				$normalized_stored[ $slug ] = $this->normalize_entry( $entry );
+				$normalized_stored[ $slug ] = ScriptRulesSanitizer::normalize_entry( $entry );
 			}
 		}
 
 		$rules = array();
 
 		foreach ( $categories as $slug => $meta ) {
-			$rules[ $slug ] = isset( $defaults[ $slug ] ) ? $defaults[ $slug ] : $this->normalize_entry( array() );
+			$rules[ $slug ] = isset( $defaults[ $slug ] ) ? $defaults[ $slug ] : ScriptRulesSanitizer::normalize_entry( array() );
 
 			if ( isset( $normalized_stored[ $slug ] ) ) {
 				$entry = $normalized_stored[ $slug ];
 
-				if ( $this->has_custom_rules( $entry ) ) {
+				if ( ScriptRulesMerger::has_custom_rules( $entry ) ) {
 					$rules[ $slug ] = $entry;
-				} elseif ( $this->has_values( $entry ) ) {
-					$rules[ $slug ] = $this->merge_with_defaults( $rules[ $slug ], $entry );
+				} elseif ( ScriptRulesMerger::has_values( $entry ) ) {
+					$rules[ $slug ] = ScriptRulesMerger::merge_with_defaults( $rules[ $slug ], $entry );
 				}
 			}
 		}

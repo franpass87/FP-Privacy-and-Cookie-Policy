@@ -62,13 +62,10 @@ class Settings {
 			return;
 		}
 
-		// QUICK WIN #1: WordPress Color Picker
-		\wp_enqueue_style( 'wp-color-picker' );
-		
-		\wp_enqueue_style( 'fp-privacy-admin', FP_PRIVACY_PLUGIN_URL . 'assets/css/admin.css', array( 'wp-color-picker' ), FP_PRIVACY_PLUGIN_VERSION );
+		\wp_enqueue_style( 'fp-privacy-admin', FP_PRIVACY_PLUGIN_URL . 'assets/css/admin.css', array(), FP_PRIVACY_PLUGIN_VERSION );
 		\wp_enqueue_style( 'fp-privacy-banner-preview', FP_PRIVACY_PLUGIN_URL . 'assets/css/banner.css', array(), FP_PRIVACY_PLUGIN_VERSION );
 		
-		\wp_enqueue_script( 'fp-privacy-admin', FP_PRIVACY_PLUGIN_URL . 'assets/js/admin.js', array( 'jquery', 'wp-color-picker' ), FP_PRIVACY_PLUGIN_VERSION, true );
+		\wp_enqueue_script( 'fp-privacy-admin', FP_PRIVACY_PLUGIN_URL . 'assets/js/admin.js', array( 'jquery' ), FP_PRIVACY_PLUGIN_VERSION, true );
 		
 		\wp_localize_script(
 			'fp-privacy-admin',

@@ -9,28 +9,16 @@
 
 namespace FP\Privacy\Utils;
 
-use const FILTER_VALIDATE_INT;
-use function absint;
-use function esc_url_raw;
-use function filter_var;
-use function is_array;
-use function preg_match;
-use function preg_replace;
-use function rest_sanitize_boolean;
-use function sanitize_email;
-use function sanitize_hex_color;
-use function sanitize_key;
-use function sanitize_text_field;
-use function str_replace;
-use function strlen;
-use function strpos;
-use function strtolower;
-use function trim;
-use function wp_kses_post;
-use function wp_parse_args;
+use FP\Privacy\Utils\Validator\BasicValidator;
+use FP\Privacy\Utils\Validator\BannerValidator;
+use FP\Privacy\Utils\Validator\SettingsValidator;
+use FP\Privacy\Utils\Validator\ContentValidator;
 
 /**
  * Provides reusable validation helpers.
+ * 
+ * This class acts as a facade, delegating to specialized validator classes
+ * while maintaining backward compatibility with existing static method calls.
  */
 class Validator {
 	/**
@@ -41,7 +29,7 @@ class Validator {
 	 * @return bool
 	 */
 	public static function bool( $value ): bool {
-		return (bool) rest_sanitize_boolean( $value );
+		return BasicValidator::bool( $value );
 	}
 
 	/**
@@ -55,26 +43,7 @@ class Validator {
 	 * @return int
 	 */
 	public static function int( $value, int $default = 0, ?int $min = null, ?int $max = null ): int {
-		if ( null !== $value && '' !== $value ) {
-			$validated = filter_var( $value, FILTER_VALIDATE_INT );
-			if ( false !== $validated && null !== $validated ) {
-				$value = (int) $validated;
-			}
-		}
-
-		if ( ! is_int( $value ) ) {
-			$value = $default;
-		}
-
-		if ( null !== $min && $value < $min ) {
-			$value = $min;
-		}
-
-		if ( null !== $max && $value > $max ) {
-			$value = $max;
-		}
-
-		return (int) $value;
+		return BasicValidator::int( $value, $default, $min, $max );
 	}
 
 	/**
@@ -85,7 +54,7 @@ class Validator {
 	 * @return string
 	 */
 	public static function text( $value ): string {
-		return sanitize_text_field( (string) $value );
+		return BasicValidator::text( $value );
 	}
 
 	/**
@@ -96,7 +65,7 @@ class Validator {
 	 * @return string
 	 */
 	public static function textarea( $value ): string {
-		return wp_kses_post( (string) $value );
+		return BasicValidator::textarea( $value );
 	}
 
 	/**
@@ -107,7 +76,7 @@ class Validator {
 	 * @return string
 	 */
 	public static function url( $value ): string {
-		return esc_url_raw( (string) $value );
+		return BasicValidator::url( $value );
 	}
 
 	/**
@@ -118,7 +87,7 @@ class Validator {
 	 * @return string
 	 */
 	public static function email( $value ): string {
-		return sanitize_email( (string) $value );
+		return BasicValidator::email( $value );
 	}
 
 	/**
@@ -130,9 +99,7 @@ class Validator {
 	 * @return string
 	 */
 	public static function hex_color( $value, string $default = '' ): string {
-		$color = sanitize_hex_color( (string) $value );
-
-		return $color ? $color : $default;
+		return BasicValidator::hex_color( $value, $default );
 	}
 
 	/**
@@ -144,17 +111,7 @@ class Validator {
 	 * @return string
 	 */
 	public static function locale( $value, string $default = 'en_US' ): string {
-		$value = sanitize_text_field( (string) $value );
-
-		if ( '' === $value ) {
-			return $default;
-		}
-
-		if ( ! preg_match( '/^[A-Za-z]{2,}([_-][A-Za-z0-9]{2,})?$/', $value ) ) {
-			return $default;
-		}
-
-		return $value;
+		return BasicValidator::locale( $value, $default );
 	}
 
 	/**
@@ -166,38 +123,7 @@ class Validator {
 	 * @return array<int, string>
 	 */
 	public static function locale_list( $values, string $fallback ): array {
-		$values  = is_array( $values ) ? $values : array();
-		$locales = array();
-
-		foreach ( $values as $value ) {
-			$locale = self::locale( $value, '' );
-
-			if ( '' === $locale || in_array( $locale, $locales, true ) ) {
-				continue;
-			}
-
-			$locales[] = $locale;
-		}
-
-		if ( empty( $locales ) ) {
-			$locales[] = self::locale( $fallback, 'en_US' );
-		}
-
-		// IMPORTANTE: Assicura che it_IT sia sempre la prima lingua (principale)
-		// Questo garantisce che la Cookie Policy venga generata prima in italiano
-		$italian_index = array_search( 'it_IT', $locales, true );
-		if ( false !== $italian_index && $italian_index !== 0 ) {
-			// it_IT è presente ma non è il primo: spostalo all'inizio
-			unset( $locales[ $italian_index ] );
-			// Re-index array dopo unset
-			$locales = array_values( $locales );
-			// Metti it_IT all'inizio
-			array_unshift( $locales, 'it_IT' );
-		}
-		// Se it_IT non è presente, non lo aggiungiamo forzatamente
-		// (l'utente potrebbe voler usare solo altre lingue)
-
-		return $locales;
+		return BasicValidator::locale_list( $values, $fallback );
 	}
 
 	/**
@@ -210,9 +136,7 @@ class Validator {
 	 * @return string
 	 */
 	public static function choice( $value, array $allowed, string $default ): string {
-		$value = sanitize_text_field( (string) $value );
-
-		return in_array( $value, $allowed, true ) ? $value : $default;
+		return BasicValidator::choice( $value, $allowed, $default );
 	}
 
 	/**
@@ -224,14 +148,7 @@ class Validator {
 	 * @return array<string, string>
 	 */
 	public static function sanitize_palette( array $palette, array $defaults ): array {
-		$palette   = wp_parse_args( $palette, $defaults );
-		$sanitized = array();
-
-		foreach ( $defaults as $key => $color ) {
-			$sanitized[ $key ] = self::hex_color( $palette[ $key ] ?? $color, $color );
-		}
-
-		return $sanitized;
+		return BannerValidator::sanitize_palette( $palette, $defaults );
 	}
 
 	/**
@@ -243,97 +160,8 @@ class Validator {
 	 *
 	 * @return array<string, array<string, string>>
 	 */
-        public static function sanitize_banner_texts( array $texts, array $languages, array $defaults ): array {
-                $sanitized = array();
-
-                foreach ( $languages as $language ) {
-                        $language = self::locale( $language, 'en_US' );
-			$source   = isset( $texts[ $language ] ) && is_array( $texts[ $language ] ) ? $texts[ $language ] : array();
-
-                        // Get translated defaults for this language
-                        $translated_defaults = self::get_translated_banner_defaults_for_language( $language );
-
-                        $sanitized[ $language ] = array(
-                                'title'           => self::text( $source['title'] ?? $translated_defaults['title'] ),
-                                'message'         => self::textarea( $source['message'] ?? $translated_defaults['message'] ),
-                                'btn_accept'      => self::text( $source['btn_accept'] ?? $translated_defaults['btn_accept'] ),
-                                'btn_reject'      => self::text( $source['btn_reject'] ?? $translated_defaults['btn_reject'] ),
-                                'btn_prefs'       => self::text( $source['btn_prefs'] ?? $translated_defaults['btn_prefs'] ),
-                                'modal_title'     => self::text( $source['modal_title'] ?? $translated_defaults['modal_title'] ),
-                                'modal_close'     => self::text( $source['modal_close'] ?? $translated_defaults['modal_close'] ),
-                                'modal_save'      => self::text( $source['modal_save'] ?? $translated_defaults['modal_save'] ),
-                                'revision_notice' => self::text( $source['revision_notice'] ?? $translated_defaults['revision_notice'] ),
-                                'toggle_locked'   => self::text( $source['toggle_locked'] ?? $translated_defaults['toggle_locked'] ),
-                                'toggle_enabled'  => self::text( $source['toggle_enabled'] ?? $translated_defaults['toggle_enabled'] ),
-                                'debug_label'     => self::text( $source['debug_label'] ?? $translated_defaults['debug_label'] ),
-                                'link_policy'     => self::url( $source['link_policy'] ?? $translated_defaults['link_policy'] ),
-                                'link_privacy_policy' => self::text( $source['link_privacy_policy'] ?? $translated_defaults['link_privacy_policy'] ),
-                                'link_cookie_policy'  => self::text( $source['link_cookie_policy'] ?? $translated_defaults['link_cookie_policy'] ),
-                        );
-		}
-
-                return $sanitized;
-        }
-
-	/**
-	 * Get translated banner defaults for a specific language.
-	 *
-	 * @param string $lang Language code.
-	 *
-	 * @return array<string, string>
-	 */
-	private static function get_translated_banner_defaults_for_language( $lang ) {
-		// Default italiano hardcoded (lingua principale)
-		if ( $lang === 'it_IT' || $lang === 'it' ) {
-			return array(
-				'title'               => 'Rispettiamo la tua privacy',
-				'message'             => 'Utilizziamo i cookie per migliorare la tua esperienza. Puoi accettare tutti i cookie o gestire le tue preferenze.',
-				'btn_accept'          => 'Accetta tutti',
-				'btn_reject'          => 'Rifiuta tutti',
-				'btn_prefs'           => 'Gestisci preferenze',
-				'modal_title'         => 'Preferenze privacy',
-				'modal_close'         => 'Chiudi preferenze',
-				'modal_save'          => 'Salva preferenze',
-				'revision_notice'     => 'Abbiamo aggiornato la nostra policy. Rivedi le tue preferenze.',
-				'toggle_locked'       => 'Sempre attivo',
-				'toggle_enabled'      => 'Abilitato',
-				'debug_label'         => 'Debug cookie:',
-				'link_policy'         => '',
-				'link_privacy_policy' => 'Informativa sulla Privacy',
-				'link_cookie_policy'  => 'Cookie Policy',
-			);
-		}
-
-		// Per altre lingue, usa switch_to_locale
-		$original_locale = \get_locale();
-		if ( $lang !== $original_locale ) {
-			\switch_to_locale( $lang );
-		}
-
-		$defaults = array(
-			'title'              => \__( 'We value your privacy', 'fp-privacy' ),
-			'message'            => \__( 'We use cookies to improve your experience. You can accept all cookies or manage your preferences.', 'fp-privacy' ),
-			'btn_accept'         => \__( 'Accept all', 'fp-privacy' ),
-			'btn_reject'         => \__( 'Reject all', 'fp-privacy' ),
-			'btn_prefs'          => \__( 'Manage preferences', 'fp-privacy' ),
-			'modal_title'        => \__( 'Privacy preferences', 'fp-privacy' ),
-			'modal_close'        => \__( 'Close preferences', 'fp-privacy' ),
-			'modal_save'         => \__( 'Save preferences', 'fp-privacy' ),
-			'revision_notice'    => \__( 'We have updated our policy. Please review your preferences.', 'fp-privacy' ),
-			'toggle_locked'      => \__( 'Always active', 'fp-privacy' ),
-			'toggle_enabled'     => \__( 'Enabled', 'fp-privacy' ),
-			'debug_label'        => \__( 'Cookie debug:', 'fp-privacy' ),
-			'link_policy'        => '',
-			'link_privacy_policy' => \__( 'Privacy Policy', 'fp-privacy' ),
-			'link_cookie_policy'  => \__( 'Cookie Policy', 'fp-privacy' ),
-		);
-
-		// Restore original locale
-		if ( $lang !== $original_locale ) {
-			\restore_previous_locale();
-		}
-
-		return $defaults;
+	public static function sanitize_banner_texts( array $texts, array $languages, array $defaults ): array {
+		return BannerValidator::sanitize_banner_texts( $texts, $languages, $defaults );
 	}
 
 	/**
@@ -345,20 +173,7 @@ class Validator {
 	 * @return array<string, string>
 	 */
 	public static function sanitize_consent_mode( array $values, array $defaults ): array {
-		$allowed   = array( 'granted', 'denied' );
-		$sanitized = array();
-
-		foreach ( $defaults as $key => $default ) {
-			$raw = isset( $values[ $key ] ) ? strtolower( (string) $values[ $key ] ) : $default;
-
-			if ( ! in_array( $raw, $allowed, true ) ) {
-				$raw = $default;
-			}
-
-			$sanitized[ $key ] = $raw;
-		}
-
-		return $sanitized;
+		return SettingsValidator::sanitize_consent_mode( $values, $defaults );
 	}
 
 	/**
@@ -369,26 +184,7 @@ class Validator {
 	 * @return array<string, string>
 	 */
 	public static function sanitize_owner_fields( array $fields ): array {
-		$fields = wp_parse_args(
-			$fields,
-			array(
-				'org_name'      => '',
-				'vat'           => '',
-				'address'       => '',
-				'dpo_name'      => '',
-				'dpo_email'     => '',
-				'privacy_email' => '',
-			)
-		);
-
-		return array(
-			'org_name'      => self::text( $fields['org_name'] ),
-			'vat'           => self::text( $fields['vat'] ),
-			'address'       => self::textarea( $fields['address'] ),
-			'dpo_name'      => self::text( $fields['dpo_name'] ),
-			'dpo_email'     => self::email( $fields['dpo_email'] ),
-			'privacy_email' => self::email( $fields['privacy_email'] ),
-		);
+		return SettingsValidator::sanitize_owner_fields( $fields );
 	}
 
 	/**
@@ -400,35 +196,7 @@ class Validator {
 	 * @return array<string, array<string, int>>
 	 */
 	public static function sanitize_pages( array $pages, array $languages ): array {
-		$defaults = array(
-			'privacy_policy_page_id' => array(),
-			'cookie_policy_page_id'  => array(),
-		);
-
-		$pages = wp_parse_args( $pages, $defaults );
-
-		foreach ( $defaults as $key => $_default ) {
-			$map = array();
-
-			if ( isset( $pages[ $key ] ) && is_array( $pages[ $key ] ) ) {
-				foreach ( $pages[ $key ] as $language => $page_id ) {
-					$lang_key         = self::locale( $language, $languages[0] ?? 'en_US' );
-					$map[ $lang_key ] = absint( $page_id );
-				}
-			}
-
-			foreach ( $languages as $language ) {
-				$language = self::locale( $language, 'en_US' );
-
-				if ( ! isset( $map[ $language ] ) ) {
-					$map[ $language ] = 0;
-				}
-			}
-
-			$pages[ $key ] = $map;
-		}
-
-		return $pages;
+		return SettingsValidator::sanitize_pages( $pages, $languages );
 	}
 
 	/**
@@ -440,87 +208,7 @@ class Validator {
 	 * @return array<string, array<string, mixed>>
 	 */
 	public static function sanitize_categories( array $categories, array $languages ): array {
-		$sanitized = array();
-
-		foreach ( $categories as $slug => $category ) {
-			$key = sanitize_key( $slug );
-
-			if ( '' === $key ) {
-				continue;
-			}
-
-			$category = is_array( $category ) ? $category : array();
-
-			$labels       = isset( $category['label'] ) && is_array( $category['label'] ) ? $category['label'] : array();
-			$descriptions = isset( $category['description'] ) && is_array( $category['description'] ) ? $category['description'] : array();
-			$services     = isset( $category['services'] ) && is_array( $category['services'] ) ? $category['services'] : array();
-
-                        $sanitized[ $key ] = array(
-                                'label'       => array(),
-                                'description' => array(),
-                                'locked'      => self::bool( $category['locked'] ?? false ),
-                                'services'    => array(),
-                        );
-
-                        $default_label = null;
-                        if ( array_key_exists( 'default', $labels ) ) {
-                                $default_label                                 = self::text( $labels['default'] );
-                                $sanitized[ $key ]['label']['default']        = $default_label;
-                        }
-
-                        $default_description = null;
-                        if ( array_key_exists( 'default', $descriptions ) ) {
-                                $default_description                            = self::textarea( $descriptions['default'] );
-                                $sanitized[ $key ]['description']['default']   = $default_description;
-                        }
-
-                        $first_label = '';
-                        foreach ( $labels as $label_key => $label_value ) {
-                                if ( 'default' === $label_key ) {
-                                        continue;
-                                }
-
-                                $first_label = self::text( $label_value );
-                                break;
-                        }
-
-                        $first_description = '';
-                        foreach ( $descriptions as $description_key => $description_value ) {
-                                if ( 'default' === $description_key ) {
-                                        continue;
-                                }
-
-                                $first_description = self::textarea( $description_value );
-                                break;
-                        }
-
-                        foreach ( $languages as $language ) {
-                                $language = self::locale( $language, 'en_US' );
-
-                                if ( array_key_exists( $language, $labels ) ) {
-                                        $label = self::text( $labels[ $language ] );
-                                } elseif ( null !== $default_label ) {
-                                        $label = $default_label;
-                                } else {
-                                        $label = $first_label;
-                                }
-
-                                if ( array_key_exists( $language, $descriptions ) ) {
-                                        $description = self::textarea( $descriptions[ $language ] );
-                                } elseif ( null !== $default_description ) {
-                                        $description = $default_description;
-                                } else {
-                                        $description = $first_description;
-                                }
-
-                                $sanitized[ $key ]['label'][ $language ]       = $label;
-                                $sanitized[ $key ]['description'][ $language ] = $description;
-                        }
-
-			$sanitized[ $key ]['services'] = self::sanitize_services( $services, $languages );
-		}
-
-		return $sanitized;
+		return ContentValidator::sanitize_categories( $categories, $languages );
 	}
 
 	/**
@@ -532,268 +220,19 @@ class Validator {
 	 * @return array<string, array<int, array<string, mixed>>>
 	 */
 	public static function sanitize_services( array $services, array $languages ): array {
-		$sanitized = array();
-
-                foreach ( $services as $language => $entries ) {
-                        $lang       = self::locale( $language, $languages[0] ?? 'en_US' );
-                        $is_default = 'default' === $language || 'default' === $lang;
-
-                        if ( ! $is_default && ! in_array( $lang, $languages, true ) ) {
-                                $mapped = self::match_locale_to_active_languages( $lang, $languages );
-
-                                if ( '' === $mapped ) {
-                                        continue;
-                                }
-
-                                $lang = $mapped;
-                        }
-
-                        if ( ! is_array( $entries ) ) {
-                                continue;
-                        }
-
-                        $key = $is_default ? 'default' : $lang;
-
-			foreach ( $entries as $entry ) {
-				if ( ! is_array( $entry ) ) {
-					continue;
-				}
-
-				$sanitized[ $key ][] = self::sanitize_service_entry( $entry );
-			}
-		}
-
-		foreach ( $languages as $language ) {
-			$language = self::locale( $language, 'en_US' );
-
-			if ( ! isset( $sanitized[ $language ] ) ) {
-				$sanitized[ $language ] = array();
-			}
-		}
-
-                if ( isset( $sanitized['default'] ) ) {
-                        $sanitized['default'] = array_values( $sanitized['default'] );
-                }
-
-                return $sanitized;
-        }
-
-        /**
-         * Sanitize cached automatic translations.
-         *
-         * @param array<string, mixed>      $translations Cached translations.
-         * @param array<string, string>     $defaults      Default banner texts.
-         *
-         * @return array<string, mixed>
-         */
-        public static function sanitize_auto_translations( array $translations, array $defaults ): array {
-                $sanitized = array();
-
-                if ( isset( $translations['banner'] ) && is_array( $translations['banner'] ) ) {
-                        foreach ( $translations['banner'] as $locale => $payload ) {
-                                $locale = self::locale( $locale, '' );
-
-                                if ( '' === $locale || ! is_array( $payload ) ) {
-                                        continue;
-                                }
-
-                                $hash  = isset( $payload['hash'] ) ? self::text( $payload['hash'] ) : '';
-                                $texts = isset( $payload['texts'] ) && is_array( $payload['texts'] ) ? $payload['texts'] : array();
-                                $map   = self::sanitize_banner_texts( array( $locale => $texts ), array( $locale ), $defaults );
-
-                                $sanitized['banner'][ $locale ] = array(
-                                        'hash'  => $hash,
-                                        'texts' => $map[ $locale ],
-                                );
-                        }
-                }
-
-                if ( isset( $translations['categories'] ) && is_array( $translations['categories'] ) ) {
-                        foreach ( $translations['categories'] as $locale => $payload ) {
-                                $locale = self::locale( $locale, '' );
-
-                                if ( '' === $locale || ! is_array( $payload ) ) {
-                                        continue;
-                                }
-
-                                $hash  = isset( $payload['hash'] ) ? self::text( $payload['hash'] ) : '';
-                                $items = array();
-
-                                if ( isset( $payload['items'] ) && is_array( $payload['items'] ) ) {
-                                        foreach ( $payload['items'] as $slug => $entry ) {
-                                                $key = sanitize_key( $slug );
-
-                                                if ( '' === $key || ! is_array( $entry ) ) {
-                                                        continue;
-                                                }
-
-                                                $items[ $key ] = array(
-                                                        'label'       => self::text( $entry['label'] ?? '' ),
-                                                        'description' => self::textarea( $entry['description'] ?? '' ),
-                                                );
-                                        }
-                                }
-
-                                $sanitized['categories'][ $locale ] = array(
-                                        'hash'  => $hash,
-                                        'items' => $items,
-                                );
-                        }
-                }
-
-                return $sanitized;
-        }
-
-        /**
-         * Attempt to match an arbitrary locale string against active languages.
-         *
-         * @param string              $locale    Candidate locale.
-         * @param array<int, string>  $languages Active languages.
-         *
-         * @return string
-         */
-        private static function match_locale_to_active_languages( string $locale, array $languages ): string {
-                $normalized = self::normalize_locale_token( $locale );
-
-                if ( '' === $normalized ) {
-                        return '';
-                }
-
-                foreach ( $languages as $language ) {
-                        if ( '' === $language ) {
-                                continue;
-                        }
-
-                        $candidate = self::normalize_locale_token( $language );
-
-                        if ( $candidate === $normalized ) {
-                                return $language;
-                        }
-
-                        if ( str_replace( '_', '', $candidate ) === $normalized ) {
-                                return $language;
-                        }
-                }
-
-                if ( strlen( $normalized ) === 2 ) {
-                        foreach ( $languages as $language ) {
-                                if ( '' === $language ) {
-                                        continue;
-                                }
-
-                                $candidate = self::normalize_locale_token( $language );
-
-                                if ( 0 === strpos( $candidate, $normalized . '_' ) ) {
-                                        return $language;
-                                }
-                        }
-                }
-
-                return '';
-        }
-
-        /**
-         * Normalize locale token for safe comparisons.
-         *
-         * @param string $locale Raw locale value.
-         *
-         * @return string
-         */
-        private static function normalize_locale_token( string $locale ): string {
-                $locale = str_replace( '-', '_', strtolower( trim( $locale ) ) );
-
-                return preg_replace( '/[^a-z0-9_]/', '', $locale ) ?? '';
-        }
+		return ContentValidator::sanitize_services( $services, $languages );
+	}
 
 	/**
-	 * Sanitize single service entry.
+	 * Sanitize cached automatic translations.
 	 *
-	 * @param array<string, mixed> $service Service definition.
+	 * @param array<string, mixed>      $translations Cached translations.
+	 * @param array<string, string>     $defaults      Default banner texts.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private static function sanitize_service_entry( array $service ): array {
-		$cookies = array();
-
-		if ( isset( $service['cookies'] ) && is_array( $service['cookies'] ) ) {
-			foreach ( $service['cookies'] as $cookie ) {
-				if ( ! is_array( $cookie ) ) {
-					continue;
-				}
-
-				$cookies[] = self::sanitize_cookie_entry( $cookie );
-			}
-		}
-
-		$signals = array();
-
-                if ( isset( $service['uses_consent_mode'] ) && is_array( $service['uses_consent_mode'] ) ) {
-                        $allowed = array( 'analytics_storage', 'ad_storage', 'ad_user_data', 'ad_personalization', 'functionality_storage', 'personalization_storage', 'security_storage' );
-
-			foreach ( $service['uses_consent_mode'] as $key => $value ) {
-				$candidate = '';
-
-				if ( is_string( $key ) && '' !== $key && ! is_numeric( $key ) ) {
-					$candidate = sanitize_text_field( $key );
-
-					if ( is_array( $value ) ) {
-						$enabled = false;
-
-						foreach ( $value as $flag ) {
-							if ( self::bool( $flag ) ) {
-								$enabled = true;
-								break;
-							}
-						}
-					} else {
-						$enabled = self::bool( $value );
-					}
-
-					if ( ! $enabled ) {
-						continue;
-					}
-				} else {
-					$candidate = sanitize_text_field( (string) $value );
-				}
-
-				if ( '' === $candidate ) {
-					continue;
-				}
-
-				if ( in_array( $candidate, $allowed, true ) && ! in_array( $candidate, $signals, true ) ) {
-					$signals[] = $candidate;
-				}
-			}
-		}
-
-		return array(
-			'key'               => sanitize_key( $service['key'] ?? '' ),
-			'name'              => self::text( $service['name'] ?? '' ),
-			'provider'          => self::text( $service['provider'] ?? '' ),
-			'purpose'           => self::textarea( $service['purpose'] ?? '' ),
-			'policy_url'        => self::url( $service['policy_url'] ?? '' ),
-			'retention'         => self::text( $service['retention'] ?? '' ),
-			'data_collected'    => self::textarea( $service['data_collected'] ?? '' ),
-			'legal_basis'       => self::text( $service['legal_basis'] ?? '' ),
-			'data_transfer'     => self::textarea( $service['data_transfer'] ?? '' ),
-			'cookies'           => $cookies,
-			'uses_consent_mode' => $signals,
-		);
+	public static function sanitize_auto_translations( array $translations, array $defaults ): array {
+		return ContentValidator::sanitize_auto_translations( $translations, $defaults );
 	}
 
-	/**
-	 * Sanitize individual cookie entry for a service.
-	 *
-	 * @param array<string, mixed> $cookie Cookie definition.
-	 *
-	 * @return array<string, string>
-	 */
-	private static function sanitize_cookie_entry( array $cookie ): array {
-		return array(
-			'name'        => self::text( $cookie['name'] ?? '' ),
-			'domain'      => self::text( $cookie['domain'] ?? '' ),
-			'duration'    => self::text( $cookie['duration'] ?? '' ),
-			'description' => self::textarea( $cookie['description'] ?? '' ),
-		);
-	}
 }

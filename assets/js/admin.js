@@ -96,378 +96,62 @@ $( function () {
         $( 'html, body' ).animate({ scrollTop: $( '.fp-privacy-tabs-nav' ).offset().top - 32 }, 300 );
     }
     
-    // QUICK WIN #1: Inizializza WordPress Color Picker con gestione robusta
-    if ( $.fn.wpColorPicker ) {
-        var allPickers = [];
-        var isUpdatingProgrammatically = false; // Flag per prevenire loop
+    // Gestione input HEX per la palette colori (solo input HEX, senza color picker)
+    var inputTimer = null;
+    
+    $( '.fp-privacy-hex-input' ).on( 'paste input keyup', function( e ) {
+        var $this = $( this );
         
-        $( '.fp-privacy-color-picker' ).each( function() {
-            var $input = $( this );
-            var pickerData = {
-                input: $input,
-                container: null,
-                inputWrap: null,
-                hexInput: null,
-                colorButton: null,
-                pickerHolder: null,
-                observer: null, // Memorizza observer per cleanup
-                isObserving: false // Flag per prevenire loop MutationObserver
-            };
-            
-            // Initialize color picker (con error handling)
-            try {
-                $input.wpColorPicker({
-                    change: function( event, ui ) {
-                        // Previeni loop quando aggiorniamo programmaticamente
-                        if ( ! isUpdatingProgrammatically ) {
-                            $( this ).trigger( 'input' );
-                            evaluateContrast();
-                        }
-                    },
-                    clear: function() {
-                        $( this ).trigger( 'input' );
-                        evaluateContrast();
-                    }
-                });
-            } catch ( error ) {
-                console.error( 'FP Privacy: Error initializing color picker', error );
-                return; // Skip this picker if initialization fails
-            }
-            
-            // Memorizza riferimenti agli elementi (con controlli sicurezza)
-            pickerData.container = $input.closest( '.wp-picker-container' );
-            
-            if ( ! pickerData.container.length ) {
-                console.warn( 'FP Privacy: wp-picker-container not found for', $input );
-                return; // Skip this picker
-            }
-            
-            pickerData.inputWrap = pickerData.container.find( '.wp-picker-input-wrap' );
-            pickerData.hexInput = pickerData.inputWrap.find( 'input[type="text"]' );
-            pickerData.colorButton = pickerData.container.find( '.wp-color-result' );
-            pickerData.pickerHolder = pickerData.container.find( '.wp-picker-holder' );
-            
-            // Verifica che tutti gli elementi esistano
-            if ( ! pickerData.inputWrap.length || ! pickerData.hexInput.length ) {
-                console.warn( 'FP Privacy: Required elements not found for color picker', $input );
-                return; // Skip this picker
-            }
-            
-            allPickers.push( pickerData );
-            
-            // Funzione per forzare visibilità input HEX (con protezione loop)
-            function ensureInputVisible() {
-                if ( pickerData.isObserving ) {
-                    return; // Previeni loop infinito
-                }
-                
-                pickerData.isObserving = true;
-                pickerData.inputWrap.attr( 'style', 
-                    'display: flex !important; visibility: visible !important; opacity: 1 !important;'
-                );
-                
-                setTimeout( function() {
-                    pickerData.isObserving = false;
-                }, 100 );
-            }
-            
-            // Applica visibilità iniziale
-            ensureInputVisible();
-            
-            // Usa MutationObserver per mantenere sempre visibile l'input (con cleanup)
-            if ( window.MutationObserver ) {
-                pickerData.observer = new MutationObserver( function( mutations ) {
-                    if ( pickerData.isObserving ) {
-                        return; // Previeni loop se stiamo già aggiornando
-                    }
-                    
-                    mutations.forEach( function( mutation ) {
-                        if ( mutation.type === 'attributes' && mutation.attributeName === 'style' ) {
-                            var display = pickerData.inputWrap.css( 'display' );
-                            if ( display === 'none' || display === '' ) {
-                                ensureInputVisible();
-                            }
-                        }
-                    });
-                });
-                
-                pickerData.observer.observe( pickerData.inputWrap[0], {
-                    attributes: true,
-                    attributeFilter: ['style']
-                });
-            }
-            
-            // Gestione click sul pulsante colore - chiudi altri picker
-            pickerData.colorButton.on( 'click', function( e ) {
-                var isOpening = ! pickerData.pickerHolder.is( ':visible' );
-                
-                if ( isOpening ) {
-                    // Chiudi tutti gli altri picker
-                    allPickers.forEach( function( otherPicker ) {
-                        if ( otherPicker !== pickerData && otherPicker.pickerHolder.is( ':visible' ) ) {
-                            otherPicker.colorButton.click();
-                        }
-                    });
-                }
-                
-                // Assicura visibilità input dopo apertura/chiusura
-                setTimeout( ensureInputVisible, 50 );
-            });
-            
-            // CRITICAL: Impedisci che click/focus su input HEX apra la palette
-            if ( pickerData.hexInput.length ) {
-                // Blocca propagazione eventi su input HEX (mouse + touch)
-                pickerData.hexInput.on( 'mousedown click focus touchstart', function( e ) {
-                    e.stopPropagation();
-                    
-                    // Chiudi la palette se aperta
-                    if ( pickerData.pickerHolder.is( ':visible' ) ) {
-                        pickerData.colorButton.click();
-                    }
-                });
-                
-                // Blocca propagazione anche sul wrapper (mouse + touch)
-                pickerData.inputWrap.on( 'mousedown click touchstart', function( e ) {
-                    e.stopPropagation();
-                });
-                
-                // ACCESSIBILITY: Gestione keyboard
-                pickerData.hexInput.on( 'keydown', function( e ) {
-                    // ESC chiude picker se aperto
-                    if ( e.key === 'Escape' && pickerData.pickerHolder.is( ':visible' ) ) {
-                        pickerData.colorButton.click();
-                        e.preventDefault();
-                    }
-                    
-                    // Enter conferma e chiude
-                    if ( e.key === 'Enter' ) {
-                        var val = $( this ).val();
-                        if ( /^#[0-9A-F]{6}$/i.test( val ) ) {
-                            pickerData.hexInput.blur(); // Conferma
-                        }
-                        e.preventDefault();
-                    }
-                });
-                
-                // ACCESSIBILITY: ARIA attributes
-                pickerData.hexInput.attr({
-                    'aria-label': 'Codice colore esadecimale',
-                    'role': 'textbox',
-                    'aria-describedby': 'hex-input-help-' + allPickers.length
-                });
-                
-                // Color button accessibility
-                pickerData.colorButton.attr({
-                    'aria-label': 'Apri selettore colore visuale',
-                    'aria-haspopup': 'true',
-                    'aria-expanded': 'false'
-                });
-                
-                // Update aria-expanded quando si apre/chiude
-                pickerData.colorButton.on( 'click', function() {
-                    var isOpen = pickerData.pickerHolder.is( ':visible' );
-                    pickerData.colorButton.attr( 'aria-expanded', isOpen ? 'true' : 'false' );
-                });
-                
-                // Setup input HEX
-                pickerData.hexInput.attr({
-                    'placeholder': '#000000',
-                    'title': 'Incolla o digita un codice HEX (es: #FF5733)'
-                });
-                
-                // FEATURE: Copy to clipboard button
-                var $copyBtn = $( '<button type="button" class="fp-hex-copy-btn" title="Copia codice HEX">' +
-                    '<span class="dashicons dashicons-clipboard"></span>' +
-                    '</button>' );
-                
-                pickerData.inputWrap.append( $copyBtn );
-                
-                $copyBtn.on( 'click', function( e ) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    var hexValue = pickerData.hexInput.val();
-                    
-                    if ( ! hexValue || hexValue.length < 4 ) {
-                        return;
-                    }
-                    
-                    // Copy to clipboard (con fallback)
-                    if ( navigator.clipboard && navigator.clipboard.writeText ) {
-                        navigator.clipboard.writeText( hexValue ).then( function() {
-                            showCopySuccess( $copyBtn );
-                        }).catch( function() {
-                            fallbackCopy( hexValue, $copyBtn );
-                        });
-                    } else {
-                        fallbackCopy( hexValue, $copyBtn );
-                    }
-                });
-                
-                // Fallback copy per browser vecchi
-                function fallbackCopy( text, $btn ) {
-                    pickerData.hexInput.select();
-                    try {
-                        document.execCommand( 'copy' );
-                        showCopySuccess( $btn );
-                    } catch ( err ) {
-                        console.warn( 'Copy failed', err );
-                    }
-                    pickerData.hexInput.blur();
-                }
-                
-                // Feedback visivo per copy success
-                function showCopySuccess( $btn ) {
-                    $btn.addClass( 'copied' );
-                    setTimeout( function() {
-                        $btn.removeClass( 'copied' );
-                    }, 1500 );
-                }
-                
-                // Timer per debouncing
-                var inputTimer = null;
-                
-                // Gestione input manuale con validazione e debouncing
-                pickerData.hexInput.on( 'paste input keyup', function( e ) {
-                    var $this = $( this );
-                    
-                    // Clear timer precedente
-                    if ( inputTimer ) {
-                        clearTimeout( inputTimer );
-                    }
-                    
-                    var val = $this.val().trim().toUpperCase();
-                    
-                    // Normalizza formato
-                    val = val.replace( /[^0-9A-F#]/gi, '' );
-                    
-                    if ( val.length > 0 && val[0] !== '#' ) {
-                        val = '#' + val;
-                    }
-                    
-                    // Supporta formato corto #RGB -> #RRGGBB
-                    if ( val.length === 4 && /^#[0-9A-F]{3}$/i.test( val ) ) {
-                        val = '#' + val[1] + val[1] + val[2] + val[2] + val[3] + val[3];
-                    }
-                    
-                    if ( val.length > 7 ) {
-                        val = val.substring( 0, 7 );
-                    }
-                    
-                    if ( $this.val() !== val ) {
-                        $this.val( val );
-                    }
-                    
-                    // Validazione e feedback (supporta anche #RGB)
-                    var isValid = /^#[0-9A-F]{6}$/i.test( val );
-                    var isShortValid = /^#[0-9A-F]{3}$/i.test( val );
-                    
-                    if ( isValid || isShortValid ) {
-                        $this.addClass( 'hex-valid' ).css( 'border-color', '#10b981' );
-                        
-                        // Debounce aggiornamento color picker (evita troppi update durante typing)
-                        inputTimer = setTimeout( function() {
-                            var colorValue = isShortValid ? 
-                                '#' + val[1] + val[1] + val[2] + val[2] + val[3] + val[3] : val;
-                            
-                            // Aggiorna il color picker (con protezione loop)
-                            isUpdatingProgrammatically = true;
-                            pickerData.input.wpColorPicker( 'color', colorValue );
-                            
-                            // CRITICAL FIX: Trigger manuale per aggiornare preview
-                            // Dato che blocchiamo il trigger automatico nel change handler
-                            pickerData.input.trigger( 'input' );
-                            evaluateContrast();
-                            
-                            setTimeout( function() {
-                                isUpdatingProgrammatically = false;
-                            }, 100 );
-                            
-                            // Badge successo
-                            showSuccessBadge( pickerData.inputWrap );
-                        }, e.type === 'paste' ? 50 : 300 ); // Paste più veloce, typing con delay
-                        
-                        setTimeout( function() {
-                            $this.removeClass( 'hex-valid' ).css( 'border-color', '' );
-                        }, 800 );
-                        
-                    } else if ( val.length === 7 || val.length === 4 ) {
-                        $this.css( 'border-color', '#ef4444' );
-                    } else {
-                        $this.css( 'border-color', '' );
-                    }
-                });
-            }
-        });
-        
-        // Funzione helper per badge successo
-        function showSuccessBadge( $wrapper ) {
-            if ( $wrapper.find( '.copy-success' ).length ) {
-                return;
-            }
-            
-            var $badge = $( '<span class="copy-success">✓ Valido</span>' );
-            $wrapper.append( $badge );
-            
-            setTimeout( function() { $badge.addClass( 'show' ); }, 50 );
-            setTimeout( function() {
-                $badge.removeClass( 'show' );
-                setTimeout( function() { $badge.remove(); }, 300 );
-            }, 1500 );
+        // Clear timer precedente
+        if ( inputTimer ) {
+            clearTimeout( inputTimer );
         }
         
-        // Chiudi tutti i picker quando si clicca fuori (con namespace per cleanup)
-        $( document ).off( 'click.fpPrivacyColorPicker' ).on( 'click.fpPrivacyColorPicker', function( e ) {
-            if ( ! $( e.target ).closest( '.wp-picker-container' ).length ) {
-                allPickers.forEach( function( picker ) {
-                    if ( picker.pickerHolder && picker.pickerHolder.is( ':visible' ) ) {
-                        picker.colorButton.click();
-                    }
-                });
-            }
-        });
+        var val = $this.val().trim().toUpperCase();
         
-        // ACCESSIBILITY: ESC chiude tutti i picker aperti (global handler)
-        $( document ).off( 'keydown.fpPrivacyColorPicker' ).on( 'keydown.fpPrivacyColorPicker', function( e ) {
-            if ( e.key === 'Escape' || e.keyCode === 27 ) {
-                var hadOpenPicker = false;
-                allPickers.forEach( function( picker ) {
-                    if ( picker.pickerHolder && picker.pickerHolder.is( ':visible' ) ) {
-                        picker.colorButton.click();
-                        hadOpenPicker = true;
-                    }
-                });
+        // Normalizza formato
+        val = val.replace( /[^0-9A-F#]/gi, '' );
+        
+        if ( val.length > 0 && val[0] !== '#' ) {
+            val = '#' + val;
+        }
+        
+        // Supporta formato corto #RGB -> #RRGGBB
+        if ( val.length === 4 && /^#[0-9A-F]{3}$/i.test( val ) ) {
+            val = '#' + val[1] + val[1] + val[2] + val[2] + val[3] + val[3];
+        }
+        
+        if ( val.length > 7 ) {
+            val = val.substring( 0, 7 );
+        }
+        
+        if ( $this.val() !== val ) {
+            $this.val( val );
+        }
+        
+        // Validazione e feedback
+        var isValid = /^#[0-9A-F]{6}$/i.test( val );
+        var isShortValid = /^#[0-9A-F]{3}$/i.test( val );
+        
+        if ( isValid || isShortValid ) {
+            $this.addClass( 'hex-valid' ).css( 'border-color', '#10b981' );
+            
+            // Debounce aggiornamento preview
+            inputTimer = setTimeout( function() {
+                $this.trigger( 'input' );
+                evaluateContrast();
                 
-                // Previeni propagazione solo se abbiamo chiuso un picker
-                if ( hadOpenPicker ) {
-                    e.stopPropagation();
-                }
-            }
-        });
-        
-        // Cleanup quando la pagina viene scaricata (prevenzione memory leak)
-        $( window ).on( 'beforeunload.fpPrivacyColorPicker', function() {
-            allPickers.forEach( function( picker ) {
-                // Disconnetti MutationObserver con protezione null
-                if ( picker && picker.observer ) {
-                    try {
-                        picker.observer.disconnect();
-                    } catch ( e ) {
-                        console.warn( 'FP Privacy: Error disconnecting observer', e );
-                    }
-                    picker.observer = null;
-                }
-            });
+                setTimeout( function() {
+                    $this.removeClass( 'hex-valid' ).css( 'border-color', '' );
+                }, 800 );
+            }, e.type === 'paste' ? 50 : 300 );
             
-            // Rimuovi event listener globali
-            $( document ).off( 'click.fpPrivacyColorPicker' );
-            $( document ).off( 'keydown.fpPrivacyColorPicker' );
-            $( window ).off( 'beforeunload.fpPrivacyColorPicker' );
-            
-            // Clear array
-            allPickers = [];
-        });
-    }
+        } else if ( val.length === 7 || val.length === 4 ) {
+            $this.css( 'border-color', '#ef4444' );
+        } else {
+            $this.css( 'border-color', '' );
+        }
+    });
     
     // Aggiungi toggle mobile/desktop per il preview
     var previewControls = $( '.fp-privacy-preview-controls' );
@@ -572,7 +256,7 @@ $( function () {
         }
     }
 
-    form.on( 'change', 'input[type="color"]', evaluateContrast );
+    form.on( 'input change', '.fp-privacy-hex-input', evaluateContrast );
     evaluateContrast();
 
     var previewContainer = $( '#fp-privacy-preview-banner' );

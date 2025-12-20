@@ -992,3 +992,12 @@ msgstr "Bordo"
 #: src/Admin/SettingsRenderer.php:319
 msgid "Focus color"
 msgstr "Colore focus"
+
+#: templates/privacy-policy.php
+msgid "Table of contents"
+msgstr "Sommario"
+
+#: templates/privacy-policy.php
+#, php-format
+msgid "This privacy policy was generated on %s."
+msgstr "Questa informativa è stata generata il %s."

@@ -55,8 +55,8 @@ public function hooks() {
  * @return void
  */
 public function run() {
-$days = (int) $this->options->get( 'retention_days', 180 );
-$days = $days > 0 ? $days : 180;
+$days = (int) $this->options->get( 'retention_days', \FP\Privacy\Shared\Constants::RETENTION_DAYS_DEFAULT );
+$days = $days > 0 ? $days : \FP\Privacy\Shared\Constants::RETENTION_DAYS_DEFAULT;
 
 $this->log_model->delete_older_than( $days );
 }

@@ -190,127 +190,70 @@ transition: border-color 0.2s ease;
     margin-top: 20px;
 }
 
-.fp-privacy-palette .wp-picker-container {
+/* Input HEX per la palette colori */
+.fp-privacy-palette-item {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
 }
 
-.fp-privacy-palette .wp-picker-holder {
-    position: absolute;
-    z-index: 1000;
+.fp-privacy-palette-item:hover {
+    background: #fff;
+    border-color: #d1d5db;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.fp-privacy-palette .wp-color-result {
-    width: 56px !important;
-    height: 56px !important;
-    border-radius: 12px !important;
-    border: 3px solid #e5e7eb !important;
-    transition: all 0.2s ease !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
-    flex-shrink: 0;
-    cursor: pointer !important;
-}
-
-.fp-privacy-palette .wp-color-result:hover {
-    border-color: #2563eb !important;
-    transform: scale(1.05) !important;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
-}
-
-.fp-privacy-palette .wp-color-result:after {
-    font-size: 0 !important;
-    content: '' !important;
-}
-
-.fp-privacy-palette .wp-picker-input-wrap {
-    flex: 1;
-    position: relative;
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    align-items: center;
+.fp-privacy-palette-item label {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
 }
 
-/* Campo input HEX migliorato con etichetta e icona */
-.fp-privacy-palette .wp-picker-input-wrap::before {
-    content: '📋 Codice HEX';
-    position: absolute;
-    top: -20px;
-    left: 2px;
-    font-size: 11px;
+.fp-privacy-palette-item .fp-palette-label-text {
+    font-size: 14px;
     font-weight: 600;
-    color: #6b7280;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.fp-privacy-palette-item .fp-privacy-hex-input {
+    width: 100%;
+    max-width: 200px;
+    padding: 10px 14px;
+    border: 2px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Courier New', monospace;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.fp-privacy-palette .wp-picker-input-wrap input[type="text"] {
-    width: 100% !important;
-    padding: 12px 16px !important;
-    border: 2px solid #d1d5db !important;
-    border-radius: 8px !important;
-    font-size: 14px !important;
-    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Courier New', monospace !important;
-    font-weight: 500 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    background: #ffffff !important;
-    transition: all 0.2s ease !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
-}
-
-.fp-privacy-palette .wp-picker-input-wrap input[type="text"]:hover {
-    border-color: #9ca3af !important;
-}
-
-.fp-privacy-palette .wp-picker-input-wrap input[type="text"]:focus {
-    border-color: #2563eb !important;
-    outline: none !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Helper text che appare al focus */
-.fp-privacy-palette .wp-picker-input-wrap::after {
-    content: 'Puoi incollare qui il codice (es: #FF5733)';
-    position: absolute;
-    top: 100%;
-    left: 0;
-    margin-top: 6px;
-    font-size: 11px;
-    color: #6b7280;
-    background: #f3f4f6;
-    padding: 4px 10px;
-    border-radius: 6px;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
+    background: #ffffff;
     transition: all 0.2s ease;
-    pointer-events: none;
-    z-index: 10;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.fp-privacy-palette .wp-picker-input-wrap input[type="text"]:focus + * + * {
-    /* Attiva l'helper quando l'input ha il focus */
+.fp-privacy-palette-item .fp-privacy-hex-input:hover {
+    border-color: #9ca3af;
 }
 
-.fp-privacy-palette .wp-picker-input-wrap:focus-within::after {
-    opacity: 1;
-    visibility: visible;
-    margin-top: 4px;
+.fp-privacy-palette-item .fp-privacy-hex-input:focus {
+    border-color: #2563eb;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Placeholder migliorato */
-.fp-privacy-palette .wp-picker-input-wrap input[type="text"]::placeholder {
-    color: #9ca3af !important;
-    opacity: 0.7 !important;
+.fp-privacy-palette-item .fp-privacy-hex-input::placeholder {
+    color: #9ca3af;
+    opacity: 0.7;
 }
 
-/* Animazione di successo quando si incolla un codice valido */
+/* Animazione di successo quando si inserisce un codice valido */
 @keyframes hexInputSuccess {
     0% {
         background: #ffffff;
@@ -323,100 +266,11 @@ transition: border-color 0.2s ease;
     }
 }
 
-.fp-privacy-palette .wp-picker-input-wrap input[type="text"].hex-valid {
+.fp-privacy-palette-item .fp-privacy-hex-input.hex-valid {
     animation: hexInputSuccess 0.8s ease;
+    border-color: #10b981;
 }
 
-/* Badge "Copiato!" che appare temporaneamente */
-.fp-privacy-palette .wp-picker-input-wrap .copy-success {
-    position: absolute;
-    top: -30px;
-    right: 0;
-    background: #10b981;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    opacity: 0;
-    transform: translateY(5px);
-    transition: all 0.3s ease;
-    pointer-events: none;
-}
-
-.fp-privacy-palette .wp-picker-input-wrap .copy-success.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.fp-privacy-palette-item {
-    padding: 20px 18px;
-    background: #f9fafb;
-    border-radius: 12px;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-    position: relative;
-}
-
-.fp-privacy-palette-item:hover {
-    background: #fff;
-    border-color: #e5e7eb;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    transform: translateY(-1px);
-}
-
-/* CRITICAL FIX: Styled label for color picker - NEW APPROACH */
-.fp-privacy-palette-item .fp-palette-label-text {
-    display: block !important;
-    font-weight: 700 !important;
-    font-size: 15px !important;
-    color: #1f2937 !important;
-    margin-bottom: 28px !important;
-    text-transform: none !important;
-    letter-spacing: 0 !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    line-height: 1.5 !important;
-    position: relative !important;
-    z-index: 10 !important;
-    pointer-events: auto !important;
-    background: transparent !important;
-    padding: 0 0 8px 0 !important;
-    border-bottom: 2px solid #e5e7eb !important;
-}
-
-.fp-privacy-palette-label-wrapper {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-}
-
-/* Force visibility of label even if WordPress tries to hide it */
-.fp-privacy-palette .fp-palette-label-text,
-.fp-privacy-palette-item .fp-palette-label-text,
-.fp-privacy-palette-item strong.fp-palette-label-text {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    height: auto !important;
-    width: auto !important;
-    clip: auto !important;
-    overflow: visible !important;
-    position: static !important;
-}
-
-/* Nascondi il testo del color result */
-.fp-privacy-palette .wp-color-result-text {
-    display: none !important;
-}
-
-.fp-privacy-palette .button.wp-picker-clear,
-.fp-privacy-palette .button.wp-picker-default {
-    height: 32px !important;
-    line-height: 30px !important;
-    padding: 0 12px !important;
-    font-size: 12px !important;
-}
 
 /* Toggle per visualizzazione mobile/desktop */
 .fp-privacy-preview-mode-toggle {

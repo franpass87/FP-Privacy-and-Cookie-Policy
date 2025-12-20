@@ -31,121 +31,134 @@ define( 'FP_PRIVACY_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
 define( 'FP_PRIVACY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
+// Autoloader.
 $autoload = __DIR__ . '/vendor/autoload.php';
 
 if ( is_readable( $autoload ) ) {
-    require $autoload;
+	require $autoload;
 }
 
-
+// Global function for backward compatibility - DEPRECATED.
+// Use IpSaltService via container instead.
+// This will be removed in a future version.
 if ( ! function_exists( 'fp_privacy_get_ip_salt' ) ) {
-    function fp_privacy_get_ip_salt() {
-        static $salt = null;
+	/**
+	 * Get IP salt (deprecated - use IpSaltService instead).
+	 *
+	 * @deprecated Use IpSaltService via service container instead.
+	 * @return string Salt value.
+	 */
+	function fp_privacy_get_ip_salt() {
+		// Try to use service if available.
+		if ( class_exists( '\\FP\\Privacy\\Core\\Kernel' ) ) {
+			try {
+				$kernel = \FP\Privacy\Core\Kernel::make();
+				$container = $kernel->getContainer();
+				if ( $container->has( \FP\Privacy\Services\Security\IpSaltService::class ) ) {
+					$service = $container->get( \FP\Privacy\Services\Security\IpSaltService::class );
+					return $service->getSalt();
+				}
+			} catch ( \Exception $e ) {
+				// Fall through to legacy implementation.
+			}
+		}
 
-        if ( null !== $salt ) {
-            return $salt;
-        }
+		// Legacy implementation (backward compatibility).
+		static $salt = null;
 
-        $option_key = 'fp_privacy_ip_salt';
+		if ( null !== $salt ) {
+			return $salt;
+		}
 
-        if ( function_exists( 'get_option' ) ) {
-            $stored = get_option( $option_key );
+		$option_key = 'fp_privacy_ip_salt';
 
-            if ( is_string( $stored ) && '' !== $stored ) {
-                $salt = $stored;
+		if ( function_exists( 'get_option' ) ) {
+			$stored = get_option( $option_key );
 
-                return $salt;
-            }
-        }
+			if ( is_string( $stored ) && '' !== $stored ) {
+				$salt = $stored;
+				return $salt;
+			}
+		}
 
-        if ( function_exists( 'wp_generate_password' ) ) {
-            $salt = wp_generate_password( 64, false, false );
-        } elseif ( function_exists( 'wp_salt' ) ) {
-            $salt = wp_salt( 'fp-privacy-ip' );
-        } else {
-            try {
-                $salt = bin2hex( random_bytes( 32 ) );
-            } catch ( \Exception $e ) {
-                $salt = md5( uniqid( 'fp-privacy', true ) );
-            }
-        }
+		if ( function_exists( 'wp_generate_password' ) ) {
+			$salt = wp_generate_password( 64, false, false );
+		} elseif ( function_exists( 'wp_salt' ) ) {
+			$salt = wp_salt( 'fp-privacy-ip' );
+		} else {
+			try {
+				$salt = bin2hex( random_bytes( 32 ) );
+			} catch ( \Exception $e ) {
+				$salt = md5( uniqid( 'fp-privacy', true ) );
+			}
+		}
 
-        if ( function_exists( 'update_option' ) ) {
-            update_option( $option_key, $salt, false );
-        }
+		if ( function_exists( 'update_option' ) ) {
+			update_option( $option_key, $salt, false );
+		}
 
-        return $salt;
-    }
+		return $salt;
+	}
 }
 
-spl_autoload_register(
-    static function ( $class ) {
-        $prefix      = 'FP\\Privacy\\';
-        $prefix_len  = strlen( $prefix );
+// Bootstrap plugin.
+if ( class_exists( '\\FP\\Privacy\\Core\\Bootstrap' ) ) {
+	\FP\Privacy\Core\Bootstrap::init();
+} elseif ( class_exists( '\\FP\\Privacy\\Core\\Kernel' ) ) {
+	// Fallback to direct Kernel usage if Bootstrap not available.
+	add_action(
+		'plugins_loaded',
+		static function () {
+			$kernel = \FP\Privacy\Core\Kernel::make();
+			$kernel->boot();
+		},
+		5
+	);
 
-        if ( 0 !== strncmp( $class, $prefix, $prefix_len ) ) {
-            return;
-        }
+	register_activation_hook(
+		__FILE__,
+		static function ( $network_wide ) {
+			$kernel = \FP\Privacy\Core\Kernel::make();
+			$kernel->activate( $network_wide );
+		}
+	);
 
-        $relative = substr( $class, $prefix_len );
-        $relative = str_replace( '\\', DIRECTORY_SEPARATOR, $relative );
+	register_deactivation_hook(
+		__FILE__,
+		static function () {
+			$kernel = \FP\Privacy\Core\Kernel::make();
+			$kernel->deactivate();
+		}
+	);
 
-        $source_root = FP_PRIVACY_PLUGIN_PATH . 'src' . DIRECTORY_SEPARATOR;
-        $path        = $source_root . $relative . '.php';
+	if ( is_multisite() ) {
+		add_action(
+			'wpmu_new_blog',
+			static function ( $blog_id ) {
+				$kernel = \FP\Privacy\Core\Kernel::make();
+				$kernel->provisionSite( (int) $blog_id );
+			}
+		);
+	}
+} elseif ( class_exists( '\\FP\\Privacy\\Plugin' ) ) {
+	// Final fallback to old Plugin class (for backward compatibility during migration).
+	register_activation_hook( __FILE__, array( '\\FP\\Privacy\\Plugin', 'activate' ) );
+	register_deactivation_hook( __FILE__, array( '\\FP\\Privacy\\Plugin', 'deactivate' ) );
 
-        if ( ! is_readable( $path ) ) {
-            return;
-        }
+	add_action(
+		'plugins_loaded',
+		static function () {
+			\FP\Privacy\Plugin::instance()->boot();
+		}
+	);
 
-        static $resolved_root = null;
-
-        if ( null === $resolved_root ) {
-            $resolved_root = realpath( $source_root );
-
-            if ( false === $resolved_root ) {
-                // Fall back to the non-resolved path so autoloading can still operate.
-                $resolved_root = rtrim( $source_root, DIRECTORY_SEPARATOR );
-            }
-
-            $resolved_root = rtrim( $resolved_root, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR;
-        }
-
-        $resolved_path = realpath( $path );
-
-        if ( false === $resolved_path ) {
-            return;
-        }
-
-        if ( strncmp( $resolved_path, $resolved_root, strlen( $resolved_root ) ) !== 0 ) {
-            return;
-        }
-
-        require_once $resolved_path;
-    }
-);
-
-if ( ! class_exists( '\\FP\\Privacy\\Plugin' ) ) {
-return;
+	if ( is_multisite() ) {
+		add_action(
+			'wpmu_new_blog',
+			static function ( $blog_id ) {
+				$plugin = \FP\Privacy\Plugin::instance();
+				$plugin->provision_new_site( (int) $blog_id );
+			}
+		);
+	}
 }
-
-register_activation_hook( __FILE__, array( '\\FP\\Privacy\\Plugin', 'activate' ) );
-register_deactivation_hook( __FILE__, array( '\\FP\\Privacy\\Plugin', 'deactivate' ) );
-
-add_action(
-    'plugins_loaded',
-    static function () {
-        \FP\Privacy\Plugin::instance()->boot();
-    }
-);
-
-add_action(
-    'wpmu_new_blog',
-    static function ( $blog_id ) {
-        if ( ! is_multisite() ) {
-            return;
-        }
-
-        $plugin = \FP\Privacy\Plugin::instance();
-        $plugin->provision_new_site( (int) $blog_id );
-    }
-);

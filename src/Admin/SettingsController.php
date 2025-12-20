@@ -9,6 +9,9 @@
 
 namespace FP\Privacy\Admin;
 
+use FP\Privacy\Presentation\Admin\Controllers\PolicyLinksAutoPopulator;
+use FP\Privacy\Presentation\Admin\Controllers\SettingsDataPreparer;
+use FP\Privacy\Presentation\Admin\Controllers\SettingsExportImportHandler;
 use FP\Privacy\Integrations\DetectorRegistry;
 use FP\Privacy\Utils\Options;
 
@@ -45,6 +48,34 @@ class SettingsController {
 	private $renderer;
 
 	/**
+	 * Settings data preparer.
+	 *
+	 * @var SettingsDataPreparer
+	 */
+	private $data_preparer;
+
+	/**
+	 * Policy links auto-populator.
+	 *
+	 * @var PolicyLinksAutoPopulator
+	 */
+	private $policy_links_populator;
+
+	/**
+	 * Export/import handler.
+	 *
+	 * @var SettingsExportImportHandler
+	 */
+	private $export_import_handler;
+
+	/**
+	 * Save handler.
+	 *
+	 * @var SettingsSaveHandler
+	 */
+	private $save_handler;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Options          $options   Options handler.
@@ -52,10 +83,23 @@ class SettingsController {
 	 * @param PolicyGenerator  $generator Generator.
 	 */
 	public function __construct( Options $options, DetectorRegistry $detector, PolicyGenerator $generator ) {
-		$this->options   = $options;
-		$this->detector  = $detector;
-		$this->generator = $generator;
-		$this->renderer  = new SettingsRenderer( $options );
+		$this->options                = $options;
+		$this->detector               = $detector;
+		$this->generator              = $generator;
+		$this->renderer              = new SettingsRenderer( $options );
+		// Use new Presentation layer classes, fallback to old for compatibility.
+		if ( class_exists( '\\FP\\Privacy\\Presentation\\Admin\\Controllers\\PolicyLinksAutoPopulator' ) ) {
+			$this->policy_links_populator = new \FP\Privacy\Presentation\Admin\Controllers\PolicyLinksAutoPopulator( $options );
+			$this->data_preparer          = new \FP\Privacy\Presentation\Admin\Controllers\SettingsDataPreparer( $options, $detector, $this->policy_links_populator );
+			$this->export_import_handler  = new \FP\Privacy\Presentation\Admin\Controllers\SettingsExportImportHandler( $options );
+			$this->save_handler           = new \FP\Privacy\Presentation\Admin\Controllers\SettingsSaveHandler( $options, $this->policy_links_populator );
+		} else {
+			// Fallback to old location during migration.
+			$this->policy_links_populator = new \FP\Privacy\Admin\Handler\PolicyLinksAutoPopulator( $options );
+			$this->data_preparer          = new \FP\Privacy\Admin\Handler\SettingsDataPreparer( $options, $detector, $this->policy_links_populator );
+			$this->export_import_handler  = new \FP\Privacy\Admin\Handler\SettingsExportImportHandler( $options );
+			$this->save_handler           = new \FP\Privacy\Admin\Handler\SettingsSaveHandler( $options, $this->policy_links_populator );
+		}
 	}
 
 	/**
@@ -64,189 +108,7 @@ class SettingsController {
 	 * @return array<string, mixed>
 	 */
 	public function prepare_settings_data() {
-		$options      = $this->options->all();
-		$languages    = $this->options->get_languages();
-		$primary_lang = $languages[0] ?? $this->options->normalize_language( \function_exists( '\get_locale' ) ? \get_locale() : 'en_US' );
-
-		// I default specifici per lingua vengono ora gestiti direttamente nel renderer
-
-		$script_rules      = array();
-		$script_categories = array();
-
-		foreach ( $languages as $script_lang ) {
-			$normalized                       = $this->options->normalize_language( $script_lang );
-			$script_rules[ $normalized ]      = $this->options->get_script_rules_for_language( $normalized );
-			$script_categories[ $normalized ] = $this->options->get_categories_for_language( $normalized );
-		}
-
-		// Auto-populate link_policy with Privacy Policy page URL if empty
-		$this->auto_populate_policy_links( $options, $languages );
-
-		$notifications           = $this->options->get_detector_notifications();
-		$notification_recipients = isset( $notifications['recipients'] ) && \is_array( $notifications['recipients'] )
-			? implode( ', ', $notifications['recipients'] )
-			: '';
-
-		return array(
-			'options'                 => $options,
-			'languages'               => $languages,
-			'primary_lang'            => $primary_lang,
-			'detected'                => $this->detector->detect_services(),
-			'snapshot_notice'         => $this->get_snapshot_notice( $options['snapshots'] ),
-			'script_rules'            => $script_rules,
-			'script_categories'       => $script_categories,
-			'notifications'           => $notifications,
-			'notification_recipients' => $notification_recipients,
-		);
-	}
-
-	/**
-	 * Auto-populate policy links for each language if empty.
-	 *
-	 * @param array<string, mixed> &$options   Options to update.
-	 * @param array<int, string>   $languages  Active languages.
-	 *
-	 * @return void
-	 */
-	private function auto_populate_policy_links( &$options, $languages ) {
-		if ( ! isset( $options['pages'] ) || ! \is_array( $options['pages'] ) ) {
-			return;
-		}
-
-		$pages = $options['pages'];
-
-		foreach ( $languages as $language ) {
-			$normalized = $this->options->normalize_language( $language );
-
-			// Get Privacy Policy page ID for this language
-			$privacy_page_id = 0;
-			if ( isset( $pages['privacy_policy_page_id'][ $normalized ] ) ) {
-				$privacy_page_id = (int) $pages['privacy_policy_page_id'][ $normalized ];
-			}
-
-			// If we have a Privacy Policy page, auto-populate link_policy if empty
-			if ( $privacy_page_id > 0 ) {
-				$permalink = \get_permalink( $privacy_page_id );
-
-				if ( $permalink && ! \is_wp_error( $permalink ) ) {
-					// Initialize banner_texts for this language if needed
-					if ( ! isset( $options['banner_texts'][ $normalized ] ) || ! \is_array( $options['banner_texts'][ $normalized ] ) ) {
-						$options['banner_texts'][ $normalized ] = array();
-					}
-
-					// Auto-populate only if link_policy is empty
-					if ( empty( $options['banner_texts'][ $normalized ]['link_policy'] ) ) {
-						$options['banner_texts'][ $normalized ]['link_policy'] = $permalink;
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Auto-populate policy links before saving.
-	 *
-	 * @param array<string, mixed> &$payload   Payload to update.
-	 * @param array<int, string>   $languages  Active languages.
-	 *
-	 * @return void
-	 */
-	private function auto_populate_policy_links_before_save( &$payload, $languages ) {
-		// Get current pages configuration
-		$pages = $this->options->get( 'pages' );
-		if ( ! \is_array( $pages ) ) {
-			return;
-		}
-
-		foreach ( $languages as $language ) {
-			$normalized = $this->options->normalize_language( $language );
-
-			// Get Privacy Policy page ID for this language
-			$privacy_page_id = 0;
-			if ( isset( $pages['privacy_policy_page_id'][ $normalized ] ) ) {
-				$privacy_page_id = (int) $pages['privacy_policy_page_id'][ $normalized ];
-			}
-
-			// If we have a Privacy Policy page, auto-populate link_policy if empty
-			if ( $privacy_page_id > 0 ) {
-				$permalink = \get_permalink( $privacy_page_id );
-
-				if ( $permalink && ! \is_wp_error( $permalink ) ) {
-					// Initialize banner_texts for this language if needed
-					if ( ! isset( $payload['banner_texts'][ $normalized ] ) || ! \is_array( $payload['banner_texts'][ $normalized ] ) ) {
-						$payload['banner_texts'][ $normalized ] = array();
-					}
-
-					// Auto-populate only if link_policy is empty
-					if ( empty( $payload['banner_texts'][ $normalized ]['link_policy'] ) ) {
-						$payload['banner_texts'][ $normalized ]['link_policy'] = $permalink;
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Determine whether stored snapshots are stale.
-	 *
-	 * @param array<string, mixed> $snapshots Snapshots payload.
-	 *
-	 * @return array{timestamp:int}|null
-	 */
-	public function get_snapshot_notice( $snapshots ) {
-		if ( ! \is_array( $snapshots ) ) {
-			return array( 'timestamp' => 0 );
-		}
-
-		$now        = time();
-		$threshold  = DAY_IN_SECONDS * 14;
-		$stale      = false;
-		$oldest     = PHP_INT_MAX;
-		$has_policy = false;
-
-		$services_generated = isset( $snapshots['services']['generated_at'] ) ? (int) $snapshots['services']['generated_at'] : 0;
-		if ( $services_generated <= 0 || ( $now - $services_generated ) > $threshold ) {
-			$stale = true;
-		}
-
-		if ( $services_generated > 0 ) {
-			$oldest = min( $oldest, $services_generated );
-		}
-
-		if ( isset( $snapshots['policies'] ) && \is_array( $snapshots['policies'] ) ) {
-			foreach ( $snapshots['policies'] as $entries ) {
-				if ( ! \is_array( $entries ) ) {
-					continue;
-				}
-
-				foreach ( $entries as $data ) {
-					$generated = isset( $data['generated_at'] ) ? (int) $data['generated_at'] : 0;
-					if ( $generated > 0 ) {
-						$has_policy = true;
-						$oldest     = min( $oldest, $generated );
-						if ( ( $now - $generated ) > $threshold ) {
-							$stale = true;
-						}
-					} else {
-						$stale = true;
-					}
-				}
-			}
-		} else {
-			$stale = true;
-		}
-
-		if ( ! $stale ) {
-			return null;
-		}
-
-		if ( PHP_INT_MAX === $oldest ) {
-			$oldest = $has_policy ? 0 : $services_generated;
-		}
-
-		return array(
-			'timestamp' => $oldest > 0 ? $oldest : 0,
-		);
+		return $this->data_preparer->prepare();
 	}
 
 	/**
@@ -283,60 +145,7 @@ class SettingsController {
 	 * @return void
 	 */
 	public function handle_save() {
-		if ( ! \current_user_can( 'manage_options' ) ) {
-			\wp_die( \esc_html__( 'Permission denied.', 'fp-privacy' ) );
-		}
-
-	\check_admin_referer( 'fp_privacy_save_settings', 'fp_privacy_nonce' );
-
-	// Safely extract languages - handle both string (comma-separated) and array inputs
-	$languages_raw = isset( $_POST['languages_active'] ) ? \wp_unslash( $_POST['languages_active'] ) : '';
-	if ( \is_array( $languages_raw ) ) {
-		// If already an array, just trim each value
-		$languages = array_filter( array_map( 'trim', $languages_raw ) );
-	} elseif ( \is_string( $languages_raw ) && '' !== $languages_raw ) {
-		// If string, sanitize and split by comma
-		$languages_raw = \sanitize_text_field( $languages_raw );
-		$languages     = array_filter( array_map( 'trim', explode( ',', $languages_raw ) ) );
-	} else {
-		$languages = array();
-	}
-
-	if ( empty( $languages ) ) {
-		$languages = array( \get_locale() );
-	}
-
-	$payload = array(
-		'languages_active'       => $languages,
-		'banner_texts'           => isset( $_POST['banner_texts'] ) ? \wp_unslash( $_POST['banner_texts'] ) : array(),
-		'banner_layout'          => isset( $_POST['banner_layout'] ) ? \wp_unslash( $_POST['banner_layout'] ) : array(),
-		'consent_mode_defaults'  => isset( $_POST['consent_mode_defaults'] ) ? \wp_unslash( $_POST['consent_mode_defaults'] ) : array(),
-		'gpc_enabled'            => isset( $_POST['gpc_enabled'] ),
-		'preview_mode'           => isset( $_POST['preview_mode'] ),
-		'org_name'               => isset( $_POST['org_name'] ) ? \wp_unslash( $_POST['org_name'] ) : '',
-		'vat'                    => isset( $_POST['vat'] ) ? \wp_unslash( $_POST['vat'] ) : '',
-		'address'                => isset( $_POST['address'] ) ? \wp_unslash( $_POST['address'] ) : '',
-		'dpo_name'               => isset( $_POST['dpo_name'] ) ? \wp_unslash( $_POST['dpo_name'] ) : '',
-		'dpo_email'              => isset( $_POST['dpo_email'] ) ? \wp_unslash( $_POST['dpo_email'] ) : '',
-		'privacy_email'          => isset( $_POST['privacy_email'] ) ? \wp_unslash( $_POST['privacy_email'] ) : '',
-		'categories'             => $this->options->get( 'categories' ),
-		'retention_days'         => isset( $_POST['retention_days'] ) ? (int) $_POST['retention_days'] : $this->options->get( 'retention_days' ),
-		'scripts'                => isset( $_POST['scripts'] ) ? \wp_unslash( $_POST['scripts'] ) : array(),
-		'detector_notifications' => array(
-			'email'      => isset( $_POST['detector_notifications']['email'] ),
-			'recipients' => isset( $_POST['detector_notifications']['recipients'] ) ? \wp_unslash( $_POST['detector_notifications']['recipients'] ) : '',
-		),
-		'auto_update_services'   => isset( $_POST['auto_update_services'] ),
-		'auto_update_policies'   => isset( $_POST['auto_update_policies'] ),
-	);
-
-		// Auto-populate link_policy fields before saving
-		$this->auto_populate_policy_links_before_save( $payload, $languages );
-
-		$this->options->set( $payload );
-
-		\wp_safe_redirect( \add_query_arg( 'updated', 'true', \wp_get_referer() ) );
-		exit;
+		$this->save_handler->save();
 	}
 
 	/**
@@ -364,21 +173,7 @@ class SettingsController {
 	 * @return void
 	 */
 	public function handle_export_settings() {
-		if ( ! \current_user_can( 'manage_options' ) ) {
-			\wp_die( \esc_html__( 'Permission denied.', 'fp-privacy' ) );
-		}
-
-		\check_admin_referer( 'fp_privacy_export_settings', 'fp_privacy_export_nonce' );
-
-		$settings = $this->options->all();
-		$filename = 'fp-privacy-settings-' . \gmdate( 'Ymd-His' ) . '.json';
-
-		\nocache_headers();
-		\header( 'Content-Type: application/json; charset=utf-8' );
-		\header( 'Content-Disposition: attachment; filename="' . \sanitize_file_name( $filename ) . '"' );
-
-		echo \wp_json_encode( $settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
-		exit;
+		$this->export_import_handler->handle_export();
 	}
 
 	/**
@@ -387,42 +182,6 @@ class SettingsController {
 	 * @return void
 	 */
 	public function handle_import_settings() {
-		if ( ! \current_user_can( 'manage_options' ) ) {
-			\wp_die( \esc_html__( 'Permission denied.', 'fp-privacy' ) );
-		}
-
-		\check_admin_referer( 'fp_privacy_import_settings', 'fp_privacy_import_nonce' );
-
-		$redirect = \wp_get_referer() ? \wp_get_referer() : \admin_url( 'admin.php?page=fp-privacy-tools' );
-
-	if ( empty( $_FILES['settings_file']['tmp_name'] ) || ! \is_uploaded_file( $_FILES['settings_file']['tmp_name'] ) ) {
-		\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'missing', $redirect ) );
-		exit;
-	}
-
-	// Check file size to prevent memory exhaustion (limit to 5MB)
-	$max_size = 5 * 1024 * 1024; // 5MB
-	if ( ! empty( $_FILES['settings_file']['size'] ) && $_FILES['settings_file']['size'] > $max_size ) {
-		\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'too-large', $redirect ) );
-		exit;
-	}
-
-	$content = \file_get_contents( $_FILES['settings_file']['tmp_name'] );
-	if ( false === $content ) {
-		\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'error', $redirect ) );
-		exit;
-	}
-
-		$data = \json_decode( $content, true );
-		if ( ! is_array( $data ) ) {
-			\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'invalid', $redirect ) );
-			exit;
-		}
-
-		$this->options->set( $data );
-		\do_action( 'fp_privacy_settings_imported', $this->options->all() );
-
-		\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'success', $redirect ) );
-		exit;
+		$this->export_import_handler->handle_import();
 	}
 }

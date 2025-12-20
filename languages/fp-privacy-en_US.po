@@ -1101,3 +1101,12 @@ msgstr "Border"
 #: src/Admin/SettingsRenderer.php:319
 msgid "Focus color"
 msgstr "Focus color"
+
+#: templates/privacy-policy.php
+msgid "Table of contents"
+msgstr "Table of contents"
+
+#: templates/privacy-policy.php
+#, php-format
+msgid "This privacy policy was generated on %s."
+msgstr "This privacy policy was generated on %s."

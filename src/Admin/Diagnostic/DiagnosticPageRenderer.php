@@ -1,0 +1,77 @@
+<?php
+/**
+ * Diagnostic page renderer.
+ *
+ * @package FP\Privacy\Admin\Diagnostic
+ * @author Francesco Passeri
+ * @link https://francescopasseri.com
+ */
+
+namespace FP\Privacy\Admin\Diagnostic;
+
+use FP\Privacy\Frontend\ConsentState as FrontendConsentState;
+use FP\Privacy\Utils\Options;
+
+/**
+ * Renders the diagnostic tools page.
+ */
+class DiagnosticPageRenderer {
+	/**
+	 * Options handler.
+	 *
+	 * @var Options
+	 */
+	private $options;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param Options $options Options handler.
+	 */
+	public function __construct( Options $options ) {
+		$this->options = $options;
+	}
+
+	/**
+	 * Render the diagnostic page.
+	 *
+	 * @return void
+	 */
+	public function render() {
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$consent_state  = new FrontendConsentState( $this->options, null );
+		$lang           = \determine_locale();
+		$frontend_state = $consent_state->get_frontend_state( $lang );
+		$all_options    = $this->options->all();
+
+		?>
+		<div class="wrap">
+			<h1><?php echo esc_html( \__( 'Strumenti Diagnostica FP Privacy', 'fp-privacy' ) ); ?></h1>
+
+			<?php DiagnosticNoticesRenderer::render(); ?>
+
+			<div class="fp-privacy-diagnostic-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+				
+				<!-- Colonna 1: Stato Corrente -->
+				<div>
+					<?php DiagnosticStateRenderer::render_current_state( $frontend_state ); ?>
+					<?php DiagnosticContentRenderer::render_consent_categories( $all_options, $lang ); ?>
+					<?php DiagnosticContentRenderer::render_policy_pages( $all_options ); ?>
+				</div>
+
+				<!-- Colonna 2: Azioni -->
+				<div>
+					<?php DiagnosticContentRenderer::render_quick_actions(); ?>
+					<?php DiagnosticStateRenderer::render_debug_info( $frontend_state ); ?>
+					<?php DiagnosticContentRenderer::render_useful_links(); ?>
+				</div>
+			</div>
+
+			<?php DiagnosticStylesRenderer::render(); ?>
+		</div>
+		<?php
+	}
+}
