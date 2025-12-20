@@ -10,14 +10,15 @@
 namespace FP\Privacy\Infrastructure\Options;
 
 use FP\Privacy\Utils\Options as LegacyOptions;
+use FP\Privacy\Services\Options\OptionsInterface;
 
 /**
- * Adapter that wraps legacy Options singleton to implement OptionsRepositoryInterface.
+ * Adapter that wraps legacy Options singleton to implement OptionsRepositoryInterface and OptionsInterface.
  * This allows gradual migration from singleton to service container.
  * 
  * @deprecated This adapter is temporary during migration. Use WpOptionsAdapter instead.
  */
-class OptionsAdapter implements OptionsRepositoryInterface {
+class OptionsAdapter implements OptionsRepositoryInterface, OptionsInterface {
 	/**
 	 * Legacy options instance.
 	 *
