@@ -109,6 +109,10 @@ return self::$instance;
 	 */
 	public static function activate( $network_wide ) {
 		$plugin = self::instance();
+		// Initialize options if not already initialized (boot() may not have been called yet).
+		if ( ! $plugin->options ) {
+			$plugin->options = Options::instance();
+		}
 		$multisite = new MultisiteManager( $plugin->options );
 		$multisite->activate( $network_wide );
 	}
@@ -120,6 +124,10 @@ return self::$instance;
 	 */
 	public static function deactivate() {
 		$plugin = self::instance();
+		// Initialize options if not already initialized (boot() may not have been called yet).
+		if ( ! $plugin->options ) {
+			$plugin->options = Options::instance();
+		}
 		$multisite = new MultisiteManager( $plugin->options );
 		$multisite->deactivate();
 	}
@@ -132,6 +140,10 @@ return self::$instance;
 	 * @return void
 	 */
 	public function provision_new_site( $blog_id ) {
+		// Initialize options if not already initialized (boot() may not have been called yet).
+		if ( ! $this->options ) {
+			$this->options = Options::instance();
+		}
 		$multisite = new MultisiteManager( $this->options );
 		$multisite->provision_new_site( $blog_id );
 	}
