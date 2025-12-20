@@ -67,16 +67,43 @@ class PolicyGenerator {
  * @return string
  */
 	public function generate_privacy_policy( $lang ) {
-		return $this->view->render(
-			'privacy-policy.php',
-			array(
-				'lang'            => $lang,
-				'options'        => $this->options->all(),
-				'groups'          => $this->service_grouper->get_grouped_services( false, $lang ),
-				'generated_at'    => $this->get_policy_generated_at( 'privacy', $lang ),
-				'categories_meta' => $this->options->get_categories_for_language( $lang ),
-			)
-		);
+		try {
+			$groups = $this->service_grouper->get_grouped_services( false, $lang );
+			if ( ! is_array( $groups ) ) {
+				$groups = array();
+			}
+
+			$categories_meta = $this->options->get_categories_for_language( $lang );
+			if ( ! is_array( $categories_meta ) ) {
+				$categories_meta = array();
+			}
+
+			$options = $this->options->all();
+			if ( ! is_array( $options ) ) {
+				$options = array();
+			}
+
+			return $this->view->render(
+				'privacy-policy.php',
+				array(
+					'lang'            => $lang,
+					'options'        => $options,
+					'groups'          => $groups,
+					'generated_at'    => $this->get_policy_generated_at( 'privacy', $lang ),
+					'categories_meta' => $categories_meta,
+				)
+			);
+		} catch ( \Throwable $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error generating privacy policy for %s: %s', $lang, $e->getMessage() ) );
+			}
+			return '';
+		} catch ( \Exception $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error generating privacy policy for %s: %s', $lang, $e->getMessage() ) );
+			}
+			return '';
+		}
 	}
 
 	/**
@@ -87,16 +114,43 @@ class PolicyGenerator {
 	 * @return string
 	 */
 	public function generate_cookie_policy( $lang ) {
-		return $this->view->render(
-			'cookie-policy.php',
-			array(
-				'lang'            => $lang,
-				'options'        => $this->options->all(),
-				'groups'          => $this->service_grouper->get_grouped_services( false, $lang ),
-				'generated_at'    => $this->get_policy_generated_at( 'cookie', $lang ),
-				'categories_meta' => $this->options->get_categories_for_language( $lang ),
-			)
-		);
+		try {
+			$groups = $this->service_grouper->get_grouped_services( false, $lang );
+			if ( ! is_array( $groups ) ) {
+				$groups = array();
+			}
+
+			$categories_meta = $this->options->get_categories_for_language( $lang );
+			if ( ! is_array( $categories_meta ) ) {
+				$categories_meta = array();
+			}
+
+			$options = $this->options->all();
+			if ( ! is_array( $options ) ) {
+				$options = array();
+			}
+
+			return $this->view->render(
+				'cookie-policy.php',
+				array(
+					'lang'            => $lang,
+					'options'        => $options,
+					'groups'          => $groups,
+					'generated_at'    => $this->get_policy_generated_at( 'cookie', $lang ),
+					'categories_meta' => $categories_meta,
+				)
+			);
+		} catch ( \Throwable $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error generating cookie policy for %s: %s', $lang, $e->getMessage() ) );
+			}
+			return '';
+		} catch ( \Exception $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error generating cookie policy for %s: %s', $lang, $e->getMessage() ) );
+			}
+			return '';
+		}
 	}
 
 	/**
