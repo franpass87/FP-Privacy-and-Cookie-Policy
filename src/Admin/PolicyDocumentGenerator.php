@@ -74,34 +74,54 @@ class PolicyDocumentGenerator {
 	 * @return void
 	 */
 	public function maybe_generate_document( $post_id, $type, $language ) {
-		$post = \get_post( $post_id );
+		try {
+			$post = \get_post( $post_id );
 
-		if ( ! ( $post instanceof \WP_Post ) ) {
-			return;
-		}
+			if ( ! ( $post instanceof \WP_Post ) ) {
+				return;
+			}
 
-		$current_content = trim( (string) $post->post_content );
-		$shortcode       = 'privacy' === $type ? 'fp_privacy_policy' : 'fp_cookie_policy';
-		$placeholder     = \sprintf( '[%1$s lang="%2$s"]', $shortcode, $language );
+			$current_content = trim( (string) $post->post_content );
+			$shortcode       = 'privacy' === $type ? 'fp_privacy_policy' : 'fp_cookie_policy';
+			$placeholder     = \sprintf( '[%1$s lang="%2$s"]', $shortcode, $language );
 
-		if ( '' !== $current_content && $current_content !== $placeholder ) {
-			return;
-		}
+			if ( '' !== $current_content && $current_content !== $placeholder ) {
+				return;
+			}
 
-		$generated = 'privacy' === $type
-			? $this->generator->generate_privacy_policy( $language )
-			: $this->generator->generate_cookie_policy( $language );
+			$generated = 'privacy' === $type
+				? $this->generator->generate_privacy_policy( $language )
+				: $this->generator->generate_cookie_policy( $language );
 
-		$updated = \wp_update_post(
-			array(
-				'ID'           => $post->ID,
-				'post_content' => $generated,
-			),
-			true
-		);
+			// Only update if we have valid content.
+			if ( '' === $generated ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( sprintf( 'FP Privacy: Generated content is empty for %s policy in %s', $type, $language ) );
+				}
+				return;
+			}
 
-		if ( ! \is_wp_error( $updated ) ) {
-			\delete_post_meta( $post->ID, Options::PAGE_MANAGED_META_KEY );
+			$updated = \wp_update_post(
+				array(
+					'ID'           => $post->ID,
+					'post_content' => $generated,
+				),
+				true
+			);
+
+			if ( ! \is_wp_error( $updated ) ) {
+				\delete_post_meta( $post->ID, Options::PAGE_MANAGED_META_KEY );
+			} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error updating %s policy page %d: %s', $type, $post_id, $updated->get_error_message() ) );
+			}
+		} catch ( \Throwable $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error generating %s document for page %d: %s', $type, $post_id, $e->getMessage() ) );
+			}
+		} catch ( \Exception $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error generating %s document for page %d: %s', $type, $post_id, $e->getMessage() ) );
+			}
 		}
 	}
 }

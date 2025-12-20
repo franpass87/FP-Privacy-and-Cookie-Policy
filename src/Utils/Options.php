@@ -841,14 +841,37 @@ class Options {
 	 * @return void
 	 */
 	public function ensure_pages_exist() {
-		$languages = $this->get_languages();
-		$pages     = isset( $this->options['pages'] ) && \is_array( $this->options['pages'] ) ? $this->options['pages'] : array();
+		// Prevent recursive calls.
+		static $running = false;
+		if ( $running ) {
+			return;
+		}
+		$running = true;
 
-		$updated_pages = $this->page_manager->ensure_pages_exist( $pages, $languages );
+		try {
+			$languages = $this->get_languages();
+			if ( ! is_array( $languages ) || empty( $languages ) ) {
+				$languages = array( function_exists( '\\get_locale' ) ? (string) \get_locale() : 'en_US' );
+			}
 
-		if ( $updated_pages ) {
-			$this->options['pages'] = $updated_pages;
-			\update_option( self::OPTION_KEY, $this->options, false );
+			$pages = isset( $this->options['pages'] ) && \is_array( $this->options['pages'] ) ? $this->options['pages'] : array();
+
+			$updated_pages = $this->page_manager->ensure_pages_exist( $pages, $languages );
+
+			if ( $updated_pages && is_array( $updated_pages ) ) {
+				$this->options['pages'] = $updated_pages;
+				\update_option( self::OPTION_KEY, $this->options, false );
+			}
+		} catch ( \Throwable $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error ensuring pages exist: %s', $e->getMessage() ) );
+			}
+		} catch ( \Exception $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error ensuring pages exist: %s', $e->getMessage() ) );
+			}
+		} finally {
+			$running = false;
 		}
 	}
 }
