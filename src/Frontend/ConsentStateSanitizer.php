@@ -33,13 +33,15 @@ class ConsentStateSanitizer {
 
 	/**
 	 * Sanitize states payload.
+	 * Supports both simple boolean values and EDPB 2025 sub-categories structure.
 	 *
 	 * @param array<string, mixed> $states States array.
 	 *
-	 * @return array<string, bool>
+	 * @return array<string, bool|array<string, mixed>>
 	 */
 	public function sanitize_states_payload( array $states ) {
 		$sanitized = array();
+		$enable_sub_categories = $this->options->get( 'enable_sub_categories', false );
 
 		foreach ( $states as $key => $value ) {
 			$clean_key = \sanitize_key( $key );
@@ -48,7 +50,39 @@ class ConsentStateSanitizer {
 				continue;
 			}
 
-			$sanitized[ $clean_key ] = $this->normalize_boolean( $value );
+			// EDPB 2025: Support sub-categories structure if enabled and value is array.
+			if ( $enable_sub_categories && is_array( $value ) && isset( $value['enabled'] ) && isset( $value['services'] ) ) {
+				$sanitized[ $clean_key ] = array(
+					'enabled' => $this->normalize_boolean( $value['enabled'] ),
+					'services' => $this->sanitize_services_payload( $value['services'] ?? array() ),
+				);
+			} else {
+				// Legacy format: simple boolean value.
+				$sanitized[ $clean_key ] = $this->normalize_boolean( $value );
+			}
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize services payload for sub-categories.
+	 *
+	 * @param array<string, mixed> $services Services array.
+	 *
+	 * @return array<string, bool>
+	 */
+	private function sanitize_services_payload( array $services ): array {
+		$sanitized = array();
+
+		foreach ( $services as $service_key => $service_value ) {
+			$clean_key = \sanitize_key( $service_key );
+
+			if ( '' === $clean_key ) {
+				continue;
+			}
+
+			$sanitized[ $clean_key ] = $this->normalize_boolean( $service_value );
 		}
 
 		return $sanitized;
@@ -56,11 +90,12 @@ class ConsentStateSanitizer {
 
 	/**
 	 * Filter out unknown consent categories from the payload.
+	 * Supports both simple boolean values and EDPB 2025 sub-categories structure.
 	 *
-	 * @param array<string, bool> $states   Sanitized states.
-	 * @param string              $language Active language.
+	 * @param array<string, bool|array<string, mixed>> $states   Sanitized states.
+	 * @param string                                    $language Active language.
 	 *
-	 * @return array<string, bool>
+	 * @return array<string, bool|array<string, mixed>>
 	 */
 	public function filter_known_categories( array $states, $language ) {
 		$categories = $this->options->get_categories_for_language( $language );
@@ -73,7 +108,12 @@ class ConsentStateSanitizer {
 
 		foreach ( $states as $slug => $value ) {
 			if ( isset( $categories[ $slug ] ) ) {
-				$filtered[ $slug ] = (bool) $value;
+				// EDPB 2025: If value is array with sub-categories structure, preserve it.
+				if ( is_array( $value ) && isset( $value['enabled'] ) && isset( $value['services'] ) ) {
+					$filtered[ $slug ] = $value;
+				} else {
+					$filtered[ $slug ] = (bool) $value;
+				}
 			}
 		}
 
@@ -117,18 +157,28 @@ class ConsentStateSanitizer {
 
 	/**
 	 * Ensure locked consent categories remain granted.
+	 * Supports both simple boolean values and EDPB 2025 sub-categories structure.
 	 *
-	 * @param array<string, bool> $states   Sanitized states.
-	 * @param string              $language Active language.
+	 * @param array<string, bool|array<string, mixed>> $states   Sanitized states.
+	 * @param string                                    $language Active language.
 	 *
-	 * @return array<string, bool>
+	 * @return array<string, bool|array<string, mixed>>
 	 */
 	public function enforce_locked_categories( array $states, $language ) {
 		$categories = $this->options->get_categories_for_language( $language );
+		$enable_sub_categories = $this->options->get( 'enable_sub_categories', false );
 
 		foreach ( $categories as $slug => $category ) {
 			if ( ! empty( $category['locked'] ) ) {
-				$states[ $slug ] = true;
+				// EDPB 2025: If sub-categories enabled, preserve structure but set enabled=true and all services=true.
+				if ( $enable_sub_categories && isset( $states[ $slug ] ) && is_array( $states[ $slug ] ) && isset( $states[ $slug ]['services'] ) ) {
+					$states[ $slug ]['enabled'] = true;
+					foreach ( $states[ $slug ]['services'] as $service_key => $service_value ) {
+						$states[ $slug ]['services'][ $service_key ] = true;
+					}
+				} else {
+					$states[ $slug ] = true;
+				}
 			}
 		}
 

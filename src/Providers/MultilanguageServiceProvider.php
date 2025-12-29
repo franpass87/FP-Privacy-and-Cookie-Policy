@@ -30,8 +30,7 @@ class MultilanguageServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			MultilanguageCompatibility::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				return new MultilanguageCompatibility( $options );
 			}
 		);

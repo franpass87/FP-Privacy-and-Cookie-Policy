@@ -37,8 +37,7 @@ class FrontendServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			ConsentState::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				$log_model = $c->get( \FP\Privacy\Consent\LogModel::class );
 				return new ConsentState( $options, $log_model );
 			}
@@ -48,8 +47,7 @@ class FrontendServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			Banner::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				$state = $c->get( ConsentState::class );
 				return new Banner( $options, $state );
 			}
@@ -59,11 +57,10 @@ class FrontendServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			Shortcodes::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				$view = new View();
-				$detector = $c->get( DetectorRegistry::class );
-				$generator = new PolicyGenerator( $options, $detector, $view );
+				// Use PolicyGenerator from container instead of creating a new instance.
+				$generator = $c->get( PolicyGenerator::class );
 				$shortcodes = new Shortcodes( $options, $view, $generator );
 				$shortcodes->set_state( $c->get( ConsentState::class ) );
 				return $shortcodes;
@@ -74,8 +71,7 @@ class FrontendServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			Blocks::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				return new Blocks( $options );
 			}
 		);
@@ -84,8 +80,7 @@ class FrontendServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			ScriptBlocker::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				$state = $c->get( ConsentState::class );
 				return new ScriptBlocker( $options, $state );
 			}

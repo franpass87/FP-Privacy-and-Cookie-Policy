@@ -86,6 +86,16 @@ class RESTRouteRegistrar {
 
 		\register_rest_route(
 			'fp-privacy/v1',
+			'/consent/revoke',
+			array(
+				'permission_callback' => array( $this->permission_checker, 'check_consent_permission' ),
+				'methods'             => 'POST',
+				'callback'            => array( $this->consent_handler, 'revoke_consent' ),
+			)
+		);
+
+		\register_rest_route(
+			'fp-privacy/v1',
 			'/revision/bump',
 			array(
 				'permission_callback' => function () {

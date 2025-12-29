@@ -32,7 +32,14 @@ class Bootstrap {
 		add_action(
 			'plugins_loaded',
 			function () {
-				Kernel::make()->boot();
+				try {
+					Kernel::make()->boot();
+				} catch ( \Throwable $e ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						error_log( sprintf( 'FP Privacy: Fatal error during kernel boot: %s', $e->getMessage() ) );
+					}
+					// Don't let the error crash the site.
+				}
 			},
 			5
 		);
@@ -62,11 +69,13 @@ class Bootstrap {
 					?>
 					<div class="notice notice-error">
 						<p>
+							<strong><?php esc_html_e( 'FP Privacy and Cookie Policy', 'fp-privacy' ); ?>:</strong>
 							<?php
 							echo esc_html(
 								sprintf(
-									/* translators: %s: PHP version */
-									__( 'FP Privacy requires PHP 7.4 or higher. You are running PHP %s.', 'fp-privacy' ),
+									/* translators: %1$s: PHP version required, %2$s: Current PHP version */
+									__( 'This plugin requires PHP %1$s or higher. You are running PHP %2$s. Please upgrade PHP to use this plugin.', 'fp-privacy' ),
+									'7.4',
 									PHP_VERSION
 								)
 							);
@@ -115,7 +124,14 @@ class Bootstrap {
 	 * @return void
 	 */
 	public static function activate( bool $network_wide ): void {
-		Kernel::make()->activate( $network_wide );
+		try {
+			Kernel::make()->activate( $network_wide );
+		} catch ( \Throwable $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Fatal error during activation: %s', $e->getMessage() ) );
+			}
+			// Don't let the error crash the activation.
+		}
 	}
 
 	/**

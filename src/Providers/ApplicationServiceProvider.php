@@ -15,6 +15,7 @@ use FP\Privacy\Application\Consent\GetConsentQuery;
 use FP\Privacy\Application\Consent\GetConsentStateQuery;
 use FP\Privacy\Application\Consent\GetConsentSummaryQuery;
 use FP\Privacy\Application\Consent\LogConsentHandler;
+use FP\Privacy\Application\Consent\RevokeConsentHandler;
 use FP\Privacy\Application\Policy\GeneratePolicyHandler;
 use FP\Privacy\Application\Policy\UpdatePolicyHandler;
 use FP\Privacy\Application\Settings\GetSettingsHandler;
@@ -50,6 +51,15 @@ class ApplicationServiceProvider implements ServiceProviderInterface {
 				$service = $c->get( ConsentService::class );
 				$logger = $c->get( LoggerInterface::class );
 				return new LogConsentHandler( $service, $logger );
+			}
+		);
+
+		$container->singleton(
+			RevokeConsentHandler::class,
+			function( ContainerInterface $c ) {
+				$service = $c->get( ConsentService::class );
+				$logger = $c->get( LoggerInterface::class );
+				return new RevokeConsentHandler( $service, $logger );
 			}
 		);
 
@@ -148,9 +158,8 @@ class ApplicationServiceProvider implements ServiceProviderInterface {
 				$repository = $c->get( ConsentRepositoryInterface::class );
 				$options = $c->get( OptionsRepositoryInterface::class );
 				// Inject legacy Options for methods not in interface (normalize_language, get_banner_text, etc.).
-				$legacy_options = $c->has( \FP\Privacy\Utils\Options::class )
-					? $c->get( \FP\Privacy\Utils\Options::class )
-					: null;
+				// Should always be available from CoreServiceProvider.
+				$legacy_options = $c->get( \FP\Privacy\Utils\Options::class );
 				return new GetConsentStateQuery( $repository, $options, $legacy_options );
 			}
 		);

@@ -9,6 +9,8 @@
 
 namespace FP\Privacy\Admin;
 
+use FP\Privacy\Domain\Policy\AIDisclosureGenerator;
+use FP\Privacy\Domain\Policy\AlgorithmicTransparencyGenerator;
 use FP\Privacy\Integrations\DetectorRegistry;
 use FP\Privacy\Utils\Options;
 use FP\Privacy\Utils\View;
@@ -83,6 +85,14 @@ class PolicyGenerator {
 				$options = array();
 			}
 
+			// Generate AI disclosure section if enabled.
+			$ai_disclosure_generator = new AIDisclosureGenerator( $this->options );
+			$ai_disclosure_html = $ai_disclosure_generator->generate_ai_disclosure( $lang );
+
+			// Generate algorithmic transparency section if enabled.
+			$algorithmic_transparency_generator = new AlgorithmicTransparencyGenerator( $this->options );
+			$algorithmic_transparency_html = $algorithmic_transparency_generator->generate_algorithmic_transparency( $lang );
+
 			return $this->view->render(
 				'privacy-policy.php',
 				array(
@@ -91,6 +101,8 @@ class PolicyGenerator {
 					'groups'          => $groups,
 					'generated_at'    => $this->get_policy_generated_at( 'privacy', $lang ),
 					'categories_meta' => $categories_meta,
+					'ai_disclosure'   => $ai_disclosure_html,
+					'algorithmic_transparency' => $algorithmic_transparency_html,
 				)
 			);
 		} catch ( \Throwable $e ) {
@@ -130,6 +142,13 @@ class PolicyGenerator {
 				$options = array();
 			}
 
+			// Generate AI/ML cookie section if AI disclosure is enabled.
+			$ai_cookie_html = '';
+			$ai_config = isset( $options['ai_disclosure'] ) && is_array( $options['ai_disclosure'] ) ? $options['ai_disclosure'] : array();
+			if ( ! empty( $ai_config['enabled'] ) ) {
+				$ai_cookie_html = $this->generate_ai_cookie_section( $lang, $options );
+			}
+
 			return $this->view->render(
 				'cookie-policy.php',
 				array(
@@ -138,6 +157,7 @@ class PolicyGenerator {
 					'groups'          => $groups,
 					'generated_at'    => $this->get_policy_generated_at( 'cookie', $lang ),
 					'categories_meta' => $categories_meta,
+					'ai_cookie_section' => $ai_cookie_html,
 				)
 			);
 		} catch ( \Throwable $e ) {
@@ -205,4 +225,37 @@ class PolicyGenerator {
 
         return isset( $value['generated_at'] ) ? (int) $value['generated_at'] : 0;
     }
+
+	/**
+	 * Generate AI/ML cookie section for cookie policy.
+	 *
+	 * @param string $lang Language code.
+	 * @param array<string, mixed> $options Options.
+	 *
+	 * @return string HTML content.
+	 */
+	private function generate_ai_cookie_section( string $lang, array $options ): string {
+		$lang = $this->options->normalize_language( $lang );
+		$is_italian = 'it_IT' === $lang;
+
+		$html = '<h2 id="fp-cookie-ai-technologies">';
+		$html .= $is_italian
+			? esc_html__( 'Cookie e tecnologie AI', 'fp-privacy' )
+			: esc_html__( 'AI and Machine Learning Cookies', 'fp-privacy' );
+		$html .= '</h2>';
+
+		$description = $is_italian
+			? __( 'Alcuni dei nostri sistemi di intelligenza artificiale e machine learning utilizzano cookie e tecnologie simili per funzionare. Questi cookie vengono utilizzati per: (1) raccogliere dati di utilizzo necessari per addestrare e migliorare gli algoritmi; (2) personalizzare l\'esperienza utente basandosi su pattern di comportamento; (3) ottimizzare le prestazioni dei sistemi AI. Questi cookie sono trattati in conformità con l\'AI Act e il GDPR, e vengono utilizzati solo previo consenso esplicito quando richiesto dalla legge.', 'fp-privacy' )
+			: __( 'Some of our artificial intelligence and machine learning systems use cookies and similar technologies to function. These cookies are used to: (1) collect usage data necessary to train and improve algorithms; (2) personalize user experience based on behavior patterns; (3) optimize AI system performance. These cookies are processed in compliance with the AI Act and GDPR, and are only used with explicit consent when required by law.', 'fp-privacy' );
+
+		$html .= '<p>' . wp_kses_post( $description ) . '</p>';
+
+		$rights_text = $is_italian
+			? __( 'Hai il diritto di rifiutare i cookie utilizzati per sistemi AI, salvo quelli strettamente necessari per il funzionamento del servizio. La revoca del consenso ai cookie AI non influisce sulla tua capacità di utilizzare i servizi principali del sito.', 'fp-privacy' )
+			: __( 'You have the right to refuse cookies used for AI systems, except those strictly necessary for service operation. Revoking consent to AI cookies does not affect your ability to use the site\'s main services.', 'fp-privacy' );
+
+		$html .= '<p>' . wp_kses_post( $rights_text ) . '</p>';
+
+		return $html;
+	}
 }

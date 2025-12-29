@@ -2,7 +2,7 @@
 /**
  * Plugin Name: FP Privacy and Cookie Policy
  * Description: Provides a GDPR-ready consent banner, consent logging, and automated privacy/cookie policies with Google Consent Mode v2 for WordPress. Includes REST, WP-CLI, and Gutenberg tooling for privacy workflows.
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: Francesco Passeri
  * Author URI: https://francescopasseri.com
  * Text Domain: fp-privacy
@@ -20,12 +20,51 @@ if ( ! defined( 'ABSPATH' ) ) {
 exit;
 }
 
+// Check PHP version immediately - before any other code is loaded.
+if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
+	add_action(
+		'admin_notices',
+		function () {
+			?>
+			<div class="notice notice-error">
+				<p>
+					<strong><?php esc_html_e( 'FP Privacy and Cookie Policy', 'fp-privacy' ); ?>:</strong>
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: %1$s: PHP version required, %2$s: Current PHP version */
+							__( 'This plugin requires PHP %1$s or higher. You are running PHP %2$s. Please upgrade PHP to use this plugin.', 'fp-privacy' ),
+							'7.4',
+							PHP_VERSION
+						)
+					);
+					?>
+				</p>
+			</div>
+			<?php
+		}
+	);
+	// Deactivate plugin if possible.
+	if ( function_exists( 'deactivate_plugins' ) ) {
+		add_action(
+			'admin_init',
+			function () {
+				deactivate_plugins( plugin_basename( __FILE__ ) );
+				if ( isset( $_GET['activate'] ) ) {
+					unset( $_GET['activate'] );
+				}
+			}
+		);
+	}
+	return;
+}
+
 define( 'FP_PRIVACY_PLUGIN_FILE', __FILE__ );
 
-define( 'FP_PRIVACY_PLUGIN_VERSION', '0.2.0' );
+define( 'FP_PRIVACY_PLUGIN_VERSION', '0.3.0' );
 
 // Alias per integrazione con FP Performance Suite
-define( 'FP_PRIVACY_VERSION', '0.2.0' );
+define( 'FP_PRIVACY_VERSION', '0.3.0' );
 
 define( 'FP_PRIVACY_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
@@ -140,25 +179,9 @@ if ( class_exists( '\\FP\\Privacy\\Core\\Bootstrap' ) ) {
 			}
 		);
 	}
-} elseif ( class_exists( '\\FP\\Privacy\\Plugin' ) ) {
-	// Final fallback to old Plugin class (for backward compatibility during migration).
-	register_activation_hook( __FILE__, array( '\\FP\\Privacy\\Plugin', 'activate' ) );
-	register_deactivation_hook( __FILE__, array( '\\FP\\Privacy\\Plugin', 'deactivate' ) );
-
-	add_action(
-		'plugins_loaded',
-		static function () {
-			\FP\Privacy\Plugin::instance()->boot();
-		}
-	);
-
-	if ( is_multisite() ) {
-		add_action(
-			'wpmu_new_blog',
-			static function ( $blog_id ) {
-				$plugin = \FP\Privacy\Plugin::instance();
-				$plugin->provision_new_site( (int) $blog_id );
-			}
-		);
+} else {
+	// Log error if neither Bootstrap nor Kernel is available.
+	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		error_log( 'FP Privacy: Neither Bootstrap nor Kernel class is available. Plugin cannot initialize.' );
 	}
 }

@@ -28,7 +28,10 @@ class CookiesTabRenderer extends SettingsRendererBase {
 		$script_categories = $data['script_categories'];
 		$detected          = $data['detected'];
 		?>
-		<div class="fp-privacy-tab-content" data-tab-content="cookies">
+		<div class="fp-privacy-tab-content" id="fp-privacy-tab-content-cookies" role="tabpanel" aria-labelledby="fp-privacy-tab-button-cookies" data-tab-content="cookies">
+			<h2><?php \esc_html_e( 'Granularità Consenso (EDPB 2025)', 'fp-privacy' ); ?></h2>
+			<?php $this->render_sub_categories_settings( $data['options'] ); ?>
+
 			<h2><?php \esc_html_e( 'Script blocking', 'fp-privacy' ); ?></h2>
 			<?php $this->render_script_blocking_settings( $languages, $script_rules, $script_categories ); ?>
 
@@ -52,9 +55,30 @@ class CookiesTabRenderer extends SettingsRendererBase {
 	 * @return void
 	 */
 	private function render_script_blocking_settings( $languages, $script_rules, $script_categories ) {
+		$script_help_content = '<p>' . \esc_html__( 'Script blocking is a key feature for GDPR compliance. It allows you to prevent third-party scripts (like Google Analytics, Facebook Pixel, etc.) from loading until the user explicitly consents.', 'fp-privacy' ) . '</p>' .
+			'<p><strong>' . \esc_html__( 'How to configure:', 'fp-privacy' ) . '</strong></p>' .
+			'<ul>' .
+			'<li>' . \esc_html__( 'Script handles: WordPress script handles (e.g., "google-analytics", "facebook-pixel")', 'fp-privacy' ) . '</li>' .
+			'<li>' . \esc_html__( 'Style handles: WordPress style handles that should be blocked', 'fp-privacy' ) . '</li>' .
+			'<li>' . \esc_html__( 'Patterns: URL patterns to match (e.g., "google-analytics.com", "facebook.net")', 'fp-privacy' ) . '</li>' .
+			'<li>' . \esc_html__( 'iFrames: iframe sources that should be blocked', 'fp-privacy' ) . '</li>' .
+			'</ul>' .
+			'<p>' . \esc_html__( 'Detected integrations will automatically prefill suggested handles and patterns.', 'fp-privacy' ) . '</p>';
 		?>
-		<p class="description"><?php \esc_html_e( 'Pause specific scripts, styles, or embeds until the visitor grants the corresponding consent category.', 'fp-privacy' ); ?></p>
-		<p class="description"><?php \esc_html_e( 'Detected integrations prefill suggested handles and patterns; edit a category to override the automatic rules.', 'fp-privacy' ); ?></p>
+		<div class="fp-privacy-script-blocking-intro">
+			<p class="description">
+				<?php \esc_html_e( 'Pause specific scripts, styles, or embeds until the visitor grants the corresponding consent category.', 'fp-privacy' ); ?>
+				<?php
+				$this->render_help_icon(
+					\__( 'Script blocking allows you to prevent third-party scripts from loading until consent is given.', 'fp-privacy' ),
+					\__( 'Script Blocking', 'fp-privacy' ),
+					$script_help_content,
+					'help-script-blocking'
+				);
+				?>
+			</p>
+			<p class="description"><?php \esc_html_e( 'Detected integrations prefill suggested handles and patterns; edit a category to override the automatic rules.', 'fp-privacy' ); ?></p>
+		</div>
 		<?php foreach ( $languages as $script_lang ) :
 			$script_lang      = $this->options->normalize_language( $script_lang );
 			$rules            = isset( $script_rules[ $script_lang ] ) ? $script_rules[ $script_lang ] : array();
@@ -141,6 +165,46 @@ class CookiesTabRenderer extends SettingsRendererBase {
 		<?php endforeach; ?>
 		</tbody>
 		</table>
+		<?php
+	}
+
+	/**
+	 * Render sub-categories settings (EDPB 2025 granularity).
+	 *
+	 * @param array<string, mixed> $options Options.
+	 *
+	 * @return void
+	 */
+	private function render_sub_categories_settings( $options ) {
+		$enable_sub_categories = isset( $options['enable_sub_categories'] ) ? (bool) $options['enable_sub_categories'] : false;
+
+		$help_content = '<p>' . \esc_html__( 'La granularità avanzata del consenso (EDPB 2025) consente agli utenti di controllare individualmente ogni servizio rilevato, non solo le categorie principali.', 'fp-privacy' ) . '</p>' .
+			'<p><strong>' . \esc_html__( 'Come funziona:', 'fp-privacy' ) . '</strong></p>' .
+			'<ul>' .
+			'<li>' . \esc_html__( 'Quando abilitato, ogni servizio rilevato (es: Google Analytics 4, Google Tag Manager, Facebook Pixel) avrà un toggle individuale nella modal preferenze.', 'fp-privacy' ) . '</li>' .
+			'<li>' . \esc_html__( 'Gli utenti possono accettare o rifiutare servizi specifici all\'interno di una categoria.', 'fp-privacy' ) . '</li>' .
+			'<li>' . \esc_html__( 'Questo migliora la conformità con le linee guida EDPB 2025 sulla granularità del consenso.', 'fp-privacy' ) . '</li>' .
+			'</ul>';
+
+		?>
+		<div class="fp-privacy-sub-categories">
+			<?php
+			$this->render_help_icon(
+				\__( 'Abilita la granularità avanzata del consenso per conformità EDPB 2025.', 'fp-privacy' ),
+				\__( 'Granularità Consenso Avanzata', 'fp-privacy' ),
+				$help_content,
+				'help-sub-categories'
+			);
+			?>
+
+			<label>
+				<span><?php \esc_html_e( 'Abilita toggle individuali per servizi', 'fp-privacy' ); ?></span>
+				<input type="checkbox" name="enable_sub_categories" value="1" <?php \checked( $enable_sub_categories, true ); ?> />
+			</label>
+			<p class="description">
+				<?php \esc_html_e( 'Quando abilitato, gli utenti possono controllare individualmente ogni servizio rilevato (es: GA4, GTM, Facebook Pixel) invece di accettare/rifiutare solo le categorie principali. Questo migliora la conformità con le linee guida EDPB 2025.', 'fp-privacy' ); ?>
+			</p>
+		</div>
 		<?php
 	}
 }

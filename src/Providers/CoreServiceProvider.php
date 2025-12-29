@@ -105,20 +105,31 @@ class CoreServiceProvider implements ServiceProviderInterface {
 	 * @return void
 	 */
 	public function boot( ContainerInterface $container ): void {
-		// Register I18n hooks.
-		$i18n = new \FP\Privacy\Utils\I18n();
-		$i18n->load_textdomain();
-		$i18n->hooks();
+		try {
+			// Register I18n hooks.
+			$i18n = new \FP\Privacy\Utils\I18n();
+			$i18n->load_textdomain();
+			$i18n->hooks();
 
-		// Force update banner texts translations.
-		$provider = new self();
-		$options = $provider->getOptions( $container );
-		if ( method_exists( $options, 'force_update_banner_texts_translations' ) ) {
-			$options->force_update_banner_texts_translations();
+			// Force update banner texts translations.
+			$options = self::resolveOptions( $container );
+			if ( $options && method_exists( $options, 'force_update_banner_texts_translations' ) ) {
+				try {
+					$options->force_update_banner_texts_translations();
+				} catch ( \Throwable $e ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						error_log( sprintf( 'FP Privacy: Error updating banner texts translations: %s', $e->getMessage() ) );
+					}
+				}
+			}
+
+			// Register plugin filters (migrated from PluginFilters class).
+			$this->registerPluginFilters( $container );
+		} catch ( \Throwable $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error in CoreServiceProvider boot: %s', $e->getMessage() ) );
+			}
 		}
-
-		// Register plugin filters (migrated from PluginFilters class).
-		$this->registerPluginFilters( $container );
 	}
 
 	/**
@@ -128,8 +139,18 @@ class CoreServiceProvider implements ServiceProviderInterface {
 	 * @return void
 	 */
 	private function registerPluginFilters( ContainerInterface $container ): void {
-		$provider = new self();
-		$options = $provider->getOptions( $container );
+		try {
+			$options = self::resolveOptions( $container );
+		} catch ( \Throwable $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf( 'FP Privacy: Error getting options in registerPluginFilters: %s', $e->getMessage() ) );
+			}
+			$options = null;
+		}
+
+		if ( ! $options ) {
+			return;
+		}
 
 		// Enable WordPress privacy tools integration by default.
 		\add_filter( 'fp_privacy_enable_privacy_tools', '__return_true', 10, 2 );

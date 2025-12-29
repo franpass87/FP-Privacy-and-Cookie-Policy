@@ -9,7 +9,7 @@
 
 namespace FP\Privacy\Presentation\Admin\Controllers\Diagnostic;
 
-use FP\Privacy\Consent\ConsentState;
+use FP\Privacy\Frontend\ConsentState;
 
 /**
  * Handles rendering of diagnostic state and debug information.

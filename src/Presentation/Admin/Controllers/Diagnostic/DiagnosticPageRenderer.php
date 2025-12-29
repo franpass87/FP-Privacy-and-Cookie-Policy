@@ -11,6 +11,7 @@ namespace FP\Privacy\Presentation\Admin\Controllers\Diagnostic;
 
 use FP\Privacy\Frontend\ConsentState as FrontendConsentState;
 use FP\Privacy\Utils\Options;
+use FP\Privacy\Consent\LogModel;
 
 /**
  * Renders the diagnostic tools page.
@@ -24,12 +25,21 @@ class DiagnosticPageRenderer {
 	private $options;
 
 	/**
+	 * Log model.
+	 *
+	 * @var LogModel
+	 */
+	private $log_model;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Options $options Options handler.
+	 * @param Options  $options   Options handler.
+	 * @param LogModel $log_model Log model.
 	 */
-	public function __construct( Options $options ) {
-		$this->options = $options;
+	public function __construct( Options $options, LogModel $log_model ) {
+		$this->options   = $options;
+		$this->log_model = $log_model;
 	}
 
 	/**
@@ -42,7 +52,7 @@ class DiagnosticPageRenderer {
 			return;
 		}
 
-		$consent_state  = new FrontendConsentState( $this->options, null );
+		$consent_state  = new FrontendConsentState( $this->options, $this->log_model );
 		$lang           = \determine_locale();
 		$frontend_state = $consent_state->get_frontend_state( $lang );
 		$all_options    = $this->options->all();

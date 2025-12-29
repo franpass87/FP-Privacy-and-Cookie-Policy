@@ -15,6 +15,7 @@ use FP\Privacy\Integrations\ConsentMode;
 use FP\Privacy\Integrations\DetectorRegistry;
 use FP\Privacy\Domain\Services\ServiceRegistry;
 use FP\Privacy\Integrations\ServiceRegistry as LegacyServiceRegistry;
+use FP\Privacy\Services\Cache\CacheInterface;
 use FP\Privacy\Services\Options\OptionsInterface;
 
 /**
@@ -46,7 +47,9 @@ class IntegrationServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			DetectorRegistry::class,
 			function( ContainerInterface $c ) {
-				return new DetectorRegistry();
+				// Try to get CacheInterface from container, fallback to null (DetectorCache will use fallback).
+				$cache = $c->has( CacheInterface::class ) ? $c->get( CacheInterface::class ) : null;
+				return new DetectorRegistry( $cache );
 			}
 		);
 
@@ -54,8 +57,7 @@ class IntegrationServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			ConsentMode::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				return new ConsentMode( $options );
 			}
 		);

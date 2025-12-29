@@ -183,6 +183,14 @@ if ( '' === $last_generated ) {
 </div>
 <?php endforeach; ?>
 
+<?php
+// AI/ML Cookie section (if enabled)
+$ai_cookie_section = isset( $ai_cookie_section ) ? $ai_cookie_section : '';
+if ( ! empty( $ai_cookie_section ) ) {
+    echo $ai_cookie_section; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped - HTML already escaped in generator
+}
+?>
+
 <h2>Controlli aggiuntivi</h2>
 <p>Puoi anche utilizzare strumenti forniti da terze parti, come piattaforme di opt-out del settore per i cookie pubblicitari o impostazioni a livello di dispositivo che reimpostano gli identificatori mobili. Dove disponibile, ci integriamo con framework di consenso (ad esempio IAB TCF 2.2) per rispettare le tue scelte tra i fornitori partecipanti.</p>
 

@@ -9,6 +9,8 @@
 
 namespace FP\Privacy\Integrations;
 
+use FP\Privacy\Services\Cache\CacheInterface;
+
 /**
  * Detects third-party services for policy generation.
  */
@@ -36,9 +38,11 @@ class DetectorRegistry {
 
     /**
      * Constructor.
+     *
+     * @param CacheInterface|null $cache Cache interface for persistence. If null, DetectorCache will use fallback.
      */
-    public function __construct() {
-        $this->cache            = new DetectorCache();
+    public function __construct( ?CacheInterface $cache = null ) {
+        $this->cache            = new DetectorCache( $cache );
         // Use new Domain\Services\ServiceRegistry, fallback to old for compatibility.
         if ( class_exists( '\\FP\\Privacy\\Domain\\Services\\ServiceRegistry' ) ) {
             $service_registry = new \FP\Privacy\Domain\Services\ServiceRegistry();

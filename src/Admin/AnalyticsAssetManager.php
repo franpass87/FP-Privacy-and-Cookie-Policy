@@ -95,7 +95,8 @@ class AnalyticsAssetManager {
 			return FP_PRIVACY_PLUGIN_URL . 'assets/js/chart.umd.min.js';
 		}
 
-		return '';
+		// Fallback to CDN if no local copy is available
+		return 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
 	}
 
 	/**

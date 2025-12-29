@@ -13,8 +13,10 @@ use FP\Privacy\Domain\ValueObjects\BannerLayout;
 use FP\Privacy\Domain\ValueObjects\ColorPalette;
 use FP\Privacy\Domain\ValueObjects\ConsentModeDefaults;
 use FP\Privacy\Integrations\DetectorRegistry;
+use FP\Privacy\Services\Validation\OptionsValidator;
 use FP\Privacy\Shared\Constants;
 use FP\Privacy\Utils\DetectorAlertManager;
+use FP\Privacy\Utils\Logger;
 use WP_Post;
 use function __;
 use function did_action;
@@ -91,6 +93,13 @@ class Options {
 	private $categories_manager;
 
 	/**
+	 * Options validator.
+	 *
+	 * @var OptionsValidator|null
+	 */
+	private $options_validator;
+
+	/**
 	 * Instance.
 	 *
 	 * @var Options
@@ -164,6 +173,13 @@ class Options {
 		$this->banner_texts_manager   = new BannerTextsManager( $this, $this->language_normalizer );
 		$this->detector_alert_manager = new DetectorAlertManager( $this );
 		$this->categories_manager     = new CategoriesManager( $this, $this->auto_translator, $this->language_normalizer );
+		
+		// Initialize options validator with dependencies.
+		$this->options_validator = new OptionsValidator(
+			$this->script_rules_manager,
+			$this->language_normalizer,
+			$this->get_default_detector_notifications()
+		);
 	}
 
 	/**
@@ -171,7 +187,7 @@ class Options {
 	 *
 	 * @return array<string, mixed>
 	 */
-	public function all() {
+	public function all(): array {
 		return $this->options;
 	}
 
@@ -183,7 +199,7 @@ class Options {
 	 *
 	 * @return mixed
 	 */
-	public function get( $key, $default = null ) {
+	public function get( string $key, $default = null ) {
 		if ( isset( $this->options[ $key ] ) ) {
 			return $this->options[ $key ];
 		}
@@ -207,7 +223,7 @@ class Options {
 	 *
 	 * @return void
 	 */
-	public function set( array $new_options ) {
+	public function set( array $new_options ): void {
 		$defaults  = $this->get_default_options();
 		$merged    = \wp_parse_args( $new_options, $this->options );
 		$sanitized = $this->sanitize( $merged, $defaults );
@@ -247,7 +263,7 @@ class Options {
 	 *
 	 * @return array<string, mixed>
 	 */
-	public function get_default_options() {
+	public function get_default_options(): array {
 		// IMPORTANTE: Italiano come lingua principale di default
 		// WordPress può essere in qualsiasi lingua, ma per questo plugin
 		// l'italiano deve essere la lingua primaria
@@ -264,11 +280,11 @@ class Options {
 			'btn_accept'     => 'Accetta tutti',
 			'btn_reject'     => 'Rifiuta tutti',
 			'btn_prefs'      => 'Gestisci preferenze',
-			'modal_title'    => 'Preferenze privacy',
+			'modal_title'    => 'Preferenze cookie',
 			'modal_close'    => 'Chiudi preferenze',
 			'modal_save'          => 'Salva preferenze',
 			'revision_notice'     => 'Abbiamo aggiornato la nostra policy. Rivedi le tue preferenze.',
-			'toggle_locked'       => 'Sempre attivo',
+			'toggle_locked'       => 'Obbligatorio',
 			'toggle_enabled'      => 'Abilitato',
 			'debug_label'         => 'Debug cookie:',
 			'link_policy'         => '',
@@ -382,18 +398,40 @@ class Options {
 			'auto_update_services'  => false,
 			'auto_update_policies'  => false,
 			'auto_translations'     => array(),
+			'ai_disclosure'              => $this->get_default_ai_disclosure(),
+			'algorithmic_transparency'   => $this->get_default_algorithmic_transparency(),
+			'enable_sub_categories'     => false, // EDPB 2025: Enable individual service toggles.
 		);
 	}
 
 	/**
 	 * Sanitize options array.
+	 * Delegates to OptionsValidator for better separation of concerns.
 	 *
 	 * @param array<string, mixed> $value    Value to sanitize.
 	 * @param array<string, mixed> $defaults Defaults.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function sanitize( array $value, array $defaults ) {
+	private function sanitize( array $value, array $defaults ): array {
+		// Use OptionsValidator if available, otherwise fallback to inline logic.
+		if ( $this->options_validator ) {
+			return $this->options_validator->sanitize( $value, $defaults, $this->options );
+		}
+		
+		// Fallback to original implementation for backward compatibility.
+		return $this->sanitize_legacy( $value, $defaults );
+	}
+
+	/**
+	 * Legacy sanitize implementation (kept for backward compatibility).
+	 *
+	 * @param array<string, mixed> $value    Value to sanitize.
+	 * @param array<string, mixed> $defaults Defaults.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function sanitize_legacy( array $value, array $defaults ): array {
 		$default_locale = ! empty( $defaults['languages_active'] ) ? $defaults['languages_active'][0] : 'en_US';
 		$languages      = Validator::locale_list( $value['languages_active'] ?? $defaults['languages_active'], $default_locale );
 
@@ -436,47 +474,7 @@ class Options {
 	$banner_layout = BannerLayout::from_array( $layout_data );
 	$layout = $banner_layout->to_array();
 
-		$default_categories = Validator::sanitize_categories( $defaults['categories'], $languages );
-		$categories         = Validator::sanitize_categories( $categories_raw, $languages );
-
-		$raw_categories_by_slug = array();
-
-		foreach ( $categories_raw as $raw_slug => $raw_category ) {
-			$normalized_slug = \sanitize_key( $raw_slug );
-
-			if ( '' === $normalized_slug ) {
-				continue;
-			}
-
-			$raw_categories_by_slug[ $normalized_slug ] = \is_array( $raw_category ) ? $raw_category : array();
-		}
-
-		if ( ! empty( $default_categories ) ) {
-			$normalized = array();
-
-			foreach ( $default_categories as $slug => $default_category ) {
-				if ( isset( $categories[ $slug ] ) ) {
-					$merged = \array_replace_recursive( $default_category, $categories[ $slug ] );
-
-					$raw = $raw_categories_by_slug[ $slug ] ?? array();
-					if ( ! \array_key_exists( 'locked', $raw ) ) {
-						$merged['locked'] = $default_category['locked'];
-					}
-
-					$normalized[ $slug ] = $merged;
-				} else {
-					$normalized[ $slug ] = $default_category;
-				}
-			}
-
-			foreach ( $categories as $slug => $category ) {
-				if ( ! isset( $normalized[ $slug ] ) ) {
-					$normalized[ $slug ] = $category;
-				}
-			}
-
-			$categories = $normalized;
-		}
+		$categories = $this->normalize_categories( $categories_raw, $defaults['categories'], $languages );
 
 		// Create temporary normalizer for sanitization
 		$temp_normalizer = new LanguageNormalizer( $languages );
@@ -488,8 +486,8 @@ class Options {
 			'categories'            => $categories,
 			// Use ConsentModeDefaults value object for validation and sanitization.
 			'consent_mode_defaults' => $this->sanitize_consent_mode_defaults( $value['consent_mode_defaults'] ?? array(), $defaults['consent_mode_defaults'] ),
-			'retention_days'        => Validator::int( $value['retention_days'] ?? $defaults['retention_days'], $defaults['retention_days'], 1 ),
-			'consent_revision'      => Validator::int( $value['consent_revision'] ?? $defaults['consent_revision'], $defaults['consent_revision'], 1 ),
+			'retention_days'        => Validator::int( $value['retention_days'] ?? $defaults['retention_days'], $defaults['retention_days'], Constants::RETENTION_DAYS_MINIMUM ),
+			'consent_revision'      => Validator::int( $value['consent_revision'] ?? $defaults['consent_revision'], $defaults['consent_revision'], Constants::CONSENT_REVISION_MINIMUM ),
 			'gpc_enabled'           => Validator::bool( $value['gpc_enabled'] ?? $defaults['gpc_enabled'] ),
 			'preview_mode'          => Validator::bool( $value['preview_mode'] ?? $defaults['preview_mode'] ),
 			'debug_logging'         => Validator::bool( $value['debug_logging'] ?? $defaults['debug_logging'] ),
@@ -507,6 +505,9 @@ class Options {
 			'auto_update_services'  => Validator::bool( $value['auto_update_services'] ?? $defaults['auto_update_services'] ),
 			'auto_update_policies'  => Validator::bool( $value['auto_update_policies'] ?? $defaults['auto_update_policies'] ),
 			'auto_translations'     => Validator::sanitize_auto_translations( isset( $value['auto_translations'] ) && \is_array( $value['auto_translations'] ) ? $value['auto_translations'] : array(), $banner_defaults ),
+			'ai_disclosure'         => $this->sanitize_ai_disclosure( isset( $value['ai_disclosure'] ) && \is_array( $value['ai_disclosure'] ) ? $value['ai_disclosure'] : array(), $defaults['ai_disclosure'] ),
+			'algorithmic_transparency'   => $this->sanitize_algorithmic_transparency( isset( $value['algorithmic_transparency'] ) && \is_array( $value['algorithmic_transparency'] ) ? $value['algorithmic_transparency'] : array(), $defaults['algorithmic_transparency'] ),
+			'enable_sub_categories'      => Validator::bool( $value['enable_sub_categories'] ?? $defaults['enable_sub_categories'] ),
 		);
 	}
 
@@ -517,7 +518,7 @@ class Options {
 	 *
 	 * @return array<string, mixed>
 	 */
-	public function get_default_detector_notifications() {
+	public function get_default_detector_notifications(): array {
 		return $this->get_detector_alert_manager()->get_default_detector_notifications();
 	}
 
@@ -527,7 +528,7 @@ class Options {
 	 *
 	 * @return array<string, mixed>
 	 */
-	public function get_detector_notifications() {
+	public function get_detector_notifications(): array {
 		return $this->get_detector_alert_manager()->get_detector_notifications();
 	}
 
@@ -539,7 +540,7 @@ class Options {
 	 *
 	 * @return void
 	 */
-	public function update_detector_notifications( array $settings ) {
+	public function update_detector_notifications( array $settings ): void {
 		$this->get_detector_alert_manager()->update_detector_notifications( $settings );
 	}
 
@@ -550,7 +551,7 @@ class Options {
 	 *
 	 * @return void
 	 */
-	public function prime_script_rules_from_services( array $services ) {
+	public function prime_script_rules_from_services( array $services ): void {
 		$languages = $this->get_languages();
 
 		if ( empty( $languages ) ) {
@@ -594,7 +595,7 @@ class Options {
 	 *
 	 * @return array<int, string>
 	 */
-	public function get_languages() {
+	public function get_languages(): array {
 		$configured = array();
 
 		if ( isset( $this->options['languages_active'] ) ) {
@@ -615,7 +616,7 @@ class Options {
 	 *
 	 * @return array<string, array<string, array<int, string>>>
 	 */
-	public function get_script_rules_for_language( $lang ) {
+	public function get_script_rules_for_language( string $lang ): array {
 		$categories = $this->get_categories_for_language( $lang );
 		$defaults   = $this->build_script_language_defaults( $categories );
 		$stored     = isset( $this->options['scripts'] ) && \is_array( $this->options['scripts'] ) ? $this->options['scripts'] : array();
@@ -635,7 +636,7 @@ class Options {
 	 *
 	 * @return array<string, mixed>
 	 */
-	public function get_detector_alert() {
+	public function get_detector_alert(): array {
 		return $this->get_detector_alert_manager()->get_detector_alert();
 	}
 
@@ -647,7 +648,7 @@ class Options {
 	 *
 	 * @return void
 	 */
-	public function set_detector_alert( array $payload ) {
+	public function set_detector_alert( array $payload ): void {
 		$this->get_detector_alert_manager()->set_detector_alert( $payload );
 	}
 
@@ -657,7 +658,7 @@ class Options {
 	 *
 	 * @return void
 	 */
-	public function clear_detector_alert() {
+	public function clear_detector_alert(): void {
 		$this->get_detector_alert_manager()->clear_detector_alert();
 	}
 
@@ -680,8 +681,138 @@ class Options {
 	 *
 	 * @return array<string, mixed>
 	 */
-	public function get_default_detector_alert() {
+	public function get_default_detector_alert(): array {
 		return $this->get_detector_alert_manager()->get_default_detector_alert();
+	}
+
+	/**
+	 * Get AI disclosure configuration.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function get_ai_disclosure(): array {
+		$defaults = $this->get_default_ai_disclosure();
+		$stored = isset( $this->options['ai_disclosure'] ) && is_array( $this->options['ai_disclosure'] )
+			? $this->options['ai_disclosure']
+			: array();
+
+		return wp_parse_args( $stored, $defaults );
+	}
+
+	/**
+	 * Get default AI disclosure configuration.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function get_default_ai_disclosure(): array {
+		return array(
+			'enabled'            => false,
+			'systems'            => array(),
+			'automated_decisions' => false,
+			'profiling'          => false,
+			'texts'              => array(),
+		);
+	}
+
+	/**
+	 * Sanitize AI disclosure configuration.
+	 *
+	 * @param array<string, mixed> $value Value to sanitize.
+	 * @param array<string, mixed> $defaults Defaults.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function sanitize_ai_disclosure( array $value, array $defaults ): array {
+		$sanitized = array(
+			'enabled'            => Validator::bool( $value['enabled'] ?? $defaults['enabled'] ),
+			'systems'            => array(),
+			'automated_decisions' => Validator::bool( $value['automated_decisions'] ?? $defaults['automated_decisions'] ),
+			'profiling'          => Validator::bool( $value['profiling'] ?? $defaults['profiling'] ),
+			'texts'              => array(),
+		);
+
+		// Sanitize AI systems.
+		if ( isset( $value['systems'] ) && is_array( $value['systems'] ) ) {
+			foreach ( $value['systems'] as $system ) {
+				if ( ! is_array( $system ) || empty( $system['name'] ) ) {
+					continue;
+				}
+
+				$sanitized['systems'][] = array(
+					'name'      => sanitize_text_field( $system['name'] ),
+					'purpose'   => isset( $system['purpose'] ) ? wp_kses_post( $system['purpose'] ) : '',
+					'risk_level' => isset( $system['risk_level'] ) ? sanitize_text_field( $system['risk_level'] ) : '',
+				);
+			}
+		}
+
+		// Sanitize texts per language.
+		if ( isset( $value['texts'] ) && is_array( $value['texts'] ) ) {
+			$languages = $this->get_languages();
+			foreach ( $languages as $lang ) {
+				if ( isset( $value['texts'][ $lang ] ) && is_array( $value['texts'][ $lang ] ) ) {
+					$sanitized['texts'][ $lang ] = array(
+						'title'                  => isset( $value['texts'][ $lang ]['title'] ) ? sanitize_text_field( $value['texts'][ $lang ]['title'] ) : '',
+						'description'            => isset( $value['texts'][ $lang ]['description'] ) ? wp_kses_post( $value['texts'][ $lang ]['description'] ) : '',
+						'systems_title'          => isset( $value['texts'][ $lang ]['systems_title'] ) ? sanitize_text_field( $value['texts'][ $lang ]['systems_title'] ) : '',
+						'automated_title'        => isset( $value['texts'][ $lang ]['automated_title'] ) ? sanitize_text_field( $value['texts'][ $lang ]['automated_title'] ) : '',
+						'automated_description'  => isset( $value['texts'][ $lang ]['automated_description'] ) ? wp_kses_post( $value['texts'][ $lang ]['automated_description'] ) : '',
+						'profiling_title'       => isset( $value['texts'][ $lang ]['profiling_title'] ) ? sanitize_text_field( $value['texts'][ $lang ]['profiling_title'] ) : '',
+						'profiling_description' => isset( $value['texts'][ $lang ]['profiling_description'] ) ? wp_kses_post( $value['texts'][ $lang ]['profiling_description'] ) : '',
+						'rights_title'          => isset( $value['texts'][ $lang ]['rights_title'] ) ? sanitize_text_field( $value['texts'][ $lang ]['rights_title'] ) : '',
+						'rights_description'    => isset( $value['texts'][ $lang ]['rights_description'] ) ? wp_kses_post( $value['texts'][ $lang ]['rights_description'] ) : '',
+						'contact_text'          => isset( $value['texts'][ $lang ]['contact_text'] ) ? wp_kses_post( $value['texts'][ $lang ]['contact_text'] ) : '',
+					);
+				}
+			}
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Get algorithmic transparency configuration.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function get_algorithmic_transparency(): array {
+		$defaults = $this->get_default_algorithmic_transparency();
+		$stored = isset( $this->options['algorithmic_transparency'] ) && is_array( $this->options['algorithmic_transparency'] )
+			? $this->options['algorithmic_transparency']
+			: array();
+
+		return wp_parse_args( $stored, $defaults );
+	}
+
+	/**
+	 * Get default algorithmic transparency configuration.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function get_default_algorithmic_transparency(): array {
+		return array(
+			'enabled'            => false,
+			'system_description' => '',
+			'system_logic'       => '',
+			'system_impact'      => '',
+		);
+	}
+
+	/**
+	 * Sanitize algorithmic transparency configuration.
+	 *
+	 * @param array<string, mixed> $value Value to sanitize.
+	 * @param array<string, mixed> $defaults Defaults.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function sanitize_algorithmic_transparency( array $value, array $defaults ): array {
+		return array(
+			'enabled'            => Validator::bool( $value['enabled'] ?? $defaults['enabled'] ),
+			'system_description' => isset( $value['system_description'] ) ? wp_kses_post( $value['system_description'] ) : '',
+			'system_logic'       => isset( $value['system_logic'] ) ? wp_kses_post( $value['system_logic'] ) : '',
+			'system_impact'      => isset( $value['system_impact'] ) ? wp_kses_post( $value['system_impact'] ) : '',
+		);
 	}
 
 	/**
@@ -705,7 +836,7 @@ class Options {
 	 *
 	 * @return string
 	 */
-	public function normalize_language( $locale ) {
+	public function normalize_language( string $locale ): string {
 		return $this->language_normalizer->normalize( $locale );
 	}
 
@@ -716,7 +847,7 @@ class Options {
 	 *
 	 * @return array<string, string>
 	 */
-	public function get_banner_text( $lang ) {
+	public function get_banner_text( string $lang ): array {
 		return $this->banner_texts_manager->get_banner_text( $lang );
 	}
 
@@ -726,7 +857,7 @@ class Options {
 	 *
 	 * @return void
 	 */
-	public function force_update_banner_texts_translations() {
+	public function force_update_banner_texts_translations(): void {
 		$this->banner_texts_manager->force_update_banner_texts_translations();
 	}
 
@@ -736,7 +867,7 @@ class Options {
 	 *
 	 * @return string
 	 */
-	public function detect_user_language() {
+	public function detect_user_language(): string {
 		return $this->banner_texts_manager->detect_user_language();
 	}
 
@@ -748,7 +879,7 @@ class Options {
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
-	public function get_categories_for_language( $lang ) {
+	public function get_categories_for_language( string $lang ): array {
 		return $this->categories_manager->get_categories_for_language( $lang );
 	}
 
@@ -760,7 +891,7 @@ class Options {
 	 *
 	 * @return int
 	 */
-	public function get_page_id( $type, $lang ) {
+	public function get_page_id( string $type, string $lang ): int {
 		return $this->page_manager->get_page_id(
 			$type,
 			$lang,
@@ -773,7 +904,7 @@ class Options {
 	 *
 	 * @return BannerLayout
 	 */
-	public function get_banner_layout() {
+	public function get_banner_layout(): BannerLayout {
 		$layout_data = isset( $this->options['banner_layout'] ) && \is_array( $this->options['banner_layout'] )
 			? $this->options['banner_layout']
 			: $this->get_default_options()['banner_layout'];
@@ -786,7 +917,7 @@ class Options {
 	 *
 	 * @return ColorPalette
 	 */
-	public function get_color_palette() {
+	public function get_color_palette(): ColorPalette {
 		$layout = $this->get_banner_layout();
 		return $layout->get_palette();
 	}
@@ -796,12 +927,67 @@ class Options {
 	 *
 	 * @return ConsentModeDefaults
 	 */
-	public function get_consent_mode_defaults() {
+	public function get_consent_mode_defaults(): ConsentModeDefaults {
 		$consent_mode_data = isset( $this->options['consent_mode_defaults'] ) && \is_array( $this->options['consent_mode_defaults'] )
 			? $this->options['consent_mode_defaults']
 			: $this->get_default_options()['consent_mode_defaults'];
 
 		return ConsentModeDefaults::from_array( $consent_mode_data );
+	}
+
+	/**
+	 * Normalize categories by merging with defaults and preserving locked state.
+	 *
+	 * @param array<string, mixed> $categories_raw Raw categories data.
+	 * @param array<string, mixed> $default_categories Default categories.
+	 * @param array<int, string>   $languages Active languages.
+	 *
+	 * @return array<string, mixed> Normalized categories.
+	 */
+	private function normalize_categories( array $categories_raw, array $default_categories, array $languages ): array {
+		$categories = Validator::sanitize_categories( $categories_raw, $languages );
+		$defaults   = Validator::sanitize_categories( $default_categories, $languages );
+
+		$raw_categories_by_slug = array();
+
+		foreach ( $categories_raw as $raw_slug => $raw_category ) {
+			$normalized_slug = \sanitize_key( $raw_slug );
+
+			if ( '' === $normalized_slug ) {
+				continue;
+			}
+
+			$raw_categories_by_slug[ $normalized_slug ] = \is_array( $raw_category ) ? $raw_category : array();
+		}
+
+		if ( empty( $defaults ) ) {
+			return $categories;
+		}
+
+		$normalized = array();
+
+		foreach ( $defaults as $slug => $default_category ) {
+			if ( isset( $categories[ $slug ] ) ) {
+				$merged = \array_replace_recursive( $default_category, $categories[ $slug ] );
+
+				$raw = $raw_categories_by_slug[ $slug ] ?? array();
+				if ( ! \array_key_exists( 'locked', $raw ) ) {
+					$merged['locked'] = $default_category['locked'];
+				}
+
+				$normalized[ $slug ] = $merged;
+			} else {
+				$normalized[ $slug ] = $default_category;
+			}
+		}
+
+		foreach ( $categories as $slug => $category ) {
+			if ( ! isset( $normalized[ $slug ] ) ) {
+				$normalized[ $slug ] = $category;
+			}
+		}
+
+		return $normalized;
 	}
 
 	/**
@@ -828,7 +1014,7 @@ class Options {
 	 *
 	 * @return void
 	 */
-	public function bump_revision() {
+	public function bump_revision(): void {
 		$this->options['consent_revision'] = isset( $this->options['consent_revision'] ) 
 			? (int) $this->options['consent_revision'] + 1 
 			: Constants::CONSENT_REVISION_INITIAL;
@@ -840,7 +1026,7 @@ class Options {
 	 *
 	 * @return void
 	 */
-	public function ensure_pages_exist() {
+	public function ensure_pages_exist(): void {
 		// Prevent recursive calls.
 		static $running = false;
 		if ( $running ) {
@@ -863,13 +1049,7 @@ class Options {
 				\update_option( self::OPTION_KEY, $this->options, false );
 			}
 		} catch ( \Throwable $e ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'FP Privacy: Error ensuring pages exist: %s', $e->getMessage() ) );
-			}
-		} catch ( \Exception $e ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'FP Privacy: Error ensuring pages exist: %s', $e->getMessage() ) );
-			}
+			Logger::error( 'Error ensuring pages exist', $e );
 		} finally {
 			$running = false;
 		}

@@ -55,7 +55,7 @@ class DiagnosticTools {
 	public function __construct( Options $options, LogModel $log_model ) {
 		$this->options       = $options;
 		$this->log_model     = $log_model;
-		$this->page_renderer = new DiagnosticPageRenderer( $options );
+		$this->page_renderer = new DiagnosticPageRenderer( $options, $log_model );
 		$this->handlers      = new DiagnosticHandlers( $options );
 	}
 

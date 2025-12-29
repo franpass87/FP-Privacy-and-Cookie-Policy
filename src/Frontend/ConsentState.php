@@ -170,7 +170,7 @@ class ConsentState {
         $preview = (bool) $this->options->get( 'preview_mode', false );
         $cookie  = ConsentCookieManager::get_cookie_payload();
 
-        $event  = in_array( $event, array( 'accept_all', 'reject_all', 'consent', 'reset' ), true ) ? $event : 'consent';
+        $event  = in_array( $event, array( 'accept_all', 'reject_all', 'consent', 'reset', 'consent_revoked', 'consent_withdrawn' ), true ) ? $event : 'consent';
         $lang   = $this->options->normalize_language( $lang );
         $states = $this->sanitizer->sanitize_states_payload( $states );
         $states = $this->sanitizer->filter_known_categories( $states, $lang );

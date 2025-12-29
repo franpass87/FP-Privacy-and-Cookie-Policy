@@ -9,12 +9,22 @@
 
 namespace FP\Privacy\Integrations;
 
+use FP\Privacy\Services\Cache\CacheInterface;
+
 /**
  * Manages caching for service detection results.
+ * Uses CacheInterface for persistence while maintaining runtime cache for performance.
  */
 class DetectorCache {
-	const CACHE_OPTION = 'fp_privacy_detector_cache';
+	const CACHE_KEY = 'detector_cache';
 	const CACHE_TTL = 900;
+
+	/**
+	 * Cache interface for persistence.
+	 *
+	 * @var CacheInterface|null
+	 */
+	private $cache;
 
 	/**
 	 * Cached services for the current request.
@@ -38,11 +48,20 @@ class DetectorCache {
 	private $hydrated = false;
 
 	/**
+	 * Constructor.
+	 *
+	 * @param CacheInterface|null $cache Cache interface for persistence. If null, falls back to direct option access.
+	 */
+	public function __construct( ?CacheInterface $cache = null ) {
+		$this->cache = $cache;
+	}
+
+	/**
 	 * Get runtime cache.
 	 *
 	 * @return array<int, array<string, mixed>>|null
 	 */
-	public function get_runtime_cache() {
+	public function get_runtime_cache(): ?array {
 		return $this->runtime_cache;
 	}
 
@@ -53,7 +72,7 @@ class DetectorCache {
 	 *
 	 * @return void
 	 */
-	public function set_runtime_cache( $cache ) {
+	public function set_runtime_cache( ?array $cache ): void {
 		$this->runtime_cache = $cache;
 	}
 
@@ -62,7 +81,7 @@ class DetectorCache {
 	 *
 	 * @return int
 	 */
-	public function get_cache_timestamp() {
+	public function get_cache_timestamp(): int {
 		return $this->cache_timestamp;
 	}
 
@@ -73,7 +92,7 @@ class DetectorCache {
 	 *
 	 * @return void
 	 */
-	public function set_cache_timestamp( $timestamp ) {
+	public function set_cache_timestamp( int $timestamp ): void {
 		$this->cache_timestamp = $timestamp;
 	}
 
@@ -82,18 +101,14 @@ class DetectorCache {
 	 *
 	 * @return void
 	 */
-	public function hydrate_cache() {
+	public function hydrate_cache(): void {
 		if ( $this->hydrated ) {
 			return;
 		}
 
 		$this->hydrated = true;
 
-		if ( ! function_exists( '\get_option' ) ) {
-			return;
-		}
-
-		$cache = \get_option( self::CACHE_OPTION );
+		$cache = $this->get_persisted_cache();
 
 		if ( ! is_array( $cache ) || ! isset( $cache['services'], $cache['timestamp'] ) ) {
 			return;
@@ -111,23 +126,46 @@ class DetectorCache {
 	}
 
 	/**
+	 * Get persisted cache data.
+	 *
+	 * @return array<string, mixed>|null Cache data or null if not found.
+	 */
+	private function get_persisted_cache(): ?array {
+		if ( $this->cache ) {
+			$cached = $this->cache->get( self::CACHE_KEY );
+			return is_array( $cached ) ? $cached : null;
+		}
+
+		// Fallback to direct option access for backward compatibility.
+		if ( ! function_exists( '\get_option' ) ) {
+			return null;
+		}
+
+		$cache = \get_option( 'fp_privacy_detector_cache' );
+		return is_array( $cache ) ? $cache : null;
+	}
+
+	/**
 	 * Persist runtime cache.
 	 *
 	 * @return void
 	 */
-	public function persist_cache() {
-		if ( ! function_exists( '\update_option' ) ) {
+	public function persist_cache(): void {
+		$cache_data = array(
+			'services'  => is_array( $this->runtime_cache ) ? $this->runtime_cache : array(),
+			'timestamp' => $this->cache_timestamp,
+		);
+
+		if ( $this->cache ) {
+			$ttl = $this->get_cache_ttl();
+			$this->cache->set( self::CACHE_KEY, $cache_data, $ttl );
 			return;
 		}
 
-		\update_option(
-			self::CACHE_OPTION,
-			array(
-				'services'  => is_array( $this->runtime_cache ) ? $this->runtime_cache : array(),
-				'timestamp' => $this->cache_timestamp,
-			),
-			false
-		);
+		// Fallback to direct option access for backward compatibility.
+		if ( function_exists( '\update_option' ) ) {
+			\update_option( 'fp_privacy_detector_cache', $cache_data, false );
+		}
 	}
 
 	/**
@@ -135,13 +173,19 @@ class DetectorCache {
 	 *
 	 * @return void
 	 */
-	public function invalidate_cache() {
+	public function invalidate_cache(): void {
 		$this->runtime_cache  = null;
 		$this->cache_timestamp = 0;
 		$this->hydrated       = false;
 
+		if ( $this->cache ) {
+			$this->cache->delete( self::CACHE_KEY );
+			return;
+		}
+
+		// Fallback to direct option access for backward compatibility.
 		if ( function_exists( '\delete_option' ) ) {
-			\delete_option( self::CACHE_OPTION );
+			\delete_option( 'fp_privacy_detector_cache' );
 		}
 	}
 
@@ -152,7 +196,7 @@ class DetectorCache {
 	 *
 	 * @return bool
 	 */
-	public function is_cache_expired( $timestamp ) {
+	public function is_cache_expired( int $timestamp ): bool {
 		if ( ! $timestamp ) {
 			return true;
 		}
@@ -171,7 +215,7 @@ class DetectorCache {
 	 *
 	 * @return int
 	 */
-	private function get_cache_ttl() {
+	private function get_cache_ttl(): int {
 		$ttl = self::CACHE_TTL;
 
 		if ( function_exists( '\apply_filters' ) ) {

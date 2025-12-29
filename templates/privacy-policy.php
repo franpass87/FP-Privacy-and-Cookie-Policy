@@ -122,6 +122,8 @@ $sections = array(
     'processors' => esc_html__( 'Responsabili del trattamento e personale autorizzato', 'fp-privacy' ),
     'security-measures' => esc_html__( 'Misure di sicurezza', 'fp-privacy' ),
     'automated-decision' => esc_html__( 'Processo decisionale automatizzato e profilazione', 'fp-privacy' ),
+    'ai-disclosure' => esc_html__( 'Trattamento dati per sistemi AI', 'fp-privacy' ),
+    'algorithmic-transparency' => esc_html__( 'Trasparenza Algoritmica', 'fp-privacy' ),
     'retention' => esc_html__( 'Conservazione', 'fp-privacy' ),
     'data-subject-rights' => esc_html__( 'Diritti dell\'interessato', 'fp-privacy' ),
     'exercise-rights' => esc_html__( 'Come esercitare i tuoi diritti', 'fp-privacy' ),
@@ -145,6 +147,18 @@ $sections = array(
             // Salta sezioni condizionali che potrebbero non essere presenti
             if ( 'dpo' === $id && ! $dpo_name && ! $dpo_mail ) {
                 continue;
+            }
+            if ( 'ai-disclosure' === $id ) {
+                $ai_disclosure = isset( $ai_disclosure ) ? $ai_disclosure : '';
+                if ( empty( $ai_disclosure ) ) {
+                    continue;
+                }
+            }
+            if ( 'algorithmic-transparency' === $id ) {
+                $algorithmic_transparency = isset( $algorithmic_transparency ) ? $algorithmic_transparency : '';
+                if ( empty( $algorithmic_transparency ) ) {
+                    continue;
+                }
             }
             ?>
             <li><a href="#fp-privacy-<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $title ); ?></a></li>
@@ -196,6 +210,20 @@ $sections = array(
 
 <h2 id="fp-privacy-automated-decision"><?php echo esc_html__( 'Processo decisionale automatizzato e profilazione', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html__( 'Potremmo utilizzare la profilazione, che indica qualsiasi forma di trattamento automatizzato di dati personali per valutare determinati aspetti personali, in particolare per analizzare o prevedere aspetti riguardanti le tue preferenze, interessi, comportamento, ubicazione o spostamenti. Le attività di profilazione possono includere: analisi dei tuoi pattern di utilizzo per raccomandare contenuti o prodotti; segmentazione degli utenti per scopi di marketing; personalizzazione dei contenuti del sito web e delle interfacce utente; previsione degli interessi in base alla cronologia di navigazione e alle interazioni. La profilazione viene effettuata solo quando basata su una base giuridica valida (tipicamente il tuo consenso o i nostri interessi legittimi dopo il test di bilanciamento) e con adeguate garanzie. Il processo decisionale automatizzato si riferisce all\'adozione di decisioni esclusivamente tramite mezzi automatizzati senza alcun coinvolgimento umano. Non effettuiamo processi decisionali automatizzati che producono effetti giuridici che ti riguardano o che incidono in modo analogo significativamente su di te (come definito nell\'articolo 22 del GDPR) a meno che: (i) sia necessario per la conclusione o l\'esecuzione di un contratto tra te e noi; (ii) sia autorizzato dal diritto dell\'Unione o dello Stato membro cui siamo soggetti e che prevede misure adeguate a tutela dei tuoi diritti, libertà e interessi legittimi; o (iii) si basi sul tuo consenso esplicito. Nei casi in cui viene utilizzato il processo decisionale automatizzato, implementiamo adeguate garanzie tra cui: fornire informazioni significative sulla logica utilizzata; garantire la disponibilità di intervento umano; permetterti di esprimere il tuo punto di vista e contestare la decisione; condurre valutazioni periodiche di accuratezza e distorsione. Hai il diritto di non essere sottoposto a decisioni basate unicamente sul trattamento automatizzato, compresa la profilazione, che producono effetti giuridici che ti riguardano o che incidono in modo analogo significativamente su di te, e puoi esercitare questo diritto contattandoci come indicato nella sezione "Come esercitare i tuoi diritti".', 'fp-privacy' ); ?></p>
+
+<?php
+// AI Disclosure section (if enabled)
+$ai_disclosure_html = isset( $ai_disclosure ) ? $ai_disclosure : '';
+if ( ! empty( $ai_disclosure_html ) ) {
+    echo $ai_disclosure_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped - HTML already escaped in generator
+}
+
+// Algorithmic Transparency section (if enabled)
+$algorithmic_transparency_html = isset( $algorithmic_transparency ) ? $algorithmic_transparency : '';
+if ( ! empty( $algorithmic_transparency_html ) ) {
+    echo $algorithmic_transparency_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped - HTML already escaped in generator
+}
+?>
 
 <h2 id="fp-privacy-retention"><?php echo esc_html__( 'Conservazione', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html__( 'I dati personali sono conservati solo per il tempo necessario al conseguimento delle finalità per le quali sono stati raccolti, in conformità con il principio di limitazione della conservazione ai sensi dell\'articolo 5(1)(e) del GDPR. I nostri periodi di conservazione si basano su: (1) Conservazione basata sulle finalità: i dati sono conservati per il tempo necessario a fornire i servizi, mantenere gli account, adempiere agli obblighi contrattuali e raggiungere le finalità descritte nella presente informativa. (2) Requisiti di conservazione legali e normativi: alcuni dati devono essere conservati per periodi specifici per conformarsi a obblighi legali come le leggi fiscali (tipicamente 7-10 anni per le registrazioni finanziarie), i requisiti contabili, gli obblighi normativi, le leggi sul lavoro e altri obblighi di conservazione previsti dalla legge. (3) Rivendicazioni legali e contenzioso: i dati possono essere conservati più a lungo quando necessario per accertare, esercitare o difendere diritti in sede giudiziaria, tipicamente fino alla scadenza dei termini di prescrizione applicabili. (4) Conservazione basata sul consenso: quando il trattamento si basa sul consenso, i dati sono conservati fino alla revoca del consenso, a meno che non si applichi un\'altra base giuridica o obblighi di conservazione legale richiedano la continuazione della conservazione. (5) Conservazione basata sull\'interesse legittimo: quando basata su interessi legittimi, i dati sono conservati per tutto il tempo in cui persiste l\'interesse legittimo e non è superato dai tuoi diritti. I periodi di conservazione specifici includono: i dati dell\'account sono conservati mentre il tuo account è attivo e per un periodo limitato dopo la chiusura; le registrazioni transazionali sono conservate secondo le normative finanziarie e fiscali applicabili; le registrazioni del consenso al marketing sono conservate per il periodo richiesto dalla legge per dimostrare la conformità (tipicamente 3-5 anni dopo la revoca); le registrazioni di gestione del consenso (consensi ai cookie) sono conservate come richiesto dalla legge e dalle linee guida applicabili (tipicamente 6-24 mesi); i log di accesso e i dati di sicurezza sono tipicamente conservati per 6-12 mesi a meno che non sia richiesta una conservazione più lunga per indagini di sicurezza; i cookie e le tecnologie simili seguono la durata indicata nelle tabelle dei cookie e nella nostra Informativa sui Cookie. Al termine dei periodi di conservazione applicabili, i dati personali sono cancellati, distrutti o anonimizzati in modo sicuro (resi non identificabili) in modo tale che non possano più essere attribuiti a una persona fisica identificabile. Conduciamo revisioni periodiche dei dati conservati per garantire la conformità con le politiche di conservazione e la cancellazione dei dati che non sono più necessari. I calendari di conservazione dettagliati per specifiche categorie di dati e attività di trattamento sono disponibili su richiesta.', 'fp-privacy' ); ?></p>

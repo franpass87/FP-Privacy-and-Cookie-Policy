@@ -121,16 +121,16 @@ class GetConsentStateQuery {
 	}
 
 	/**
-	 * Get legacy options instance (with fallback to singleton for backward compatibility).
+	 * Get legacy options instance.
 	 *
 	 * @return LegacyOptions Legacy options instance.
+	 * @throws \RuntimeException If legacy options is not available.
 	 */
 	private function getLegacyOptions(): LegacyOptions {
-		if ( $this->legacy_options ) {
-			return $this->legacy_options;
+		if ( ! $this->legacy_options ) {
+			throw new \RuntimeException( 'Legacy Options instance is required but not provided.' );
 		}
-		// Fallback to singleton for backward compatibility.
-		return LegacyOptions::instance();
+		return $this->legacy_options;
 	}
 
 	/**

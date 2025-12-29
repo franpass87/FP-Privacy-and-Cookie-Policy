@@ -12,6 +12,7 @@ namespace FP\Privacy\Providers;
 use FP\Privacy\Core\ContainerInterface;
 use FP\Privacy\Core\ServiceProviderInterface;
 use FP\Privacy\Consent\LogModel;
+use FP\Privacy\Consent\LogModelTable;
 use FP\Privacy\Infrastructure\Database\ConsentTable;
 use FP\Privacy\Consent\LogModelTable as LegacyLogModelTable;
 use FP\Privacy\Domain\Consent\ConsentRepositoryInterface;
@@ -80,8 +81,7 @@ class DataServiceProvider implements ServiceProviderInterface {
 
 		// Register ExporterEraser hooks.
 		$log_model = $container->get( LogModel::class );
-		$provider = new self();
-		$options = $provider->getOptions( $container );
+		$options = self::resolveOptions( $container );
 		$exporter_eraser = new \FP\Privacy\Consent\ExporterEraser( $log_model, $options );
 		if ( method_exists( $exporter_eraser, 'hooks' ) ) {
 			$exporter_eraser->hooks();

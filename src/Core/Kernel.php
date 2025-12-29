@@ -9,6 +9,8 @@
 
 namespace FP\Privacy\Core;
 
+use FP\Privacy\Utils\Logger;
+
 /**
  * Plugin kernel for bootstrapping and lifecycle management.
  */
@@ -116,9 +118,14 @@ class Kernel {
 
 		foreach ( $providers as $provider_class ) {
 			if ( class_exists( $provider_class ) ) {
-				$provider = new $provider_class();
-				$this->providers[] = $provider;
-				$provider->register( $this->container );
+				try {
+					$provider = new $provider_class();
+					$this->providers[] = $provider;
+					$provider->register( $this->container );
+				} catch ( \Throwable $e ) {
+					Logger::error( sprintf( 'Error registering provider %s', $provider_class ), $e );
+					// Continue with other providers even if one fails.
+				}
 			}
 		}
 	}
@@ -135,7 +142,12 @@ class Kernel {
 
 		// Boot all providers.
 		foreach ( $this->providers as $provider ) {
-			$provider->boot( $this->container );
+			try {
+				$provider->boot( $this->container );
+			} catch ( \Throwable $e ) {
+				Logger::error( sprintf( 'Error booting provider %s', get_class( $provider ) ), $e );
+				// Continue with other providers even if one fails.
+			}
 		}
 
 		$this->booted = true;
@@ -148,24 +160,34 @@ class Kernel {
 	 * @return void
 	 */
 	public function activate( bool $network_wide = false ): void {
-		// Ensure container is ready.
-		if ( ! $this->booted ) {
-			$this->boot();
-		}
+		try {
+			// Ensure container is ready.
+			if ( ! $this->booted ) {
+				$this->boot();
+			}
 
-		// Get multisite manager if available (try new interface first, then old class).
-		$multisite = null;
-		if ( $this->container->has( \FP\Privacy\Infrastructure\Multisite\MultisiteManagerInterface::class ) ) {
-			$multisite = $this->container->get( \FP\Privacy\Infrastructure\Multisite\MultisiteManagerInterface::class );
-		} elseif ( $this->container->has( \FP\Privacy\MultisiteManager::class ) ) {
-			$multisite = $this->container->get( \FP\Privacy\MultisiteManager::class );
-		}
+			// Get multisite manager if available (try new interface first, then old class).
+			$multisite = null;
+			try {
+				if ( $this->container->has( \FP\Privacy\Infrastructure\Multisite\MultisiteManagerInterface::class ) ) {
+					$multisite = $this->container->get( \FP\Privacy\Infrastructure\Multisite\MultisiteManagerInterface::class );
+				} elseif ( $this->container->has( \FP\Privacy\MultisiteManager::class ) ) {
+					$multisite = $this->container->get( \FP\Privacy\MultisiteManager::class );
+				}
+			} catch ( \Throwable $e ) {
+				Logger::error( 'Error getting multisite manager', $e );
+			}
 
-		if ( $multisite && method_exists( $multisite, 'activate' ) ) {
-			$multisite->activate( $network_wide );
-		} else {
-			// Fallback to old activation method.
-			\FP\Privacy\Plugin::activate( $network_wide );
+			if ( $multisite && method_exists( $multisite, 'activate' ) ) {
+				$multisite->activate( $network_wide );
+			} else {
+				// Log warning if multisite manager is not available.
+				Logger::warning( 'Multisite manager not available during activation.' );
+			}
+		} catch ( \Throwable $e ) {
+			Logger::error( 'Fatal error in Kernel activate', $e );
+			// Re-throw to let WordPress handle the error.
+			throw $e;
 		}
 	}
 
@@ -186,8 +208,8 @@ class Kernel {
 		if ( $multisite && method_exists( $multisite, 'deactivate' ) ) {
 			$multisite->deactivate();
 		} else {
-			// Fallback to old deactivation method.
-			\FP\Privacy\Plugin::deactivate();
+			// Log warning if multisite manager is not available.
+			Logger::warning( 'Multisite manager not available during deactivation.' );
 		}
 	}
 
@@ -218,11 +240,8 @@ class Kernel {
 		if ( $multisite && method_exists( $multisite, 'provision_new_site' ) ) {
 			$multisite->provision_new_site( $blog_id );
 		} else {
-			// Fallback to old method.
-			$plugin = \FP\Privacy\Plugin::instance();
-			if ( method_exists( $plugin, 'provision_new_site' ) ) {
-				$plugin->provision_new_site( $blog_id );
-			}
+			// Log warning if multisite manager is not available.
+			Logger::warning( sprintf( 'Multisite manager not available for provisioning blog %d.', $blog_id ) );
 		}
 	}
 

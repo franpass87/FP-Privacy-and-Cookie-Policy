@@ -31,10 +31,8 @@ class MultisiteServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			MultisiteManagerInterface::class,
 			function( ContainerInterface $c ) {
-				// Get legacy Options from container if available, otherwise use singleton.
-				$legacy_options = $c->has( \FP\Privacy\Utils\Options::class )
-					? $c->get( \FP\Privacy\Utils\Options::class )
-					: \FP\Privacy\Utils\Options::instance();
+				// Get legacy Options from container (should always be available from CoreServiceProvider).
+				$legacy_options = $c->get( \FP\Privacy\Utils\Options::class );
 				$log_model = $c->has( LogModel::class ) ? $c->get( LogModel::class ) : null;
 				return new MultisiteManager( $legacy_options, $log_model );
 			}

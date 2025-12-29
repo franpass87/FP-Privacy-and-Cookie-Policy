@@ -69,25 +69,9 @@ class MultisiteManager implements MultisiteManagerInterface {
 	 * @return void
 	 */
 	public function setup_site() {
-		// Use instance options if not provided in constructor (backward compatibility).
-		// Try to get from container first, then fallback to singleton.
+		// Options should always be provided via constructor.
 		if ( ! $this->options ) {
-			// Try to get from container if available.
-			if ( class_exists( '\\FP\\Privacy\\Core\\Kernel' ) ) {
-				try {
-					$kernel = \FP\Privacy\Core\Kernel::make();
-					$container = $kernel->getContainer();
-					if ( $container->has( Options::class ) ) {
-						$this->options = $container->get( Options::class );
-					} else {
-						$this->options = Options::instance();
-					}
-				} catch ( \Exception $e ) {
-					$this->options = Options::instance();
-				}
-			} else {
-				$this->options = Options::instance();
-			}
+			throw new \RuntimeException( 'Options instance is required but not provided.' );
 		}
 		$options = $this->options;
 		$options->set( $options->all() );

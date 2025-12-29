@@ -73,6 +73,53 @@ class SettingsRenderer {
 		?>
 <div class="wrap fp-privacy-settings">
 <h1><?php \esc_html_e( 'Privacy & Cookie Settings', 'fp-privacy' ); ?></h1>
+
+<!-- Quick Actions Bar -->
+<div class="fp-privacy-quick-actions">
+	<div class="fp-quick-actions-primary">
+		<button type="submit" form="fp-privacy-settings-form-id" class="button button-primary">
+			<span class="dashicons dashicons-saved"></span>
+			<?php \esc_html_e( 'Salva tutto', 'fp-privacy' ); ?>
+		</button>
+		<button type="button" class="button button-secondary fp-action-reset" id="fp-reset-changes">
+			<span class="dashicons dashicons-undo"></span>
+			<?php \esc_html_e( 'Ripristina modifiche', 'fp-privacy' ); ?>
+		</button>
+		<button type="button" class="button button-secondary fp-action-reset-default" id="fp-reset-default">
+			<span class="dashicons dashicons-admin-generic"></span>
+			<?php \esc_html_e( 'Reset a default', 'fp-privacy' ); ?>
+		</button>
+	</div>
+	<div class="fp-quick-actions-secondary">
+		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-tools' ) ); ?>" class="button button-secondary">
+			<span class="dashicons dashicons-download"></span>
+			<?php \esc_html_e( 'Esporta configurazione', 'fp-privacy' ); ?>
+		</a>
+		<button type="button" class="button button-secondary fp-action-preview" id="fp-scroll-to-preview">
+			<span class="dashicons dashicons-visibility"></span>
+			<?php \esc_html_e( 'Preview Banner', 'fp-privacy' ); ?>
+		</button>
+	</div>
+	<div class="fp-quick-actions-links">
+		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-policy-editor' ) ); ?>" class="fp-quick-link">
+			<span class="dashicons dashicons-edit"></span>
+			<?php \esc_html_e( 'Policy Editor', 'fp-privacy' ); ?>
+		</a>
+		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-analytics' ) ); ?>" class="fp-quick-link">
+			<span class="dashicons dashicons-chart-bar"></span>
+			<?php \esc_html_e( 'Analytics', 'fp-privacy' ); ?>
+		</a>
+		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-consent-log' ) ); ?>" class="fp-quick-link">
+			<span class="dashicons dashicons-list-view"></span>
+			<?php \esc_html_e( 'Consent Log', 'fp-privacy' ); ?>
+		</a>
+		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-guide' ) ); ?>" class="fp-quick-link">
+			<span class="dashicons dashicons-book"></span>
+			<?php \esc_html_e( 'Guide', 'fp-privacy' ); ?>
+		</a>
+	</div>
+</div>
+
 <?php if ( $snapshot_notice ) :
 	$tools_link = \admin_url( 'admin.php?page=fp-privacy-tools' );
 	$timestamp  = $snapshot_notice['timestamp'];
@@ -81,26 +128,37 @@ class SettingsRenderer {
 <div class="notice notice-warning fp-privacy-stale-notice"><p><?php echo \esc_html( $message ); ?> <a href="<?php echo \esc_url( $tools_link ); ?>"><?php \esc_html_e( 'Open Tools', 'fp-privacy' ); ?></a></p></div>
 <?php endif; ?>
 
+<!-- Breadcrumb -->
+<nav class="fp-privacy-breadcrumb" aria-label="<?php \esc_attr_e( 'Breadcrumb', 'fp-privacy' ); ?>">
+	<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy' ) ); ?>"><?php \esc_html_e( 'Privacy & Cookie', 'fp-privacy' ); ?></a>
+	<span class="separator" aria-hidden="true">›</span>
+	<span><?php \esc_html_e( 'Settings', 'fp-privacy' ); ?></span>
+</nav>
+
 <!-- Tabs Navigation -->
-<nav class="fp-privacy-tabs-nav">
-	<button type="button" class="fp-privacy-tab-button active" data-tab="banner">
+<nav class="fp-privacy-tabs-nav" role="tablist" aria-label="<?php \esc_attr_e( 'Settings tabs', 'fp-privacy' ); ?>">
+	<button type="button" id="fp-privacy-tab-button-banner" class="fp-privacy-tab-button active" role="tab" aria-selected="true" aria-controls="fp-privacy-tab-content-banner" data-tab="banner" aria-label="<?php \esc_attr_e( 'Tab: Banner e Aspetto', 'fp-privacy' ); ?>">
 		<span class="dashicons dashicons-admin-appearance"></span>
 		<span><?php \esc_html_e( 'Banner e Aspetto', 'fp-privacy' ); ?></span>
+		<span class="fp-tab-badge" aria-hidden="true"></span>
 	</button>
-	<button type="button" class="fp-privacy-tab-button" data-tab="cookies">
+	<button type="button" id="fp-privacy-tab-button-cookies" class="fp-privacy-tab-button" role="tab" aria-selected="false" aria-controls="fp-privacy-tab-content-cookies" data-tab="cookies" aria-label="<?php \esc_attr_e( 'Tab: Cookie e Script', 'fp-privacy' ); ?>">
 		<span class="dashicons dashicons-admin-generic"></span>
 		<span><?php \esc_html_e( 'Cookie e Script', 'fp-privacy' ); ?></span>
+		<span class="fp-tab-badge" aria-hidden="true"></span>
 	</button>
-	<button type="button" class="fp-privacy-tab-button" data-tab="privacy">
+	<button type="button" id="fp-privacy-tab-button-privacy" class="fp-privacy-tab-button" role="tab" aria-selected="false" aria-controls="fp-privacy-tab-content-privacy" data-tab="privacy" aria-label="<?php \esc_attr_e( 'Tab: Privacy e Consenso', 'fp-privacy' ); ?>">
 		<span class="dashicons dashicons-shield"></span>
 		<span><?php \esc_html_e( 'Privacy e Consenso', 'fp-privacy' ); ?></span>
+		<span class="fp-tab-badge" aria-hidden="true"></span>
 	</button>
-	<button type="button" class="fp-privacy-tab-button" data-tab="advanced">
+	<button type="button" id="fp-privacy-tab-button-advanced" class="fp-privacy-tab-button" role="tab" aria-selected="false" aria-controls="fp-privacy-tab-content-advanced" data-tab="advanced" aria-label="<?php \esc_attr_e( 'Tab: Avanzate', 'fp-privacy' ); ?>">
 		<span class="dashicons dashicons-admin-tools"></span>
 		<span><?php \esc_html_e( 'Avanzate', 'fp-privacy' ); ?></span>
+		<span class="fp-tab-badge" aria-hidden="true"></span>
 	</button>
 </nav>
-<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-settings-form">
+<form id="fp-privacy-settings-form-id" method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-settings-form">
 <?php \wp_nonce_field( 'fp_privacy_save_settings', 'fp_privacy_nonce' ); ?>
 		<input type="hidden" name="action" value="fp_privacy_save_settings" />
 
@@ -118,6 +176,13 @@ class SettingsRenderer {
 		$this->tab_renderers['cookies']->render( $data );
 		?>
 </form>
+
+<!-- Sticky Save Button -->
+<div class="fp-privacy-sticky-save">
+	<button type="submit" form="fp-privacy-settings-form-id" class="button-primary">
+		<?php \esc_html_e( 'Salva tutte le impostazioni', 'fp-privacy' ); ?>
+	</button>
+</div>
 
 
 </div>

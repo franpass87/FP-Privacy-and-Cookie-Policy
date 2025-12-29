@@ -41,8 +41,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			PolicyGenerator::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				$detector = $c->get( DetectorRegistry::class );
 				$view = new View();
 				return new PolicyGenerator( $options, $detector, $view );
@@ -53,8 +52,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			Settings::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				$detector = $c->get( DetectorRegistry::class );
 				$generator = $c->get( PolicyGenerator::class );
 				return new Settings( $options, $detector, $generator );
@@ -65,8 +63,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			PolicyEditor::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				$generator = $c->get( PolicyGenerator::class );
 				return new PolicyEditor( $options, $generator );
 			}
@@ -76,8 +73,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			IntegrationAudit::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				$generator = $c->get( PolicyGenerator::class );
 				return new IntegrationAudit( $options, $generator );
 			}
@@ -88,8 +84,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			ConsentLogTable::class,
 			function( ContainerInterface $c ) {
 				$log_model = $c->get( LogModel::class );
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				return new ConsentLogTable( $log_model, $options );
 			}
 		);
@@ -108,8 +103,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			AnalyticsPage::class,
 			function( ContainerInterface $c ) {
 				$log_model = $c->get( LogModel::class );
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				return new AnalyticsPage( $log_model, $options );
 			}
 		);
@@ -118,8 +112,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			DiagnosticTools::class,
 			function( ContainerInterface $c ) {
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				$log_model = $c->get( LogModel::class );
 				return new DiagnosticTools( $options, $log_model );
 			}

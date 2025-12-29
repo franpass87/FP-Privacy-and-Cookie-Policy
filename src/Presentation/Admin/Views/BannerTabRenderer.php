@@ -27,7 +27,7 @@ class BannerTabRenderer extends SettingsRendererBase {
 		$languages    = $data['languages'];
 		$primary_lang = $data['primary_lang'];
 		?>
-		<div class="fp-privacy-tab-content active" data-tab-content="banner">
+		<div class="fp-privacy-tab-content active" id="fp-privacy-tab-content-banner" role="tabpanel" aria-labelledby="fp-privacy-tab-button-banner" data-tab-content="banner">
 			<h2><?php \esc_html_e( 'Languages', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Provide active languages (comma separated locale codes).', 'fp-privacy' ); ?></p>
 			<input type="text" name="languages_active" class="regular-text" value="<?php echo \esc_attr( implode( ',', $languages ) ); ?>" />
@@ -93,11 +93,15 @@ class BannerTabRenderer extends SettingsRendererBase {
 			$this->render_text_field( "banner_texts[{$lang}][{$key}]", $label, $text[ $key ] ?? '', $field_type, $key );
 		}
 
-		// Policy link
+		// Policy link texts
 		?>
 		<label>
-		<span><?php \esc_html_e( 'Policy link URL', 'fp-privacy' ); ?></span>
-		<input type="url" name="banner_texts[<?php echo \esc_attr( $lang ); ?>][link_policy]" value="<?php echo \esc_attr( $text['link_policy'] ?? '' ); ?>" class="regular-text" data-field="link_policy" />
+		<span><?php \esc_html_e( 'Privacy Policy link text', 'fp-privacy' ); ?></span>
+		<input type="text" name="banner_texts[<?php echo \esc_attr( $lang ); ?>][link_privacy_policy]" value="<?php echo \esc_attr( $text['link_privacy_policy'] ?? '' ); ?>" class="regular-text" data-field="link_privacy_policy" />
+		</label>
+		<label>
+		<span><?php \esc_html_e( 'Cookie Policy link text', 'fp-privacy' ); ?></span>
+		<input type="text" name="banner_texts[<?php echo \esc_attr( $lang ); ?>][link_cookie_policy]" value="<?php echo \esc_attr( $text['link_cookie_policy'] ?? '' ); ?>" class="regular-text" data-field="link_cookie_policy" />
 		</label>
 		<?php
 	}
@@ -113,15 +117,41 @@ class BannerTabRenderer extends SettingsRendererBase {
 	private function render_preview_controls( $languages, $primary_lang ) {
 		?>
 		<div class="fp-privacy-preview-controls">
-		<label for="fp-privacy-preview-language"><span><?php \esc_html_e( 'Preview language', 'fp-privacy' ); ?></span></label>
-		<select id="fp-privacy-preview-language">
-		<?php foreach ( $languages as $lang ) : ?>
-		<option value="<?php echo \esc_attr( $lang ); ?>" <?php selected( $lang, $primary_lang ); ?>><?php echo \esc_html( $lang ); ?></option>
-		<?php endforeach; ?>
-		</select>
+			<div class="fp-preview-controls-left">
+				<label for="fp-privacy-preview-language">
+					<span><?php \esc_html_e( 'Preview language', 'fp-privacy' ); ?></span>
+					<select id="fp-privacy-preview-language">
+					<?php foreach ( $languages as $lang ) : ?>
+					<option value="<?php echo \esc_attr( $lang ); ?>" <?php selected( $lang, $primary_lang ); ?>><?php echo \esc_html( $lang ); ?></option>
+					<?php endforeach; ?>
+					</select>
+				</label>
+				
+				<div class="fp-preview-mode-toggle">
+					<button type="button" class="fp-preview-mode-btn active" data-mode="desktop" aria-label="<?php \esc_attr_e( 'Desktop view', 'fp-privacy' ); ?>">
+						<span class="dashicons dashicons-desktop"></span>
+						<?php \esc_html_e( 'Desktop', 'fp-privacy' ); ?>
+					</button>
+					<button type="button" class="fp-preview-mode-btn" data-mode="mobile" aria-label="<?php \esc_attr_e( 'Mobile view', 'fp-privacy' ); ?>">
+						<span class="dashicons dashicons-smartphone"></span>
+						<?php \esc_html_e( 'Mobile', 'fp-privacy' ); ?>
+					</button>
+				</div>
+			</div>
+			
+			<div class="fp-preview-controls-right">
+				<button type="button" class="button button-secondary fp-preview-fullscreen-btn" id="fp-preview-fullscreen">
+					<span class="dashicons dashicons-fullscreen-alt"></span>
+					<?php \esc_html_e( 'Fullscreen Preview', 'fp-privacy' ); ?>
+				</button>
+				<button type="button" class="button button-secondary fp-preview-reset-btn" id="fp-preview-reset">
+					<span class="dashicons dashicons-update"></span>
+					<?php \esc_html_e( 'Reset Preview', 'fp-privacy' ); ?>
+				</button>
+			</div>
 		</div>
-		<div class="fp-privacy-preview-frame">
-		<div id="fp-privacy-preview-banner" data-preview-lang="<?php echo \esc_attr( $primary_lang ); ?>"></div>
+		<div class="fp-privacy-preview-frame" id="fp-privacy-preview-frame">
+			<div id="fp-privacy-preview-banner" data-preview-lang="<?php echo \esc_attr( $primary_lang ); ?>"></div>
 		</div>
 		<?php
 	}
@@ -191,14 +221,17 @@ class BannerTabRenderer extends SettingsRendererBase {
 		<div class="fp-privacy-palette-item">
 		<label>
 			<strong class="fp-palette-label-text"><?php echo \esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', $key ) ) ); ?></strong>
-			<input type="text" 
-			       name="banner_layout[palette][<?php echo \esc_attr( $key ); ?>]" 
-			       value="<?php echo \esc_attr( $color ); ?>" 
-			       class="fp-privacy-hex-input" 
-			       placeholder="#000000"
-			       pattern="^#[0-9A-Fa-f]{6}$"
-			       maxlength="7"
-			       data-label="<?php echo \esc_attr( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', $key ) ) ); ?>" />
+			<div class="fp-privacy-color-input-wrapper">
+				<div class="fp-privacy-color-preview" style="background-color: <?php echo \esc_attr( $color ?: '#000000' ); ?>"></div>
+				<input type="text" 
+				       name="banner_layout[palette][<?php echo \esc_attr( $key ); ?>]" 
+				       value="<?php echo \esc_attr( $color ); ?>" 
+				       class="fp-privacy-hex-input" 
+				       placeholder="#000000"
+				       pattern="^#[0-9A-Fa-f]{6}$"
+				       maxlength="7"
+				       data-label="<?php echo \esc_attr( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', $key ) ) ); ?>" />
+			</div>
 		</label>
 		</div>
 		<?php endforeach; ?>

@@ -71,6 +71,20 @@ class AnalyticsRenderer {
 					<div class="stat-value"><?php echo isset( $summary['consent'] ) ? \number_format_i18n( $summary['consent'] ) : '0'; ?></div>
 					<div class="stat-label"><?php \esc_html_e( 'Preferenze Custom', 'fp-privacy' ); ?></div>
 				</div>
+
+				<?php if ( isset( $stats['total_revocations'] ) && $stats['total_revocations'] > 0 ) : ?>
+				<div class="fp-privacy-stat-card">
+					<div class="stat-icon">🔄</div>
+					<div class="stat-value"><?php echo \number_format_i18n( $stats['total_revocations'] ); ?></div>
+					<div class="stat-label"><?php \esc_html_e( 'Revoche Consenso', 'fp-privacy' ); ?></div>
+				</div>
+
+				<div class="fp-privacy-stat-card">
+					<div class="stat-icon">📉</div>
+					<div class="stat-value"><?php echo \number_format_i18n( $stats['revocation_rate'], 1 ); ?>%</div>
+					<div class="stat-label"><?php \esc_html_e( 'Tasso Revoca', 'fp-privacy' ); ?></div>
+				</div>
+				<?php endif; ?>
 			</div>
 
 			<!-- Charts Row 1 -->
@@ -151,6 +165,10 @@ class AnalyticsRenderer {
 							$event_label = '❌ Rifiuta Tutti';
 						} elseif ( 'consent' === $entry['event'] ) {
 							$event_label = '⚙️ Personalizzato';
+						} elseif ( 'consent_revoked' === $entry['event'] ) {
+							$event_label = '🔄 Consenso Revocato';
+						} elseif ( 'consent_withdrawn' === $entry['event'] ) {
+							$event_label = '🔄 Consenso Ritirato';
 						}
 						?>
 						<span class="fp-privacy-event-badge <?php echo \esc_attr( $event_class ); ?>">

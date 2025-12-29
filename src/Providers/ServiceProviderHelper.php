@@ -21,10 +21,12 @@ trait ServiceProviderHelper {
 	/**
 	 * Get Options instance from container or fallback to singleton.
 	 *
+	 * This is a static method to avoid creating unnecessary instances.
+	 *
 	 * @param ContainerInterface $container Service container.
 	 * @return LegacyOptions Options instance.
 	 */
-	protected function getOptions( ContainerInterface $container ): LegacyOptions {
+	protected static function resolveOptions( ContainerInterface $container ): LegacyOptions {
 		// Try to get from container first.
 		if ( $container->has( OptionsInterface::class ) ) {
 			$options = $container->get( OptionsInterface::class );
@@ -39,15 +41,26 @@ trait ServiceProviderHelper {
 		if ( class_exists( '\\FP\\Privacy\\Core\\Kernel' ) ) {
 			try {
 				$kernel = \FP\Privacy\Core\Kernel::make();
-				$container = $kernel->getContainer();
-				if ( $container->has( LegacyOptions::class ) ) {
-					return $container->get( LegacyOptions::class );
+				$fallback_container = $kernel->getContainer();
+				if ( $fallback_container->has( LegacyOptions::class ) ) {
+					return $fallback_container->get( LegacyOptions::class );
 				}
-			} catch ( \Exception $e ) {
+			} catch ( \Throwable $e ) {
 				// Fall through to singleton.
 			}
 		}
 		return LegacyOptions::instance();
+	}
+
+	/**
+	 * Get Options instance from container or fallback to singleton.
+	 *
+	 * @deprecated Use resolveOptions() instead - this method creates unnecessary instances.
+	 * @param ContainerInterface $container Service container.
+	 * @return LegacyOptions Options instance.
+	 */
+	protected function getOptions( ContainerInterface $container ): LegacyOptions {
+		return self::resolveOptions( $container );
 	}
 }
 

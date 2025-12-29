@@ -35,8 +35,7 @@ class CLIServiceProvider implements ServiceProviderInterface {
 			Cleanup::class,
 			function( ContainerInterface $c ) {
 				$log_model = $c->get( LogModel::class );
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				return new Cleanup( $log_model, $options );
 			}
 		);
@@ -46,8 +45,7 @@ class CLIServiceProvider implements ServiceProviderInterface {
 			Commands::class,
 			function( ContainerInterface $c ) {
 				$log_model = $c->get( LogModel::class );
-				$provider = new self();
-				$options = $provider->getOptions( $c );
+				$options = self::resolveOptions( $c );
 				$generator = $c->get( PolicyGenerator::class );
 				$detector = $c->get( DetectorRegistry::class );
 				$cleanup = $c->get( Cleanup::class );

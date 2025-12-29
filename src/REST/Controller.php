@@ -32,13 +32,23 @@ class Controller {
 	 * @param Options         $options   Options handler.
 	 * @param PolicyGenerator $generator Generator.
 	 * @param LogModel        $log_model Log model.
+	 * @param object|null     $container Optional service container for dependency injection.
 	 */
-	public function __construct( ConsentState $state, Options $options, PolicyGenerator $generator, LogModel $log_model ) {
+	public function __construct( ConsentState $state, Options $options, PolicyGenerator $generator, LogModel $log_model, $container = null ) {
 		$permission_checker = new RESTPermissionChecker();
 		// Use old handlers for now (backward compatibility).
 		// New controllers will be registered separately via RESTServiceProvider.
-		$summary_handler    = new RESTSummaryHandler( $log_model, $options, $generator );
-		$consent_handler    = new RESTConsentHandler( $state );
+		$summary_handler = new RESTSummaryHandler( $log_model, $options, $generator );
+		
+		// Try to get RevokeConsentHandler from container if available.
+		$revoke_handler = null;
+		if ( $container && method_exists( $container, 'has' ) && method_exists( $container, 'get' ) ) {
+			if ( $container->has( '\\FP\\Privacy\\Application\\Consent\\RevokeConsentHandler' ) ) {
+				$revoke_handler = $container->get( '\\FP\\Privacy\\Application\\Consent\\RevokeConsentHandler' );
+			}
+		}
+		
+		$consent_handler    = new RESTConsentHandler( $state, $revoke_handler );
 		$revision_handler   = new RESTRevisionHandler( $options );
 		$this->route_registrar = new RESTRouteRegistrar( $summary_handler, $consent_handler, $revision_handler, $permission_checker );
 	}

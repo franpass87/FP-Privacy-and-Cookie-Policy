@@ -33,16 +33,24 @@ class AnalyticsDataCalculator {
 		$accept_all = isset( $summary['accept_all'] ) ? (int) $summary['accept_all'] : 0;
 		$reject_all = isset( $summary['reject_all'] ) ? (int) $summary['reject_all'] : 0;
 		$custom     = isset( $summary['consent'] ) ? (int) $summary['consent'] : 0;
+		$revoked    = isset( $summary['consent_revoked'] ) ? (int) $summary['consent_revoked'] : 0;
+		$withdrawn  = isset( $summary['consent_withdrawn'] ) ? (int) $summary['consent_withdrawn'] : 0;
 		$total_actions = $accept_all + $reject_all + $custom;
+		$total_revocations = $revoked + $withdrawn;
 
 		$accept_rate = $total_actions > 0 ? ( $accept_all / $total_actions ) * 100 : 0;
+		$revocation_rate = $total_actions > 0 ? ( $total_revocations / $total_actions ) * 100 : 0;
 
 		return array(
-			'total'       => $total,
-			'accept_all'  => $accept_all,
-			'reject_all'  => $reject_all,
-			'custom'      => $custom,
-			'accept_rate' => $accept_rate,
+			'total'           => $total,
+			'accept_all'      => $accept_all,
+			'reject_all'      => $reject_all,
+			'custom'          => $custom,
+			'revoked'         => $revoked,
+			'withdrawn'       => $withdrawn,
+			'total_revocations' => $total_revocations,
+			'accept_rate'     => $accept_rate,
+			'revocation_rate' => $revocation_rate,
 		);
 	}
 

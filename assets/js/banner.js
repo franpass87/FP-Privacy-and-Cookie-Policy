@@ -84,6 +84,8 @@ var externalListenerBound = false;
 var placeholderObserver = null;
 var observerTeardownBound = false;
 var reopenButton = null;
+var reopenObserver = null;
+var reopenObserverBound = false;
 
 // Override language detection if not set
 if ( ! state.lang ) {
@@ -108,11 +110,11 @@ if ( data.options && data.options.texts ) {
             currentTexts.btn_accept = 'Accetta tutti';
             currentTexts.btn_reject = 'Rifiuta tutti';
             currentTexts.btn_prefs = 'Gestisci preferenze';
-            currentTexts.modal_title = 'Preferenze privacy';
+            currentTexts.modal_title = 'Preferenze cookie';
             currentTexts.modal_close = 'Chiudi preferenze';
             currentTexts.modal_save = 'Salva preferenze';
             currentTexts.revision_notice = 'Abbiamo aggiornato la nostra policy. Rivedi le tue preferenze.';
-            currentTexts.toggle_locked = 'Sempre attivo';
+            currentTexts.toggle_locked = 'Obbligatorio';
             currentTexts.toggle_enabled = 'Abilitato';
             currentTexts.link_privacy_policy = 'Informativa sulla Privacy';
             currentTexts.link_cookie_policy = 'Cookie Policy';
@@ -127,11 +129,11 @@ if ( data.options && data.options.texts ) {
             currentTexts.btn_accept = 'Accept all';
             currentTexts.btn_reject = 'Reject all';
             currentTexts.btn_prefs = 'Manage preferences';
-            currentTexts.modal_title = 'Privacy preferences';
+            currentTexts.modal_title = 'Cookie preferences';
             currentTexts.modal_close = 'Close preferences';
             currentTexts.modal_save = 'Save preferences';
             currentTexts.revision_notice = 'We have updated our policy. Please review your preferences.';
-            currentTexts.toggle_locked = 'Always active';
+            currentTexts.toggle_locked = 'Required';
             currentTexts.toggle_enabled = 'Enabled';
             currentTexts.link_privacy_policy = 'Privacy Policy';
             currentTexts.link_cookie_policy = 'Cookie Policy';
@@ -197,7 +199,15 @@ function shouldAllowCategory( category, payload ) {
     }
 
     if ( payload && Object.prototype.hasOwnProperty.call( payload, category ) ) {
-        return payload[ category ] === true;
+        var categoryValue = payload[ category ];
+        
+        // EDPB 2025: Support sub-categories structure if enabled.
+        if ( typeof categoryValue === 'object' && categoryValue !== null && categoryValue.enabled !== undefined ) {
+            return categoryValue.enabled === true;
+        }
+        
+        // Legacy format: simple boolean value.
+        return categoryValue === true;
     }
 
     if ( categories && categories[ category ] && categories[ category ].locked ) {
@@ -379,6 +389,15 @@ function startPlaceholderObserver() {
         window.addEventListener( 'beforeunload', stopPlaceholderObserver );
         observerTeardownBound = true;
     }
+    
+    // Ferma anche l'observer del pulsante reopen
+    if ( ! reopenObserverBound ) {
+        window.addEventListener( 'beforeunload', stopReopenObserver );
+        reopenObserverBound = true;
+    }
+    
+    // Ferma anche il controllo periodico
+    stopReopenPeriodicCheck();
 }
 
 function restoreBlockedNodes( payload ) {
@@ -520,6 +539,43 @@ function ensureDOMReady() {
 }
 
 ensureDOMReady();
+
+// Controllo periodico per assicurarsi che il pulsante reopen sia sempre presente
+// Utile per contesti dinamici come SPA, AJAX, ecc.
+var reopenCheckInterval = null;
+function startReopenPeriodicCheck() {
+    if ( reopenCheckInterval || state.preview_mode ) {
+        return;
+    }
+    
+    reopenCheckInterval = setInterval( function() {
+        // Se il banner non dovrebbe essere mostrato, verifica che il pulsante reopen esista
+        if ( ! state.should_display && ! state.preview_mode && ! forceDisplay ) {
+            if ( ! reopenButton || ! document.body.contains( reopenButton ) ) {
+                debugTiming( 'Periodic check: reopen button missing, recreating...' );
+                reopenButton = null;
+                buildReopenButton();
+            } else {
+                // Verifica che la visibilità sia corretta
+                updateReopenVisibility();
+            }
+        }
+    }, 2000 ); // Controlla ogni 2 secondi
+}
+
+function stopReopenPeriodicCheck() {
+    if ( reopenCheckInterval ) {
+        clearInterval( reopenCheckInterval );
+        reopenCheckInterval = null;
+    }
+}
+
+// Avvia il controllo periodico dopo l'inizializzazione
+setTimeout( function() {
+    if ( ! state.preview_mode ) {
+        startReopenPeriodicCheck();
+    }
+}, 1000 );
 
 function initializeBanner() {
     debugTiming( 'initializeBanner called' );
@@ -813,11 +869,12 @@ modal.setAttribute( 'aria-labelledby', heading.id );
         var checkbox = document.createElement( 'input' );
         checkbox.type = 'checkbox';
         checkbox.value = key;
-        checkbox.name = 'fp_privacy_category_' + key;
         var saved = Object.prototype.hasOwnProperty.call( savedCategories, key ) ? savedCategories[ key ] : null;
         if ( cat.locked ) {
             checkbox.checked = true;
             checkbox.disabled = true;
+            // FIX: Aggiungi aria-label per accessibilità - indica che è obbligatorio/non modificabile
+            checkbox.setAttribute( 'aria-label', (cat.label || key) + ': ' + (texts.toggle_locked || 'Obbligatorio') );
         } else if ( saved !== null ) {
             checkbox.checked = !! saved;
         } else {
@@ -831,10 +888,85 @@ modal.setAttribute( 'aria-labelledby', heading.id );
 toggle.appendChild( checkbox );
 
 var toggleText = document.createElement( 'span' );
+        // FIX: Crea ID univoco per associare il testo al checkbox via aria-describedby
+        var toggleTextId = 'fp-privacy-toggle-text-' + key;
+        toggleText.id = toggleTextId;
         toggleText.textContent = cat.locked ? (texts.toggle_locked || '') : (texts.toggle_enabled || '');
+        // FIX: Associa il testo al checkbox per accessibilità
+        checkbox.setAttribute( 'aria-describedby', toggleTextId );
 toggle.appendChild( toggleText );
 
 wrapper.appendChild( toggle );
+
+        // EDPB 2025: Add individual service toggles if sub-categories enabled.
+        var enableSubCategories = data.options && data.options.enable_sub_categories;
+        if ( enableSubCategories && cat.services && Array.isArray( cat.services ) && cat.services.length > 0 ) {
+            var servicesWrapper = document.createElement( 'div' );
+            servicesWrapper.className = 'fp-privacy-sub-services';
+            servicesWrapper.style.marginTop = '12px';
+            servicesWrapper.style.paddingLeft = '20px';
+            servicesWrapper.style.borderLeft = '2px solid #ddd';
+
+            var servicesTitle = document.createElement( 'h4' );
+            servicesTitle.textContent = 'Servizi individuali:';
+            servicesTitle.style.fontSize = '14px';
+            servicesTitle.style.marginBottom = '8px';
+            servicesWrapper.appendChild( servicesTitle );
+
+            for ( var s = 0; s < cat.services.length; s++ ) {
+                var service = cat.services[ s ];
+                if ( ! service || typeof service !== 'object' ) {
+                    continue;
+                }
+
+                var serviceName = service.name || service.key || 'Servizio ' + ( s + 1 );
+                var serviceKey = service.key || serviceName.toLowerCase().replace( /\s+/g, '_' );
+
+                var serviceWrapper = document.createElement( 'div' );
+                serviceWrapper.className = 'fp-privacy-service-toggle';
+                serviceWrapper.style.marginBottom = '8px';
+
+                var serviceLabel = document.createElement( 'label' );
+                serviceLabel.className = 'fp-privacy-switch';
+                serviceLabel.style.fontSize = '13px';
+
+                var serviceCheckbox = document.createElement( 'input' );
+                serviceCheckbox.type = 'checkbox';
+                serviceCheckbox.value = serviceKey;
+                serviceCheckbox.dataset.category = key;
+                serviceCheckbox.dataset.service = serviceKey;
+                
+                // Check if service is enabled (inherit from category if category is checked).
+                var categoryChecked = checkbox.checked;
+                serviceCheckbox.checked = categoryChecked;
+                
+                // If category is locked, service is also locked.
+                if ( cat.locked ) {
+                    serviceCheckbox.disabled = true;
+                }
+
+                serviceLabel.appendChild( serviceCheckbox );
+
+                var serviceText = document.createElement( 'span' );
+                serviceText.textContent = serviceName;
+                serviceLabel.appendChild( serviceText );
+
+                serviceWrapper.appendChild( serviceLabel );
+                servicesWrapper.appendChild( serviceWrapper );
+
+                // Sync service checkbox with category checkbox.
+                checkbox.addEventListener( 'change', function( catKey, servKey, servCheck ) {
+                    return function() {
+                        if ( ! cat.locked ) {
+                            servCheck.checked = checkbox.checked;
+                        }
+                    };
+                }( key, serviceKey, serviceCheckbox ) );
+            }
+
+            wrapper.appendChild( servicesWrapper );
+        }
+
 modal.appendChild( wrapper );
 }
 
@@ -874,6 +1006,26 @@ acceptAll.addEventListener( 'click', function ( event ) {
 });
 actions.appendChild( acceptAll );
 
+// Add revoke consent button
+var revokeButtonText = texts.btn_revoke || ( state.lang === 'it_IT' ? 'Revoca tutti i consensi' : 'Revoke all consent' );
+var revokeConfirmText = texts.revoke_confirm || ( state.lang === 'it_IT' ? 'Sei sicuro di voler revocare tutti i consensi? Il banner riapparirà e dovrai accettare nuovamente i cookie.' : 'Are you sure you want to revoke all consent? The banner will reappear and you will need to accept cookies again.' );
+var revokeButton = createButton( revokeButtonText, 'fp-privacy-button fp-privacy-button-danger' );
+revokeButton.style.marginLeft = '10px';
+revokeButton.style.backgroundColor = '#dc3232';
+revokeButton.style.color = '#fff';
+revokeButton.addEventListener( 'click', function( event ) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Show confirmation dialog
+    var confirmed = confirm( revokeConfirmText );
+    if ( confirmed ) {
+        revokeConsent();
+        closeModal();
+    }
+} );
+actions.appendChild( revokeButton );
+
 modal.appendChild( actions );
 modalOverlay.appendChild( modal );
 document.body.appendChild( modalOverlay );
@@ -900,10 +1052,22 @@ updateRevisionNotice();
 }
 
 function buildReopenButton() {
-    if ( reopenButton || state.preview_mode ) {
+    if ( state.preview_mode ) {
         return;
     }
 
+    // Se il pulsante esiste già nel DOM, non ricrearlo
+    if ( reopenButton && document.body.contains( reopenButton ) ) {
+        updateReopenVisibility();
+        return;
+    }
+
+    // Se il pulsante esiste ma non è nel DOM, rimuovilo dalla variabile
+    if ( reopenButton && ! document.body.contains( reopenButton ) ) {
+        reopenButton = null;
+    }
+
+    // Crea il nuovo pulsante
     reopenButton = document.createElement( 'button' );
     reopenButton.type = 'button';
     reopenButton.className = 'fp-privacy-reopen';
@@ -923,10 +1087,14 @@ function buildReopenButton() {
         reopenButton.setAttribute( 'aria-controls', modal.id );
     }
 
+    // Crea icona SVG moderna invece del carattere Unicode
     var icon = document.createElement( 'span' );
     icon.className = 'fp-privacy-reopen-icon';
     icon.setAttribute( 'aria-hidden', 'true' );
-    icon.textContent = '\u2699';
+    
+    // Icona SVG stilizzata per preferenze cookie (ingranaggio moderno)
+    icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="currentColor" fill-opacity="0.2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    
     reopenButton.appendChild( icon );
 
     reopenButton.addEventListener( 'click', function ( event ) {
@@ -935,12 +1103,45 @@ function buildReopenButton() {
         openModal();
     } );
 
-    document.body.appendChild( reopenButton );
-    updateReopenVisibility();
+    // Assicurati che body esista prima di aggiungere il pulsante
+    if ( document.body ) {
+        document.body.appendChild( reopenButton );
+        updateReopenVisibility();
+        startReopenObserver();
+    } else {
+        // Se body non esiste ancora, aspetta che sia disponibile
+        var checkBody = setInterval( function() {
+            if ( document.body ) {
+                clearInterval( checkBody );
+                document.body.appendChild( reopenButton );
+                updateReopenVisibility();
+                startReopenObserver();
+            }
+        }, 50 );
+        
+        // Timeout di sicurezza dopo 5 secondi
+        setTimeout( function() {
+            clearInterval( checkBody );
+        }, 5000 );
+    }
 }
 
 function updateReopenVisibility() {
     if ( ! reopenButton ) {
+        // Se il pulsante non esiste, prova a ricrearlo
+        if ( ! state.preview_mode && ! forceDisplay ) {
+            buildReopenButton();
+        }
+        return;
+    }
+
+    // Verifica che il pulsante sia ancora nel DOM
+    if ( ! document.body.contains( reopenButton ) ) {
+        // Il pulsante è stato rimosso, ricrealo
+        reopenButton = null;
+        if ( ! state.preview_mode && ! forceDisplay ) {
+            buildReopenButton();
+        }
         return;
     }
 
@@ -950,6 +1151,47 @@ function updateReopenVisibility() {
     }
 
     reopenButton.style.display = state.should_display ? 'none' : 'flex';
+}
+
+function startReopenObserver() {
+    if ( reopenObserverBound || ! reopenButton || ! window.MutationObserver ) {
+        return;
+    }
+
+    reopenObserverBound = true;
+
+    reopenObserver = new MutationObserver( function( mutations ) {
+        // Verifica se il pulsante è ancora nel DOM
+        if ( reopenButton && ! document.body.contains( reopenButton ) ) {
+            debugTiming( 'Reopen button removed from DOM, recreating...' );
+            var shouldDisplay = reopenButton.style.display !== 'none';
+            reopenButton = null;
+            
+            // Ricrea il pulsante dopo un breve delay
+            setTimeout( function() {
+                buildReopenButton();
+                if ( reopenButton && shouldDisplay ) {
+                    updateReopenVisibility();
+                }
+            }, 100 );
+        }
+    } );
+
+    // Osserva le modifiche al body
+    if ( document.body ) {
+        reopenObserver.observe( document.body, {
+            childList: true,
+            subtree: false
+        } );
+    }
+}
+
+function stopReopenObserver() {
+    if ( reopenObserver ) {
+        reopenObserver.disconnect();
+        reopenObserver = null;
+        reopenObserverBound = false;
+    }
 }
 
 function showBanner() {
@@ -996,6 +1238,8 @@ lastFocusedElement.focus();
 
 function buildConsentPayload( grantAll, denyAll ) {
 var payload = {};
+var enableSubCategories = data.options && data.options.enable_sub_categories;
+
 for ( var key in categories ) {
 if ( ! categories.hasOwnProperty( key ) ) {
 continue;
@@ -1007,12 +1251,64 @@ continue;
 }
 
 if ( grantAll ) {
-payload[ key ] = true;
+    // EDPB 2025: If sub-categories enabled, build detailed payload with all services enabled.
+    if ( enableSubCategories && cat.services && Array.isArray( cat.services ) && cat.services.length > 0 ) {
+        payload[ key ] = {
+            enabled: true,
+            services: {}
+        };
+        for ( var s = 0; s < cat.services.length; s++ ) {
+            var service = cat.services[ s ];
+            if ( ! service || typeof service !== 'object' ) {
+                continue;
+            }
+            var serviceKey = service.key || ( service.name || '' ).toLowerCase().replace( /\s+/g, '_' );
+            payload[ key ].services[ serviceKey ] = true;
+        }
+    } else {
+        payload[ key ] = true;
+    }
 } else if ( denyAll ) {
-payload[ key ] = false;
+    // EDPB 2025: If sub-categories enabled, build detailed payload with all services disabled.
+    if ( enableSubCategories && cat.services && Array.isArray( cat.services ) && cat.services.length > 0 ) {
+        payload[ key ] = {
+            enabled: false,
+            services: {}
+        };
+        for ( var s = 0; s < cat.services.length; s++ ) {
+            var service = cat.services[ s ];
+            if ( ! service || typeof service !== 'object' ) {
+                continue;
+            }
+            var serviceKey = service.key || ( service.name || '' ).toLowerCase().replace( /\s+/g, '_' );
+            payload[ key ].services[ serviceKey ] = false;
+        }
+    } else {
+        payload[ key ] = false;
+    }
 } else {
-var input = modal.querySelector( 'input[data-category="' + key + '"]' );
-payload[ key ] = input ? input.checked : false;
+var input = modal.querySelector( 'input[data-category="' + key + '"]:not([data-service])' );
+var categoryChecked = input ? input.checked : false;
+
+// EDPB 2025: If sub-categories enabled, build detailed payload with individual services.
+if ( enableSubCategories && cat.services && Array.isArray( cat.services ) && cat.services.length > 0 ) {
+    payload[ key ] = {
+        enabled: categoryChecked,
+        services: {}
+    };
+
+    for ( var s = 0; s < cat.services.length; s++ ) {
+        var service = cat.services[ s ];
+        if ( ! service || typeof service !== 'object' ) {
+            continue;
+        }
+        var serviceKey = service.key || ( service.name || '' ).toLowerCase().replace( /\s+/g, '_' );
+        var serviceInput = modal.querySelector( 'input[data-category="' + key + '"][data-service="' + serviceKey + '"]' );
+        payload[ key ].services[ serviceKey ] = serviceInput ? serviceInput.checked : categoryChecked;
+    }
+} else {
+    payload[ key ] = categoryChecked;
+}
 }
 }
 
@@ -1055,7 +1351,12 @@ function mapToConsentMode( payload ) {
 
 function setButtonsLoading( isLoading ) {
     debugTiming( 'setButtonsLoading called with isLoading: ' + isLoading );
-    var buttons = document.querySelectorAll( '.fp-privacy-button' );
+    // FIX: Seleziona solo i bottoni del modal (non quelli del banner)
+    // Questo previene di disabilitare i bottoni del banner quando si interagisce con il modal
+    if ( !modal ) {
+        return; // Exit early se modal non esiste
+    }
+    var buttons = modal.querySelectorAll( '.fp-privacy-button' );
     debugTiming( 'Found ' + buttons.length + ' buttons to update' );
     
     for ( var i = 0; i < buttons.length; i++ ) {
@@ -1178,6 +1479,106 @@ function handleRejectAll() {
     } catch ( error ) {
         debugTiming( 'Error in handleRejectAll: ' + error.message );
         // Il timeout di sicurezza chiuderà comunque il banner
+    }
+}
+
+function revokeConsent() {
+    debugTiming( 'revokeConsent called' );
+    
+    try {
+        // Build revocation payload (all false except necessary).
+        var payload = {
+            analytics: false,
+            marketing: false,
+            functional: false,
+            necessary: true // Necessary cookies cannot be revoked.
+        };
+        
+        // Update state immediately.
+        state.categories = Object.assign( {}, payload );
+        state.should_display = true; // Show banner again after revocation.
+        
+        // Clear consent cookie.
+        var consentId = ensureConsentId();
+        deleteConsentCookie();
+        
+        // Update Google Consent Mode to deny all (except necessary).
+        var consentMode = mapToConsentMode( payload );
+        if ( window.fpPrivacyConsent ) {
+            window.fpPrivacyConsent.update( consentMode );
+        }
+        
+        if ( typeof window.dataLayer === 'undefined' ) {
+            window.dataLayer = [];
+        }
+        
+        window.dataLayer.push( {
+            event: 'fp_consent_revoked',
+            consent: consentMode,
+            rev: state.revision,
+            timestamp: Date.now(),
+            consent_id: consentId
+        } );
+        
+        // Send revocation to server.
+        var revokeUrl = rest.url + '/consent/revoke';
+        var revokeData = {
+            consent_id: consentId,
+            lang: state.lang
+        };
+        
+        var revokeOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify( revokeData )
+        };
+        
+        // Add nonce if available.
+        if ( rest.nonce ) {
+            revokeOptions.headers[ 'X-WP-Nonce' ] = rest.nonce;
+        }
+        
+        fetch( revokeUrl, revokeOptions )
+            .then( function( response ) {
+                if ( ! response.ok ) {
+                    throw new Error( 'Revocation request failed' );
+                }
+                return response.json();
+            } )
+            .then( function( result ) {
+                debugTiming( 'Consent revoked successfully: ' + JSON.stringify( result ) );
+                // Show banner again to allow new consent.
+                if ( banner ) {
+                    banner.style.display = '';
+                    state.should_display = true;
+                }
+                // Show visual feedback.
+                showRevocationFeedback();
+                // Dispatch custom event.
+                var event = createCustomEvent( 'fp-consent-revoked', {
+                    consent_id: consentId,
+                    result: result
+                } );
+                if ( event && document ) {
+                    document.dispatchEvent( event );
+                }
+            } )
+            .catch( function( error ) {
+                debugTiming( 'Error revoking consent: ' + error.message );
+                // Still show banner even if server request fails.
+                if ( banner ) {
+                    banner.style.display = '';
+                    state.should_display = true;
+                }
+            } );
+        
+        // Restore blocked nodes (remove all except necessary).
+        restoreBlockedNodes( payload );
+        
+    } catch ( error ) {
+        debugTiming( 'Error in revokeConsent: ' + error.message );
     }
 }
 
@@ -1588,6 +1989,70 @@ function setConsentCookie( consentId, revision ) {
     }, 100 );
     
     debugTiming( 'Cookie impostato: ' + cookieString );
+}
+
+function showRevocationFeedback() {
+    // Create feedback message
+    var feedbackText = state.lang === 'it_IT' 
+        ? 'Consenso revocato. Il banner riapparirà per nuove scelte.'
+        : 'Consent revoked. The banner will reappear for new choices.';
+    var feedback = document.createElement( 'div' );
+    feedback.className = 'fp-privacy-revocation-feedback';
+    feedback.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #dc3232; color: #fff; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100000; animation: fpPrivacySlideInRight 0.3s ease-out;';
+    feedback.textContent = feedbackText;
+    
+    document.body.appendChild( feedback );
+    
+    // Remove after 5 seconds
+    setTimeout( function() {
+        feedback.style.animation = 'fpPrivacyFadeOut 0.3s ease-out forwards';
+        setTimeout( function() {
+            if ( feedback.parentNode ) {
+                feedback.parentNode.removeChild( feedback );
+            }
+        }, 300 );
+    }, 5000 );
+}
+
+// Add animation for feedback
+if ( ! document.getElementById( 'fp-privacy-feedback-styles' ) ) {
+    var style = document.createElement( 'style' );
+    style.id = 'fp-privacy-feedback-styles';
+    style.textContent = '@keyframes fpPrivacySlideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }';
+    document.head.appendChild( style );
+}
+
+function deleteConsentCookie() {
+    var cookieName = consentCookie.name || 'fp_consent_state_id';
+    
+    // Delete cookie by setting expiration in the past.
+    var expires = 'expires=Thu, 01 Jan 1970 00:00:00 UTC';
+    var cookieString = cookieName + '=; ' + expires + '; path=/';
+    
+    // Try to delete with domain.
+    var domain = window.location.hostname;
+    if ( domain && domain !== 'localhost' && ! domain.match( /^\d+\.\d+\.\d+\.\d+$/ ) ) {
+        var domainParts = domain.split( '.' );
+        if ( domainParts.length > 1 ) {
+            var mainDomain = '.' + domainParts.slice( -2 ).join( '.' );
+            document.cookie = cookieString + '; domain=' + mainDomain;
+        }
+    }
+    
+    // Also delete without domain.
+    document.cookie = cookieString;
+    
+    // Delete from localStorage.
+    try {
+        if ( window.localStorage ) {
+            localStorage.removeItem( cookieName );
+            debugTiming( 'Consenso rimosso da localStorage' );
+        }
+    } catch ( error ) {
+        debugTiming( 'Impossibile rimuovere da localStorage: ' + error.message );
+    }
+    
+    debugTiming( 'Cookie consenso eliminato' );
 }
 
 function updateRevisionNotice() {

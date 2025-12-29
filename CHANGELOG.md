@@ -4,6 +4,110 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.3.0] - 2025-11-01 - Compliance 2025/2026 Release
+
+### ✨ Aggiunte
+
+#### Supporto AI Act (Regolamento UE sull'Intelligenza Artificiale)
+- Sezione dedicata in Privacy Policy per sistemi AI utilizzati
+- Configurazione admin per sistemi AI con nome, scopo e livello di rischio
+- Template automatico conforme ad AI Act Art. 13
+- Sezione cookie AI/ML in Cookie Policy
+- Supporto multi-lingua per disclosure AI
+
+#### Revoca Consenso (GDPR Art. 7.3, ePrivacy Art. 5.3)
+- Endpoint REST dedicato: `POST /wp-json/fp-privacy/v1/consent/revoke`
+- Funzione JavaScript `revokeConsent()` per revoca frontend
+- Pulsante "Revoca tutti i consensi" in modal preferenze
+- Dialog di conferma prima della revoca
+- Feedback visivo dopo revoca
+- Aggiornamento automatico Google Consent Mode (deny all)
+- Cookie cleanup automatico
+- Banner riappare dopo revoca per nuove scelte
+
+#### Tracking Eventi Revoca
+- Eventi log: `consent_revoked`, `consent_withdrawn`
+- Metriche analytics: tasso revoca, totale revocazioni
+- Stat card dedicate in dashboard Analytics
+- Visualizzazione eventi revoca in tabella consensi recenti
+
+#### Trasparenza Algoritmica (Digital Omnibus, GDPR Art. 22)
+- Value Object `AlgorithmicTransparency` per type safety
+- Sezione admin dedicata per configurazione
+- Generazione automatica sezione policy trasparenza algoritmica
+- Supporto decisioni automatizzate con descrizione logica
+- Supporto profilazione con descrizione tecniche
+- Configurazione disponibilità intervento umano
+- Link a informazioni dettagliate algoritmi (opzionale)
+
+#### Granularità Avanzata Consenso (EDPB 2025)
+- Toggle individuali per ogni servizio rilevato (GA4, GTM, Facebook Pixel, ecc.)
+- Supporto sub-categorie nelle categorie principali
+- UI admin per abilitare/disabilitare granularità avanzata
+- Payload consenso dettagliato con stato per servizio
+- Sanitizzazione e validazione payload sub-categorie
+
+#### Sezioni Policy 2025/2026
+- Sezione "Trattamento dati per sistemi AI" in Privacy Policy
+- Sezione "Trasparenza Algoritmica" in Privacy Policy
+- Sezione "Cookie e tecnologie AI" in Cookie Policy
+- Template aggiornati conformi alle direttive 2025/2026
+
+#### Documentazione Compliance
+- `docs/COMPLIANCE-2025-2026.md` - Guida generale compliance
+- `docs/AI-ACT-COMPLIANCE.md` - Checklist AI Act
+- `docs/DIGITAL-OMNIBUS-GUIDE.md` - Guida trasparenza algoritmica
+
+### 🎨 Migliorate
+
+- UX revoca consenso con feedback visivo
+- Supporto traduzioni per pulsante revoca e messaggi
+- Gestione payload consenso con struttura sub-categorie
+- Sanitizzazione payload con supporto sub-categorie
+- Analytics dashboard con metriche revoca
+
+### 📁 File Nuovi
+
+- `src/Domain/Policy/AIDisclosureGenerator.php` - Generatore sezioni AI
+- `src/Domain/ValueObjects/AlgorithmicTransparency.php` - VO trasparenza algoritmica
+- `src/Application/Consent/RevokeConsentHandler.php` - Handler revoca consenso
+- `docs/COMPLIANCE-2025-2026.md` - Guida compliance generale
+- `docs/AI-ACT-COMPLIANCE.md` - Checklist AI Act
+- `docs/DIGITAL-OMNIBUS-GUIDE.md` - Guida Digital Omnibus
+
+### 📝 File Modificati
+
+- `src/Admin/PolicyGenerator.php` - Generazione sezioni AI e trasparenza algoritmica
+- `src/Utils/Options.php` - Opzioni AI disclosure, trasparenza algoritmica, sub-categorie
+- `src/REST/RESTConsentHandler.php` - Metodo `revoke_consent()`
+- `src/REST/RESTRouteRegistrar.php` - Route `/consent/revoke`
+- `src/REST/Controller.php` - Iniezione RevokeConsentHandler
+- `src/Consent/LogModel.php` - Eventi `consent_revoked`, `consent_withdrawn`
+- `src/Admin/AnalyticsDataCalculator.php` - Calcolo tasso revoca
+- `src/Admin/AnalyticsRenderer.php` - Stat card revoca
+- `src/Frontend/ConsentStateSanitizer.php` - Supporto payload sub-categorie
+- `src/Frontend/ConsentState.php` - Eventi revoca
+- `src/Presentation/Admin/Views/PrivacyTabRenderer.php` - Sezione trasparenza algoritmica
+- `src/Presentation/Admin/Views/CookiesTabRenderer.php` - Sezione granularità avanzata
+- `src/Providers/ApplicationServiceProvider.php` - Registrazione RevokeConsentHandler
+- `src/Providers/RESTServiceProvider.php` - Iniezione RevokeConsentHandler
+- `templates/privacy-policy.php` - Sezioni AI e trasparenza algoritmica
+- `templates/cookie-policy.php` - Sezione cookie AI
+- `assets/js/banner.js` - Funzione `revokeConsent()`, supporto sub-categorie, feedback
+- `assets/css/banner.css` - Stili pulsante revoca
+
+### 🔒 Compliance
+
+- ✅ GDPR Art. 7.3 (revoca consenso) implementato
+- ✅ AI Act Art. 13 (trasparenza sistemi AI) implementato
+- ✅ Digital Omnibus (trasparenza algoritmica) implementato
+- ✅ EDPB 2025 (granularità consenso) implementato
+- ✅ ePrivacy Art. 5.3 (revoca cookie consent) implementato
+- ✅ GDPR Art. 22 (decisioni automatizzate) implementato
+- ✅ GDPR Art. 13.2(f) (logica automatizzata) implementato
+
+---
+
 ## [0.2.0] - 2025-10-28 - Quick Wins Release
 
 ### ✨ Aggiunte

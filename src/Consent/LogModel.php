@@ -302,11 +302,13 @@ $params[] = $like;
 		);
 
 		$summary = array(
-			'accept_all'   => 0,
-			'reject_all'   => 0,
-			'consent'      => 0,
-			'reset'        => 0,
-			'revision_bump' => 0,
+			'accept_all'     => 0,
+			'reject_all'     => 0,
+			'consent'        => 0,
+			'reset'          => 0,
+			'revision_bump'   => 0,
+			'consent_revoked' => 0,
+			'consent_withdrawn' => 0,
 		);
 
 		foreach ( $rows as $row ) {
