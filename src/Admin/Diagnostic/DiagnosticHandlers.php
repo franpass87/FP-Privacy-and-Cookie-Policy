@@ -138,7 +138,6 @@ class DiagnosticHandlers {
 				'type'                   => 'floating',
 				'position'               => 'bottom',
 				'sync_modal_and_button'  => false,
-				'enable_dark_mode'       => false,
 				'palette'                => array(
 					'surface_bg'          => '#F9FAFB',
 					'surface_text'        => '#1F2937',

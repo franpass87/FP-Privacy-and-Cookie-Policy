@@ -44,13 +44,6 @@ class BannerLayout {
 	private $sync_modal_and_button;
 
 	/**
-	 * Enable dark mode.
-	 *
-	 * @var bool
-	 */
-	private $enable_dark_mode;
-
-	/**
 	 * Valid banner types.
 	 *
 	 * @var array<string>
@@ -71,20 +64,17 @@ class BannerLayout {
 	 * @param string       $position              Banner position.
 	 * @param ColorPalette $palette               Color palette.
 	 * @param bool         $sync_modal_and_button Sync modal and button colors.
-	 * @param bool         $enable_dark_mode      Enable dark mode.
 	 */
 	public function __construct(
 		$type = 'floating',
 		$position = 'bottom',
 		ColorPalette $palette = null,
-		$sync_modal_and_button = true,
-		$enable_dark_mode = false
+		$sync_modal_and_button = true
 	) {
 		$this->type                  = $this->validate_type( $type );
 		$this->position              = $this->validate_position( $position );
 		$this->palette               = $palette ?? new ColorPalette();
 		$this->sync_modal_and_button = (bool) $sync_modal_and_button;
-		$this->enable_dark_mode      = (bool) $enable_dark_mode;
 	}
 
 	/**
@@ -104,8 +94,7 @@ class BannerLayout {
 			$data['type'] ?? 'floating',
 			$data['position'] ?? 'bottom',
 			$palette,
-			$data['sync_modal_and_button'] ?? true,
-			$data['enable_dark_mode'] ?? false
+			$data['sync_modal_and_button'] ?? true
 		);
 	}
 
@@ -120,7 +109,6 @@ class BannerLayout {
 			'position'              => $this->position,
 			'palette'               => $this->palette->to_array(),
 			'sync_modal_and_button' => $this->sync_modal_and_button,
-			'enable_dark_mode'      => $this->enable_dark_mode,
 		);
 	}
 
@@ -158,15 +146,6 @@ class BannerLayout {
 	 */
 	public function is_sync_modal_and_button() {
 		return $this->sync_modal_and_button;
-	}
-
-	/**
-	 * Check if dark mode is enabled.
-	 *
-	 * @return bool
-	 */
-	public function is_dark_mode_enabled() {
-		return $this->enable_dark_mode;
 	}
 
 	/**

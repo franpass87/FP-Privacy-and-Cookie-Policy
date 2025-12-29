@@ -101,7 +101,6 @@ class OptionsValidator {
 				'position'              => $layout_raw['position'] ?? $defaults['banner_layout']['position'],
 				'palette'               => isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ? $layout_raw['palette'] : $defaults['banner_layout']['palette'],
 				'sync_modal_and_button' => $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'],
-				'enable_dark_mode'      => $layout_raw['enable_dark_mode'] ?? ( $defaults['banner_layout']['enable_dark_mode'] ?? false ),
 			)
 		);
 		

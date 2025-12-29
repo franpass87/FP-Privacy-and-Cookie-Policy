@@ -29,7 +29,6 @@ class BannerLayoutTest extends TestCase {
 				'secondary' => '#ffffff',
 			),
 			'sync_modal_and_button' => true,
-			'enable_dark_mode'      => false,
 		);
 
 		$layout = BannerLayout::from_array( $data );
@@ -38,8 +37,7 @@ class BannerLayoutTest extends TestCase {
 		$this->assertEquals( 'floating', $layout->get_type() );
 		$this->assertEquals( 'bottom', $layout->get_position() );
 		$this->assertInstanceOf( ColorPalette::class, $layout->get_palette() );
-		$this->assertTrue( $layout->get_sync_modal_and_button() );
-		$this->assertFalse( $layout->get_enable_dark_mode() );
+		$this->assertTrue( $layout->is_sync_modal_and_button() );
 	}
 
 	/**
@@ -55,7 +53,6 @@ class BannerLayoutTest extends TestCase {
 				'primary' => '#ff0000',
 			),
 			'sync_modal_and_button' => false,
-			'enable_dark_mode'      => true,
 		);
 
 		$layout = BannerLayout::from_array( $data );
@@ -66,7 +63,6 @@ class BannerLayoutTest extends TestCase {
 		$this->assertEquals( 'top', $result['position'] );
 		$this->assertIsArray( $result['palette'] );
 		$this->assertFalse( $result['sync_modal_and_button'] );
-		$this->assertTrue( $result['enable_dark_mode'] );
 	}
 
 	/**
@@ -79,8 +75,7 @@ class BannerLayoutTest extends TestCase {
 
 		$this->assertEquals( 'floating', $layout->get_type() );
 		$this->assertEquals( 'bottom', $layout->get_position() );
-		$this->assertTrue( $layout->get_sync_modal_and_button() );
-		$this->assertFalse( $layout->get_enable_dark_mode() );
+		$this->assertTrue( $layout->is_sync_modal_and_button() );
 	}
 }
 

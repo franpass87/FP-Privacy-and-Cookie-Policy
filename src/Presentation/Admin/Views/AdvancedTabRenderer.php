@@ -25,20 +25,8 @@ class AdvancedTabRenderer extends SettingsRendererBase {
 	public function render( array $data ) {
 		$notifications         = $data['notifications'];
 		$notification_recipients = $data['notification_recipients'];
-		$dark_mode_enabled = get_user_meta( get_current_user_id(), 'fp_privacy_dark_mode', true ) === '1';
 		?>
 		<div class="fp-privacy-tab-content" id="fp-privacy-tab-content-advanced" role="tabpanel" aria-labelledby="fp-privacy-tab-button-advanced" data-tab-content="advanced">
-			<h2><?php \esc_html_e( 'Appearance', 'fp-privacy' ); ?></h2>
-			<div class="fp-privacy-appearance-settings">
-				<label>
-					<input type="checkbox" id="fp-dark-mode-toggle" name="dark_mode_enabled" value="1" <?php \checked( $dark_mode_enabled, true ); ?> />
-					<?php \esc_html_e( 'Enable dark mode for settings pages', 'fp-privacy' ); ?>
-				</label>
-				<p class="description">
-					<?php \esc_html_e( 'When enabled, the settings interface will use a dark color scheme. This preference is saved per user.', 'fp-privacy' ); ?>
-				</p>
-			</div>
-
 			<h2><?php \esc_html_e( 'Integration alerts', 'fp-privacy' ); ?></h2>
 			<?php $this->render_detector_notifications( $notifications, $notification_recipients ); ?>
 

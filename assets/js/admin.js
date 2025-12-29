@@ -765,22 +765,6 @@ $( function () {
     layoutPosition.on( 'change', updatePreview );
     languageSelect.on( 'change', updatePreview );
     
-    // Monitora il checkbox dark mode per aggiornare il preview
-    form.on( 'change', 'input[name="banner_layout[enable_dark_mode]"]', function() {
-        var isDarkMode = $( this ).is( ':checked' );
-        var previewFrame = $( '.fp-privacy-preview-frame' );
-        
-        if ( isDarkMode ) {
-            previewFrame.addClass( 'dark-mode-preview' );
-            $( 'body' ).addClass( 'fp-privacy-dark-mode-enabled' );
-        } else {
-            previewFrame.removeClass( 'dark-mode-preview' );
-            $( 'body' ).removeClass( 'fp-privacy-dark-mode-enabled' );
-        }
-        
-        updatePreview();
-    });
-    
     // ========================================
     // PREVIEW CONTROLS ENHANCEMENT
     // ========================================
@@ -835,28 +819,6 @@ $( function () {
     } );
 
     updatePreview();
-    
-    // ========================================
-    // DARK MODE TOGGLE
-    // ========================================
-    $( '#fp-dark-mode-toggle' ).on( 'change', function() {
-        var isEnabled = $( this ).is( ':checked' );
-        var $settings = $( '.fp-privacy-settings' );
-        
-        if ( isEnabled ) {
-            $settings.addClass( 'fp-privacy-dark-mode' );
-            localStorage.setItem( 'fpPrivacyDarkMode', '1' );
-        } else {
-            $settings.removeClass( 'fp-privacy-dark-mode' );
-            localStorage.setItem( 'fpPrivacyDarkMode', '0' );
-        }
-    } );
-    
-    // Ripristina dark mode da localStorage
-    var savedDarkMode = localStorage.getItem( 'fpPrivacyDarkMode' );
-    if ( savedDarkMode === '1' ) {
-        $( '#fp-dark-mode-toggle' ).prop( 'checked', true ).trigger( 'change' );
-    }
     
     // ========================================
     // TOAST NOTIFICATION SYSTEM (IMPROVED)

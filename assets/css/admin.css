@@ -611,93 +611,6 @@ textarea:focus-visible {
     opacity: 1;
 }
 
-/* ========================================
-   DARK MODE SUPPORT
-   ======================================== */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --fp-gray-50: #1f2937;
-        --fp-gray-100: #374151;
-        --fp-gray-200: #4b5563;
-        --fp-gray-300: #6b7280;
-        --fp-gray-500: #9ca3af;
-        --fp-gray-700: #d1d5db;
-        --fp-gray-900: #f9fafb;
-    }
-    
-    .fp-privacy-settings,
-    .fp-privacy-section-card,
-    .fp-privacy-preview-controls,
-    .fp-privacy-modal-content {
-        background: var(--fp-gray-50);
-        color: var(--fp-gray-900);
-    }
-    
-    .fp-privacy-settings h2,
-    .fp-form-label {
-        color: var(--fp-gray-900);
-    }
-    
-    .fp-form-input,
-    .fp-form-textarea,
-    .fp-form-select {
-        background: var(--fp-gray-100);
-        border-color: var(--fp-gray-300);
-        color: var(--fp-gray-900);
-    }
-    
-    .fp-privacy-tabs-nav {
-        background: var(--fp-gray-100);
-        border-color: var(--fp-gray-200);
-    }
-    
-    .fp-privacy-tab-button {
-        color: var(--fp-gray-500);
-    }
-    
-    .fp-privacy-tab-button.active {
-        background: var(--fp-gray-50);
-        color: var(--fp-primary);
-    }
-    
-    .fp-privacy-preview-frame {
-        background: var(--fp-gray-100);
-        border-color: var(--fp-gray-300);
-    }
-}
-
-/* Dark mode manual toggle */
-.fp-privacy-dark-mode {
-    --fp-gray-50: #1f2937;
-    --fp-gray-100: #374151;
-    --fp-gray-200: #4b5563;
-    --fp-gray-300: #6b7280;
-    --fp-gray-500: #9ca3af;
-    --fp-gray-700: #d1d5db;
-    --fp-gray-900: #f9fafb;
-}
-
-.fp-privacy-dark-mode .fp-privacy-settings,
-.fp-privacy-dark-mode .fp-privacy-section-card,
-.fp-privacy-dark-mode .fp-privacy-preview-controls,
-.fp-privacy-dark-mode .fp-privacy-modal-content {
-    background: var(--fp-gray-50);
-    color: var(--fp-gray-900);
-}
-
-.fp-privacy-dark-mode .fp-privacy-settings h2,
-.fp-privacy-dark-mode .fp-form-label {
-    color: var(--fp-gray-900);
-}
-
-.fp-privacy-dark-mode .fp-form-input,
-.fp-privacy-dark-mode .fp-form-textarea,
-.fp-privacy-dark-mode .fp-form-select {
-    background: var(--fp-gray-100);
-    border-color: var(--fp-gray-300);
-    color: var(--fp-gray-900);
-}
-
 /* Help Icon Component */
 .fp-help-icon-wrapper {
     position: relative;
@@ -1536,42 +1449,6 @@ transition: border-color 0.2s ease;
     font-size: 20px;
 }
 
-/* Dark mode preview */
-.fp-privacy-preview-frame.dark-mode-preview {
-    background: #111827;
-    border-color: #374151;
-}
-
-.fp-privacy-preview-frame.dark-mode-preview::before {
-    content: 'DARK MODE PREVIEW';
-    color: #60a5fa;
-}
-
-.fp-privacy-preview-frame.dark-mode-preview::after {
-    content: '🌙';
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    font-size: 20px;
-}
-
-/* Evidenzia opzione dark mode */
-.fp-privacy-layout label:has(input[name="banner_layout[enable_dark_mode]"]) {
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-    padding: 12px 16px;
-    border-radius: 8px;
-    border: 1px solid #93c5fd;
-    margin-top: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.fp-privacy-layout label:has(input[name="banner_layout[enable_dark_mode]"]):hover {
-    border-color: #60a5fa;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
-}
-
 .fp-privacy-preview-frame .fp-privacy-banner {
 position: relative;
 left: auto;
@@ -1608,7 +1485,7 @@ font-weight: 600;
 margin-bottom: 4px;
 }
 
-/* Stile per description sotto checkbox dark mode */
+/* Stile per description */
 .fp-privacy-layout .description {
     font-size: 13px;
     color: #6b7280;
