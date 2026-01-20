@@ -122,8 +122,6 @@ $( function () {
     // ========================================
     // GESTIONE TABS
     // ========================================
-    var tabButtons = $( '.fp-privacy-tab-button' );
-    var tabContents = $( '.fp-privacy-tab-content' );
     var tabMap = {
         '1': 'banner',
         '2': 'cookies',
@@ -131,11 +129,23 @@ $( function () {
         '4': 'advanced'
     };
     
+    // Funzione per ottenere i tab buttons e contents (refresh ad ogni chiamata)
+    function getTabElements() {
+        return {
+            buttons: $( '.fp-privacy-tab-button' ),
+            contents: $( '.fp-privacy-tab-content' )
+        };
+    }
+    
     // Funzione switchTab - deve essere definita prima del suo utilizzo
     function switchTab( tab ) {
         if ( ! tab ) {
             return;
         }
+        
+        var elements = getTabElements();
+        var tabButtons = elements.buttons;
+        var tabContents = elements.contents;
         
         // Rimuovi classe active da tutti
         tabButtons.removeClass( 'active' ).attr( 'aria-selected', 'false' );
@@ -160,30 +170,61 @@ $( function () {
         }
     }
     
-    // Ripristina tab attiva dal localStorage
-    var activeTab = localStorage.getItem( 'fpPrivacyActiveTab' ) || 'banner';
-    if ( tabButtons.length && tabContents.length ) {
-        switchTab( activeTab );
+    // Inizializza tabs al caricamento
+    function initTabs() {
+        var elements = getTabElements();
+        var tabButtons = elements.buttons;
+        var tabContents = elements.contents;
+        
+        if ( tabButtons.length && tabContents.length ) {
+            // Ripristina tab attiva dal localStorage
+            var activeTab = localStorage.getItem( 'fpPrivacyActiveTab' ) || 'banner';
+            switchTab( activeTab );
+        } else {
+            // Retry dopo un breve delay se gli elementi non sono ancora disponibili
+            setTimeout( function() {
+                initTabs();
+            }, 100 );
+        }
     }
     
-    // Click sui pulsanti tab
-    tabButtons.on( 'click', function( e ) {
+    // Inizializza tabs
+    initTabs();
+    
+    // Click sui pulsanti tab - usa event delegation per garantire che funzioni sempre
+    $( document ).on( 'click', '.fp-privacy-tab-button', function( e ) {
         e.preventDefault();
         e.stopPropagation();
-        var tab = $( this ).data( 'tab' );
+        e.stopImmediatePropagation();
+        
+        var $button = $( this );
+        
+        // Ignora se il button è disabilitato
+        if ( $button.prop( 'disabled' ) || $button.hasClass( 'disabled' ) ) {
+            return false;
+        }
+        
+        var tab = $button.data( 'tab' );
+        
         if ( tab ) {
             switchTab( tab );
             localStorage.setItem( 'fpPrivacyActiveTab', tab );
         }
+        
+        return false;
     });
     
-    // Keyboard navigation per tab buttons
-    tabButtons.on( 'keydown', function( e ) {
-        var currentIndex = tabButtons.index( $( this ) );
+    // Keyboard navigation per tab buttons - usa event delegation
+    $( document ).on( 'keydown', '.fp-privacy-tab-button', function( e ) {
+        var elements = getTabElements();
+        var tabButtons = elements.buttons;
+        var $currentButton = $( this );
+        var currentIndex = tabButtons.index( $currentButton );
         var newIndex = currentIndex;
         
         if ( e.key === 'ArrowLeft' || e.key === 'ArrowRight' ) {
             e.preventDefault();
+            e.stopPropagation();
             if ( e.key === 'ArrowLeft' ) {
                 newIndex = currentIndex > 0 ? currentIndex - 1 : tabButtons.length - 1;
             } else {
@@ -192,7 +233,8 @@ $( function () {
             tabButtons.eq( newIndex ).focus().trigger( 'click' );
         } else if ( e.key === 'Enter' || e.key === ' ' ) {
             e.preventDefault();
-            $( this ).trigger( 'click' );
+            e.stopPropagation();
+            $currentButton.trigger( 'click' );
         }
     } );
     
@@ -207,7 +249,8 @@ $( function () {
             if ( tab ) {
                 switchTab( tab );
                 localStorage.setItem( 'fpPrivacyActiveTab', tab );
-                tabButtons.filter( '[data-tab="' + tab + '"]' ).focus();
+                var elements = getTabElements();
+                elements.buttons.filter( '[data-tab="' + tab + '"]' ).focus();
             }
         }
         
@@ -272,6 +315,10 @@ $( function () {
     
     // Funzione per aggiornare badge tab
     function updateTabBadges() {
+        var elements = getTabElements();
+        var tabButtons = elements.buttons;
+        var tabContents = elements.contents;
+        
         tabButtons.each( function() {
             var $tab = $( this );
             var tabName = $tab.data( 'tab' );
@@ -1072,7 +1119,8 @@ $( function () {
                 originalValues[ name ] = $field.val();
             }
         } );
-        
+    }
+    
     // Track changes (debounced per performance)
     var debouncedTrackChanges = debounce( function( $field ) {
         var name = $field.attr( 'name' );
