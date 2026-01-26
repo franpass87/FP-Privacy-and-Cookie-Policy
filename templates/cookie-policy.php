@@ -44,11 +44,11 @@ if ( ! function_exists( 'fp_privacy_format_service_cookies' ) ) {
             $details = array();
 
             if ( '' !== $domain ) {
-                $details[] = sprintf( 'Dominio: %s', $domain );
+                $details[] = sprintf( __( 'Domain: %s', 'fp-privacy' ), $domain );
             }
 
             if ( '' !== $duration ) {
-                $details[] = sprintf( 'Durata: %s', $duration );
+                $details[] = sprintf( __( 'Duration: %s', 'fp-privacy' ), $duration );
             }
 
             if ( '' !== $description ) {
@@ -59,7 +59,7 @@ if ( ! function_exists( 'fp_privacy_format_service_cookies' ) ) {
                 continue;
             }
 
-            $label = '' !== $name ? $name : 'Cookie senza nome';
+            $label = '' !== $name ? $name : __( 'Unnamed cookie', 'fp-privacy' );
 
             if ( $details ) {
                 $label .= ' (' . implode( ' — ', $details ) . ')';
@@ -111,29 +111,29 @@ if ( '' === $last_generated ) {
 }
 ?>
 <section class="fp-cookie-policy">
-<h2>Informazioni sui cookie e tecnologie di tracciamento</h2>
-<p>I cookie sono piccoli file di testo memorizzati sul tuo dispositivo insieme a tecnologie simili come local storage, SDK o pixel. Consentono funzionalità essenziali, memorizzano le tue preferenze e ci aiutano a misurare le interazioni. Ad eccezione dei cookie strettamente necessari, inseriamo cookie solo dopo aver ottenuto il tuo consenso esplicito in conformità con il GDPR e la Direttiva ePrivacy.</p>
+<h2><?php esc_html_e( 'About cookies and tracking technologies', 'fp-privacy' ); ?></h2>
+<p><?php esc_html_e( 'Cookies are small text files stored on your device together with similar technologies such as local storage, SDKs or pixels. They enable core functionality, remember your preferences and help us measure interactions. Except for strictly necessary cookies, we only place cookies after obtaining your explicit consent in line with the GDPR and the ePrivacy Directive.', 'fp-privacy' ); ?></p>
 
-<h2>Conformità normativa</h2>
-<p>L'utilizzo dei cookie si basa sul tuo consenso ai sensi degli articoli 6.1.a e 7 del GDPR, dell'articolo 5(3) della Direttiva ePrivacy e delle più recenti linee guida emesse dalle autorità di controllo europee fino a ottobre 2025. La prova del consenso viene conservata in modo sicuro e può essere fornita alle autorità di controllo su richiesta.</p>
+<h2><?php esc_html_e( 'Regulatory compliance', 'fp-privacy' ); ?></h2>
+<p><?php esc_html_e( 'Cookie usage is based on your consent pursuant to Articles 6.1.a and 7 GDPR, Article 5(3) of the ePrivacy Directive and the latest guidance issued by European supervisory authorities up to October 2025. Evidence of consent is securely stored and may be provided to supervisory authorities upon request.', 'fp-privacy' ); ?></p>
 
-<h2>Tipi di cookie e tecnologie</h2>
-<p>Classifichiamo i cookie e gli identificatori simili come strumenti strettamente necessari, di prestazione, funzionali, di analisi, di marketing o di personalizzazione. Alcune tecnologie come il local storage o gli script di fingerprinting sono trattate con le stesse garanzie dei cookie e richiedono il tuo consenso quando non sono strettamente necessarie.</p>
+<h2><?php esc_html_e( 'Types of cookies and technologies', 'fp-privacy' ); ?></h2>
+<p><?php esc_html_e( 'We classify cookies and similar identifiers as strictly necessary, performance, functional, analytics, marketing or personalization tools. Some technologies such as local storage or fingerprinting scripts are treated with the same safeguards as cookies and require your consent when not strictly necessary.', 'fp-privacy' ); ?></p>
 
-<h2>Come utilizziamo i cookie</h2>
-<p>Raggruppiamo i cookie in categorie in modo che tu possa personalizzare la tua esperienza. Ogni categoria contiene i servizi e le tecnologie descritti nelle tabelle sottostanti, inclusi provider, scopo, durata dei cookie e collegamenti a informazioni sulla privacy esterne, ove disponibili.</p>
+<h2><?php esc_html_e( 'How we use cookies', 'fp-privacy' ); ?></h2>
+<p><?php esc_html_e( 'We group cookies into categories so you can tailor your experience. Each category contains the services and technologies described in the tables below, including provider, purpose, cookie duration and links to external privacy information where available.', 'fp-privacy' ); ?></p>
 
-<h2>Registrazione e conservazione del consenso</h2>
-<p>Le tue preferenze vengono raccolte tramite il banner dei cookie o il centro preferenze dedicato utilizzando interruttori granulari. Registriamo lo stato del consenso, il timestamp, le informazioni sul dispositivo e la versione di questa policy per mantenere la responsabilità. Puoi ritirare o modificare il consenso in qualsiasi momento senza influire sulla liceità del trattamento passato.</p>
+<h2><?php esc_html_e( 'Consent capture and records', 'fp-privacy' ); ?></h2>
+<p><?php esc_html_e( 'Your preferences are collected through the cookie banner or the dedicated preferences centre using granular toggles. We log the consent status, timestamp, device information and version of this policy to maintain accountability. You can withdraw or modify consent at any time without affecting the lawfulness of past processing.', 'fp-privacy' ); ?></p>
 
-<h2>Conservazione del consenso</h2>
-<p><?php echo esc_html( sprintf( 'Le tue scelte di consenso vengono conservate per %d giorni a meno che tu non le modifichi prima.', $retention ) ); ?></p>
+<h2><?php esc_html_e( 'Retention of consent', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html( sprintf( __( 'Your consent choices are stored for %d days unless you change them earlier.', 'fp-privacy' ), $retention ) ); ?></p>
 
-<h2>Trasferimenti verso paesi terzi</h2>
-<p>Alcuni provider potrebbero elaborare dati al di fuori dell'UE/SEE. Quando ciò si verifica, ci basiamo su decisioni di adeguatezza o Clausole Contrattuali Standard combinate con misure supplementari come crittografia, pseudonimizzazione e valutazioni d'impatto sui trasferimenti per garantire un livello di protezione equivalente.</p>
+<h2><?php esc_html_e( 'Third-country transfers', 'fp-privacy' ); ?></h2>
+<p><?php esc_html_e( 'Some providers may process data outside the EU/EEA. Where this occurs we rely on adequacy decisions or Standard Contractual Clauses combined with supplementary measures such as encryption, pseudonymisation and transfer impact assessments to ensure an equivalent level of protection.', 'fp-privacy' ); ?></p>
 
-<h2>Gestione delle preferenze</h2>
-<p>Puoi rivedere le tue preferenze utilizzando il pulsante delle preferenze sui cookie disponibile su ogni pagina o modificare le impostazioni del tuo browser per eliminare o bloccare i cookie. Il blocco dei cookie essenziali potrebbe influire sulla funzionalità del sito. Istruzioni dettagliate per i principali browser sono disponibili nel centro preferenze.</p>
+<h2><?php esc_html_e( 'Managing preferences', 'fp-privacy' ); ?></h2>
+<p><?php esc_html_e( 'You can revisit your preferences using the cookie preferences button available on every page or adjust your browser settings to delete or block cookies. Blocking essential cookies may impact site functionality. Detailed instructions for major browsers are linked within the preferences centre.', 'fp-privacy' ); ?></p>
 
 <?php foreach ( $groups as $category => $services ) :
     $meta  = isset( $categories_meta[ $category ] ) && is_array( $categories_meta[ $category ] ) ? $categories_meta[ $category ] : array();
@@ -148,10 +148,10 @@ if ( '' === $last_generated ) {
 <table>
 <thead>
 <tr>
-<th>Servizio</th>
-<th>Scopo</th>
-<th>Cookie</th>
-<th>Conservazione</th>
+<th><?php esc_html_e( 'Service', 'fp-privacy' ); ?></th>
+<th><?php esc_html_e( 'Purpose', 'fp-privacy' ); ?></th>
+<th><?php esc_html_e( 'Cookies', 'fp-privacy' ); ?></th>
+<th><?php esc_html_e( 'Retention', 'fp-privacy' ); ?></th>
 </tr>
 </thead>
 <tbody>
@@ -172,7 +172,7 @@ if ( '' === $last_generated ) {
     <?php if ( ! empty( $service_cookies ) ) : ?>
         <span><?php echo esc_html( implode( '; ', $service_cookies ) ); ?></span>
     <?php else : ?>
-        <span>Nessun cookie dichiarato.</span>
+        <span><?php esc_html_e( 'No cookies declared.', 'fp-privacy' ); ?></span>
     <?php endif; ?>
 </td>
 <td><?php echo esc_html( $retention ); ?></td>
@@ -191,15 +191,15 @@ if ( ! empty( $ai_cookie_section ) ) {
 }
 ?>
 
-<h2>Controlli aggiuntivi</h2>
-<p>Puoi anche utilizzare strumenti forniti da terze parti, come piattaforme di opt-out del settore per i cookie pubblicitari o impostazioni a livello di dispositivo che reimpostano gli identificatori mobili. Dove disponibile, ci integriamo con framework di consenso (ad esempio IAB TCF 2.2) per rispettare le tue scelte tra i fornitori partecipanti.</p>
+<h2><?php esc_html_e( 'Additional controls', 'fp-privacy' ); ?></h2>
+<p><?php esc_html_e( 'You can also use tools provided by third parties, such as industry opt-out platforms for advertising cookies or device-level settings that reset mobile identifiers. Where available we integrate with consent frameworks (for example IAB TCF 2.2) to honour your choices across participating vendors.', 'fp-privacy' ); ?></p>
 
-<h2>I tuoi diritti</h2>
-<p>Per ulteriori informazioni su come trattiamo i dati personali e su come esercitare i tuoi diritti di accesso, rettifica, cancellazione, limitazione, opposizione, portabilità o per presentare un reclamo a un'autorità di controllo, consulta la nostra informativa sulla privacy.</p>
+<h2><?php esc_html_e( 'Your rights', 'fp-privacy' ); ?></h2>
+<p><?php esc_html_e( 'For more information about how we handle personal data and how to exercise your rights of access, rectification, erasure, restriction, objection, portability or to lodge a complaint with a supervisory authority, please refer to our privacy policy.', 'fp-privacy' ); ?></p>
 
-<h2>Revisioni della policy</h2>
-<p>Rivediamo questa cookie policy ogni volta che aggiungiamo nuovi servizi, modifichiamo i periodi di conservazione o quando i requisiti normativi evolvono. La versione corrente incorpora le linee guida disponibili fino a ottobre 2025 e qualsiasi modifica futura verrà pubblicata su questa pagina.</p>
+<h2><?php esc_html_e( 'Policy reviews', 'fp-privacy' ); ?></h2>
+<p><?php esc_html_e( 'We reassess this cookie policy whenever we add new services, modify retention periods or when regulatory requirements evolve. The current version incorporates guidance available up to October 2025 and any future changes will be published on this page.', 'fp-privacy' ); ?></p>
 
-<h2>Ultimo aggiornamento</h2>
-<p><?php echo esc_html( sprintf( 'Questa policy è stata generata il %s.', $last_generated ) ); ?></p>
+<h2><?php esc_html_e( 'Last update', 'fp-privacy' ); ?></h2>
+<p><?php echo esc_html( sprintf( __( 'This policy was generated on %s.', 'fp-privacy' ), $last_generated ) ); ?></p>
 </section>

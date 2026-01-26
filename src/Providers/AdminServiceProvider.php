@@ -24,6 +24,8 @@ use FP\Privacy\Utils\Options;
 use FP\Privacy\Utils\View;
 use FP\Privacy\Integrations\DetectorRegistry;
 use FP\Privacy\Consent\LogModel;
+use FP\Privacy\Services\Policy\PolicyAutoUpdater;
+use FP\Privacy\Core\PluginUpdater;
 
 /**
  * Admin service provider - registers admin services.
@@ -75,7 +77,8 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			function( ContainerInterface $c ) {
 				$options = self::resolveOptions( $c );
 				$generator = $c->get( PolicyGenerator::class );
-				return new IntegrationAudit( $options, $generator );
+				$auto_updater = $c->has( PolicyAutoUpdater::class ) ? $c->get( PolicyAutoUpdater::class ) : null;
+				return new IntegrationAudit( $options, $generator, $auto_updater );
 			}
 		);
 
@@ -123,6 +126,25 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			Menu::class,
 			function() {
 				return new Menu();
+			}
+		);
+
+		// Policy auto-updater.
+		$container->singleton(
+			PolicyAutoUpdater::class,
+			function( ContainerInterface $c ) {
+				$options = self::resolveOptions( $c );
+				$generator = $c->get( PolicyGenerator::class );
+				return new PolicyAutoUpdater( $options, $generator );
+			}
+		);
+
+		// Plugin updater.
+		$container->singleton(
+			PluginUpdater::class,
+			function( ContainerInterface $c ) {
+				$auto_updater = $c->get( PolicyAutoUpdater::class );
+				return new PluginUpdater( $auto_updater );
 			}
 		);
 	}
@@ -174,5 +196,17 @@ class AdminServiceProvider implements ServiceProviderInterface {
 		if ( method_exists( $diagnostic_tools, 'hooks' ) ) {
 			$diagnostic_tools->hooks();
 		}
+
+		// Hook for auto-updating policies when settings are saved.
+		$auto_updater = $container->get( PolicyAutoUpdater::class );
+		\add_action( 'fp_privacy_settings_saved', function( $payload ) use ( $auto_updater ) {
+			if ( $auto_updater->should_update() ) {
+				$auto_updater->update_all_policies();
+			}
+		}, 10, 1 );
+
+		// Register plugin updater hooks.
+		$plugin_updater = $container->get( PluginUpdater::class );
+		$plugin_updater->hooks();
 	}
 }

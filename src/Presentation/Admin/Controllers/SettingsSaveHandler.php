@@ -108,6 +108,9 @@ class SettingsSaveHandler {
 		$payload = $this->prepare_payload();
 		$this->options->set( $payload );
 
+		// Trigger hook for auto-updating policies if enabled
+		\do_action( 'fp_privacy_settings_saved', $payload );
+
 		\wp_safe_redirect( \add_query_arg( 'updated', 'true', \wp_get_referer() ) );
 		exit;
 	}

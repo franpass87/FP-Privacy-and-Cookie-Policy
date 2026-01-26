@@ -12,6 +12,7 @@ namespace FP\Privacy\Admin\Audit;
 use FP\Privacy\Admin\PolicyGenerator;
 use FP\Privacy\Utils\Options;
 use FP\Privacy\Utils\DetectorAlertManager;
+use FP\Privacy\Services\Policy\PolicyAutoUpdater;
 
 /**
  * Performs integration audits and detects service changes.
@@ -39,16 +40,25 @@ class IntegrationAuditor {
 	private $alert_manager;
 
 	/**
+	 * Policy auto-updater.
+	 *
+	 * @var PolicyAutoUpdater|null
+	 */
+	private $auto_updater;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Options            $options      Options handler.
-	 * @param PolicyGenerator    $generator    Policy generator.
-	 * @param DetectorAlertManager $alert_manager Alert manager.
+	 * @param Options                  $options      Options handler.
+	 * @param PolicyGenerator          $generator    Policy generator.
+	 * @param DetectorAlertManager     $alert_manager Alert manager.
+	 * @param PolicyAutoUpdater|null   $auto_updater Policy auto-updater (optional for backward compatibility).
 	 */
-	public function __construct( Options $options, PolicyGenerator $generator, DetectorAlertManager $alert_manager ) {
+	public function __construct( Options $options, PolicyGenerator $generator, DetectorAlertManager $alert_manager, ?PolicyAutoUpdater $auto_updater = null ) {
 		$this->options       = $options;
 		$this->generator     = $generator;
 		$this->alert_manager = $alert_manager;
+		$this->auto_updater  = $auto_updater;
 	}
 
 	/**
@@ -208,52 +218,58 @@ class IntegrationAuditor {
 
 		// Auto-update policies if enabled
 		if ( $this->options->get( 'auto_update_policies', false ) ) {
-			$languages = $this->options->get_languages();
-			
-			if ( ! isset( $snapshots['policies'] ) || ! is_array( $snapshots['policies'] ) ) {
-				$snapshots['policies'] = array(
-					'privacy' => array(),
-					'cookie'  => array(),
-				);
-			}
-
-			// Generate policies for each language
-			foreach ( $languages as $lang ) {
-				$lang = $this->options->normalize_language( $lang );
-
-				// Generate privacy policy
-				$privacy_content = $this->generator->generate_privacy_policy( $lang );
-				$snapshots['policies']['privacy'][ $lang ] = array(
-					'content'      => $privacy_content,
-					'generated_at' => $timestamp,
-				);
-
-				// Generate cookie policy
-				$cookie_content = $this->generator->generate_cookie_policy( $lang );
-				$snapshots['policies']['cookie'][ $lang ] = array(
-					'content'      => $cookie_content,
-					'generated_at' => $timestamp,
-				);
-
-				// Update the actual pages
-				$privacy_page_id = $this->options->get_page_id( 'privacy_policy', $lang );
-				if ( $privacy_page_id ) {
-					\wp_update_post(
-						array(
-							'ID'           => $privacy_page_id,
-							'post_content' => $privacy_content,
-						)
+			// Use PolicyAutoUpdater if available, otherwise fallback to inline logic
+			if ( $this->auto_updater && $this->auto_updater->should_update() ) {
+				$this->auto_updater->update_all_policies( false );
+			} else {
+				// Fallback to inline logic for backward compatibility
+				$languages = $this->options->get_languages();
+				
+				if ( ! isset( $snapshots['policies'] ) || ! is_array( $snapshots['policies'] ) ) {
+					$snapshots['policies'] = array(
+						'privacy' => array(),
+						'cookie'  => array(),
 					);
 				}
 
-				$cookie_page_id = $this->options->get_page_id( 'cookie_policy', $lang );
-				if ( $cookie_page_id ) {
-					\wp_update_post(
-						array(
-							'ID'           => $cookie_page_id,
-							'post_content' => $cookie_content,
-						)
+				// Generate policies for each language
+				foreach ( $languages as $lang ) {
+					$lang = $this->options->normalize_language( $lang );
+
+					// Generate privacy policy
+					$privacy_content = $this->generator->generate_privacy_policy( $lang );
+					$snapshots['policies']['privacy'][ $lang ] = array(
+						'content'      => $privacy_content,
+						'generated_at' => $timestamp,
 					);
+
+					// Generate cookie policy
+					$cookie_content = $this->generator->generate_cookie_policy( $lang );
+					$snapshots['policies']['cookie'][ $lang ] = array(
+						'content'      => $cookie_content,
+						'generated_at' => $timestamp,
+					);
+
+					// Update the actual pages
+					$privacy_page_id = $this->options->get_page_id( 'privacy_policy', $lang );
+					if ( $privacy_page_id ) {
+						\wp_update_post(
+							array(
+								'ID'           => $privacy_page_id,
+								'post_content' => $privacy_content,
+							)
+						);
+					}
+
+					$cookie_page_id = $this->options->get_page_id( 'cookie_policy', $lang );
+					if ( $cookie_page_id ) {
+						\wp_update_post(
+							array(
+								'ID'           => $cookie_page_id,
+								'post_content' => $cookie_content,
+							)
+						);
+					}
 				}
 			}
 

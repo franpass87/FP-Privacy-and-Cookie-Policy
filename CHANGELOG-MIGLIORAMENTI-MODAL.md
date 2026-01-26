@@ -200,3 +200,4 @@ checkbox.name = 'fp_privacy_category_' + key;
 **Versione Plugin**: 0.2.0
 
 
+

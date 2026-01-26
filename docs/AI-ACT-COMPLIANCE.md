@@ -186,3 +186,4 @@ L'AI Act si integra con il GDPR. Assicurati che:
 - [EDPB Guidelines on AI](https://edpb.europa.eu/)
 
 
+

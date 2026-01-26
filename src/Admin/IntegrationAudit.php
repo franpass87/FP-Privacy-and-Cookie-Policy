@@ -13,6 +13,7 @@ use FP\Privacy\Admin\Audit\ServiceFormatter;
 use FP\Privacy\Admin\PolicyGenerator;
 use FP\Privacy\Utils\Options;
 use FP\Privacy\Utils\DetectorAlertManager;
+use FP\Privacy\Services\Policy\PolicyAutoUpdater;
 
 
 /**
@@ -64,17 +65,18 @@ class IntegrationAudit {
 	/**
 	 * Constructor.
 	 *
-	 * @param Options         $options   Options handler.
-	 * @param PolicyGenerator $generator Policy generator.
+	 * @param Options                  $options      Options handler.
+	 * @param PolicyGenerator          $generator    Policy generator.
+	 * @param PolicyAutoUpdater|null   $auto_updater Policy auto-updater (optional for backward compatibility).
 	 */
-	public function __construct( Options $options, PolicyGenerator $generator ) {
+	public function __construct( Options $options, PolicyGenerator $generator, ?PolicyAutoUpdater $auto_updater = null ) {
 		$this->options   = $options;
 		$this->generator = $generator;
 
 		// Initialize components
 		$alert_manager = new DetectorAlertManager( $options );
 		$this->formatter = new ServiceFormatter();
-		$this->auditor = new IntegrationAuditor( $options, $generator, $alert_manager );
+		$this->auditor = new IntegrationAuditor( $options, $generator, $alert_manager, $auto_updater );
 		$this->email_notifier = new EmailNotifier( $options, $alert_manager, $this->formatter );
 		$this->notice_renderer = new IntegrationAuditNoticeRenderer( $this->formatter );
 	}

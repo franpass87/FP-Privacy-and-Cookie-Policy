@@ -243,3 +243,4 @@ Il modal è **ben strutturato** e **funzionalmente corretto**. I problemi identi
 **Versione Plugin**: 0.2.0
 
 
+

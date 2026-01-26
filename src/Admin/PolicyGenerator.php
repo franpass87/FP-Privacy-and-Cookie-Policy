@@ -70,6 +70,9 @@ class PolicyGenerator {
  */
 	public function generate_privacy_policy( $lang ) {
 		try {
+			// Ensure textdomain is loaded for the correct language
+			$this->load_textdomain_for_language( $lang );
+
 			$groups = $this->service_grouper->get_grouped_services( false, $lang );
 			if ( ! is_array( $groups ) ) {
 				$groups = array();
@@ -127,6 +130,9 @@ class PolicyGenerator {
 	 */
 	public function generate_cookie_policy( $lang ) {
 		try {
+			// Ensure textdomain is loaded for the correct language
+			$this->load_textdomain_for_language( $lang );
+
 			$groups = $this->service_grouper->get_grouped_services( false, $lang );
 			if ( ! is_array( $groups ) ) {
 				$groups = array();
@@ -257,5 +263,28 @@ class PolicyGenerator {
 		$html .= '<p>' . wp_kses_post( $rights_text ) . '</p>';
 
 		return $html;
+	}
+
+	/**
+	 * Load textdomain for specific language using absolute path (junction-safe).
+	 *
+	 * @param string $lang Language code.
+	 *
+	 * @return void
+	 */
+	private function load_textdomain_for_language( $lang ) {
+		$locale = $this->options->normalize_language( $lang );
+		$mofile = FP_PRIVACY_PLUGIN_PATH . 'languages/fp-privacy-' . $locale . '.mo';
+
+		if ( file_exists( $mofile ) ) {
+			\load_textdomain( 'fp-privacy', $mofile );
+		} else {
+			// Fallback: try to load using standard WordPress method
+			\load_plugin_textdomain(
+				'fp-privacy',
+				false,
+				dirname( plugin_basename( FP_PRIVACY_PLUGIN_FILE ) ) . '/languages'
+			);
+		}
 	}
 }

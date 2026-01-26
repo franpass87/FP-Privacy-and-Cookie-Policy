@@ -56,11 +56,11 @@ if ( ! function_exists( 'fp_privacy_format_service_cookies' ) ) {
             $details = array();
 
             if ( '' !== $domain ) {
-                $details[] = sprintf( /* translators: %s: cookie domain. */ __( 'Dominio: %s', 'fp-privacy' ), $domain );
+                $details[] = sprintf( /* translators: %s: cookie domain. */ __( 'Domain: %s', 'fp-privacy' ), $domain );
             }
 
             if ( '' !== $duration ) {
-                $details[] = sprintf( /* translators: %s: cookie duration. */ __( 'Durata: %s', 'fp-privacy' ), $duration );
+                $details[] = sprintf( /* translators: %s: cookie duration. */ __( 'Duration: %s', 'fp-privacy' ), $duration );
             }
 
             if ( '' !== $description ) {
@@ -71,7 +71,7 @@ if ( ! function_exists( 'fp_privacy_format_service_cookies' ) ) {
                 continue;
             }
 
-            $label = '' !== $name ? $name : __( 'Cookie senza nome', 'fp-privacy' );
+            $label = '' !== $name ? $name : __( 'Unnamed cookie', 'fp-privacy' );
 
             if ( $details ) {
                 $label .= ' (' . implode( ' — ', $details ) . ')';
@@ -116,7 +116,7 @@ $sections = array(
     'data-categories' => esc_html__( 'Categorie di dati che trattiamo', 'fp-privacy' ),
     'data-sources' => esc_html__( 'Origine dei dati', 'fp-privacy' ),
     'mandatory-optional' => esc_html__( 'Dati obbligatori e facoltativi', 'fp-privacy' ),
-    'processing-purposes' => esc_html__( 'Finalità del trattamento', 'fp-privacy' ),
+    'processing-purposes' => esc_html__( 'Purposes of processing', 'fp-privacy' ),
     'legal-bases' => esc_html__( 'Basi giuridiche', 'fp-privacy' ),
     'recipients' => esc_html__( 'Destinatari e trasferimenti di dati', 'fp-privacy' ),
     'processors' => esc_html__( 'Responsabili del trattamento e personale autorizzato', 'fp-privacy' ),
@@ -193,7 +193,7 @@ $sections = array(
 <h2 id="fp-privacy-mandatory-optional"><?php echo esc_html__( 'Dati obbligatori e facoltativi', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html__( 'Ogni volta che vengono richiesti dati personali tramite moduli o altre interfacce, distinguiamo e indichiamo chiaramente quali campi dati sono obbligatori (richiesti) per fornire il servizio richiesto e quali sono facoltativi (volontari). I campi obbligatori sono tipicamente contrassegnati con un asterisco (*) o un altro indicatore visivo chiaro, e spieghiamo perché l\'informazione è necessaria. Il rifiuto di condividere dati facoltativi non avrà conseguenze negative sulla tua capacità di utilizzare i nostri servizi, ricevere assistenza o esercitare i tuoi diritti. Tuttavia, la mancata fornitura di dati obbligatori potrebbe impedirci di evadere la tua richiesta, completare una transazione, creare un account, rispondere alla tua richiesta o fornire determinate funzionalità o servizi. In tali casi, spiegheremo le conseguenze della mancata fornitura delle informazioni richieste. La distinzione tra dati obbligatori e facoltativi si basa sui principi di necessità e proporzionalità ai sensi dell\'articolo 5(1)(c) del GDPR, garantendo che raccogliamo solo dati adeguati, pertinenti e limitati a quanto necessario per le finalità specificate.', 'fp-privacy' ); ?></p>
 
-<h2 id="fp-privacy-processing-purposes"><?php echo esc_html__( 'Finalità del trattamento', 'fp-privacy' ); ?></h2>
+<h2 id="fp-privacy-processing-purposes"><?php echo esc_html__( 'Purposes of processing', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html__( 'Trattiamo i dati personali per le seguenti finalità specifiche: (1) Erogazione e prestazione dei servizi: per fornire, gestire, mantenere ed erogare i nostri servizi, funzionalità e caratteristiche; per creare e gestire account utente; per elaborare transazioni e evadere ordini; per fornire assistenza clienti e rispondere a richieste e domande; per inviare comunicazioni relative ai servizi, notifiche e aggiornamenti. (2) Sicurezza e prevenzione delle frodi: per rilevare, prevenire e rispondere a incidenti di sicurezza, frodi, abusi, attività illegali e violazioni dei nostri termini di servizio; per verificare l\'identità e autenticare gli utenti; per proteggere i diritti, la proprietà e la sicurezza della nostra organizzazione, degli utenti e del pubblico. (3) Analisi e misurazione delle prestazioni: per analizzare i pattern di utilizzo, misurare l\'efficacia, comprendere il comportamento degli utenti, monitorare le prestazioni del servizio, identificare problemi tecnici e generare informazioni statistiche; per condurre ricerca e sviluppo. (4) Miglioramento e innovazione del servizio: per migliorare le funzionalità esistenti, sviluppare nuove funzionalità e servizi, migliorare l\'esperienza utente, testare nuove funzionalità e ottimizzare i nostri contenuti, design e offerte. (5) Personalizzazione ed esperienze su misura: per fornire contenuti personalizzati, raccomandazioni, pubblicità ed esperienze adattate ai tuoi interessi e preferenze, solo dove hai concesso il relativo consenso o dove consentito dalla legge applicabile. (6) Marketing e comunicazioni: per inviare comunicazioni promozionali, newsletter, materiali di marketing e informazioni su prodotti e servizi che potrebbero interessarti, solo previo consenso quando richiesto dalla legge. (7) Conformità e obblighi legali: per conformarsi a obblighi legali, requisiti normativi, ordinanze del tribunale, richieste governative e per far valere i nostri diritti legali e accordi. (8) Operazioni commerciali: per gestire le nostre operazioni commerciali, mantenere registrazioni, condurre amministrazione interna, eseguire funzioni contabili e di revisione. Ogni finalità di trattamento è associata a una specifica base giuridica come dettagliato nella sezione Basi giuridiche di seguito.', 'fp-privacy' ); ?></p>
 
 <h2 id="fp-privacy-legal-bases"><?php echo esc_html__( 'Basi giuridiche', 'fp-privacy' ); ?></h2>
@@ -269,11 +269,11 @@ if ( ! empty( $algorithmic_transparency_html ) ) {
 <table class="fp-privacy-services-table">
 <thead>
 <tr>
-<th><?php esc_html_e( 'Servizio', 'fp-privacy' ); ?></th>
-<th><?php esc_html_e( 'Fornitore', 'fp-privacy' ); ?></th>
-<th><?php esc_html_e( 'Finalità', 'fp-privacy' ); ?></th>
-<th><?php esc_html_e( 'Cookie e conservazione', 'fp-privacy' ); ?></th>
-<th><?php esc_html_e( 'Base giuridica', 'fp-privacy' ); ?></th>
+<th><?php esc_html_e( 'Service', 'fp-privacy' ); ?></th>
+<th><?php esc_html_e( 'Provider', 'fp-privacy' ); ?></th>
+<th><?php esc_html_e( 'Purpose', 'fp-privacy' ); ?></th>
+<th><?php esc_html_e( 'Cookies & Retention', 'fp-privacy' ); ?></th>
+<th><?php esc_html_e( 'Legal basis', 'fp-privacy' ); ?></th>
 </tr>
 </thead>
 <tbody>
@@ -293,7 +293,7 @@ if ( ! empty( $algorithmic_transparency_html ) ) {
 <tr>
 <td>
     <?php echo esc_html( $name ); ?>
-    <?php if ( '' !== $policy_url ) : ?> — <a href="<?php echo esc_url( $policy_url ); ?>" target="_blank" rel="noopener noreferrer">Informativa sulla privacy</a><?php endif; ?>
+    <?php if ( '' !== $policy_url ) : ?> — <a href="<?php echo esc_url( $policy_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Privacy Policy', 'fp-privacy' ); ?></a><?php endif; ?>
 </td>
 <td><?php echo esc_html( $provider ); ?></td>
 <td><?php echo wp_kses_post( $purpose ); ?></td>
@@ -301,7 +301,7 @@ if ( ! empty( $algorithmic_transparency_html ) ) {
     <?php if ( ! empty( $service_cookies ) ) : ?>
         <span><?php echo esc_html( implode( '; ', $service_cookies ) ); ?></span>
     <?php else : ?>
-        <span>Nessun cookie dichiarato.</span>
+        <span><?php esc_html_e( 'No cookies declared.', 'fp-privacy' ); ?></span>
     <?php endif; ?>
     <?php if ( '' !== $retention ) : ?>
         <span> — <?php echo esc_html( $retention ); ?></span>
@@ -316,6 +316,6 @@ if ( ! empty( $algorithmic_transparency_html ) ) {
 </div>
 <?php endforeach; ?>
 
-<h2 id="fp-privacy-last-update"><?php echo esc_html__( 'Last update', 'fp-privacy' ); ?></h2>
+<h2 id="fp-privacy-last-update"><?php esc_html_e( 'Last update', 'fp-privacy' ); ?></h2>
 <p><?php echo esc_html( sprintf( __( 'This privacy policy was generated on %s.', 'fp-privacy' ), $last_generated ) ); ?></p>
 </section>

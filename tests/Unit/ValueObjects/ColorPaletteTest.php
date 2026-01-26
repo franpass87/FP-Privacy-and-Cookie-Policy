@@ -69,3 +69,4 @@ class ColorPaletteTest extends TestCase {
 
 
 
+
