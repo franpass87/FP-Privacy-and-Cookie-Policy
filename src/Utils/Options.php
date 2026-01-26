@@ -1039,6 +1039,15 @@ class Options {
 				$languages = array( function_exists( '\\get_locale' ) ? (string) \get_locale() : 'en_US' );
 			}
 
+			// Get additional languages from WPML or FP-Multilanguage if active
+			$additional_languages = $this->get_multilanguage_plugin_languages();
+			if ( ! empty( $additional_languages ) ) {
+				// Merge configured languages with detected languages from multilingual plugins
+				// Remove duplicates while preserving order
+				$all_languages = array_values( array_unique( array_merge( $languages, $additional_languages ) ) );
+				$languages = $all_languages;
+			}
+
 			$pages = isset( $this->options['pages'] ) && \is_array( $this->options['pages'] ) ? $this->options['pages'] : array();
 
 			$updated_pages = $this->page_manager->ensure_pages_exist( $pages, $languages );
@@ -1052,5 +1061,85 @@ class Options {
 		} finally {
 			$running = false;
 		}
+	}
+
+	/**
+	 * Get languages from WPML or FP-Multilanguage plugins.
+	 *
+	 * @return array<int, string> Array of locale codes.
+	 */
+	private function get_multilanguage_plugin_languages(): array {
+		$languages = array();
+
+		// Check WPML
+		if ( function_exists( 'icl_get_languages' ) ) {
+			$wpml_languages = \icl_get_languages( 'skip_missing=0' );
+			if ( is_array( $wpml_languages ) ) {
+				foreach ( $wpml_languages as $lang_code => $lang_data ) {
+					if ( isset( $lang_data['default_locale'] ) && ! empty( $lang_data['default_locale'] ) ) {
+						$locale = $lang_data['default_locale'];
+						// Normalize locale format
+						$locale = Validator::locale( $locale, 'en_US' );
+						if ( ! in_array( $locale, $languages, true ) ) {
+							$languages[] = $locale;
+						}
+					} elseif ( isset( $lang_code ) ) {
+						// Fallback: convert language code to locale
+						$locale = $this->convert_lang_code_to_locale( $lang_code );
+						if ( $locale && ! in_array( $locale, $languages, true ) ) {
+							$languages[] = $locale;
+						}
+					}
+				}
+			}
+		}
+
+		// Check FP-Multilanguage
+		if ( function_exists( 'fpml_get_active_languages' ) ) {
+			$fpml_languages = \fpml_get_active_languages();
+			if ( is_array( $fpml_languages ) ) {
+				foreach ( $fpml_languages as $lang ) {
+					if ( is_string( $lang ) && ! empty( $lang ) ) {
+						$locale = Validator::locale( $lang, 'en_US' );
+						if ( ! in_array( $locale, $languages, true ) ) {
+							$languages[] = $locale;
+						}
+					}
+				}
+			}
+		}
+
+		return $languages;
+	}
+
+	/**
+	 * Convert language code (e.g., 'en', 'it') to locale format (e.g., 'en_US', 'it_IT').
+	 *
+	 * @param string $lang_code Language code.
+	 * @return string|null Locale code or null if not supported.
+	 */
+	private function convert_lang_code_to_locale( $lang_code ) {
+		$lang_code = strtolower( trim( $lang_code ) );
+		
+		// Common language code mappings
+		$mappings = array(
+			'it' => 'it_IT',
+			'en' => 'en_US',
+			'es' => 'es_ES',
+			'fr' => 'fr_FR',
+			'de' => 'de_DE',
+			'pt' => 'pt_PT',
+		);
+
+		if ( isset( $mappings[ $lang_code ] ) ) {
+			return $mappings[ $lang_code ];
+		}
+
+		// If already in locale format, validate and return
+		if ( preg_match( '/^[a-z]{2}_[A-Z]{2}$/i', $lang_code ) ) {
+			return Validator::locale( $lang_code, 'en_US' );
+		}
+
+		return null;
 	}
 }

@@ -70,6 +70,13 @@ class MultilanguageCompatibility {
 		// 3. TRANSLATE POLICY URLs IN BANNER
 		// Ensure links point to correct language version
 		\add_filter( 'fp_privacy_policy_link_url', array( $this, 'translate_policy_url' ), 10, 3 );
+
+		// 4. AUTO-CREATE PAGES FOR WPML LANGUAGES
+		// Ensure privacy/cookie pages exist for all WPML languages
+		if ( $wpml_active ) {
+			\add_action( 'admin_init', array( $this, 'ensure_wpml_pages_exist' ), 20 );
+			\add_action( 'wpml_loaded', array( $this, 'ensure_wpml_pages_exist' ), 20 );
+		}
 	}
 
 	/**
@@ -214,6 +221,30 @@ class MultilanguageCompatibility {
 		$permalink = \get_permalink( $page_id );
 
 		return $permalink ?: $url;
+	}
+
+	/**
+	 * Ensure privacy/cookie pages exist for all WPML languages.
+	 * This is called automatically when WPML is active.
+	 *
+	 * @return void
+	 */
+	public function ensure_wpml_pages_exist() {
+		if ( ! $this->options ) {
+			return;
+		}
+
+		// Only run once per request to avoid performance issues
+		static $ran = false;
+		if ( $ran ) {
+			return;
+		}
+		$ran = true;
+
+		// Call ensure_pages_exist which now includes WPML languages
+		if ( method_exists( $this->options, 'ensure_pages_exist' ) ) {
+			$this->options->ensure_pages_exist();
+		}
 	}
 }
 
