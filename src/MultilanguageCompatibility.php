@@ -32,9 +32,9 @@ class MultilanguageCompatibility {
 	}
 
 	/**
-	 * Setup compatibility hooks for FP-Multilanguage plugin.
+	 * Setup compatibility hooks for WPML and FP-Multilanguage plugins.
 	 *
-	 * Ensures the two plugins work together without conflicts:
+	 * Ensures the plugins work together without conflicts:
 	 * - Excludes privacy pages from automatic translation
 	 * - Syncs current language between plugins
 	 * - Translates policy URLs in banner links
@@ -42,19 +42,29 @@ class MultilanguageCompatibility {
 	 * @return void
 	 */
 	public function setup() {
+		// Check if WPML is active
+		$wpml_active = function_exists( 'icl_get_languages' ) && function_exists( 'icl_get_current_language' );
+		
 		// Check if FP-Multilanguage is active
 		$fpml_active = defined( 'FPML_VERSION' ) || class_exists( 'FP\MultiLanguage\Plugin' );
 
-		if ( ! $fpml_active ) {
-			return; // FP-Multilanguage not active, skip compatibility setup
+		if ( ! $wpml_active && ! $fpml_active ) {
+			return; // No multilingual plugin active, skip compatibility setup
 		}
 
 		// 1. EXCLUDE PRIVACY PAGES FROM AUTOMATIC TRANSLATION
 		// FP-Privacy already manages multilang internally for privacy/cookie pages
-		\add_filter( 'fpml_skip_post', array( $this, 'exclude_privacy_pages_from_translation' ), 10, 2 );
+		if ( $fpml_active ) {
+			\add_filter( 'fpml_skip_post', array( $this, 'exclude_privacy_pages_from_translation' ), 10, 2 );
+		}
 
-		// 2. SYNC LOCALE WITH FP-MULTILANGUAGE
-		// Use FP-Multilanguage's current language for banner texts
+		// For WPML, exclude privacy pages from translation
+		if ( $wpml_active ) {
+			\add_filter( 'wpml_should_use_user_language', array( $this, 'wpml_exclude_privacy_pages' ), 10, 2 );
+		}
+
+		// 2. SYNC LOCALE WITH MULTILANGUAGE PLUGINS
+		// Use current language from WPML or FP-Multilanguage for banner texts
 		\add_filter( 'locale', array( $this, 'sync_locale_with_multilanguage' ), 5 );
 
 		// 3. TRANSLATE POLICY URLs IN BANNER
@@ -95,14 +105,26 @@ class MultilanguageCompatibility {
 	}
 
 	/**
-	 * Sync locale with FP-Multilanguage current language.
+	 * Sync locale with WPML or FP-Multilanguage current language.
 	 *
 	 * @param string $locale Current locale.
 	 *
 	 * @return string
 	 */
 	public function sync_locale_with_multilanguage( $locale ) {
-		// Get current language from FP-Multilanguage
+		// Priority 1: Get current language from WPML
+		if ( \function_exists( 'icl_get_current_language' ) ) {
+			$wpml_lang = \icl_get_current_language();
+			if ( $wpml_lang && \is_string( $wpml_lang ) ) {
+				// Convert WPML language code to locale
+				$wpml_locale = $this->convert_wpml_lang_to_locale( $wpml_lang );
+				if ( $wpml_locale ) {
+					return $wpml_locale;
+				}
+			}
+		}
+
+		// Priority 2: Get current language from FP-Multilanguage
 		if ( \function_exists( 'fpml_get_current_language' ) ) {
 			$current_lang = \fpml_get_current_language();
 
@@ -112,6 +134,53 @@ class MultilanguageCompatibility {
 		}
 
 		return $locale;
+	}
+
+	/**
+	 * Convert WPML language code to locale format.
+	 *
+	 * @param string $wpml_lang WPML language code (e.g., 'it', 'en').
+	 * @return string|null Locale code or null if not supported.
+	 */
+	private function convert_wpml_lang_to_locale( $wpml_lang ) {
+		$wpml_lang = strtolower( trim( $wpml_lang ) );
+		
+		// Common WPML language code mappings
+		$mappings = array(
+			'it' => 'it_IT',
+			'en' => 'en_US',
+			'es' => 'es_ES',
+			'fr' => 'fr_FR',
+			'de' => 'de_DE',
+			'pt' => 'pt_PT',
+		);
+
+		if ( isset( $mappings[ $wpml_lang ] ) ) {
+			return $mappings[ $wpml_lang ];
+		}
+
+		// If WPML returns a full locale, try to use it
+		if ( strpos( $wpml_lang, '_' ) !== false ) {
+			return $wpml_lang;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Exclude privacy pages from WPML translation.
+	 *
+	 * @param bool   $use_user_lang Whether to use user language.
+	 * @param object $post          Post object.
+	 *
+	 * @return bool
+	 */
+	public function wpml_exclude_privacy_pages( $use_user_lang, $post ) {
+		if ( ! $post || ! isset( $post->ID ) ) {
+			return $use_user_lang;
+		}
+
+		return $this->exclude_privacy_pages_from_translation( false, $post->ID );
 	}
 
 	/**

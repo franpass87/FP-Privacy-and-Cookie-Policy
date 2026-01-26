@@ -64,12 +64,27 @@ class ConsentState {
         $languages  = $this->options->get_languages();
         $primary    = $languages[0] ?? 'en_US';
         
-        // Auto-detect user language if not specified
+        // Auto-detect user language if not specified (supports WPML and FP-Multilanguage)
         if ( empty( $lang ) ) {
             $lang = $this->options->detect_user_language();
         }
         
+        // Preserve detected language for English/Italian even if not in active languages
+        $detected_lang = $lang;
         $requested  = Validator::locale( $lang, $primary );
+        
+        // If detected language is English but not in active languages, still use English
+        if ( ( $detected_lang === 'en_US' || strpos( strtolower( $detected_lang ), 'en' ) === 0 ) 
+            && ! in_array( 'en_US', $languages, true ) ) {
+            $requested = 'en_US';
+        }
+        
+        // Similarly for Italian
+        if ( ( $detected_lang === 'it_IT' || strpos( strtolower( $detected_lang ), 'it' ) === 0 ) 
+            && ! in_array( 'it_IT', $languages, true ) ) {
+            $requested = 'it_IT';
+        }
+        
         $normalized = $this->options->normalize_language( $requested );
         $cookie     = ConsentCookieManager::get_cookie_payload();
         $revision   = (int) $this->options->get( 'consent_revision', \FP\Privacy\Shared\Constants::CONSENT_REVISION_INITIAL );

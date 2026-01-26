@@ -58,7 +58,11 @@ class BannerAssetManager {
 	 * @return void
 	 */
 	public function maybe_enqueue_assets( $lang = '' ) {
-		$lang      = '' !== $lang ? $this->options->normalize_language( $lang ) : \determine_locale();
+		// If language is not specified, detect it (supports WPML and FP-Multilanguage)
+		if ( '' === $lang ) {
+			$lang = $this->options->detect_user_language();
+		}
+		$lang      = $this->options->normalize_language( $lang );
 		$state     = $this->state->get_frontend_state( $lang );
 		$should    = ! empty( $state['state']['should_display'] );
 		$preview   = ! empty( $state['state']['preview_mode'] );

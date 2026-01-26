@@ -54,7 +54,24 @@ class BannerTextsManager {
 		// Always return translated texts in real-time to ensure proper localization
 		$languages = $this->options->get_languages();
 		$primary   = $languages[0] ?? 'en_US';
+		
+		// Normalize the requested language, but preserve English/Italian if detected
+		// This ensures that even if English is not in active languages, we still show English texts
+		$detected_lang = $lang; // Keep original detected language
 		$requested = Validator::locale( $lang, $primary );
+		
+		// If the detected language is English but not in active languages, 
+		// still use English texts (important for WPML compatibility)
+		if ( ( $detected_lang === 'en_US' || strpos( strtolower( $detected_lang ), 'en' ) === 0 ) 
+			&& ! in_array( 'en_US', $languages, true ) ) {
+			$requested = 'en_US';
+		}
+		
+		// Similarly for Italian
+		if ( ( $detected_lang === 'it_IT' || strpos( strtolower( $detected_lang ), 'it' ) === 0 ) 
+			&& ! in_array( 'it_IT', $languages, true ) ) {
+			$requested = 'it_IT';
+		}
 
 		// If the requested language is Italian, use hardcoded Italian translations
 		if ( $requested === 'it_IT' || $this->options->normalize_language( $requested ) === 'it_IT' ) {
@@ -275,25 +292,42 @@ class BannerTextsManager {
 	}
 
 	/**
-	 * Detect user language from browser or WordPress locale.
+	 * Detect user language from WPML, FP-Multilanguage, browser or WordPress locale.
 	 *
 	 * @return string
 	 */
 	public function detect_user_language() {
-		// First, try to get from WordPress locale
+		// Priority 1: Check WPML (most common multilingual plugin)
+		if ( function_exists( 'icl_get_languages' ) && function_exists( 'icl_get_current_language' ) ) {
+			$wpml_lang = \icl_get_current_language();
+			if ( $wpml_lang && is_string( $wpml_lang ) ) {
+				// WPML returns language codes like 'it', 'en', etc.
+				// Convert to locale format
+				$wpml_locale = $this->convert_wpml_lang_to_locale( $wpml_lang );
+				if ( $wpml_locale ) {
+					return $wpml_locale;
+				}
+			}
+		}
+
+		// Priority 2: Check FP-Multilanguage plugin
+		if ( function_exists( 'fpml_get_current_language' ) ) {
+			$fpml_lang = \fpml_get_current_language();
+			if ( $fpml_lang && is_string( $fpml_lang ) ) {
+				return $fpml_lang;
+			}
+		}
+
+		// Priority 3: Use WordPress locale (may be set by WPML or other plugins)
 		$wp_locale = function_exists( '\get_locale' ) ? \get_locale() : 'en_US';
-
-		// If WordPress locale is Italian, return Italian
-		if ( $wp_locale === 'it_IT' || strpos( $wp_locale, 'it' ) === 0 ) {
-			return 'it_IT';
+		
+		// Normalize locale to standard format
+		$normalized = $this->normalize_locale( $wp_locale );
+		if ( $normalized ) {
+			return $normalized;
 		}
 
-		// If WordPress locale is English, return English
-		if ( $wp_locale === 'en_US' || strpos( $wp_locale, 'en' ) === 0 ) {
-			return 'en_US';
-		}
-
-		// Try to detect from browser headers
+		// Priority 4: Try to detect from browser headers
 		if ( isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
 			$browser_lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
 
@@ -310,6 +344,64 @@ class BannerTextsManager {
 
 		// Default to English
 		return 'en_US';
+	}
+
+	/**
+	 * Convert WPML language code to locale format.
+	 *
+	 * @param string $wpml_lang WPML language code (e.g., 'it', 'en').
+	 * @return string|null Locale code or null if not supported.
+	 */
+	private function convert_wpml_lang_to_locale( $wpml_lang ) {
+		$wpml_lang = strtolower( trim( $wpml_lang ) );
+		
+		// Common WPML language code mappings
+		$mappings = array(
+			'it' => 'it_IT',
+			'en' => 'en_US',
+			'es' => 'es_ES',
+			'fr' => 'fr_FR',
+			'de' => 'de_DE',
+			'pt' => 'pt_PT',
+		);
+
+		if ( isset( $mappings[ $wpml_lang ] ) ) {
+			return $mappings[ $wpml_lang ];
+		}
+
+		// If WPML returns a full locale, try to normalize it
+		if ( strpos( $wpml_lang, '_' ) !== false ) {
+			return $this->normalize_locale( $wpml_lang );
+		}
+
+		return null;
+	}
+
+	/**
+	 * Normalize locale code to standard format.
+	 *
+	 * @param string $locale Locale code.
+	 * @return string|null Normalized locale or null if not recognized.
+	 */
+	private function normalize_locale( $locale ) {
+		$locale = strtolower( trim( $locale ) );
+		
+		// Check for Italian variants
+		if ( $locale === 'it_it' || $locale === 'it' || strpos( $locale, 'it' ) === 0 ) {
+			return 'it_IT';
+		}
+
+		// Check for English variants
+		if ( $locale === 'en_us' || $locale === 'en' || strpos( $locale, 'en' ) === 0 ) {
+			return 'en_US';
+		}
+
+		// If it's already in the correct format (e.g., 'it_IT', 'en_US'), return as is
+		if ( preg_match( '/^[a-z]{2}_[A-Z]{2}$/', $locale ) ) {
+			return strtolower( substr( $locale, 0, 2 ) ) . '_' . strtoupper( substr( $locale, 3, 2 ) );
+		}
+
+		return null;
 	}
 
 	/**
