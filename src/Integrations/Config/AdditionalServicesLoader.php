@@ -55,7 +55,15 @@ class AdditionalServicesLoader {
 				'retention'   => '6 months',
 				'data_location' => 'United States',
 				'detector'    => function () {
-					return defined( 'LI_AJAX' ) || \has_action( 'wp_head', 'linkedin_insight' );
+					$primary = defined( 'LI_AJAX' ) || \has_action( 'wp_head', 'linkedin_insight' );
+					if ( $primary ) {
+						return true;
+					}
+					return \FP\Privacy\Integrations\TrackingPatternScanner::site_contains_any( array(
+						'snap.licdn.com',
+						'linkedin.com/li.lms-analytics',
+						'linkedin.com/insight',
+					) );
 				},
 			),
 			'tiktok'           => array(
@@ -69,7 +77,15 @@ class AdditionalServicesLoader {
 				'retention'   => '13 months',
 				'data_location' => 'United States',
 				'detector'    => function () {
-					return defined( 'TIKTOK_PIXEL_ID' );
+					$primary = defined( 'TIKTOK_PIXEL_ID' );
+					if ( $primary ) {
+						return true;
+					}
+					return \FP\Privacy\Integrations\TrackingPatternScanner::site_contains_any( array(
+						'analytics.tiktok.com',
+						'ttq.load',
+						'tiktok pixel',
+					) );
 				},
 			),
 			'matomo'         => array(
@@ -83,7 +99,16 @@ class AdditionalServicesLoader {
 				'retention'   => '13 months',
 				'data_location' => 'European Union',
 				'detector'    => function () {
-					return defined( 'MATOMO_VERSION' ) || \wp_script_is( 'matomo-tracking', 'enqueued' );
+					$primary = defined( 'MATOMO_VERSION' ) || \wp_script_is( 'matomo-tracking', 'enqueued' );
+					if ( $primary ) {
+						return true;
+					}
+					return \FP\Privacy\Integrations\TrackingPatternScanner::site_contains_any( array(
+						'matomo.js',
+						'piwik.js',
+						'_paq',
+						'matomo.org',
+					) );
 				},
 			),
 			'pinterest'      => array(
@@ -97,7 +122,15 @@ class AdditionalServicesLoader {
 				'retention'   => '13 months',
 				'data_location' => 'United States',
 				'detector'    => function () {
-					return defined( 'PINTEREST_TAG_ID' );
+					$primary = defined( 'PINTEREST_TAG_ID' );
+					if ( $primary ) {
+						return true;
+					}
+					return \FP\Privacy\Integrations\TrackingPatternScanner::site_contains_any( array(
+						'pintrk(',
+						'pinterest.com/ct',
+						's.pinimg.com/ct',
+					) );
 				},
 			),
 			'hubspot'        => array(
@@ -111,7 +144,16 @@ class AdditionalServicesLoader {
 				'retention'   => '13 months',
 				'data_location' => 'United States',
 				'detector'    => function () {
-					return defined( 'HUBSPOT_API_KEY' ) || \wp_script_is( 'leadin-script-loader', 'enqueued' );
+					$primary = defined( 'HUBSPOT_API_KEY' ) || \wp_script_is( 'leadin-script-loader', 'enqueued' );
+					if ( $primary ) {
+						return true;
+					}
+					return \FP\Privacy\Integrations\TrackingPatternScanner::site_contains_any( array(
+						'js.hs-scripts.com',
+						'js.hsforms.net',
+						'hubspot',
+						'hs-script-loader',
+					) );
 				},
 			),
 			'woocommerce'    => array(

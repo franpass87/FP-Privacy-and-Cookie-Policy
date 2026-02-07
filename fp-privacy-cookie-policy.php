@@ -10,8 +10,8 @@
  * GitHub Plugin URI: franpass87/FP-Privacy-and-Cookie-Policy
  * Primary Branch: main
  * Release Asset: true
- * Requires PHP: 7.4
- * Requires at least: 5.8
+ * Requires PHP: 8.0
+ * Requires at least: 6.2
  *
  * @package FP\Privacy
  */
@@ -21,7 +21,7 @@ exit;
 }
 
 // Check PHP version immediately - before any other code is loaded.
-if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
+if ( version_compare( PHP_VERSION, '8.0', '<' ) ) {
 	add_action(
 		'admin_notices',
 		function () {
@@ -34,7 +34,7 @@ if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
 						sprintf(
 							/* translators: %1$s: PHP version required, %2$s: Current PHP version */
 							__( 'This plugin requires PHP %1$s or higher. You are running PHP %2$s. Please upgrade PHP to use this plugin.', 'fp-privacy' ),
-							'7.4',
+							'8.0',
 							PHP_VERSION
 						)
 					);

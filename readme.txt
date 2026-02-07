@@ -2,9 +2,9 @@
 Contributors: francescopasseri
 Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
-Tested up to: 6.6
-Requires PHP: 7.4
-Stable tag: 0.2.0
+Tested up to: 6.7
+Requires PHP: 8.0
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,12 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+= 0.3.0 =
+* Raised minimum PHP to 8.0 and WordPress to 6.2 for February 2026 compatibility.
+* Improved service detection: pattern-based fallback (TrackingPatternScanner) so privacy/cookie policies populate when analytics (GA4, GTM, Meta Pixel, Hotjar, Clarity, etc.) are loaded via theme options or content.
+* Fixed additional services not loading: added AdditionalServicesConfig.php so LinkedIn, TikTok, Matomo, Pinterest, HubSpot, WooCommerce and embed services are registered.
+* Hardened detector config loading (try/catch, is_readable) and TrackingPatternScanner (safe json_encode, skip empty values).
+
 = 0.2.0 =
 * Added WordPress Color Picker for professional color palette management
 * Enhanced live preview with Desktop/Mobile toggle
@@ -93,6 +99,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 * Initial alpha release with banner, consent registry, CSV export, policy detector/generator, WP-CLI, REST API, Google Consent Mode v2, shortcodes, Gutenberg blocks, multisite support, and i18n.
 
 == Upgrade Notice ==
+
+= 0.3.0 =
+Requires PHP 8.0+ and WordPress 6.2+. Improved policy detection and additional services loading. Recommended update.
 
 = 0.2.0 =
 New features: Color picker, enhanced preview, and analytics dashboard. Recommended update for all users.

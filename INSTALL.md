@@ -1,6 +1,6 @@
 # 📦 GUIDA INSTALLAZIONE - FP Privacy & Cookie Policy
 
-**Versione**: 0.2.0  
+**Versione**: 0.3.0  
 **Tempo Installazione**: 5 minuti  
 **Difficoltà**: ⭐ Facile
 
@@ -10,8 +10,8 @@
 
 Prima di iniziare, verifica di avere:
 
-- ✅ WordPress 5.8 o superiore
-- ✅ PHP 7.4 o superiore  
+- ✅ WordPress 6.2 o superiore
+- ✅ PHP 8.0 o superiore  
 - ✅ MySQL 5.6 o superiore
 - ✅ Accesso SSH/FTP (per Composer)
 - ✅ Accesso Admin WordPress

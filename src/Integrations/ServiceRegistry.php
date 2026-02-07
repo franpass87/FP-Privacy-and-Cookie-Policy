@@ -38,7 +38,19 @@ class ServiceRegistry {
 'retention'   => '26 months',
 'data_location' => 'United States',
 'detector'    => function () {
-return \wp_script_is( 'google-analytics', 'enqueued' ) || \get_option( 'ga_dash_tracking' ) || defined( 'GA_MEASUREMENT_ID' );
+$primary = \wp_script_is( 'google-analytics', 'enqueued' ) || \wp_script_is( 'gtag', 'enqueued' )
+	|| \get_option( 'ga_dash_tracking' ) || defined( 'GA_MEASUREMENT_ID' );
+if ( $primary ) {
+	return true;
+}
+return TrackingPatternScanner::site_contains_any( array(
+	'googletagmanager.com/gtag/js',
+	'google-analytics.com/analytics.js',
+	"gtag('config'",
+	'gtag("config"',
+	'G-', // GA4 measurement ID prefix
+	'UA-', // Universal Analytics (legacy)
+) );
 },
 ),
 'gtm'            => array(
@@ -52,7 +64,16 @@ return \wp_script_is( 'google-analytics', 'enqueued' ) || \get_option( 'ga_dash_
 'retention'   => '14 months',
 'data_location' => 'United States',
 'detector'    => function () {
-return \has_action( 'wp_head', 'gtm4wp_wp_head' ) || defined( 'GTM4WP_VERSION' );
+$primary = \has_action( 'wp_head', 'gtm4wp_wp_head' ) || defined( 'GTM4WP_VERSION' )
+	|| \wp_script_is( 'google-tag-manager', 'enqueued' );
+if ( $primary ) {
+	return true;
+}
+return TrackingPatternScanner::site_contains_any( array(
+	'googletagmanager.com/gtm.js',
+	'googletagmanager.com/gtag/js',
+	'GTM-',
+) );
 },
 ),
 'facebook_pixel' => array(
@@ -66,7 +87,17 @@ return \has_action( 'wp_head', 'gtm4wp_wp_head' ) || defined( 'GTM4WP_VERSION' )
 'retention'   => '3 months',
 'data_location' => 'United States',
 'detector'    => function () {
-return defined( 'FACEBOOK_PIXEL_ID' ) || \has_action( 'wp_head', 'facebook_pixel_head' );
+$primary = defined( 'FACEBOOK_PIXEL_ID' ) || \has_action( 'wp_head', 'facebook_pixel_head' )
+	|| \wp_script_is( 'facebook-pixel', 'enqueued' );
+if ( $primary ) {
+	return true;
+}
+return TrackingPatternScanner::site_contains_any( array(
+	'connect.facebook.net',
+	'facebook.net/tr',
+	'fbq(',
+	'fbevents.js',
+) );
 },
 ),
 'hotjar'         => array(
@@ -80,7 +111,16 @@ return defined( 'FACEBOOK_PIXEL_ID' ) || \has_action( 'wp_head', 'facebook_pixel
 'retention'   => '1 year',
 'data_location' => 'European Union',
 'detector'    => function () {
-return \wp_script_is( 'hotjar-tracking', 'enqueued' ) || defined( 'HOTJAR_SITE_ID' );
+$primary = \wp_script_is( 'hotjar-tracking', 'enqueued' ) || defined( 'HOTJAR_SITE_ID' );
+if ( $primary ) {
+	return true;
+}
+return TrackingPatternScanner::site_contains_any( array(
+	'hotjar.com',
+	'hj(',
+	'_hjSettings',
+	'static.hotjar.com',
+) );
 },
 ),
 'clarity'        => array(
@@ -94,7 +134,16 @@ return \wp_script_is( 'hotjar-tracking', 'enqueued' ) || defined( 'HOTJAR_SITE_I
 'retention'   => '1 year',
 'data_location' => 'United States',
 'detector'    => function () {
-return defined( 'CLARITY_PROJECT_ID' ) || \has_action( 'wp_head', 'ms_clarity_tag' );
+$primary = defined( 'CLARITY_PROJECT_ID' ) || \has_action( 'wp_head', 'ms_clarity_tag' );
+if ( $primary ) {
+	return true;
+}
+return TrackingPatternScanner::site_contains_any( array(
+	'clarity.ms',
+	'clarity.ms/tag/',
+	'clarity(',
+	'microsoft.com/clarity',
+) );
 },
 ),
         'recaptcha'        => array(
@@ -108,7 +157,16 @@ return defined( 'CLARITY_PROJECT_ID' ) || \has_action( 'wp_head', 'ms_clarity_ta
 'retention'   => 'Persistent',
 'data_location' => 'United States',
 'detector'    => function () {
-return \wp_script_is( 'google-recaptcha', 'enqueued' ) || defined( 'RECAPTCHA_SITE_KEY' );
+$primary = \wp_script_is( 'google-recaptcha', 'enqueued' ) || defined( 'RECAPTCHA_SITE_KEY' );
+if ( $primary ) {
+	return true;
+}
+return TrackingPatternScanner::site_contains_any( array(
+	'google.com/recaptcha',
+	'recaptcha.net',
+	'grecaptcha',
+	'data-sitekey',
+) );
 },
 ),
         'youtube'          => array(

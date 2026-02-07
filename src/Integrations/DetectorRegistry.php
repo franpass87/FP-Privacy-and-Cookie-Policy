@@ -137,16 +137,22 @@ private function replace_embed_detectors( array $services ) {
  * @return array<string, array<string, mixed>>
  */
 private function load_additional_services() {
-	// Try to load from configuration file if available.
-	$config_file = __DIR__ . '/Config/AdditionalServicesConfig.php';
-	if ( file_exists( $config_file ) ) {
+	// Try to load from configuration file if available (path is junction-safe: __DIR__ is the actual plugin dir).
+	$config_file = __DIR__ . \DIRECTORY_SEPARATOR . 'Config' . \DIRECTORY_SEPARATOR . 'AdditionalServicesConfig.php';
+	if ( ! \is_readable( $config_file ) ) {
+		return $this->get_hardcoded_additional_services();
+	}
+	try {
 		$loader = require $config_file;
-		if ( is_callable( $loader ) ) {
-			return $loader( $this->service_detector );
+		if ( \is_callable( $loader ) ) {
+			$additional = $loader( $this->service_detector );
+			return \is_array( $additional ) ? $additional : $this->get_hardcoded_additional_services();
+		}
+	} catch ( \Throwable $e ) {
+		if ( \defined( 'WP_DEBUG' ) && \WP_DEBUG && \function_exists( 'error_log' ) ) {
+			\error_log( 'FP Privacy: Failed to load additional services config: ' . $e->getMessage() );
 		}
 	}
-
-	// Fallback to hardcoded array.
 	return $this->get_hardcoded_additional_services();
 }
 
@@ -173,9 +179,10 @@ private function get_hardcoded_additional_services() {
 	 * Detect services by running all detectors.
 	 * Public method that wraps run_detectors().
 	 *
+	 * @param bool $force When true, bypass any cache and run detection (default). Currently cache is not used; parameter reserved for future use.
 	 * @return array<int, array<string, mixed>>
 	 */
-	public function detect_services() {
+	public function detect_services( $force = true ) {
 		return $this->run_detectors();
 	}
 
