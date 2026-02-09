@@ -188,6 +188,9 @@ class OptionsValidator {
 			'auto_update_services'  => Validator::bool( $value['auto_update_services'] ?? $defaults['auto_update_services'] ),
 			'auto_update_policies'  => Validator::bool( $value['auto_update_policies'] ?? $defaults['auto_update_policies'] ),
 			'auto_translations'     => Validator::sanitize_auto_translations( isset( $value['auto_translations'] ) && \is_array( $value['auto_translations'] ) ? $value['auto_translations'] : array(), $banner_defaults ),
+			'ai_disclosure'              => $this->sanitize_ai_disclosure( isset( $value['ai_disclosure'] ) && \is_array( $value['ai_disclosure'] ) ? $value['ai_disclosure'] : array(), $defaults['ai_disclosure'] ?? array() ),
+			'algorithmic_transparency'   => $this->sanitize_algorithmic_transparency( isset( $value['algorithmic_transparency'] ) && \is_array( $value['algorithmic_transparency'] ) ? $value['algorithmic_transparency'] : array(), $defaults['algorithmic_transparency'] ?? array() ),
+			'enable_sub_categories'      => Validator::bool( $value['enable_sub_categories'] ?? ( $defaults['enable_sub_categories'] ?? false ) ),
 		);
 	}
 
@@ -208,6 +211,101 @@ class OptionsValidator {
 		
 		// Return as array for backward compatibility.
 		return $consent_mode->to_array();
+	}
+
+	/**
+	 * Sanitize AI disclosure configuration.
+	 *
+	 * @param array<string, mixed> $value    Value to sanitize.
+	 * @param array<string, mixed> $defaults Defaults.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function sanitize_ai_disclosure( array $value, array $defaults ): array {
+		$default_ai = \wp_parse_args(
+			$defaults,
+			array(
+				'enabled'             => false,
+				'systems'             => array(),
+				'automated_decisions' => false,
+				'profiling'           => false,
+				'texts'               => array(),
+			)
+		);
+
+		$sanitized = array(
+			'enabled'             => Validator::bool( $value['enabled'] ?? $default_ai['enabled'] ),
+			'systems'             => array(),
+			'automated_decisions' => Validator::bool( $value['automated_decisions'] ?? $default_ai['automated_decisions'] ),
+			'profiling'           => Validator::bool( $value['profiling'] ?? $default_ai['profiling'] ),
+			'texts'               => array(),
+		);
+
+		// Sanitize AI systems.
+		if ( isset( $value['systems'] ) && \is_array( $value['systems'] ) ) {
+			foreach ( $value['systems'] as $system ) {
+				if ( ! \is_array( $system ) || empty( $system['name'] ) ) {
+					continue;
+				}
+
+				$sanitized['systems'][] = array(
+					'name'       => \sanitize_text_field( $system['name'] ),
+					'purpose'    => isset( $system['purpose'] ) ? \wp_kses_post( $system['purpose'] ) : '',
+					'risk_level' => isset( $system['risk_level'] ) ? \sanitize_text_field( $system['risk_level'] ) : '',
+				);
+			}
+		}
+
+		// Sanitize texts per language using the normalizer.
+		if ( isset( $value['texts'] ) && \is_array( $value['texts'] ) ) {
+			foreach ( $value['texts'] as $lang => $lang_texts ) {
+				if ( ! \is_array( $lang_texts ) ) {
+					continue;
+				}
+
+				$sanitized['texts'][ $lang ] = array(
+					'title'                  => isset( $lang_texts['title'] ) ? \sanitize_text_field( $lang_texts['title'] ) : '',
+					'description'            => isset( $lang_texts['description'] ) ? \wp_kses_post( $lang_texts['description'] ) : '',
+					'systems_title'          => isset( $lang_texts['systems_title'] ) ? \sanitize_text_field( $lang_texts['systems_title'] ) : '',
+					'automated_title'        => isset( $lang_texts['automated_title'] ) ? \sanitize_text_field( $lang_texts['automated_title'] ) : '',
+					'automated_description'  => isset( $lang_texts['automated_description'] ) ? \wp_kses_post( $lang_texts['automated_description'] ) : '',
+					'profiling_title'        => isset( $lang_texts['profiling_title'] ) ? \sanitize_text_field( $lang_texts['profiling_title'] ) : '',
+					'profiling_description'  => isset( $lang_texts['profiling_description'] ) ? \wp_kses_post( $lang_texts['profiling_description'] ) : '',
+					'rights_title'           => isset( $lang_texts['rights_title'] ) ? \sanitize_text_field( $lang_texts['rights_title'] ) : '',
+					'rights_description'     => isset( $lang_texts['rights_description'] ) ? \wp_kses_post( $lang_texts['rights_description'] ) : '',
+					'contact_text'           => isset( $lang_texts['contact_text'] ) ? \wp_kses_post( $lang_texts['contact_text'] ) : '',
+				);
+			}
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize algorithmic transparency configuration.
+	 *
+	 * @param array<string, mixed> $value    Value to sanitize.
+	 * @param array<string, mixed> $defaults Defaults.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function sanitize_algorithmic_transparency( array $value, array $defaults ): array {
+		$default_at = \wp_parse_args(
+			$defaults,
+			array(
+				'enabled'            => false,
+				'system_description' => '',
+				'system_logic'       => '',
+				'system_impact'      => '',
+			)
+		);
+
+		return array(
+			'enabled'            => Validator::bool( $value['enabled'] ?? $default_at['enabled'] ),
+			'system_description' => isset( $value['system_description'] ) ? \wp_kses_post( $value['system_description'] ) : '',
+			'system_logic'       => isset( $value['system_logic'] ) ? \wp_kses_post( $value['system_logic'] ) : '',
+			'system_impact'      => isset( $value['system_impact'] ) ? \wp_kses_post( $value['system_impact'] ) : '',
+		);
 	}
 }
 

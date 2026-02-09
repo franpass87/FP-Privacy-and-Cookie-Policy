@@ -69,9 +69,11 @@ class PolicyGenerator {
  * @return string
  */
 	public function generate_privacy_policy( $lang ) {
+		$original_locale = null;
+
 		try {
-			// Ensure textdomain is loaded for the correct language
-			$this->load_textdomain_for_language( $lang );
+			// Switch locale and load textdomain for the target language.
+			$original_locale = $this->load_textdomain_for_language( $lang );
 
 			$groups = $this->service_grouper->get_grouped_services( false, $lang );
 			if ( ! is_array( $groups ) ) {
@@ -96,7 +98,7 @@ class PolicyGenerator {
 			$algorithmic_transparency_generator = new AlgorithmicTransparencyGenerator( $this->options );
 			$algorithmic_transparency_html = $algorithmic_transparency_generator->generate_algorithmic_transparency( $lang );
 
-			return $this->view->render(
+			$result = $this->view->render(
 				'privacy-policy.php',
 				array(
 					'lang'            => $lang,
@@ -108,16 +110,18 @@ class PolicyGenerator {
 					'algorithmic_transparency' => $algorithmic_transparency_html,
 				)
 			);
+
+			return $result;
 		} catch ( \Throwable $e ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( sprintf( 'FP Privacy: Error generating privacy policy for %s: %s', $lang, $e->getMessage() ) );
 			}
 			return '';
-		} catch ( \Exception $e ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'FP Privacy: Error generating privacy policy for %s: %s', $lang, $e->getMessage() ) );
+		} finally {
+			// Always restore the original locale.
+			if ( null !== $original_locale ) {
+				$this->restore_language_after_generation( $original_locale );
 			}
-			return '';
 		}
 	}
 
@@ -129,9 +133,11 @@ class PolicyGenerator {
 	 * @return string
 	 */
 	public function generate_cookie_policy( $lang ) {
+		$original_locale = null;
+
 		try {
-			// Ensure textdomain is loaded for the correct language
-			$this->load_textdomain_for_language( $lang );
+			// Switch locale and load textdomain for the target language.
+			$original_locale = $this->load_textdomain_for_language( $lang );
 
 			$groups = $this->service_grouper->get_grouped_services( false, $lang );
 			if ( ! is_array( $groups ) ) {
@@ -155,7 +161,7 @@ class PolicyGenerator {
 				$ai_cookie_html = $this->generate_ai_cookie_section( $lang, $options );
 			}
 
-			return $this->view->render(
+			$result = $this->view->render(
 				'cookie-policy.php',
 				array(
 					'lang'            => $lang,
@@ -166,16 +172,18 @@ class PolicyGenerator {
 					'ai_cookie_section' => $ai_cookie_html,
 				)
 			);
+
+			return $result;
 		} catch ( \Throwable $e ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( sprintf( 'FP Privacy: Error generating cookie policy for %s: %s', $lang, $e->getMessage() ) );
 			}
 			return '';
-		} catch ( \Exception $e ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'FP Privacy: Error generating cookie policy for %s: %s', $lang, $e->getMessage() ) );
+		} finally {
+			// Always restore the original locale.
+			if ( null !== $original_locale ) {
+				$this->restore_language_after_generation( $original_locale );
 			}
-			return '';
 		}
 	}
 
@@ -266,20 +274,65 @@ class PolicyGenerator {
 	}
 
 	/**
-	 * Load textdomain for specific language using absolute path (junction-safe).
+	 * Switch WordPress locale and load textdomain for a specific language.
+	 *
+	 * Must be paired with restore_language_after_generation() to restore
+	 * the original locale when generation is complete.
 	 *
 	 * @param string $lang Language code.
 	 *
-	 * @return void
+	 * @return string The original locale before switching (for restoration).
 	 */
 	private function load_textdomain_for_language( $lang ) {
-		$locale = $this->options->normalize_language( $lang );
+		$locale          = $this->options->normalize_language( $lang );
+		$original_locale = \get_locale();
+
+		// Switch WordPress locale so __() / _e() resolve to the target language.
+		if ( $locale !== $original_locale ) {
+			\switch_to_locale( $locale );
+		}
+
+		// Reload textdomain for the target locale.
+		\unload_textdomain( 'fp-privacy' );
+
 		$mofile = FP_PRIVACY_PLUGIN_PATH . 'languages/fp-privacy-' . $locale . '.mo';
 
 		if ( file_exists( $mofile ) ) {
 			\load_textdomain( 'fp-privacy', $mofile );
 		} else {
-			// Fallback: try to load using standard WordPress method
+			// Fallback: try to load using standard WordPress method.
+			\load_plugin_textdomain(
+				'fp-privacy',
+				false,
+				dirname( plugin_basename( FP_PRIVACY_PLUGIN_FILE ) ) . '/languages'
+			);
+		}
+
+		return $original_locale;
+	}
+
+	/**
+	 * Restore the original WordPress locale and reload the original textdomain.
+	 *
+	 * @param string $original_locale The locale to restore.
+	 *
+	 * @return void
+	 */
+	private function restore_language_after_generation( $original_locale ) {
+		$current_locale = \get_locale();
+
+		if ( $current_locale !== $original_locale ) {
+			\restore_previous_locale();
+		}
+
+		// Reload textdomain for the original locale.
+		\unload_textdomain( 'fp-privacy' );
+
+		$mofile = FP_PRIVACY_PLUGIN_PATH . 'languages/fp-privacy-' . $original_locale . '.mo';
+
+		if ( file_exists( $mofile ) ) {
+			\load_textdomain( 'fp-privacy', $mofile );
+		} else {
 			\load_plugin_textdomain(
 				'fp-privacy',
 				false,
