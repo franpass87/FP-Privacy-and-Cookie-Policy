@@ -85,13 +85,17 @@ class SettingsValidator {
 		);
 
 		$pages = wp_parse_args( $pages, $defaults );
+		$first_lang = ! empty( $languages[0] ) ? BasicValidator::locale( $languages[0], 'en_US' ) : 'en_US';
 
 		foreach ( $defaults as $key => $_default ) {
 			$map = array();
 
-			if ( isset( $pages[ $key ] ) && is_array( $pages[ $key ] ) ) {
+			// Legacy format: single page ID (e.g. privacy_policy_page_id => 123). Preserve it for first language.
+			if ( isset( $pages[ $key ] ) && is_numeric( $pages[ $key ] ) && (int) $pages[ $key ] > 0 ) {
+				$map[ $first_lang ] = absint( $pages[ $key ] );
+			} elseif ( isset( $pages[ $key ] ) && is_array( $pages[ $key ] ) ) {
 				foreach ( $pages[ $key ] as $language => $page_id ) {
-					$lang_key         = BasicValidator::locale( $language, $languages[0] ?? 'en_US' );
+					$lang_key         = BasicValidator::locale( $language, $first_lang );
 					$map[ $lang_key ] = absint( $page_id );
 				}
 			}

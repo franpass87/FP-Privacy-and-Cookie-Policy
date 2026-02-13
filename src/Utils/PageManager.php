@@ -51,6 +51,29 @@ class PageManager implements PageManagerInterface {
 			)
 		);
 
+		// Normalize legacy format: options may have been stored as single IDs (e.g. privacy_policy_page_id => 123).
+		// Without this, $pages[$key][$language] is never set and we create new pages every time → duplicates.
+		foreach ( array( 'privacy_policy_page_id', 'cookie_policy_page_id' ) as $key ) {
+			if ( isset( $pages[ $key ] ) && \is_numeric( $pages[ $key ] ) && (int) $pages[ $key ] > 0 ) {
+				$legacy_id   = (int) $pages[ $key ];
+				$first_lang  = isset( $languages[0] ) ? $this->normalizer->normalize( $languages[0] ) : ( \function_exists( '\\get_locale' ) ? (string) \get_locale() : 'en_US' );
+				$pages[ $key ] = array( $first_lang => $legacy_id );
+			} elseif ( ! \is_array( $pages[ $key ] ) ) {
+				$pages[ $key ] = array();
+			}
+		}
+
+		// Deduplicate languages after normalization so we don't create two pages for the same locale.
+		$normalized_seen = array();
+		$languages = \array_values( \array_filter( $languages, function ( $lang ) use ( &$normalized_seen ) {
+			$norm = $this->normalizer->normalize( $lang );
+			if ( isset( $normalized_seen[ $norm ] ) ) {
+				return false;
+			}
+			$normalized_seen[ $norm ] = true;
+			return true;
+		} ) );
+
 		$updated = false;
 
 		$map = array(
@@ -128,6 +151,15 @@ class PageManager implements PageManagerInterface {
 			);
 		}
 
+		// Before creating, check for an existing managed page with same content (avoids duplicates).
+		$existing_id = $this->find_existing_managed_page( $content );
+		if ( $existing_id > 0 ) {
+			return array(
+				'page_id' => $existing_id,
+				'updated' => true,
+			);
+		}
+
 		global $wp_rewrite;
 		if ( ! ( $wp_rewrite instanceof \WP_Rewrite ) ) {
 			require_once ABSPATH . 'wp-includes/rewrite.php';
@@ -166,6 +198,35 @@ class PageManager implements PageManagerInterface {
 			'page_id' => 0,
 			'updated' => false,
 		);
+	}
+
+	/**
+	 * Find an existing managed page with the same shortcode content (to avoid duplicates).
+	 *
+	 * @param string $content Expected post content (e.g. [fp_privacy_policy lang="it_IT"]).
+	 * @return int Page ID or 0 if none found.
+	 */
+	private function find_existing_managed_page( $content ) {
+		$signature = \hash( 'sha256', $content );
+		$query     = new \WP_Query(
+			array(
+				'post_type'      => 'page',
+				'post_status'    => array( 'publish', 'draft' ),
+				'posts_per_page' => 1,
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					array(
+						'key'   => self::PAGE_MANAGED_META_KEY,
+						'value' => $signature,
+						'compare' => '=',
+					),
+				),
+			)
+		);
+		$ids = $query->posts;
+		return ! empty( $ids ) ? (int) $ids[0] : 0;
 	}
 
 	/**
