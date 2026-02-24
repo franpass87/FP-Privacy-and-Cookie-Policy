@@ -46,8 +46,10 @@ class RESTPermissionChecker {
 			return true;
 		}
 
-		// Allow for localhost/development
-		if ( \in_array( \parse_url( $site_url, PHP_URL_HOST ), array( 'localhost', '127.0.0.1' ), true ) ) {
+		// Allow for localhost only when WP_DEBUG is enabled (development environments).
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG
+			&& \in_array( \parse_url( $site_url, PHP_URL_HOST ), array( 'localhost', '127.0.0.1' ), true )
+		) {
 			return true;
 		}
 

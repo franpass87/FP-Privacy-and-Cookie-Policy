@@ -61,6 +61,10 @@ class GetConsentSummaryQuery {
 		// In future, this will use repository directly.
 		$summary = $this->log_model->summary_last_30_days();
 
+		if ( ! is_array( $summary ) ) {
+			$summary = array();
+		}
+
 		$total = array_sum( $summary );
 
 		return array(

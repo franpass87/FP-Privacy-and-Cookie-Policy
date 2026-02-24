@@ -92,6 +92,14 @@ class SettingsExportImportHandler {
 			exit;
 		}
 
+		$known_keys = \array_keys( $this->options->all() );
+		$data       = \array_intersect_key( $data, \array_flip( $known_keys ) );
+
+		if ( empty( $data ) ) {
+			\wp_safe_redirect( \add_query_arg( 'fp-privacy-import', 'invalid', $redirect ) );
+			exit;
+		}
+
 		$this->options->set( $data );
 		\do_action( 'fp_privacy_settings_imported', $this->options->all() );
 

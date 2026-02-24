@@ -75,12 +75,23 @@ class View {
 		}
 
 		$template = wp_normalize_path( $template );
-		$template = str_replace( array( '../', '..\\' ), '', $template );
+
+		do {
+			$prev     = $template;
+			$template = str_replace( array( '../', '..\\'  ), '', $template );
+		} while ( $prev !== $template );
 
 		if ( 0 !== strpos( $template, 'templates/' ) ) {
 			$template = 'templates/' . ltrim( $template, '/' );
 		}
 
-		return trailingslashit( FP_PRIVACY_PLUGIN_PATH ) . $template;
+		$full = trailingslashit( FP_PRIVACY_PLUGIN_PATH ) . $template;
+		$real = realpath( $full );
+
+		if ( false === $real || 0 !== strpos( wp_normalize_path( $real ), wp_normalize_path( trailingslashit( FP_PRIVACY_PLUGIN_PATH ) . 'templates/' ) ) ) {
+			return '';
+		}
+
+		return $full;
 	}
 }

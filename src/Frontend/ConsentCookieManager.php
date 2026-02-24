@@ -134,7 +134,7 @@ class ConsentCookieManager {
 	 */
 	public static function get_ip_hash() {
 		$ip   = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-		$salt = function_exists( '\fp_privacy_get_ip_salt' ) ? \fp_privacy_get_ip_salt() : 'fp-privacy-cookie-policy-salt';
+		$salt = function_exists( '\fp_privacy_get_ip_salt' ) ? \fp_privacy_get_ip_salt() : \wp_salt( 'auth' );
 
 		return hash( 'sha256', $ip . '|' . $salt );
 	}

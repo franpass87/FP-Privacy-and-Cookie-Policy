@@ -195,7 +195,7 @@ $params[] = $like;
 			$params[] = LogModelSanitizer::sanitize_datetime( $args['to'] );
 		}
 
-		$limit  = (int) $args['per_page'];
+		$limit  = min( max( 1, (int) $args['per_page'] ), 500 );
 		$offset = ( max( 1, (int) $args['paged'] ) - 1 ) * $limit;
 
 		$table = $this->table_manager->get_table();

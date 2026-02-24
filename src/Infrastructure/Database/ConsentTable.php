@@ -40,6 +40,11 @@ class ConsentTable {
 	private static $table_ensured = false;
 
 	/**
+	 * Current schema version. Bump when the table structure changes.
+	 */
+	const SCHEMA_VERSION = 2;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param string $table_name Table name.
@@ -62,6 +67,7 @@ class ConsentTable {
 			$exists = $this->database->get_var( 'SHOW TABLES LIKE %s', array( $like ) );
 
 			if ( $exists === $this->table ) {
+				$this->maybe_migrate_schema();
 				return true;
 			}
 
@@ -93,6 +99,7 @@ class ConsentTable {
 		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $like ) );
 
 		if ( $exists === $table ) {
+			$this->maybe_migrate_schema();
 			return true;
 		}
 
@@ -125,7 +132,7 @@ class ConsentTable {
 		$sql = "CREATE TABLE {$table} (
 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 consent_id VARCHAR(64) NOT NULL,
-event ENUM('accept_all','reject_all','consent','reset','revision_bump') NOT NULL,
+event ENUM('accept_all','reject_all','consent','reset','revision_bump','consent_revoked','consent_withdrawn') NOT NULL,
 states LONGTEXT NULL,
 ip_hash CHAR(64) NOT NULL,
 ua VARCHAR(255) NULL,
@@ -140,6 +147,31 @@ KEY rev (rev)
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		\dbDelta( $sql );
+	}
+
+	/**
+	 * Run pending schema migrations if the stored version is outdated.
+	 *
+	 * @return void
+	 */
+	private function maybe_migrate_schema() {
+		$option_key      = 'fp_privacy_consent_schema_version';
+		$current_version = (int) \get_option( $option_key, 1 );
+
+		if ( $current_version >= self::SCHEMA_VERSION ) {
+			return;
+		}
+
+		global $wpdb;
+
+		if ( $current_version < 2 ) {
+			// v2: add consent_revoked and consent_withdrawn to ENUM.
+			$wpdb->query(
+				"ALTER TABLE {$this->table} MODIFY COLUMN event ENUM('accept_all','reject_all','consent','reset','revision_bump','consent_revoked','consent_withdrawn') NOT NULL"
+			);
+		}
+
+		\update_option( $option_key, self::SCHEMA_VERSION, true );
 	}
 
 	/**

@@ -192,7 +192,7 @@ $done = count( $results ) < $per_page;
             }
 
             return array(
-                'items_removed'  => false,
+                'items_removed'  => 0,
                 'items_retained' => $retained,
                 'messages'       => $messages,
                 'done'           => true,
@@ -230,7 +230,7 @@ if ( $ids ) {
 $done = count( $rows ) < $per_page;
 
         return array(
-            'items_removed'  => $removed > 0,
+            'items_removed'  => $removed,
             'items_retained' => false,
             'messages'       => array(),
             'done'           => $done,

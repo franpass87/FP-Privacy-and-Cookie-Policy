@@ -69,7 +69,10 @@ class ObjectCache implements CacheInterface {
 	 * @return bool True on success.
 	 */
 	public function flush(): bool {
-		return wp_cache_flush_group( $this->group );
+		if ( function_exists( 'wp_cache_flush_group' ) ) {
+			return wp_cache_flush_group( $this->group );
+		}
+		return false;
 	}
 
 	/**

@@ -240,6 +240,7 @@ class ConsentState {
 
                 $existing[] = (string) $cookie['id'];
                 $existing    = array_values( array_unique( array_filter( $existing ) ) );
+                $existing    = array_slice( $existing, -100 );
                 \update_user_meta( $user_id, $meta_key, $existing );
             }
         }

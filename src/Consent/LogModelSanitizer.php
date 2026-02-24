@@ -96,11 +96,11 @@ class LogModelSanitizer {
 
 		return array(
 			'consent_id' => $consent_id,
-			'event'      => in_array( $data['event'], array( 'accept_all', 'reject_all', 'consent', 'reset', 'revision_bump' ), true ) ? $data['event'] : 'consent',
+			'event'      => in_array( $data['event'], array( 'accept_all', 'reject_all', 'consent', 'reset', 'revision_bump', 'consent_revoked', 'consent_withdrawn' ), true ) ? $data['event'] : 'consent',
 			'states'     => $encoded,
-			'ip_hash'    => \sanitize_text_field( $data['ip_hash'] ),
-			'ua'         => \sanitize_text_field( $data['ua'] ),
-			'lang'       => \sanitize_text_field( $data['lang'] ),
+			'ip_hash'    => substr( \sanitize_text_field( $data['ip_hash'] ), 0, 64 ),
+			'ua'         => substr( \sanitize_text_field( $data['ua'] ), 0, 255 ),
+			'lang'       => substr( \sanitize_text_field( $data['lang'] ), 0, 16 ),
 			'rev'        => (int) $data['rev'],
 			'created_at' => self::sanitize_datetime( $data['created_at'] ),
 		);

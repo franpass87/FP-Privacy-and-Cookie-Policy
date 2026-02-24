@@ -128,8 +128,9 @@ class ScriptBlocker {
 					$tag      = $matches[0];
 					$category = '';
 
-					if ( preg_match( '/src\s*=\s*"([^"]+)"/i', $tag, $src_match ) ) {
-						$category = $this->rules_manager->get_script_pattern_category( $src_match[1] );
+					if ( preg_match( '/src\s*=\s*(?:"([^"]+)"|\'([^\']+)\')/i', $tag, $src_match ) ) {
+						$src_value = isset( $src_match[1] ) && '' !== $src_match[1] ? $src_match[1] : ( isset( $src_match[2] ) ? $src_match[2] : '' );
+						$category  = $this->rules_manager->get_script_pattern_category( $src_value );
 					}
 
 					if ( '' === $category || ! $this->rules_manager->should_block_category( $category ) ) {
@@ -150,8 +151,9 @@ class ScriptBlocker {
 					$tag      = $matches[0];
 					$category = '';
 
-					if ( preg_match( '/src\s*=\s*"([^"]+)"/i', $tag, $src_match ) ) {
-						$category = $this->rules_manager->get_iframe_pattern_category( $src_match[1] );
+					if ( preg_match( '/src\s*=\s*(?:"([^"]+)"|\'([^\']+)\')/i', $tag, $src_match ) ) {
+						$src_value = isset( $src_match[1] ) && '' !== $src_match[1] ? $src_match[1] : ( isset( $src_match[2] ) ? $src_match[2] : '' );
+						$category  = $this->rules_manager->get_iframe_pattern_category( $src_value );
 					}
 
 					if ( '' === $category || ! $this->rules_manager->should_block_category( $category ) ) {

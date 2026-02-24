@@ -64,6 +64,10 @@ public function print_defaults() {
 
         $defaults = $this->options->get( 'consent_mode_defaults' );
 
+        if ( ! \is_array( $defaults ) || empty( $defaults ) ) {
+            return;
+        }
+
         // Optional Global Privacy Control (GPC) handling: if enabled and GPC is detected,
         // force all non-necessary storages to 'denied' at default stage.
         $gpc_enabled = (bool) \apply_filters( 'fp_privacy_enable_gpc', false, $this->options );

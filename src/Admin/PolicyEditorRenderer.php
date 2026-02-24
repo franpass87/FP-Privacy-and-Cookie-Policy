@@ -85,7 +85,7 @@ class PolicyEditorRenderer {
 			<?php $diff = $this->diff_generator->get_diff_preview( $languages, $privacy_posts, $cookie_posts ); ?>
 			<?php if ( $diff ) : ?>
 				<h2><?php \esc_html_e( 'Differences between generated templates and current documents', 'fp-privacy' ); ?></h2>
-				<div class="fp-privacy-diff"><?php echo $diff; ?></div>
+				<div class="fp-privacy-diff"><?php echo wp_kses_post( $diff ); ?></div>
 			<?php endif; ?>
 		</div>
 		<?php

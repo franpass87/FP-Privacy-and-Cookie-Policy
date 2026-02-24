@@ -68,7 +68,7 @@ class BannerLayout {
 	public function __construct(
 		$type = 'floating',
 		$position = 'bottom',
-		ColorPalette $palette = null,
+		?ColorPalette $palette = null,
 		$sync_modal_and_button = true
 	) {
 		$this->type                  = $this->validate_type( $type );

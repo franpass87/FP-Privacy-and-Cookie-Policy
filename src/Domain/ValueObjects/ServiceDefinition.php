@@ -165,23 +165,18 @@ class ServiceDefinition {
 	 * @return array<string, mixed>
 	 */
 	public function to_array() {
-		$data = array(
-			'name'         => $this->name,
-			'category'     => $this->category,
-			'provider'     => $this->provider,
-			'policy_url'   => $this->policy_url,
-			'cookies'      => $this->cookies,
-			'legal_basis'  => $this->legal_basis,
-			'purpose'      => $this->purpose,
-			'retention'    => $this->retention,
+		return array(
+			'name'          => $this->name,
+			'category'      => $this->category,
+			'provider'      => $this->provider,
+			'policy_url'    => $this->policy_url,
+			'cookies'       => $this->cookies,
+			'legal_basis'   => $this->legal_basis,
+			'purpose'       => $this->purpose,
+			'retention'     => $this->retention,
 			'data_location' => $this->data_location,
+			'has_detector'  => $this->detector !== null,
 		);
-
-		if ( $this->detector !== null ) {
-			$data['detector'] = $this->detector;
-		}
-
-		return $data;
 	}
 
 	/**

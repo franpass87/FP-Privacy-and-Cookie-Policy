@@ -95,11 +95,10 @@
             }
         }
 
-        if ( typeof window.gtag === 'function' ) {
-            window.gtag( 'consent', 'update', payload );
-        } else {
-            window.dataLayer.push( [ 'consent', 'update', payload ] );
+        if ( typeof window.gtag !== 'function' ) {
+            window.gtag = function() { window.dataLayer.push( arguments ); };
         }
+        window.gtag( 'consent', 'update', payload );
 
         window.dataLayer.push( {
             event: 'fp_consent_mode_update',

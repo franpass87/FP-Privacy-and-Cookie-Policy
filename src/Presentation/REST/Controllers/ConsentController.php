@@ -11,6 +11,7 @@ namespace FP\Privacy\Presentation\REST\Controllers;
 
 use FP\Privacy\Application\Consent\LogConsentHandler;
 use FP\Privacy\Frontend\ConsentState;
+use FP\Privacy\REST\RateLimiter;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -53,15 +54,10 @@ class ConsentController {
 	 * @return WP_REST_Response|WP_Error Response or error.
 	 */
 	public function post_consent( WP_REST_Request $request ) {
-		// Rate limiting.
-		$ip      = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-		$salt    = function_exists( '\fp_privacy_get_ip_salt' ) ? \fp_privacy_get_ip_salt() : 'fp-privacy-cookie-policy-salt';
-		$limit   = 'fp_privacy_rate_' . hash( 'sha256', $ip . '|' . $salt );
-		$attempt = (int) \get_transient( $limit );
-		if ( $attempt > 10 ) {
-			return new WP_Error( 'fp_privacy_rate_limited', \__( 'Too many requests. Please try again later.', 'fp-privacy' ), array( 'status' => 429 ) );
+		$rate_check = RateLimiter::check( 'consent' );
+		if ( \is_wp_error( $rate_check ) ) {
+			return $rate_check;
 		}
-		\set_transient( $limit, $attempt + 1, MINUTE_IN_SECONDS * 10 );
 
 		// Get request data.
 		$event      = \sanitize_text_field( $request->get_param( 'event' ) );

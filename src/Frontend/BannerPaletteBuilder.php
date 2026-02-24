@@ -92,7 +92,7 @@ class BannerPaletteBuilder {
 
 		$value = \sanitize_hex_color( $palette[ $key ] );
 
-		if ( false === $value ) {
+		if ( null === $value || '' === $value ) {
 			return $default;
 		}
 

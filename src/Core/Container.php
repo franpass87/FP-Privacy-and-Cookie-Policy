@@ -236,7 +236,7 @@ class Container implements ContainerInterface {
 			// Try to resolve from type hint.
 			$type = $parameter->getType();
 
-			if ( $type && ! $type->isBuiltin() ) {
+			if ( $type instanceof \ReflectionNamedType && ! $type->isBuiltin() ) {
 				$type_name = $type->getName();
 				$dependencies[] = $this->make( $type_name );
 			} elseif ( $parameter->isDefaultValueAvailable() ) {

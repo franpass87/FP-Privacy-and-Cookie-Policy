@@ -339,6 +339,12 @@ padding: 0.25rem;
 line-height: 1;
 }
 
+.fp-privacy-modal button.close:focus-visible {
+outline: 3px solid #2563eb;
+outline-offset: 2px;
+border-radius: 4px;
+}
+
 .fp-privacy-category {
 border: 1px solid #e5e7eb;
 border-radius: 6px;
@@ -393,6 +399,11 @@ transition: transform 0.2s ease;
 
 .fp-privacy-switch input[type="checkbox"]:checked::after {
 transform: translateX(18px);
+}
+
+.fp-privacy-switch input[type="checkbox"]:focus-visible {
+outline: 3px solid #2563eb;
+outline-offset: 2px;
 }
 
 .fp-privacy-modal-actions {

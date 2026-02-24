@@ -52,17 +52,10 @@ class RESTConsentHandler {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function post_consent( WP_REST_Request $request ) {
-		// Nonce validation is now handled by check_consent_permission
-		// This allows same-origin requests without nonce for better compatibility
-
-		$ip      = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : ''; // for rate limiting only.
-		$salt    = function_exists( '\fp_privacy_get_ip_salt' ) ? \fp_privacy_get_ip_salt() : 'fp-privacy-cookie-policy-salt';
-		$limit   = 'fp_privacy_rate_' . hash( 'sha256', $ip . '|' . $salt );
-		$attempt = (int) \get_transient( $limit );
-		if ( $attempt > 10 ) {
-			return new WP_Error( 'fp_privacy_rate_limited', \__( 'Too many requests. Please try again later.', 'fp-privacy' ), array( 'status' => 429 ) );
+		$rate_check = RateLimiter::check( 'consent' );
+		if ( \is_wp_error( $rate_check ) ) {
+			return $rate_check;
 		}
-		\set_transient( $limit, $attempt + 1, MINUTE_IN_SECONDS * 10 );
 
 		$event  = \sanitize_text_field( $request->get_param( 'event' ) );
 		$states = $request->get_param( 'states' );
@@ -91,15 +84,10 @@ class RESTConsentHandler {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function revoke_consent( WP_REST_Request $request ) {
-		// Rate limiting.
-		$ip      = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-		$salt    = function_exists( '\fp_privacy_get_ip_salt' ) ? \fp_privacy_get_ip_salt() : 'fp-privacy-cookie-policy-salt';
-		$limit   = 'fp_privacy_revoke_rate_' . hash( 'sha256', $ip . '|' . $salt );
-		$attempt = (int) \get_transient( $limit );
-		if ( $attempt > 10 ) {
-			return new WP_Error( 'fp_privacy_rate_limited', \__( 'Too many requests. Please try again later.', 'fp-privacy' ), array( 'status' => 429 ) );
+		$rate_check = RateLimiter::check( 'revoke' );
+		if ( \is_wp_error( $rate_check ) ) {
+			return $rate_check;
 		}
-		\set_transient( $limit, $attempt + 1, MINUTE_IN_SECONDS * 10 );
 
 		$consent_id = \sanitize_text_field( $request->get_param( 'consent_id' ) ?: '' );
 		$lang       = \sanitize_text_field( $request->get_param( 'lang' ) ?: '' );

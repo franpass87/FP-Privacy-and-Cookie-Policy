@@ -64,7 +64,7 @@ class Validator implements ValidatorInterface {
 					return false;
 				}
 			}
-			if ( 'bool' === $type || 'boolean' === $type && ! is_bool( $value ) ) {
+			if ( ( 'bool' === $type || 'boolean' === $type ) && ! is_bool( $value ) ) {
 				return false;
 			}
 			if ( 'array' === $type && ! is_array( $value ) ) {

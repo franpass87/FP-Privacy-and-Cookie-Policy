@@ -59,8 +59,11 @@ class MultisiteManager implements MultisiteManagerInterface {
 		}
 
 		\switch_to_blog( $blog_id );
-		\call_user_func( $callback );
-		\restore_current_blog();
+		try {
+			\call_user_func( $callback );
+		} finally {
+			\restore_current_blog();
+		}
 	}
 
 	/**

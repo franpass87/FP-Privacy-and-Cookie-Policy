@@ -43,7 +43,17 @@ class ConsentService {
 			return false;
 		}
 
-		if ( ! isset( $data['event'] ) || ! in_array( $data['event'], array( 'accept', 'reject', 'update' ), true ) ) {
+		$valid_events = array(
+			'accept_all',
+			'reject_all',
+			'consent',
+			'reset',
+			'revision_bump',
+			'consent_revoked',
+			'consent_withdrawn',
+		);
+
+		if ( ! isset( $data['event'] ) || ! in_array( $data['event'], $valid_events, true ) ) {
 			return false;
 		}
 

@@ -69,6 +69,14 @@ interface ConsentRepositoryInterface {
 	 * @return int Count.
 	 */
 	public function count( array $args = array() ): int;
+
+	/**
+	 * Find the most recent consent record for a given consent ID.
+	 *
+	 * @param string $consent_id Consent identifier.
+	 * @return array<string, mixed>|null Consent record or null if not found.
+	 */
+	public function find_latest_by_consent_id( string $consent_id ): ?array;
 }
 
 

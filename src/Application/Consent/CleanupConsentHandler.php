@@ -66,6 +66,11 @@ class CleanupConsentHandler {
 			$days = (int) $this->options->get( 'consent_retention_days', \FP\Privacy\Shared\Constants::RETENTION_DAYS_CLEANUP_DEFAULT );
 		}
 
+		if ( $days < 1 ) {
+			$this->logger->warning( 'Consent cleanup aborted: retention days must be >= 1', array( 'days' => $days ) );
+			return 0;
+		}
+
 		try {
 			$deleted = $this->repository->deleteMany( array( 'days' => $days ) );
 

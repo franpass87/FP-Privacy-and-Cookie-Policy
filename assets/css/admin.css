@@ -25,6 +25,7 @@
     --fp-gray-200: #e5e7eb;
     --fp-gray-300: #d1d5db;
     --fp-gray-500: #6b7280;
+    --fp-gray-600: #4b5563;
     --fp-gray-700: #374151;
     --fp-gray-900: #1f2937;
     
@@ -570,6 +571,7 @@ textarea:focus-visible {
     --fp-gray-900: #000000;
     --fp-gray-700: #1a1a1a;
     --fp-gray-500: #4d4d4d;
+    --fp-gray-600: #3d3d3d;
     --fp-gray-300: #999999;
     --fp-gray-200: #cccccc;
     --fp-gray-100: #e6e6e6;

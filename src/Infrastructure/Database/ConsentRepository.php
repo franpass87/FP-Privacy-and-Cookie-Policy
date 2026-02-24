@@ -57,7 +57,11 @@ class ConsentRepository implements ConsentRepositoryInterface {
 	 */
 	public function create( array $data ) {
 		$result = $this->log_model->insert( $data );
-		return $result ? $this->log_model->get_last_insert_id() : false;
+		if ( ! $result ) {
+			return false;
+		}
+		global $wpdb;
+		return (int) $wpdb->insert_id;
 	}
 
 	/**
@@ -67,9 +71,10 @@ class ConsentRepository implements ConsentRepositoryInterface {
 	 * @return array<string, mixed>|null Consent data or null if not found.
 	 */
 	public function find( int $id ): ?array {
-		// LogModel doesn't have find_by_id, so we query by id field.
-		$results = $this->log_model->query( array( 'id' => $id, 'per_page' => 1 ) );
-		return ! empty( $results ) ? $results[0] : null;
+		global $wpdb;
+		$table = $this->log_model->get_table();
+		$row   = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ), ARRAY_A );
+		return is_array( $row ) ? $row : null;
 	}
 
 	/**
@@ -92,9 +97,46 @@ class ConsentRepository implements ConsentRepositoryInterface {
 	 * @return bool True on success.
 	 */
 	public function update( int $id, array $data ): bool {
-		// LogModel doesn't have update, so we'll need to add it or use database directly.
-		// For now, return false - this will be implemented when we refactor LogModel.
-		return false;
+		global $wpdb;
+
+		$allowed = array( 'event', 'states', 'lang', 'rev' );
+		$filtered = array_intersect_key( $data, array_flip( $allowed ) );
+
+		if ( empty( $filtered ) ) {
+			return false;
+		}
+
+		$valid_events = array( 'accept_all', 'reject_all', 'consent', 'reset', 'revision_bump', 'consent_revoked', 'consent_withdrawn' );
+		if ( isset( $filtered['event'] ) && ! in_array( $filtered['event'], $valid_events, true ) ) {
+			return false;
+		}
+
+		if ( isset( $filtered['states'] ) && is_array( $filtered['states'] ) ) {
+			$filtered['states'] = wp_json_encode( $filtered['states'] );
+		}
+
+		if ( isset( $filtered['lang'] ) ) {
+			$filtered['lang'] = \sanitize_text_field( $filtered['lang'] );
+		}
+
+		if ( isset( $filtered['rev'] ) ) {
+			$filtered['rev'] = (int) $filtered['rev'];
+		}
+
+		$formats = array();
+		foreach ( $filtered as $key => $value ) {
+			$formats[] = 'rev' === $key ? '%d' : '%s';
+		}
+
+		$result = $wpdb->update(
+			$this->log_model->get_table(),
+			$filtered,
+			array( 'id' => $id ),
+			$formats,
+			array( '%d' )
+		);
+
+		return false !== $result;
 	}
 
 	/**
@@ -104,9 +146,15 @@ class ConsentRepository implements ConsentRepositoryInterface {
 	 * @return bool True on success.
 	 */
 	public function delete( int $id ): bool {
-		// LogModel doesn't have delete, so we'll need to add it.
-		// For now, return false - this will be implemented when we refactor LogModel.
-		return false;
+		global $wpdb;
+
+		$result = $wpdb->delete(
+			$this->log_model->get_table(),
+			array( 'id' => $id ),
+			array( '%d' )
+		);
+
+		return false !== $result;
 	}
 
 	/**
@@ -133,6 +181,17 @@ class ConsentRepository implements ConsentRepositoryInterface {
 	 */
 	public function count( array $args = array() ): int {
 		return $this->log_model->count( $args );
+	}
+
+	/**
+	 * Find the most recent consent record for a given consent ID.
+	 *
+	 * @param string $consent_id Consent identifier.
+	 * @return array<string, mixed>|null Consent record or null if not found.
+	 */
+	public function find_latest_by_consent_id( string $consent_id ): ?array {
+		$result = $this->log_model->find_latest_by_consent_id( $consent_id );
+		return is_array( $result ) ? $result : null;
 	}
 
 	/**

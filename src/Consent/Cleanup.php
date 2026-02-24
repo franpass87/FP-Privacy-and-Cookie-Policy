@@ -55,9 +55,15 @@ public function hooks() {
  * @return void
  */
 public function run() {
-$days = (int) $this->options->get( 'retention_days', \FP\Privacy\Shared\Constants::RETENTION_DAYS_DEFAULT );
-$days = $days > 0 ? $days : \FP\Privacy\Shared\Constants::RETENTION_DAYS_DEFAULT;
+	try {
+		$days = (int) $this->options->get( 'retention_days', \FP\Privacy\Shared\Constants::RETENTION_DAYS_DEFAULT );
+		$days = $days > 0 ? $days : \FP\Privacy\Shared\Constants::RETENTION_DAYS_DEFAULT;
 
-$this->log_model->delete_older_than( $days );
+		$this->log_model->delete_older_than( $days );
+	} catch ( \Throwable $e ) {
+		if ( \function_exists( 'error_log' ) ) {
+			\error_log( \sprintf( '[FP Privacy] Cleanup failed: %s', $e->getMessage() ) );
+		}
+	}
 }
 }

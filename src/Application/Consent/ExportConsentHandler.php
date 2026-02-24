@@ -64,7 +64,7 @@ class ExportConsentHandler {
 
 			$export_data = array();
 			foreach ( $consent_ids as $consent_id ) {
-				$records = $this->repository->query( array( 'consent_id' => $consent_id ) );
+				$records = $this->repository->findMany( array( 'consent_id' => $consent_id ) );
 				foreach ( $records as $record ) {
 					$export_data[] = array(
 						'name'  => 'Consent Decision',

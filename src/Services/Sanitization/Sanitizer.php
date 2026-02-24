@@ -50,7 +50,11 @@ class Sanitizer implements SanitizerInterface {
 				if ( ! is_array( $value ) ) {
 					return array();
 				}
-				return array_map( 'sanitize_text_field', $value );
+				return array_map( function ( $item ) {
+					return is_array( $item )
+						? array_map( 'sanitize_text_field', $item )
+						: \sanitize_text_field( (string) $item );
+				}, $value );
 
 			case 'key':
 				return sanitize_key( $value );

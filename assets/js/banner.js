@@ -1486,13 +1486,7 @@ function revokeConsent() {
     debugTiming( 'revokeConsent called' );
     
     try {
-        // Build revocation payload (all false except necessary).
-        var payload = {
-            analytics: false,
-            marketing: false,
-            functional: false,
-            necessary: true // Necessary cookies cannot be revoked.
-        };
+        var payload = buildConsentPayload( false, true );
         
         // Update state immediately.
         state.categories = Object.assign( {}, payload );

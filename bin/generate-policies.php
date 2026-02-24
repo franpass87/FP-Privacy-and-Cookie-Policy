@@ -25,6 +25,11 @@
  * @author Francesco Passeri
  */
 
+if ( 'cli' !== php_sapi_name() ) {
+	http_response_code( 403 );
+	exit( 'This script can only be run from the command line.' );
+}
+
 // Trova il file wp-load.php
 $wp_load = null;
 $search_paths = array(

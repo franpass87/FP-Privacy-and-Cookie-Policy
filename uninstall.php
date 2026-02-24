@@ -16,6 +16,7 @@ if ( ! function_exists( 'fp_privacy_run_uninstall_cleanup' ) ) {
         delete_option( 'fp_privacy_options' );
         delete_option( 'fp_privacy_detector_cache' );
         delete_option( 'fp_privacy_ip_salt' );
+        delete_option( 'fp_privacy_consent_schema_version' );
 
         if ( isset( $wpdb ) ) {
             $table = isset( $wpdb->prefix ) ? $wpdb->prefix . 'fp_consent_log' : 'wp_fp_consent_log';
@@ -23,9 +24,25 @@ if ( ! function_exists( 'fp_privacy_run_uninstall_cleanup' ) ) {
         }
 
         wp_clear_scheduled_hook( 'fp_privacy_cleanup' );
-        // Also clear detector audit schedule to avoid orphaned cron events.
         if ( function_exists( 'wp_clear_scheduled_hook' ) ) {
             wp_clear_scheduled_hook( 'fp_privacy_detector_audit' );
+        }
+
+        // Clean up user meta.
+        if ( isset( $wpdb ) ) {
+            $wpdb->delete( $wpdb->usermeta, array( 'meta_key' => 'fp_consent_ids' ) );
+        }
+
+        // Clean up post meta.
+        if ( isset( $wpdb ) ) {
+            $wpdb->delete( $wpdb->postmeta, array( 'meta_key' => '_fp_privacy_managed_signature' ) );
+        }
+
+        // Clean up transients (rate limiter and cache).
+        if ( isset( $wpdb ) ) {
+            $wpdb->query(
+                "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_fp_privacy_%' OR option_name LIKE '_transient_timeout_fp_privacy_%'"
+            );
         }
     }
 }
