@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.3.1] - 2026-03-09
+### Changed
+- Docs README
+
+---
+
 ## [0.3.0] - 2025-11-01 - Compliance 2025/2026 Release
 
 ### ✨ Aggiunte
