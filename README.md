@@ -151,3 +151,11 @@ Refer to [CHANGELOG.md](CHANGELOG.md) for release notes in Keep a Changelog form
 ## Assumptions
 
 No public issue tracker is bundled with the repository, so the support URL points to the author homepage for contact.
+---
+
+## Autore
+
+**Francesco Passeri**
+- Sito: [francescopasseri.com](https://francescopasseri.com)
+- Email: [info@francescopasseri.com](mailto:info@francescopasseri.com)
+- GitHub: [github.com/franpass87](https://github.com/franpass87)
