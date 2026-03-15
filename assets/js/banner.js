@@ -22,10 +22,16 @@ function createCustomEvent( name, detail ) {
 }
 
 var data = window.FP_PRIVACY_DATA;
+var debugEnabled = !! window.FP_PRIVACY_DEBUG;
+
 if ( ! data ) {
-    console.warn( 'FP Privacy: FP_PRIVACY_DATA not found' );
+    if ( debugEnabled && typeof console !== 'undefined' && console.warn ) {
+        console.warn( 'FP Privacy: FP_PRIVACY_DATA not found' );
+    }
     return;
 }
+
+debugEnabled = debugEnabled || !! data.debug || !! ( data.options && data.options.debug ) || !! ( data.options && data.options.state && data.options.state.preview_mode );
 
 // Auto-detect user language from browser
 function detectUserLanguage() {
@@ -53,6 +59,10 @@ function detectUserLanguage() {
 
 // Debug function for timing issues
 function debugTiming( message ) {
+    if ( ! debugEnabled ) {
+        return;
+    }
+
     if ( typeof console !== 'undefined' && console.log ) {
         console.log( 'FP Privacy Debug: ' + message + ' (readyState: ' + document.readyState + ')' );
     }
@@ -694,10 +704,7 @@ banner.appendChild( revisionNotice );
 // Add policy links
 var policyUrls = data.options.policy_urls || {};
 
-// Debug: Log the policy URLs to help identify the issue
-if ( typeof console !== 'undefined' && console.log ) {
-    console.log( 'FP Privacy Debug - Policy URLs:', policyUrls );
-}
+debugTiming( 'Policy URLs loaded for banner' );
 
 if ( policyUrls.privacy || policyUrls.cookie ) {
     var linksWrapper = document.createElement( 'div' );
@@ -813,10 +820,7 @@ modal.setAttribute( 'aria-labelledby', heading.id );
     // Add policy links
     var policyUrls = data.options.policy_urls || {};
     
-    // Debug: Log the policy URLs in modal
-    if ( typeof console !== 'undefined' && console.log ) {
-        console.log( 'FP Privacy Debug - Modal Policy URLs:', policyUrls );
-    }
+    debugTiming( 'Policy URLs loaded for modal' );
     
     if ( policyUrls.privacy || policyUrls.cookie ) {
         var linksWrapper = document.createElement( 'div' );

@@ -7,10 +7,13 @@
 
 (function($) {
     'use strict';
+    var debugEnabled = !!window.FP_PRIVACY_DEBUG;
 
     $(document).ready(function() {
         if (typeof Chart === 'undefined' || typeof fpPrivacyAnalytics === 'undefined') {
-            console.warn('Chart.js or analytics data not loaded');
+            if (debugEnabled && typeof console !== 'undefined' && console.warn) {
+                console.warn('Chart.js or analytics data not loaded');
+            }
             return;
         }
 
