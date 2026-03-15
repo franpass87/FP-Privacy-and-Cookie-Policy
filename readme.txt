@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 0.3.0
+Stable tag: 0.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,9 @@ See the quick guide screen inside the plugin and the repository `README.md` for 
 Run `bin/package.sh` from the repository root. The script produces a clean archive under `dist/` without minified or binary artefacts.
 
 == Changelog ==
+
+= 0.3.2 =
+* Fixed: silenziati i log/warn di debug in console in produzione per banner e analytics (attivi solo con flag debug).
 
 = 0.3.0 =
 * Raised minimum PHP to 8.0 and WordPress to 6.2 for February 2026 compatibility.
