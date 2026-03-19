@@ -27,8 +27,7 @@ class RESTPermissionChecker {
 		// Allow consent requests from same origin without nonce
 		$origin   = $request->get_header( 'Origin' );
 		$referer  = $request->get_header( 'Referer' );
-		$site_url = \home_url();
-		$site_url = \is_string( $site_url ) ? $site_url : '';
+		$site_url = (string) \home_url();
 		$site     = $site_url ? \wp_parse_url( $site_url ) : array();
 		$site     = \is_array( $site ) ? $site : array();
 
@@ -76,7 +75,7 @@ class RESTPermissionChecker {
 		}
 
 		$site_host      = $this->normalize_host( $site_parts['host'] ?? '' );
-		$candidate_host = $this->normalize_host( $parts['host'] ?? '' );
+		$candidate_host = $this->normalize_host( (string) $parts['host'] );
 
 		if ( '' === $site_host || '' === $candidate_host || $candidate_host !== $site_host ) {
 			return false;

@@ -13,6 +13,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 | `Integrations\ServiceRegistry` → facade su `Domain\Services\ServiceRegistry` | v0.4.0 |
 | Limite tentativi init banner JS (nessun loop infinito senza root) | v0.4.0 |
 | REST `POST /consent` + `/consent/revoke` → `ConsentController` + `ConsentRestHandlerInterface` | v0.4.1 |
+| PHPUnit verde in CI locale: `tests/bootstrap.php` + test allineati (ColorPalette, facade registry, default opzioni) | v0.4.2 |
 
 ---
 
@@ -33,7 +34,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 
 ### Qualità
 
-- [ ] PHPStan livello concordato + PHPUnit su use case critici (consenso, cookie, REST permission).
+- [ ] PHPStan livello concordato (attualmente analisi parziale su `src/REST` + registry; espandere gradualmente) + PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** da v0.4.2 (`composer test`).
 - [ ] Checklist manuale: prima visita, accetta/rifiuta/salva, revoca, bump revisione, multisite (se in scope).
 
 ### Rilascio

@@ -4,6 +4,19 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.4.2] - 2026-03-19
+### Added
+- Tooling dev: `phpstan.neon.dist` (analisi parziale REST/registry), script Composer `test` e `phpstan`, PHPUnit 10 + `php-stubs/wordpress-stubs` in `require-dev`.
+- Test: `ConsentRestHandlerContractTest`, `ServiceRegistryFacadeTest`.
+- `tests/bootstrap.php`: stub minime WordPress (`apply_filters`, `wp_parse_args`, `wp_kses_post`, ecc.) per PHPUnit fuori da WP.
+### Fixed
+- `phpunit.xml.dist`: bootstrap su `tests/bootstrap.php`.
+- Test `ColorPaletteTest` allineato al value object (`surface_*`, `button_*`, …).
+- `ServiceRegistryFacadeTest`: confronto registry senza `assertSame` su array con closure ricreate; detector stringa vs `Closure`.
+- `OptionsValidatorTest`: default con `sync_modal_and_button` e struttura `detector_notifications` completa (niente warning PHP).
+
+---
+
 ## [0.4.1] - 2026-03-19
 ### Changed
 - REST consenso unificato: introdotto `ConsentRestHandlerInterface`; `RESTRouteRegistrar` usa `ConsentController` dal container (revoca inclusa). `RESTConsentHandler` deprecato per 2.0, mantenuto come fallback.

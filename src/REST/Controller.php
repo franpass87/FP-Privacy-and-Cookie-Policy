@@ -11,6 +11,7 @@ namespace FP\Privacy\REST;
 
 use FP\Privacy\Application\Consent\RevokeConsentHandler;
 use FP\Privacy\Consent\LogModel;
+use FP\Privacy\Core\ContainerInterface;
 use FP\Privacy\Frontend\ConsentState;
 use FP\Privacy\Presentation\REST\Controllers\ConsentController;
 use FP\Privacy\Utils\Options;
@@ -40,11 +41,11 @@ class Controller {
 		$permission_checker = new RESTPermissionChecker();
 		$summary_handler    = new RESTSummaryHandler( $log_model, $options, $generator );
 
-		if ( $container && method_exists( $container, 'has' ) && $container->has( ConsentController::class ) ) {
+		if ( $container && $container->has( ConsentController::class ) ) {
 			$consent_handler = $container->get( ConsentController::class );
 		} else {
 			$revoke_handler = null;
-			if ( $container && method_exists( $container, 'has' ) && $container->has( RevokeConsentHandler::class ) ) {
+			if ( $container && $container->has( RevokeConsentHandler::class ) ) {
 				$revoke_handler = $container->get( RevokeConsentHandler::class );
 			}
 			$consent_handler = new RESTConsentHandler( $state, $revoke_handler );

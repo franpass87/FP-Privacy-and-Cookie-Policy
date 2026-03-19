@@ -5,6 +5,8 @@
  * @package FP\Privacy\Tests\Unit\ValueObjects
  */
 
+declare(strict_types=1);
+
 namespace FP\Privacy\Tests\Unit\ValueObjects;
 
 use FP\Privacy\Domain\ValueObjects\ColorPalette;
@@ -15,58 +17,53 @@ use PHPUnit\Framework\TestCase;
  */
 class ColorPaletteTest extends TestCase {
 	/**
-	 * Test creating ColorPalette from array.
-	 *
 	 * @return void
 	 */
 	public function test_from_array(): void {
 		$data = array(
-			'primary'   => '#000000',
-			'secondary' => '#ffffff',
-			'accent'    => '#ff0000',
+			'surface_bg'          => '#000000',
+			'surface_text'        => '#ffffff',
+			'button_primary_bg'   => '#ff0000',
+			'button_primary_tx'   => '#ffffff',
+			'button_secondary_bg' => '#ffffff',
+			'button_secondary_tx' => '#000000',
+			'link'                => '#1D4ED8',
+			'border'              => '#D1D5DB',
+			'focus'               => '#2563EB',
 		);
 
 		$palette = ColorPalette::from_array( $data );
 
 		$this->assertInstanceOf( ColorPalette::class, $palette );
-		$this->assertEquals( '#000000', $palette->get_primary() );
-		$this->assertEquals( '#ffffff', $palette->get_secondary() );
-		$this->assertEquals( '#ff0000', $palette->get_accent() );
+		$this->assertSame( '#000000', $palette->get_surface_bg() );
+		$this->assertSame( '#ffffff', $palette->get_surface_text() );
+		$this->assertSame( '#ff0000', $palette->get_button_primary_bg() );
 	}
 
 	/**
-	 * Test ColorPalette to_array conversion.
-	 *
 	 * @return void
 	 */
 	public function test_to_array(): void {
 		$data = array(
-			'primary'   => '#123456',
-			'secondary' => '#789abc',
+			'surface_bg'   => '#123456',
+			'surface_text' => '#789abc',
 		);
 
 		$palette = ColorPalette::from_array( $data );
-		$result = $palette->to_array();
+		$result  = $palette->to_array();
 
 		$this->assertIsArray( $result );
-		$this->assertEquals( '#123456', $result['primary'] );
-		$this->assertEquals( '#789abc', $result['secondary'] );
+		$this->assertSame( '#123456', $result['surface_bg'] );
+		$this->assertSame( '#789abc', $result['surface_text'] );
 	}
 
 	/**
-	 * Test ColorPalette with default values.
-	 *
 	 * @return void
 	 */
 	public function test_default_values(): void {
 		$palette = new ColorPalette();
 
-		// ColorPalette should have default colors.
-		$this->assertIsString( $palette->get_primary() );
-		$this->assertIsString( $palette->get_secondary() );
+		$this->assertIsString( $palette->get_surface_bg() );
+		$this->assertIsString( $palette->get_button_primary_bg() );
 	}
 }
-
-
-
-
