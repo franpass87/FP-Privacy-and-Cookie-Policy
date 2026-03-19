@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 0.3.5 |
+| Version | 0.4.0 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |
@@ -181,6 +181,7 @@ Base URL: `/wp-json/fp-privacy/v1`.
 
 ## Support
 
+- Roadmap release **1.0**: [`docs/RELEASE-1.0.md`](docs/RELEASE-1.0.md)
 - Documentation: see the [`docs/`](docs/) directory for overview, architecture notes, and FAQs.
 - Issues & contact: [https://francescopasseri.com](https://francescopasseri.com)
 - Builds: run `bash build.sh --bump=patch` to prepare a distributable ZIP without development artefacts.

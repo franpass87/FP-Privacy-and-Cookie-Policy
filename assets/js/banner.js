@@ -96,6 +96,9 @@ var observerTeardownBound = false;
 var reopenButton = null;
 var reopenObserver = null;
 var reopenObserverBound = false;
+/** Tentativi di trovare il root del banner (evita loop infinito se manca shortcode/block). */
+var bannerInitAttempts = 0;
+var BANNER_INIT_MAX_ATTEMPTS = 100;
 
 // Override language detection if not set
 if ( ! state.lang ) {
@@ -602,11 +605,19 @@ function initializeBanner() {
     }
     
     if ( ! root ) {
-        debugTiming( 'Root element not found, retrying in 50ms' );
-        // Retry after a short delay if root element is not found
+        bannerInitAttempts++;
+        if ( bannerInitAttempts > BANNER_INIT_MAX_ATTEMPTS ) {
+            if ( debugEnabled && typeof console !== 'undefined' && console.warn ) {
+                console.warn( 'FP Privacy: elemento banner (data-fp-privacy-banner / #fp-privacy-banner-root) non trovato dopo ' + BANNER_INIT_MAX_ATTEMPTS + ' tentativi.' );
+            }
+            return;
+        }
+        debugTiming( 'Root element not found, retrying in 50ms (attempt ' + bannerInitAttempts + ')' );
         setTimeout( initializeBanner, 50 );
         return;
     }
+
+    bannerInitAttempts = 0;
 
     debugTiming( 'Root element found, building banner' );
     buildBanner();

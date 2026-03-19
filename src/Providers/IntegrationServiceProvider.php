@@ -14,7 +14,6 @@ use FP\Privacy\Core\ServiceProviderInterface;
 use FP\Privacy\Integrations\ConsentMode;
 use FP\Privacy\Integrations\DetectorRegistry;
 use FP\Privacy\Domain\Services\ServiceRegistry;
-use FP\Privacy\Integrations\ServiceRegistry as LegacyServiceRegistry;
 use FP\Privacy\Services\Cache\CacheInterface;
 use FP\Privacy\Services\Options\OptionsInterface;
 
@@ -33,13 +32,8 @@ class IntegrationServiceProvider implements ServiceProviderInterface {
 		// Service registry (new Domain location, with fallback for compatibility).
 		$container->singleton(
 			ServiceRegistry::class,
-			function() {
-				// Use new Domain\Services\ServiceRegistry if available.
-				if ( class_exists( '\\FP\\Privacy\\Domain\\Services\\ServiceRegistry' ) ) {
-					return new \FP\Privacy\Domain\Services\ServiceRegistry();
-				}
-				// Fallback to old location during migration.
-				return new LegacyServiceRegistry();
+			static function (): ServiceRegistry {
+				return new ServiceRegistry();
 			}
 		);
 

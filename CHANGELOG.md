@@ -4,6 +4,17 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.4.0] - 2026-03-19
+### Added
+- Documento di roadmap verso 1.0: `docs/RELEASE-1.0.md`.
+### Changed
+- `FP\Privacy\Integrations\ServiceRegistry` è ora un facade che delega a `FP\Privacy\Domain\Services\ServiceRegistry` (una sola definizione dei servizi; classe Integrations deprecata per rimozione in 2.0).
+- `DetectorRegistry` e `IntegrationServiceProvider` usano direttamente il registry di Domain.
+### Fixed
+- Banner JS: dopo al massimo 100 tentativi (≈5 s) smette di cercare il root se manca shortcode/block, evitando `setTimeout` infiniti.
+
+---
+
 ## [0.3.5] - 2026-03-19
 ### Changed
 - Allineata la firma del filtro `fp_privacy_consent_ids_for_email` ovunque: terzo argomento opzionale (`Options` dal privacy exporter, `null` dall’export applicativo); i callback a 2 parametri restano supportati.

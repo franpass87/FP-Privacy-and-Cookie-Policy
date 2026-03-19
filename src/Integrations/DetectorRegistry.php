@@ -42,14 +42,9 @@ class DetectorRegistry {
      * @param CacheInterface|null $cache Cache interface for persistence. If null, DetectorCache will use fallback.
      */
     public function __construct( ?CacheInterface $cache = null ) {
-        $this->cache            = new DetectorCache( $cache );
-        // Use new Domain\Services\ServiceRegistry, fallback to old for compatibility.
-        if ( class_exists( '\\FP\\Privacy\\Domain\\Services\\ServiceRegistry' ) ) {
-            $service_registry = new \FP\Privacy\Domain\Services\ServiceRegistry();
-        } else {
-            $service_registry = new ServiceRegistry();
-        }
-        $this->service_detector = new ServiceDetector( $service_registry );
+		$this->cache = new DetectorCache( $cache );
+		$service_registry       = new \FP\Privacy\Domain\Services\ServiceRegistry();
+		$this->service_detector = new ServiceDetector( $service_registry );
         $this->unknown_analyzer  = new UnknownServiceAnalyzer();
     }
 /**
@@ -58,13 +53,7 @@ class DetectorRegistry {
  * @return array<string, array<string, mixed>>
  */
 public function get_registry() {
-// Start with base registry from ServiceRegistry to avoid duplication.
-        // Use new Domain\Services\ServiceRegistry if available, fallback to old for compatibility.
-        if ( class_exists( '\\FP\\Privacy\\Domain\\Services\\ServiceRegistry' ) ) {
-            $services = \FP\Privacy\Domain\Services\ServiceRegistry::get_base_registry();
-        } else {
-            $services = ServiceRegistry::get_base_registry();
-        }
+		$services = \FP\Privacy\Domain\Services\ServiceRegistry::get_base_registry();
 
 // Add additional services that are not in the base registry.
 // Note: ga4, gtm, facebook_pixel, hotjar, clarity, recaptcha, youtube, and vimeo
