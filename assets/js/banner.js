@@ -1353,6 +1353,30 @@ function mapToConsentMode( payload ) {
     return result;
 }
 
+/**
+ * Riallinea banner e pulsante riapertura preferenze dopo errore o timeout di sicurezza.
+ * Senza questo, il timeout poteva nascondere il banner lasciando should_display a true:
+ * nessun banner e nessun bottone fisso (l'utente non può riaprire le preferenze).
+ *
+ * @return {void}
+ */
+function syncBannerAndReopenAfterStalledHandler() {
+    setButtonsLoading( false );
+    if ( state.should_display ) {
+        if ( banner ) {
+            banner.style.display = 'block';
+        }
+    } else {
+        if ( banner ) {
+            banner.style.display = 'none';
+        }
+        if ( modalOverlay ) {
+            modalOverlay.style.display = 'none';
+        }
+    }
+    updateReopenVisibility();
+}
+
 function setButtonsLoading( isLoading ) {
     debugTiming( 'setButtonsLoading called with isLoading: ' + isLoading );
     // FIX: Seleziona solo i bottoni del modal (non quelli del banner)
@@ -1404,19 +1428,12 @@ function enableAllToggles() {
 function handleAcceptAll() {
     debugTiming( 'handleAcceptAll called' );
     setButtonsLoading( true );
-    
-    // TIMEOUT DI SICUREZZA: Forza la chiusura dopo 500ms
-    // Garantisce che il banner si chiuda SEMPRE, anche in caso di errori
+
     var safetyTimeout = setTimeout( function() {
-        debugTiming( 'Safety timeout triggered - forcing banner close' );
-        if ( banner && banner.style.display !== 'none' ) {
-            banner.style.display = 'none';
-            if ( modal && modalOverlay ) {
-                modalOverlay.style.display = 'none';
-            }
-        }
+        debugTiming( 'Safety timeout - syncing banner and reopen button UI' );
+        syncBannerAndReopenAfterStalledHandler();
     }, 500 );
-    
+
     try {
         var payload = buildConsentPayload( true, false );
         debugTiming( 'Payload built, calling persistConsent' );
@@ -1436,30 +1453,23 @@ function handleAcceptAll() {
         
         // Invia al server in background (non bloccante)
         persistConsent( 'accept_all', payload );
-        
-        // Cancella il timeout di sicurezza se tutto va bene
-        clearTimeout( safetyTimeout );
     } catch ( error ) {
-        debugTiming( 'Error in handleAcceptAll: ' + error.message );
-        // Il timeout di sicurezza chiuderà comunque il banner
+        debugTiming( 'Error in handleAcceptAll: ' + ( error && error.message ? error.message : error ) );
+        syncBannerAndReopenAfterStalledHandler();
+    } finally {
+        clearTimeout( safetyTimeout );
     }
 }
 
 function handleRejectAll() {
     debugTiming( 'handleRejectAll called' );
     setButtonsLoading( true );
-    
-    // TIMEOUT DI SICUREZZA: Forza la chiusura dopo 500ms
+
     var safetyTimeout = setTimeout( function() {
-        debugTiming( 'Safety timeout triggered - forcing banner close' );
-        if ( banner && banner.style.display !== 'none' ) {
-            banner.style.display = 'none';
-            if ( modal && modalOverlay ) {
-                modalOverlay.style.display = 'none';
-            }
-        }
+        debugTiming( 'Safety timeout - syncing banner and reopen button UI' );
+        syncBannerAndReopenAfterStalledHandler();
     }, 500 );
-    
+
     try {
         var payload = buildConsentPayload( false, true );
         debugTiming( 'Payload built, calling persistConsent' );
@@ -1478,11 +1488,11 @@ function handleRejectAll() {
         
         // Invia al server in background (non bloccante)
         persistConsent( 'reject_all', payload );
-        
-        clearTimeout( safetyTimeout );
     } catch ( error ) {
-        debugTiming( 'Error in handleRejectAll: ' + error.message );
-        // Il timeout di sicurezza chiuderà comunque il banner
+        debugTiming( 'Error in handleRejectAll: ' + ( error && error.message ? error.message : error ) );
+        syncBannerAndReopenAfterStalledHandler();
+    } finally {
+        clearTimeout( safetyTimeout );
     }
 }
 
@@ -1582,18 +1592,12 @@ function revokeConsent() {
 
 function handleSavePreferences() {
     setButtonsLoading( true );
-    
-    // TIMEOUT DI SICUREZZA: Forza la chiusura dopo 500ms
+
     var safetyTimeout = setTimeout( function() {
-        debugTiming( 'Safety timeout triggered - forcing modal/banner close' );
-        if ( modalOverlay && modalOverlay.style.display !== 'none' ) {
-            modalOverlay.style.display = 'none';
-        }
-        if ( banner && banner.style.display !== 'none' ) {
-            banner.style.display = 'none';
-        }
+        debugTiming( 'Safety timeout - syncing banner and reopen button UI' );
+        syncBannerAndReopenAfterStalledHandler();
     }, 500 );
-    
+
     try {
         var payload = buildConsentPayload( false, false );
         
@@ -1612,11 +1616,11 @@ function handleSavePreferences() {
         
         // Invia al server in background (non bloccante)
         persistConsent( 'consent', payload );
-        
-        clearTimeout( safetyTimeout );
     } catch ( error ) {
-        debugTiming( 'Error in handleSavePreferences: ' + error.message );
-        // Il timeout di sicurezza chiuderà comunque il banner
+        debugTiming( 'Error in handleSavePreferences: ' + ( error && error.message ? error.message : error ) );
+        syncBannerAndReopenAfterStalledHandler();
+    } finally {
+        clearTimeout( safetyTimeout );
     }
 }
 
@@ -1834,6 +1838,22 @@ function persistConsent( event, payload ) {
         } );
 }
 
+/**
+ * Aggiorna state.last_revision dal cookie/localStorage senza abbassare la revisione già nota al server (DB).
+ *
+ * @param {string} revSegment Segmento revisione dalla stringa id|rev.
+ * @return {void}
+ */
+function mergeConsentRevisionFromStorage( revSegment ) {
+    if ( ! revSegment ) {
+        return;
+    }
+    var fromStorage = parseInt( revSegment, 10 ) || 0;
+    var prev = typeof state.last_revision === 'number' && ! isNaN( state.last_revision ) ? state.last_revision : 0;
+    state.last_revision = Math.max( fromStorage, prev );
+    debugTiming( 'Revisione dopo merge storage/server: ' + state.last_revision );
+}
+
 function readConsentIdFromCookie() {
     var cookieName = consentCookie.name || 'fp_consent_state_id';
     var name = cookieName + '=';
@@ -1846,11 +1866,8 @@ function readConsentIdFromCookie() {
             var segments = value.split( '|' );
             debugTiming( 'Cookie trovato: ' + value + ', ID: ' + ( segments[ 0 ] || '' ) + ', Rev: ' + ( segments[ 1 ] || '0' ) );
             
-            // CORREZIONE: Aggiorna anche la revisione se presente e assicurati che sia valida
             if ( segments[ 1 ] ) {
-                var revision = parseInt( segments[ 1 ], 10 ) || 0;
-                state.last_revision = revision;
-                debugTiming( 'Revisione dal cookie: ' + revision );
+                mergeConsentRevisionFromStorage( segments[ 1 ] );
             }
             
             // CORREZIONE: Verifica che l'ID del consenso sia valido (non vuoto)
@@ -1876,10 +1893,8 @@ function readConsentIdFromCookie() {
                 var segments = storedValue.split( '|' );
                 var consentId = segments[ 0 ] || '';
                 if ( consentId && consentId.length > 0 ) {
-                    // Aggiorna la revisione
                     if ( segments[ 1 ] ) {
-                        var revision = parseInt( segments[ 1 ], 10 ) || 0;
-                        state.last_revision = revision;
+                        mergeConsentRevisionFromStorage( segments[ 1 ] );
                     }
                     debugTiming( 'Consenso recuperato da localStorage: ' + consentId );
                     // Prova a ripristinare il cookie

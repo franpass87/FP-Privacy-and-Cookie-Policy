@@ -4,6 +4,13 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.3.3] - 2026-03-19
+### Fixed
+- Banner cookie: il bottone fisso “preferenze” poteva sparire in caso di errore durante accetto/rifiuto/salva o dopo il timeout di sicurezza a 500ms, perché il banner veniva nascosto senza aggiornare `should_display` e la visibilità del reopen.
+- Lettura cookie consenso: la revisione nel browser non sovrascrive più una `last_revision` più alta già fornita dal server (evita stati incoerenti all’avvio).
+
+---
+
 ## [0.3.2] - 2026-03-15
 ### Fixed
 - Ridotti i messaggi debug in console sul frontend del banner cookie in ambiente produzione.
