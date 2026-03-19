@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.5.2] - 2026-03-19
+### Fixed
+- i18n: completate le traduzioni inglesi (`fp-privacy-en_US.po`) per granularità EDPB, titoli policy e paragrafi lunghi della privacy template; rigenerati `.mo`. Script di supporto in `bin/` (`build-chunk-b-json.php`, `gen-chunk-b-extra.php`, `apply-en-overrides.php`) e chunk JSON in `languages/`.
+
+---
+
 ## [0.5.1] - 2026-03-19
 ### Changed
 - Banner: **Consent Mode / `dataLayer` aggiornati prima** dello sblocco script (`emitConsentSignals` → `fp-consent-change` → `restoreBlockedNodes`), così eventi marketing/analytics non partono con segnali ancora `denied`.
