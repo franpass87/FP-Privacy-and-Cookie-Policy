@@ -113,7 +113,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 
 			// Force update banner texts translations.
 			$options = self::resolveOptions( $container );
-			if ( $options && method_exists( $options, 'force_update_banner_texts_translations' ) ) {
+			if ( method_exists( $options, 'force_update_banner_texts_translations' ) ) {
 				try {
 					$options->force_update_banner_texts_translations();
 				} catch ( \Throwable $e ) {
@@ -160,8 +160,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 		\add_filter(
 			'fp_privacy_enable_gpc',
 			static function ( $enabled ) use ( $options_ref ) {
-				$value = $options_ref ? (bool) $options_ref->get( 'gpc_enabled', false ) : false;
-				return (bool) $value;
+				return (bool) $options_ref->get( 'gpc_enabled', false );
 			},
 			10,
 			1
@@ -181,7 +180,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 
 				$user = \get_user_by( 'email', $email );
 
-				if ( ! $user || ! isset( $user->ID ) ) {
+				if ( ! $user ) {
 					return $ids;
 				}
 

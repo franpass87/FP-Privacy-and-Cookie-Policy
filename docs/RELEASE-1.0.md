@@ -16,6 +16,10 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 | PHPUnit verde in CI locale: `tests/bootstrap.php` + test allineati (ColorPalette, facade registry, default opzioni) | v0.4.2 |
 | PHPStan su `src/REST` + `src/Domain`; test same-origin `RESTPermissionChecker` | v0.4.3 |
 | Documento integratori `docs/INTEGRATION-FRONTEND.md`; reset impostazioni ai default (admin); PHPStan + `src/Application`; bozza upgrade 1.0 in CHANGELOG | v0.4.4 |
+| Admin UI design system FP, palette policy/banner, fix anteprima palette | v0.5.0 |
+| Consent Mode / `dataLayer` prima dello sblocco script; UX rifiuta tutti + filtri `fp_privacy_reject_all_confirm*` | v0.5.1 |
+| i18n `en_US` completa (policy lunga, EDPB, tooling `bin/` + chunk JSON) | v0.5.2 |
+| PHPStan esteso a `src/Providers` (fix `CoreServiceProvider` livello 5) | v0.5.3 |
 
 ---
 
@@ -30,13 +34,14 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 ### Codice e architettura
 
 - [x] Consolidare stack REST: un solo percorso per `POST /consent` e revoke (`ConsentController` + interfaccia; legacy solo fallback).
-- [ ] Rimuovere o wrappare con `_deprecated_function` le API segnate `@deprecated` (es. `fp_privacy_get_ip_salt`, `ConsentModel`, `OptionsAdapter` temporaneo) — decidere: rimozione in 1.0 vs deprecazione fino a 2.0.
+- [x] **Decisione (verso 1.0)**: le API con `@deprecated 2.0.0` / PHPDoc `@deprecated` **restano** nella 1.0 senza breaking change; rimozione o `_deprecated_function` runtime valutata in **2.0**. Eccezione: `fp_privacy_get_ip_salt()` resta funzione globale di compatibilità (già documentata nel main file); uso interno preferibile via `IpSaltService`.
 - [x] `assets/js/admin.js`: rimossi TODO su reset default e badge tab (completamento campi `required`); nessun TODO aperto rimasto nel file.
 - [x] Allineare `INSTALL.md` / audit docs alla versione corrente (versione guida aggiornata v0.4.4+).
 
 ### Qualità
 
-- [ ] PHPStan livello concordato (copertura: `src/REST` + `src/Domain` + `src/Application` da v0.4.4; espandere verso altri moduli) + PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** da v0.4.2+ (`composer test`; same-origin REST da v0.4.3).
+- [ ] PHPStan livello concordato — **copertura attuale**: `src/REST`, `src/Domain`, `src/Application`, `src/Providers`, `src/Integrations/ServiceRegistry.php` (livello **5**, `composer phpstan`). Da valutare: `src/Frontend`, `src/Utils`, `src/Infrastructure` a step successivi.
+- [ ] PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** da v0.4.2+ (`composer test`; same-origin REST da v0.4.3).
 - [ ] Checklist manuale: prima visita, accetta/rifiuta/salva, revoca, bump revisione, **reset impostazioni ai default** (admin), multisite (se in scope).
 
 ### Rilascio

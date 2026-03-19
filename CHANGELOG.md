@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.5.3] - 2026-03-19
+### Changed
+- Roadmap 1.0: `docs/RELEASE-1.0.md` aggiornato (completati 0.5.x, decisione deprecazioni fino a 2.0, stato PHPStan).
+### Fixed
+- PHPStan: incluso `src/Providers` in `phpstan.neon.dist`; correzioni in `CoreServiceProvider` (condizioni ridondanti su `resolveOptions` / `WP_User`).
+
+---
+
 ## [0.5.2] - 2026-03-19
 ### Fixed
 - i18n: completate le traduzioni inglesi (`fp-privacy-en_US.po`) per granularità EDPB, titoli policy e paragrafi lunghi della privacy template; rigenerati `.mo`. Script di supporto in `bin/` (`build-chunk-b-json.php`, `gen-chunk-b-extra.php`, `apply-en-overrides.php`) e chunk JSON in `languages/`.
