@@ -9,6 +9,7 @@
 
 namespace FP\Privacy\Admin\Diagnostic;
 
+use FP\Privacy\Admin\AdminHeader;
 use FP\Privacy\Frontend\ConsentState as FrontendConsentState;
 use FP\Privacy\Utils\Options;
 
@@ -48,8 +49,15 @@ class DiagnosticPageRenderer {
 		$all_options    = $this->options->all();
 
 		?>
-		<div class="wrap">
-			<h1><?php echo esc_html( \__( 'Strumenti Diagnostica FP Privacy', 'fp-privacy' ) ); ?></h1>
+		<div class="wrap fp-privacy-admin-page fp-privacy-diagnostics-wrap">
+			<h1 class="screen-reader-text"><?php echo \esc_html( \__( 'FP Privacy diagnostics', 'fp-privacy' ) ); ?></h1>
+			<?php
+			AdminHeader::render(
+				'dashicons-info',
+				\__( 'FP Privacy diagnostics', 'fp-privacy' ),
+				\__( 'Current state, quick actions and debug information.', 'fp-privacy' )
+			);
+			?>
 
 			<?php DiagnosticNoticesRenderer::render(); ?>
 

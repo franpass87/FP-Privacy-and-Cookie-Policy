@@ -4,6 +4,20 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.5.0] - 2026-03-19
+### Added
+- `AdminHeader` e header gradiente brand (design system FP) sulle pagine admin del plugin.
+- `BannerPaletteBuilder::build_policy_page_css()`: variabili CSS per informativa/cookie policy allineate alla palette impostazioni.
+- Inline palette anche su `#fp-privacy-preview-banner` e in admin (`Settings::enqueue_assets`) così l’anteprima banner usa i colori salvati.
+### Changed
+- `admin.css`: token FPDMS, header pagina, card Tools/Guide, pulsanti primari/sticky, statistiche analytics e focus coerenti col viola brand (solo backend).
+- `banner.css` / `privacy-policy.css`: struttura (radius, ombre, transizioni) tipo linee guida FP; accenti da `--fp-privacy-*` (nessun viola di default in frontend).
+- `ShortcodeAssetManager`: enqueue policy + inline palette; guard contro doppio hook `wp_enqueue_scripts`.
+### Fixed
+- Anteprima banner in impostazioni che non ereditava le variabili CSS definite solo per `#fp-privacy-banner-root`.
+
+---
+
 ## [0.4.4] - 2026-03-19
 ### Added
 - `Options::reset_to_factory_defaults()` e `admin_post_fp_privacy_reset_settings`: il pulsante **Reset a default** in Settings invia un POST sicuro e ripristina le opzioni sanificate ai default di fabbrica; notice di successo e hook `fp_privacy_settings_saved`.

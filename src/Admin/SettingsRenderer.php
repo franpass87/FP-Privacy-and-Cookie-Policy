@@ -71,8 +71,15 @@ class SettingsRenderer {
 		$script_categories = $data['script_categories'];
 		$notification_recipients = $data['notification_recipients'];
 		?>
-<div class="wrap fp-privacy-settings">
-<h1><?php \esc_html_e( 'Privacy & Cookie Settings', 'fp-privacy' ); ?></h1>
+<div class="wrap fp-privacy-settings fp-privacy-admin-page">
+<h1 class="screen-reader-text"><?php \esc_html_e( 'Privacy & Cookie Settings', 'fp-privacy' ); ?></h1>
+<?php
+AdminHeader::render(
+	'dashicons-shield',
+	\__( 'Privacy & Cookie Settings', 'fp-privacy' ),
+	\__( 'Banner, cookie, policy links and advanced options.', 'fp-privacy' )
+);
+?>
 
 <!-- Quick Actions Bar -->
 <div class="fp-privacy-quick-actions">
@@ -207,9 +214,15 @@ class SettingsRenderer {
 		}
 
 		?>
-		<div class="wrap fp-privacy-tools">
-			<h1><?php \esc_html_e( 'Tools', 'fp-privacy' ); ?></h1>
-			<p><?php \esc_html_e( 'Export or import configuration, regenerate policies and reset revision.', 'fp-privacy' ); ?></p>
+		<div class="wrap fp-privacy-tools fp-privacy-admin-page">
+			<h1 class="screen-reader-text"><?php \esc_html_e( 'Tools', 'fp-privacy' ); ?></h1>
+			<?php
+			AdminHeader::render(
+				'dashicons-admin-tools',
+				\__( 'Tools', 'fp-privacy' ),
+				\__( 'Export or import configuration, regenerate policies and reset revision.', 'fp-privacy' )
+			);
+			?>
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-tools-export">
 				<?php \wp_nonce_field( 'fp_privacy_export_settings', 'fp_privacy_export_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_export_settings" />
@@ -242,8 +255,15 @@ class SettingsRenderer {
 		}
 
 		?>
-		<div class="wrap fp-privacy-guide">
-			<h1><?php \esc_html_e( 'Quick guide', 'fp-privacy' ); ?></h1>
+		<div class="wrap fp-privacy-guide fp-privacy-admin-page">
+			<h1 class="screen-reader-text"><?php \esc_html_e( 'Quick guide', 'fp-privacy' ); ?></h1>
+			<?php
+			AdminHeader::render(
+				'dashicons-book-alt',
+				\__( 'Quick guide', 'fp-privacy' ),
+				\__( 'Shortcodes, blocks and developer hooks.', 'fp-privacy' )
+			);
+			?>
 			<h2><?php \esc_html_e( 'Shortcodes', 'fp-privacy' ); ?></h2>
 			<ul>
 				<li><code>[fp_privacy_policy]</code></li>

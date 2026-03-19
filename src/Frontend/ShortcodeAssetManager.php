@@ -16,6 +16,13 @@ use FP\Privacy\Utils\Options;
  */
 class ShortcodeAssetManager {
 	/**
+	 * Evita doppia `add_action` se più shortcode chiamano prima di `wp_enqueue_scripts`.
+	 *
+	 * @var bool
+	 */
+	private static $policy_enqueue_hook_registered = false;
+
+	/**
 	 * Options handler.
 	 *
 	 * @var Options
@@ -23,12 +30,21 @@ class ShortcodeAssetManager {
 	private $options;
 
 	/**
+	 * Palette CSS builder.
+	 *
+	 * @var BannerPaletteBuilder
+	 */
+	private $palette_builder;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Options $options Options handler.
+	 * @param Options               $options          Options handler.
+	 * @param BannerPaletteBuilder|null $palette_builder Builder (optional).
 	 */
-	public function __construct( Options $options ) {
-		$this->options = $options;
+	public function __construct( Options $options, ?BannerPaletteBuilder $palette_builder = null ) {
+		$this->options          = $options;
+		$this->palette_builder = $palette_builder ?? new BannerPaletteBuilder();
 	}
 
 	/**
@@ -62,17 +78,37 @@ class ShortcodeAssetManager {
 					array(),
 					FP_PRIVACY_PLUGIN_VERSION
 				);
-			} else {
-				\add_action( 'wp_enqueue_scripts', function() {
-					\wp_enqueue_style(
-						'fp-privacy-policy-styles',
-						FP_PRIVACY_PLUGIN_URL . 'assets/css/privacy-policy.css',
-						array(),
-						FP_PRIVACY_PLUGIN_VERSION
-					);
-				}, 20 );
+				$this->add_policy_palette_inline();
+			} elseif ( ! self::$policy_enqueue_hook_registered ) {
+				self::$policy_enqueue_hook_registered = true;
+				\add_action(
+					'wp_enqueue_scripts',
+					function () {
+						\wp_enqueue_style(
+							'fp-privacy-policy-styles',
+							FP_PRIVACY_PLUGIN_URL . 'assets/css/privacy-policy.css',
+							array(),
+							FP_PRIVACY_PLUGIN_VERSION
+						);
+						$this->add_policy_palette_inline();
+					},
+					20
+				);
 			}
 		}
+	}
+
+	/**
+	 * Inietta variabili colore policy dalla palette banner (impostazioni).
+	 *
+	 * @return void
+	 */
+	private function add_policy_palette_inline(): void {
+		$palette = $this->options->get_color_palette();
+		\wp_add_inline_style(
+			'fp-privacy-policy-styles',
+			$this->palette_builder->build_policy_page_css( $palette )
+		);
 	}
 }
 

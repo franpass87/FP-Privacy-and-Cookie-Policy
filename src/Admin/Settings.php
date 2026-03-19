@@ -11,6 +11,7 @@ namespace FP\Privacy\Admin;
 
 use FP\Privacy\Admin\Menu;
 use FP\Privacy\Admin\PolicyGenerator;
+use FP\Privacy\Frontend\BannerPaletteBuilder;
 use FP\Privacy\Integrations\DetectorRegistry;
 use FP\Privacy\Utils\Options;
 
@@ -75,7 +76,14 @@ class Settings {
 
 		\wp_enqueue_style( 'fp-privacy-admin', FP_PRIVACY_PLUGIN_URL . 'assets/css/admin.css', array(), FP_PRIVACY_PLUGIN_VERSION );
 		\wp_enqueue_style( 'fp-privacy-banner-preview', FP_PRIVACY_PLUGIN_URL . 'assets/css/banner.css', array(), FP_PRIVACY_PLUGIN_VERSION );
-		
+
+		$banner_layout = $this->options->get_banner_layout();
+		$palette_css   = ( new BannerPaletteBuilder() )->build_palette_css(
+			$banner_layout->get_palette(),
+			$banner_layout->is_sync_modal_and_button()
+		);
+		\wp_add_inline_style( 'fp-privacy-banner-preview', $palette_css );
+
 		\wp_enqueue_script( 'fp-privacy-admin', FP_PRIVACY_PLUGIN_URL . 'assets/js/admin.js', array( 'jquery' ), FP_PRIVACY_PLUGIN_VERSION, true );
 		
 		// Get policy URLs for preview

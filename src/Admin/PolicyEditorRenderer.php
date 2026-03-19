@@ -51,8 +51,15 @@ class PolicyEditorRenderer {
 	 */
 	public function render( array $languages, array $privacy_posts, array $cookie_posts ) {
 		?>
-		<div class="wrap fp-privacy-policy-editor">
-			<h1><?php \esc_html_e( 'Policy editor', 'fp-privacy' ); ?></h1>
+		<div class="wrap fp-privacy-policy-editor fp-privacy-admin-page">
+			<h1 class="screen-reader-text"><?php \esc_html_e( 'Policy editor', 'fp-privacy' ); ?></h1>
+			<?php
+			AdminHeader::render(
+				'dashicons-edit',
+				\__( 'Policy editor', 'fp-privacy' ),
+				\__( 'Edit privacy and cookie policy content per language.', 'fp-privacy' )
+			);
+			?>
 			<p><?php \esc_html_e( 'Customize the generated documents or regenerate them using the detector.', 'fp-privacy' ); ?></p>
 
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>">

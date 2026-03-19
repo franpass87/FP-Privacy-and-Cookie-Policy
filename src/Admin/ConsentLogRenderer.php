@@ -34,9 +34,15 @@ class ConsentLogRenderer {
 		$pages = (int) ceil( max( 0, (int) $data['total'] ) / max( 1, (int) $args['per_page'] ) );
 
 		?>
-		<div class="wrap fp-privacy-consent-log">
-			<h1><?php \esc_html_e( 'Consent log', 'fp-privacy' ); ?></h1>
-			<p><?php \esc_html_e( 'Review consent events and export them for compliance.', 'fp-privacy' ); ?></p>
+		<div class="wrap fp-privacy-consent-log fp-privacy-admin-page">
+			<h1 class="screen-reader-text"><?php \esc_html_e( 'Consent log', 'fp-privacy' ); ?></h1>
+			<?php
+			AdminHeader::render(
+				'dashicons-list-view',
+				\__( 'Consent log', 'fp-privacy' ),
+				\__( 'Review consent events and export them for compliance.', 'fp-privacy' )
+			);
+			?>
 
 			<?php if ( ! empty( $data['error'] ) ) : ?>
 				<div class="notice notice-error"><p><?php echo \esc_html__( 'There was a problem loading consent log data. The table may be missing or the database is temporarily unavailable. The view is still shown below so you can adjust filters or try again.', 'fp-privacy' ); ?></p></div>

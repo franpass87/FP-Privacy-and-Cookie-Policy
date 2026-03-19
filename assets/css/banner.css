@@ -1,4 +1,5 @@
 :root {
+    /* Fallback palette (sovrascritta da inline PHP / anteprima admin) — nessun viola brand */
     --fp-privacy-surface_bg: #f9fafb;
     --fp-privacy-surface_text: #1f2937;
     --fp-privacy-button_primary_bg: #2563eb;
@@ -8,7 +9,16 @@
     --fp-privacy-link: #1d4ed8;
     --fp-privacy-border: #d1d5db;
     --fp-privacy-focus: #2563eb;
+    /* Struttura tipo design system FP (solo geometria/ombra) */
+    --fp-privacy-radius-sm: 8px;
+    --fp-privacy-radius-md: 12px;
+    --fp-privacy-radius-lg: 16px;
+    --fp-privacy-radius-xl: 18px;
+    --fp-privacy-radius-pill: 999px;
     --fp-privacy-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+    --fp-privacy-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+    --fp-privacy-shadow-hover: 0 4px 14px rgba(15, 23, 42, 0.14);
+    --fp-privacy-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 
@@ -25,7 +35,7 @@ font-family: inherit;
     max-width: 640px;
     background: var(--fp-privacy-surface_bg);
     color: var(--fp-privacy-surface_text);
-    border-radius: 18px;
+    border-radius: var(--fp-privacy-radius-xl);
     padding: 20px 24px;
     box-shadow: var(--fp-privacy-shadow);
     border: 1px solid var(--fp-privacy-border);
@@ -77,9 +87,10 @@ font-family: inherit;
 .fp-privacy-revision-notice {
     margin-bottom: 1rem;
     padding: 10px 16px;
-    border-radius: 10px;
-    background: rgba(37, 99, 235, 0.08);
-    border: 1px solid rgba(37, 99, 235, 0.18);
+    border-radius: var(--fp-privacy-radius-sm);
+    background: var(--fp-privacy-surface_bg);
+    border: 1px solid var(--fp-privacy-border);
+    border-left: 4px solid var(--fp-privacy-button_primary_bg);
     font-weight: 600;
     color: inherit;
 }
@@ -92,12 +103,12 @@ gap: 0.625rem;
 
 .fp-privacy-button {
     cursor: pointer;
-    border-radius: 999px;
+    border-radius: var(--fp-privacy-radius-pill);
     font-weight: 600;
     padding: 0.5rem 1.25rem;
     border: 1px solid transparent;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    transition: box-shadow var(--fp-privacy-transition), transform var(--fp-privacy-transition), background var(--fp-privacy-transition), border-color var(--fp-privacy-transition);
+    box-shadow: var(--fp-privacy-shadow-sm);
     position: relative;
     overflow: hidden;
     font-size: 0.9375rem;
@@ -148,7 +159,7 @@ gap: 0.625rem;
 
 .fp-privacy-button:hover:not(.fp-loading) {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.15);
+    box-shadow: var(--fp-privacy-shadow-hover);
 }
 
 .fp-privacy-button:active:not(.fp-loading) {
@@ -283,13 +294,14 @@ backdrop-filter: blur(4px);
 }
 
 .fp-privacy-modal {
-background: #ffffff;
-color: #111827;
+background: var(--fp-privacy-surface_bg);
+color: var(--fp-privacy-surface_text);
 max-width: 580px;
 width: 100%;
-border-radius: 8px;
+border-radius: var(--fp-privacy-radius-md);
 padding: 1rem;
-box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
+box-shadow: var(--fp-privacy-shadow);
+border: 1px solid var(--fp-privacy-border);
 position: relative;
 z-index: 2147483647;
 animation: fpPrivacyScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -340,17 +352,17 @@ line-height: 1;
 }
 
 .fp-privacy-modal button.close:focus-visible {
-outline: 3px solid #2563eb;
+outline: 3px solid var(--fp-privacy-focus);
 outline-offset: 2px;
-border-radius: 4px;
+border-radius: var(--fp-privacy-radius-sm);
 }
 
 .fp-privacy-category {
-border: 1px solid #e5e7eb;
-border-radius: 6px;
+border: 1px solid var(--fp-privacy-border);
+border-radius: var(--fp-privacy-radius-sm);
 padding: 0.625rem;
 margin-bottom: 0.5rem;
-transition: all 0.2s ease;
+transition: box-shadow var(--fp-privacy-transition), border-color var(--fp-privacy-transition);
 }
 
 .fp-privacy-category:hover {
@@ -382,7 +394,7 @@ transition: background 0.2s ease;
 }
 
 .fp-privacy-switch input[type="checkbox"]:checked {
-background: #2563eb;
+background: var(--fp-privacy-button_primary_bg);
 }
 
 .fp-privacy-switch input[type="checkbox"]::after {
@@ -402,7 +414,7 @@ transform: translateX(18px);
 }
 
 .fp-privacy-switch input[type="checkbox"]:focus-visible {
-outline: 3px solid #2563eb;
+outline: 3px solid var(--fp-privacy-focus);
 outline-offset: 2px;
 }
 
@@ -416,9 +428,11 @@ flex-wrap: wrap;
 .fp-privacy-cookie-debug {
 margin-top: 1.5rem;
 font-size: 0.875rem;
-background: rgba(37, 99, 235, 0.1);
+background: var(--fp-privacy-surface_bg);
 padding: 1rem;
-border-radius: 8px;
+border-radius: var(--fp-privacy-radius-md);
+border: 1px solid var(--fp-privacy-border);
+border-left: 4px solid var(--fp-privacy-link);
 }
 
 .fp-privacy-blocked {

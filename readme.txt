@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 0.4.4
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,9 @@ See the quick guide screen inside the plugin and the repository `README.md` for 
 Run `bin/package.sh` from the repository root. The script produces a clean archive under `dist/` without minified or binary artefacts.
 
 == Changelog ==
+
+= 0.5.0 =
+* UI admin allineata al design system FP (header viola, card, pulsanti); frontend banner/policy con struttura FP e colori dalla palette; anteprima admin con palette inline; variabili CSS sulla pagina policy.
 
 = 0.4.4 =
 * Reset impostazioni ai default (admin-post sicuro); documento integrazione frontend FP_PRIVACY_DATA; PHPStan su Application; bozza sezione upgrade 1.0 in CHANGELOG.

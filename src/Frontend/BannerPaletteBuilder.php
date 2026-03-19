@@ -53,17 +53,18 @@ class BannerPaletteBuilder {
 		$border              = $this->sanitize_palette_value( $palette, 'border', $defaults['border'] );
 		$focus               = $this->sanitize_palette_value( $palette, 'focus', $defaults['focus'] );
 
-		$css  = '#fp-privacy-banner-root, [data-fp-privacy-banner] {';
-		$css .= '--fp-privacy-surface_bg:' . $surface_bg . ';';
-		$css .= '--fp-privacy-surface_text:' . $surface_text . ';';
-		$css .= '--fp-privacy-button_primary_bg:' . $button_primary_bg . ';';
-		$css .= '--fp-privacy-button_primary_tx:' . $button_primary_tx . ';';
-		$css .= '--fp-privacy-button_secondary_bg:' . $button_secondary_bg . ';';
-		$css .= '--fp-privacy-button_secondary_tx:' . $button_secondary_tx . ';';
-		$css .= '--fp-privacy-link:' . $link . ';';
-		$css .= '--fp-privacy-border:' . $border . ';';
-		$css .= '--fp-privacy-focus:' . $focus . ';';
-		$css .= '}' . PHP_EOL;
+		$selectors = '#fp-privacy-banner-root, [data-fp-privacy-banner], #fp-privacy-preview-banner';
+		$css       = $selectors . ' {';
+		$css      .= '--fp-privacy-surface_bg:' . $surface_bg . ';';
+		$css      .= '--fp-privacy-surface_text:' . $surface_text . ';';
+		$css      .= '--fp-privacy-button_primary_bg:' . $button_primary_bg . ';';
+		$css      .= '--fp-privacy-button_primary_tx:' . $button_primary_tx . ';';
+		$css      .= '--fp-privacy-button_secondary_bg:' . $button_secondary_bg . ';';
+		$css      .= '--fp-privacy-button_secondary_tx:' . $button_secondary_tx . ';';
+		$css      .= '--fp-privacy-link:' . $link . ';';
+		$css      .= '--fp-privacy-border:' . $border . ';';
+		$css      .= '--fp-privacy-focus:' . $focus . ';';
+		$css      .= '}' . PHP_EOL;
 
 		if ( $sync_modal ) {
 			$css .= '.fp-privacy-modal{background:' . $surface_bg . ';color:' . $surface_text . ';border:1px solid ' . $border . ';}' . PHP_EOL;
@@ -74,6 +75,45 @@ class BannerPaletteBuilder {
 		}
 
 		return $css;
+	}
+
+	/**
+	 * Variabili colore per pagina policy / cookie (frontend): struttura FP, accenti dalla palette impostazioni.
+	 *
+	 * @param array<string, string>|ColorPalette $palette Palette.
+	 *
+	 * @return string
+	 */
+	public function build_policy_page_css( $palette ) {
+		if ( $palette instanceof ColorPalette ) {
+			$palette = $palette->to_array();
+		}
+
+		$defaults = array(
+			'surface_bg'   => '#F9FAFB',
+			'surface_text' => '#1F2937',
+			'link'         => '#1D4ED8',
+			'border'       => '#D1D5DB',
+			'focus'        => '#2563EB',
+		);
+
+		$palette = is_array( $palette ) ? array_merge( $defaults, $palette ) : $defaults;
+
+		$surface_bg   = $this->sanitize_palette_value( $palette, 'surface_bg', $defaults['surface_bg'] );
+		$surface_text = $this->sanitize_palette_value( $palette, 'surface_text', $defaults['surface_text'] );
+		$link         = $this->sanitize_palette_value( $palette, 'link', $defaults['link'] );
+		$border       = $this->sanitize_palette_value( $palette, 'border', $defaults['border'] );
+		$focus        = $this->sanitize_palette_value( $palette, 'focus', $defaults['focus'] );
+
+		$scope = '.fp-privacy-toc,.fp-privacy-policy,.fp-privacy-category-block,.fp-privacy-table-wrapper,.fp-privacy-services-table';
+
+		return $scope . '{' .
+			'--fp-privacy-policy-surface:' . $surface_bg . ';' .
+			'--fp-privacy-policy-text:' . $surface_text . ';' .
+			'--fp-privacy-link:' . $link . ';' .
+			'--fp-privacy-border:' . $border . ';' .
+			'--fp-privacy-focus:' . $focus . ';' .
+			'}';
 	}
 
 	/**

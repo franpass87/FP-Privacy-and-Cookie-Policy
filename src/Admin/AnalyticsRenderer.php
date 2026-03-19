@@ -42,9 +42,15 @@ class AnalyticsRenderer {
 		$total   = $this->log_model->count();
 
 		?>
-		<div class="wrap fp-privacy-analytics-page">
-			<h1><?php \esc_html_e( '📊 Analytics Consensi', 'fp-privacy' ); ?></h1>
-			<p class="description"><?php \esc_html_e( 'Analisi dettagliata dei consensi cookie e statistiche di utilizzo', 'fp-privacy' ); ?></p>
+		<div class="wrap fp-privacy-analytics-page fp-privacy-admin-page">
+			<h1 class="screen-reader-text"><?php \esc_html_e( 'Consent analytics', 'fp-privacy' ); ?></h1>
+			<?php
+			AdminHeader::render(
+				'dashicons-chart-area',
+				\__( 'Consent analytics', 'fp-privacy' ),
+				\__( 'Cookie consent trends and usage statistics.', 'fp-privacy' )
+			);
+			?>
 
 			<!-- Summary Cards -->
 			<div class="fp-privacy-stats-grid">
