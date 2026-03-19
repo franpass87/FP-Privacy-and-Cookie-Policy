@@ -9,10 +9,8 @@
 
 namespace FP\Privacy\Application\Policy;
 
-use FP\Privacy\Domain\Policy\PolicyRepositoryInterface;
 use FP\Privacy\Domain\Policy\PolicyService;
 use FP\Privacy\Services\Logger\LoggerInterface;
-use FP\Privacy\Services\Validation\ValidatorInterface;
 use FP\Privacy\Services\Sanitization\SanitizerInterface;
 
 /**
@@ -25,20 +23,6 @@ class UpdatePolicyHandler {
 	 * @var PolicyService
 	 */
 	private $service;
-
-	/**
-	 * Policy repository.
-	 *
-	 * @var PolicyRepositoryInterface
-	 */
-	private $repository;
-
-	/**
-	 * Validator.
-	 *
-	 * @var ValidatorInterface
-	 */
-	private $validator;
 
 	/**
 	 * Sanitizer.
@@ -57,24 +41,18 @@ class UpdatePolicyHandler {
 	/**
 	 * Constructor.
 	 *
-	 * @param PolicyService            $service Policy service.
-	 * @param PolicyRepositoryInterface $repository Policy repository.
-	 * @param ValidatorInterface       $validator Validator.
-	 * @param SanitizerInterface       $sanitizer Sanitizer.
-	 * @param LoggerInterface          $logger Logger.
+	 * @param PolicyService      $service   Policy service.
+	 * @param SanitizerInterface $sanitizer Sanitizer.
+	 * @param LoggerInterface    $logger    Logger.
 	 */
 	public function __construct(
 		PolicyService $service,
-		PolicyRepositoryInterface $repository,
-		ValidatorInterface $validator,
 		SanitizerInterface $sanitizer,
 		LoggerInterface $logger
 	) {
-		$this->service    = $service;
-		$this->repository = $repository;
-		$this->validator  = $validator;
-		$this->sanitizer  = $sanitizer;
-		$this->logger     = $logger;
+		$this->service   = $service;
+		$this->sanitizer = $sanitizer;
+		$this->logger    = $logger;
 	}
 
 	/**

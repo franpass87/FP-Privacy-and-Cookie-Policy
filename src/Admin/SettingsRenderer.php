@@ -120,6 +120,13 @@ class SettingsRenderer {
 	</div>
 </div>
 
+<?php if ( isset( $_GET['updated'] ) && 'true' === $_GET['updated'] ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+<div class="notice notice-success is-dismissible"><p><?php \esc_html_e( 'Settings saved.', 'fp-privacy' ); ?></p></div>
+<?php endif; ?>
+<?php if ( isset( $_GET['fp_privacy_reset'] ) && '1' === $_GET['fp_privacy_reset'] ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+<div class="notice notice-success is-dismissible"><p><?php \esc_html_e( 'Settings were reset to their default values.', 'fp-privacy' ); ?></p></div>
+<?php endif; ?>
+
 <?php if ( $snapshot_notice ) :
 	$tools_link = \admin_url( 'admin.php?page=fp-privacy-tools' );
 	$timestamp  = $snapshot_notice['timestamp'];

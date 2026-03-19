@@ -7,48 +7,30 @@
  * @link https://francescopasseri.com
  */
 
+declare(strict_types=1);
+
 namespace FP\Privacy\Application\Consent;
 
 use FP\Privacy\Consent\LogModel;
-use FP\Privacy\Domain\Consent\ConsentRepositoryInterface;
-use FP\Privacy\Services\Options\OptionsInterface;
 
 /**
  * Query handler for retrieving consent summary data.
  */
 class GetConsentSummaryQuery {
 	/**
-	 * Consent repository.
-	 *
-	 * @var ConsentRepositoryInterface
-	 */
-	private $repository;
-
-	/**
-	 * Log model (legacy, for backward compatibility).
+	 * Log model (summary aggregation until repository exposes equivalent API).
 	 *
 	 * @var LogModel
 	 */
 	private $log_model;
 
 	/**
-	 * Options handler.
-	 *
-	 * @var OptionsInterface
-	 */
-	private $options;
-
-	/**
 	 * Constructor.
 	 *
-	 * @param ConsentRepositoryInterface $repository Consent repository.
-	 * @param LogModel                   $log_model Log model (legacy).
-	 * @param OptionsInterface           $options Options handler.
+	 * @param LogModel $log_model Log model.
 	 */
-	public function __construct( ConsentRepositoryInterface $repository, LogModel $log_model, OptionsInterface $options ) {
-		$this->repository = $repository;
-		$this->log_model  = $log_model;
-		$this->options    = $options;
+	public function __construct( LogModel $log_model ) {
+		$this->log_model = $log_model;
 	}
 
 	/**
@@ -57,8 +39,6 @@ class GetConsentSummaryQuery {
 	 * @return array<string, mixed> Summary data.
 	 */
 	public function handle(): array {
-		// Use LogModel for now (has summary_last_30_days method).
-		// In future, this will use repository directly.
 		$summary = $this->log_model->summary_last_30_days();
 
 		if ( ! is_array( $summary ) ) {
@@ -74,17 +54,3 @@ class GetConsentSummaryQuery {
 		);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

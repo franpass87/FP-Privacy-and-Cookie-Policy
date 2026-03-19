@@ -119,7 +119,7 @@ class ExportConsentHandler {
 		// Also check user meta if user exists.
 		if ( function_exists( 'get_user_by' ) && is_email( $email ) ) {
 			$user = get_user_by( 'email', $email );
-			if ( $user && isset( $user->ID ) ) {
+			if ( $user instanceof \WP_User && $user->ID > 0 ) {
 				$stored = get_user_meta( (int) $user->ID, 'fp_consent_ids', true );
 				if ( is_array( $stored ) ) {
 					foreach ( $stored as $candidate ) {

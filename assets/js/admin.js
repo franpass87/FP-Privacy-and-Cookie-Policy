@@ -336,15 +336,30 @@ $( function () {
                 $badge.addClass( 'errors' ).text( errorCount ).show();
             } else if ( warningCount > 0 ) {
                 $badge.addClass( 'warnings' ).text( warningCount ).show();
+            } else {
+                var $required = $content.find( '[required]' );
+                if ( $required.length && errorCount === 0 && warningCount === 0 ) {
+                    var allOk = true;
+                    $required.each( function () {
+                        var $el = $( this );
+                        if ( $el.is( ':checkbox' ) ) {
+                            if ( ! $el.is( ':checked' ) ) {
+                                allOk = false;
+                                return false;
+                            }
+                        } else {
+                            var val = ( $el.val() || '' ).toString().trim();
+                            if ( val === '' ) {
+                                allOk = false;
+                                return false;
+                            }
+                        }
+                    } );
+                    if ( allOk ) {
+                        $badge.addClass( 'completed' ).text( '\u2713' ).show();
+                    }
+                }
             }
-            
-            // TODO: Logica per "completato" - può essere implementata in base a criteri specifici
-            // Esempio: se tutti i campi obbligatori sono compilati
-            // var requiredFields = $content.find( '.fp-form-field [required]' ).length;
-            // var filledFields = $content.find( '.fp-form-field [required]:not(:empty)' ).length;
-            // if ( requiredFields > 0 && filledFields === requiredFields && errorCount === 0 ) {
-            //     $badge.addClass( 'completed' ).show();
-            // }
         } );
     }
     
@@ -517,9 +532,19 @@ $( function () {
         } );
         
         confirmBtn.on( 'click', function() {
-            // TODO: Implementare reset a default tramite AJAX o form submit
-            fpPrivacyShowToast( 'Reset a default non ancora implementato', 'warning' );
+            var actionUrl = l10n.adminPostUrl || '';
+            var nonceVal = l10n.resetSettingsNonce || '';
+            if ( ! actionUrl || ! nonceVal ) {
+                fpPrivacyShowToast( l10n.resetSettingsMissing || 'Reset unavailable.', 'error' );
+                modal.remove();
+                return;
+            }
+            var $form = $( '<form>', { method: 'POST', action: actionUrl, style: 'display:none' } );
+            $form.append( $( '<input>', { type: 'hidden', name: 'action', value: 'fp_privacy_reset_settings' } ) );
+            $form.append( $( '<input>', { type: 'hidden', name: 'fp_privacy_reset_nonce', value: nonceVal } ) );
+            $( 'body' ).append( $form );
             modal.remove();
+            $form.trigger( 'submit' );
         } );
     } );
     

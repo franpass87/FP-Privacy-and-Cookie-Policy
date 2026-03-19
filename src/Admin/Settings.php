@@ -57,6 +57,7 @@ class Settings {
 		\add_action( 'admin_post_fp_privacy_bump_revision', array( $this->controller, 'handle_bump_revision' ) );
 		\add_action( 'admin_post_fp_privacy_export_settings', array( $this->controller, 'handle_export_settings' ) );
 		\add_action( 'admin_post_fp_privacy_import_settings', array( $this->controller, 'handle_import_settings' ) );
+		\add_action( 'admin_post_fp_privacy_reset_settings', array( $this->controller, 'handle_reset_settings' ) );
 		\add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
@@ -122,12 +123,15 @@ class Settings {
 				'resetConfirmMessage' => \__( 'This will restore all settings to their default values. This action cannot be undone.', 'fp-privacy' ),
 				'resetConfirmQuestion' => \__( 'Are you sure you want to continue?', 'fp-privacy' ),
 				'resetConfirm'        => \__( 'Yes, reset', 'fp-privacy' ),
+				'resetSettingsMissing' => \__( 'Reset is not available (missing security data). Reload the page and try again.', 'fp-privacy' ),
 				'cancel'              => \__( 'Cancel', 'fp-privacy' ),
 				'skipToContent'       => \__( 'Skip to main content', 'fp-privacy' ),
 				'policyUrls'          => array(
 					'privacy' => $privacy_url,
 					'cookie'  => $cookie_url,
 				),
+				'adminPostUrl'        => \admin_url( 'admin-post.php' ),
+				'resetSettingsNonce'  => \wp_create_nonce( 'fp_privacy_reset_settings' ),
 			)
 		);
 	}

@@ -243,6 +243,27 @@ class Options {
 	}
 
 	/**
+	 * Replace all options with factory defaults (sanitized), then persist.
+	 *
+	 * @return void
+	 */
+	public function reset_to_factory_defaults(): void {
+		$defaults  = $this->get_default_options();
+		$sanitized = $this->sanitize( $defaults, $defaults );
+		$this->options = $sanitized;
+
+		$this->language_normalizer->set_languages( $this->get_languages() );
+
+		if ( isset( $sanitized['auto_translations'] ) ) {
+			$this->auto_translator = new AutoTranslator( $sanitized['auto_translations'] );
+		}
+
+		\update_option( self::OPTION_KEY, $sanitized, false );
+
+		$this->ensure_pages_exist();
+	}
+
+	/**
 	 * Load options from the database.
 	 *
 	 * @return array<string, mixed>

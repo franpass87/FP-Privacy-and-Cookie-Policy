@@ -110,8 +110,11 @@ class UpdateSettingsHandler {
 	 * @return bool True if valid.
 	 */
 	private function validateSettings( array $settings ): bool {
-		// Basic validation - can be extended with specific rules.
-		return is_array( $settings ) && ! empty( $settings );
+		if ( ! is_array( $settings ) || empty( $settings ) ) {
+			return false;
+		}
+
+		return $this->validator->validate( $settings, array() )->valid;
 	}
 
 	/**

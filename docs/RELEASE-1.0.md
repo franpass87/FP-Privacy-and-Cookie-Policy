@@ -15,6 +15,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 | REST `POST /consent` + `/consent/revoke` → `ConsentController` + `ConsentRestHandlerInterface` | v0.4.1 |
 | PHPUnit verde in CI locale: `tests/bootstrap.php` + test allineati (ColorPalette, facade registry, default opzioni) | v0.4.2 |
 | PHPStan su `src/REST` + `src/Domain`; test same-origin `RESTPermissionChecker` | v0.4.3 |
+| Documento integratori `docs/INTEGRATION-FRONTEND.md`; reset impostazioni ai default (admin); PHPStan + `src/Application`; bozza upgrade 1.0 in CHANGELOG | v0.4.4 |
 
 ---
 
@@ -24,23 +25,23 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 
 - [ ] Nessuna modifica breaking a `do_action( 'fp_consent_update', … )` senza major successiva.
 - [ ] REST `fp-privacy/v1` — stessi path e semantica risposta documentati; eventuale `v2` solo in major.
-- [ ] `FP_PRIVACY_VERSION` / `FP_PRIVACY_DATA` — documentare chiavi minime per integratori frontend.
+- [x] `FP_PRIVACY_VERSION` / `FP_PRIVACY_DATA` — chiavi minime documentate in `docs/INTEGRATION-FRONTEND.md` (estendere se emergono nuovi campi).
 
 ### Codice e architettura
 
 - [x] Consolidare stack REST: un solo percorso per `POST /consent` e revoke (`ConsentController` + interfaccia; legacy solo fallback).
 - [ ] Rimuovere o wrappare con `_deprecated_function` le API segnate `@deprecated` (es. `fp_privacy_get_ip_salt`, `ConsentModel`, `OptionsAdapter` temporaneo) — decidere: rimozione in 1.0 vs deprecazione fino a 2.0.
-- [ ] Chiudere o documentare i `TODO` in `assets/js/admin.js`.
-- [ ] Allineare `INSTALL.md` / audit docs alla versione corrente.
+- [x] `assets/js/admin.js`: rimossi TODO su reset default e badge tab (completamento campi `required`); nessun TODO aperto rimasto nel file.
+- [x] Allineare `INSTALL.md` / audit docs alla versione corrente (versione guida aggiornata v0.4.4+).
 
 ### Qualità
 
-- [ ] PHPStan livello concordato (copertura: `src/REST` + `src/Domain` da v0.4.3; espandere verso altri moduli) + PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** da v0.4.2+ (`composer test`; same-origin REST da v0.4.3).
-- [ ] Checklist manuale: prima visita, accetta/rifiuta/salva, revoca, bump revisione, multisite (se in scope).
+- [ ] PHPStan livello concordato (copertura: `src/REST` + `src/Domain` + `src/Application` da v0.4.4; espandere verso altri moduli) + PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** da v0.4.2+ (`composer test`; same-origin REST da v0.4.3).
+- [ ] Checklist manuale: prima visita, accetta/rifiuta/salva, revoca, bump revisione, **reset impostazioni ai default** (admin), multisite (se in scope).
 
 ### Rilascio
 
-- [ ] `CHANGELOG.md`: sezione **Upgrade da 0.x a 1.0** (anche “nessun breaking” va esplicitato).
+- [x] `CHANGELOG.md`: sezione **Upgrade da 0.x a 1.0** (bozza; da rifinire al tag).
 - [ ] Tag Git `v1.0.0`, release notes GitHub, verifica **fp-git-updater** / zip.
 
 ---

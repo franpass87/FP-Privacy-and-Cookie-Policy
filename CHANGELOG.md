@@ -4,6 +4,20 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.4.4] - 2026-03-19
+### Added
+- `Options::reset_to_factory_defaults()` e `admin_post_fp_privacy_reset_settings`: il pulsante **Reset a default** in Settings invia un POST sicuro e ripristina le opzioni sanificate ai default di fabbrica; notice di successo e hook `fp_privacy_settings_saved`.
+- `docs/INTEGRATION-FRONTEND.md`: contratto minimo per `FP_PRIVACY_VERSION` / `window.FP_PRIVACY_DATA` (chiavi `options`, `cookie`, `rest`).
+### Changed
+- PHPStan: analisi anche su `src/Application` (fix ExportConsentHandler, GetConsentStateQuery, RevokeConsentHandler, GetConsentSummaryQuery, UpdatePolicyHandler, UpdateSettingsHandler).
+- `GetConsentSummaryQuery`: costruttore semplificato (solo `LogModel`) — uso previsto via container.
+- `UpdatePolicyHandler`: costruttore ridotto a `PolicyService` + sanitizer + logger (repository/validator duplicati rimossi).
+- `INSTALL.md`: versione documento allineata; admin: badge tab “completato” se i campi `[required]` del tab sono compilati.
+### Fixed
+- Notice “Settings saved.” su `?updated=true` nella pagina Settings.
+
+---
+
 ## [0.4.3] - 2026-03-19
 ### Changed
 - PHPStan: `paths` include l’intero `src/Domain` (oltre a `src/REST` e facade `Integrations\ServiceRegistry`).
@@ -385,6 +399,17 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 - WP-CLI (9 commands)
 - PSR-4 autoloading
 - Hooks & Filters
+
+---
+
+## Upgrade da 0.x a 1.0.0 (bozza)
+
+Da completare al tag **1.0.0**; utile per audit pre-release.
+
+- **Hook / REST**: nessun breaking previsto per `fp_consent_update` e namespace `fp-privacy/v1` nella serie 1.x (vedi README e `docs/INTEGRATION-FRONTEND.md`).
+- **Frontend**: dipendenze su `FP_PRIVACY_DATA` limitate alle chiavi documentate; verificare tema/JS custom dopo ogni minor.
+- **Deprecazioni**: classi/funzioni segnate `@deprecated 2.0.0` restano in 1.0; pianificare migrazione prima di una future major.
+- **Manuale**: prima visita, accetta/rifiuta/salva, revoca, bump revisione, reset impostazioni (se usato), multisite se in scope.
 
 ---
 

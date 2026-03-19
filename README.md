@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 0.4.3 |
+| Version | 0.4.4 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |
@@ -183,6 +183,7 @@ Implementazione interna: `POST /consent` e `POST /consent/revoke` usano `FP\Priv
 
 ## Support
 
+- Integrazione frontend (`FP_PRIVACY_DATA`, costanti versione): [`docs/INTEGRATION-FRONTEND.md`](docs/INTEGRATION-FRONTEND.md)
 - Roadmap release **1.0**: [`docs/RELEASE-1.0.md`](docs/RELEASE-1.0.md)
 - Documentation: see the [`docs/`](docs/) directory for overview, architecture notes, and FAQs.
 - Issues & contact: [https://francescopasseri.com](https://francescopasseri.com)

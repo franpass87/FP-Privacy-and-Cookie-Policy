@@ -26,7 +26,6 @@ use FP\Privacy\Core\ServiceProviderInterface;
 use FP\Privacy\Consent\LogModel;
 use FP\Privacy\Domain\Consent\ConsentRepositoryInterface;
 use FP\Privacy\Domain\Consent\ConsentService;
-use FP\Privacy\Domain\Policy\PolicyRepositoryInterface;
 use FP\Privacy\Domain\Policy\PolicyService;
 use FP\Privacy\Infrastructure\Options\OptionsRepositoryInterface;
 use FP\Privacy\Services\Logger\LoggerInterface;
@@ -74,10 +73,8 @@ class ApplicationServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			GetConsentSummaryQuery::class,
 			function( ContainerInterface $c ) {
-				$repository = $c->get( ConsentRepositoryInterface::class );
 				$log_model = $c->get( LogModel::class );
-				$options = $c->get( \FP\Privacy\Services\Options\OptionsInterface::class );
-				return new GetConsentSummaryQuery( $repository, $log_model, $options );
+				return new GetConsentSummaryQuery( $log_model );
 			}
 		);
 
@@ -101,12 +98,10 @@ class ApplicationServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			UpdatePolicyHandler::class,
 			function( ContainerInterface $c ) {
-				$service = $c->get( PolicyService::class );
-				$repository = $c->get( PolicyRepositoryInterface::class );
-				$validator = $c->get( ValidatorInterface::class );
+				$service   = $c->get( PolicyService::class );
 				$sanitizer = $c->get( SanitizerInterface::class );
-				$logger = $c->get( LoggerInterface::class );
-				return new UpdatePolicyHandler( $service, $repository, $validator, $sanitizer, $logger );
+				$logger    = $c->get( LoggerInterface::class );
+				return new UpdatePolicyHandler( $service, $sanitizer, $logger );
 			}
 		);
 

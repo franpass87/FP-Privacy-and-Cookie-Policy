@@ -55,8 +55,8 @@ class RevokeConsentHandler {
 		try {
 			// Get consent ID from cookie if not provided.
 			if ( empty( $consent_id ) ) {
-				$cookie = ConsentCookieManager::get_cookie_payload();
-				$consent_id = $cookie['id'] ?? '';
+				$cookie     = ConsentCookieManager::get_cookie_payload();
+				$consent_id = (string) $cookie['id'];
 			}
 
 			if ( empty( $consent_id ) ) {

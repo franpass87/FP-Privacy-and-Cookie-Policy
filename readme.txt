@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 0.4.3
+Stable tag: 0.4.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,9 @@ See the quick guide screen inside the plugin and the repository `README.md` for 
 Run `bin/package.sh` from the repository root. The script produces a clean archive under `dist/` without minified or binary artefacts.
 
 == Changelog ==
+
+= 0.4.4 =
+* Reset impostazioni ai default (admin-post sicuro); documento integrazione frontend FP_PRIVACY_DATA; PHPStan su Application; bozza sezione upgrade 1.0 in CHANGELOG.
 
 = 0.4.3 =
 * PHPStan: analisi estesa a `src/Domain`; fix condizioni in `AIDisclosureGenerator`; test `RESTPermissionChecker::is_same_origin`; stub `wp_parse_url` nel bootstrap PHPUnit.

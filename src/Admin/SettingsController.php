@@ -9,6 +9,7 @@
 
 namespace FP\Privacy\Admin;
 
+use FP\Privacy\Admin\Menu;
 use FP\Privacy\Presentation\Admin\Controllers\PolicyLinksAutoPopulator;
 use FP\Privacy\Presentation\Admin\Controllers\SettingsDataPreparer;
 use FP\Privacy\Presentation\Admin\Controllers\SettingsExportImportHandler;
@@ -146,6 +147,31 @@ class SettingsController {
 	 */
 	public function handle_save() {
 		$this->save_handler->save();
+	}
+
+	/**
+	 * Reset plugin settings to factory defaults (admin-post).
+	 *
+	 * @return void
+	 */
+	public function handle_reset_settings() {
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_die( \esc_html__( 'Permission denied.', 'fp-privacy' ) );
+		}
+
+		\check_admin_referer( 'fp_privacy_reset_settings', 'fp_privacy_reset_nonce' );
+
+		$this->options->reset_to_factory_defaults();
+
+		\do_action( 'fp_privacy_settings_saved', $this->options->all() );
+
+		$redirect = \wp_get_referer();
+		if ( ! \is_string( $redirect ) || '' === $redirect ) {
+			$redirect = \admin_url( 'admin.php?page=' . Menu::MENU_SLUG );
+		}
+
+		\wp_safe_redirect( \add_query_arg( 'fp_privacy_reset', '1', $redirect ) );
+		exit;
 	}
 
 	/**
