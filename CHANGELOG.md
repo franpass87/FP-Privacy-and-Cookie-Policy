@@ -4,6 +4,13 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.3.4] - 2026-03-19
+### Fixed
+- Revoca consenso: il banner torna visibile e il bottone riapertura si aggiorna subito (prima la UI poteva restare incoerente fino alla risposta `fetch`).
+- Merge revisione cookie: gestione robusta se `last_revision` dal server arriva come stringa nel JSON.
+
+---
+
 ## [0.3.3] - 2026-03-19
 ### Fixed
 - Banner cookie: il bottone fisso “preferenze” poteva sparire in caso di errore durante accetto/rifiuto/salva o dopo il timeout di sicurezza a 500ms, perché il banner veniva nascosto senza aggiornare `should_display` e la visibilità del reopen.

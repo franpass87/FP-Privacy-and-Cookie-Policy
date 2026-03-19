@@ -1505,6 +1505,13 @@ function revokeConsent() {
         // Update state immediately.
         state.categories = Object.assign( {}, payload );
         state.should_display = true; // Show banner again after revocation.
+
+        // Mostra subito il banner e nascondi il reopen (prima la UI dipendeva solo dal fetch async).
+        if ( banner ) {
+            showBanner();
+        } else {
+            updateReopenVisibility();
+        }
         
         // Clear consent cookie.
         var consentId = ensureConsentId();
@@ -1849,7 +1856,11 @@ function mergeConsentRevisionFromStorage( revSegment ) {
         return;
     }
     var fromStorage = parseInt( revSegment, 10 ) || 0;
-    var prev = typeof state.last_revision === 'number' && ! isNaN( state.last_revision ) ? state.last_revision : 0;
+    // FP_PRIVACY_DATA può deserializzare last_revision come numero o stringa.
+    var prev = parseInt( String( state.last_revision ), 10 );
+    if ( isNaN( prev ) ) {
+        prev = 0;
+    }
     state.last_revision = Math.max( fromStorage, prev );
     debugTiming( 'Revisione dopo merge storage/server: ' + state.last_revision );
 }
