@@ -36,7 +36,7 @@ function createPreview(container) {
     var cookieLink = $( '<a class="fp-privacy-link" target="_blank" rel="noopener noreferrer"></a>' ).hide();
     var buttons = $( '<div class="fp-privacy-banner-buttons"></div>' );
     var accept = $( '<button type="button" class="fp-privacy-button fp-privacy-button-primary"></button>' );
-    var reject = $( '<button type="button" class="fp-privacy-button fp-privacy-button-primary"></button>' );
+    var reject = $( '<button type="button" class="fp-privacy-button fp-privacy-button-secondary fp-privacy-button-reject"></button>' );
     var prefs = $( '<button type="button" class="fp-privacy-button fp-privacy-button-secondary"></button>' );
 
     linksWrapper.append( privacyLink, cookieLink );

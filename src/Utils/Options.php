@@ -311,6 +311,7 @@ class Options {
 			'link_policy'         => '',
 			'link_privacy_policy' => 'Informativa sulla Privacy',
 			'link_cookie_policy'  => 'Cookie Policy',
+			'reject_all_confirm'  => 'Rifiutando non verranno attivati cookie di statistica e marketing (restano solo quelli strettamente necessari). Vuoi continuare?',
 		);
 
 		$category_defaults = array(

@@ -145,6 +145,18 @@ gap: 0.625rem;
     border-color: transparent;
 }
 
+/* Banner: accetta tutto più visibile; rifiuta in stile secondario (meno enfasi) */
+.fp-privacy-banner-buttons .fp-privacy-button-primary {
+    font-weight: 700;
+    min-height: 2.75rem;
+    padding: 0.55rem 1.4rem;
+}
+
+.fp-privacy-banner-buttons .fp-privacy-button-reject {
+    font-weight: 500;
+    opacity: 0.96;
+}
+
 .fp-privacy-button-primary:focus,
 .fp-privacy-button-secondary:focus {
     outline: 3px solid var(--fp-privacy-focus);

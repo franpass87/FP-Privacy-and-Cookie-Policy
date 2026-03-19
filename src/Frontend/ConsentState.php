@@ -158,12 +158,20 @@ class ConsentState {
         // Get banner layout as value object and convert to array for frontend compatibility.
         $banner_layout = $this->options->get_banner_layout();
         
+		$reject_confirm = (bool) \apply_filters( 'fp_privacy_reject_all_confirm', true );
+		if ( $preview ) {
+			$reject_confirm = (bool) \apply_filters( 'fp_privacy_reject_all_confirm_preview', false );
+		}
+
         return array(
             'texts'     => $text,
             'layout'    => $banner_layout->to_array(),
             'categories'=> $categories,
             'state'     => $states,
             'mode'      => $this->options->get( 'consent_mode_defaults' ),
+			'ux'        => array(
+				'reject_all_confirm' => $reject_confirm,
+			),
             'policy_urls' => array(
                 'privacy' => $privacy_url,
                 'cookie' => $cookie_url,

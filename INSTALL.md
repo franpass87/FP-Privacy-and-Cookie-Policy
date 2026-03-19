@@ -1,6 +1,6 @@
 # 📦 GUIDA INSTALLAZIONE - FP Privacy & Cookie Policy
 
-**Versione**: 0.5.0  
+**Versione**: 0.5.1  
 **Tempo Installazione**: 5 minuti  
 **Difficoltà**: ⭐ Facile
 

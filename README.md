@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 0.5.0 |
+| Version | 0.5.1 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |
@@ -158,6 +158,8 @@ Per dettagli completi: `wp help fp-privacy <comando>`
 | `fp_privacy_view_context` | `$context`, `$template` | Template rendering context. |
 | `fp_privacy_enable_privacy_tools` | `bool`, `$options` | WP privacy tools integration. |
 | `fp_privacy_enable_gpc` | `bool` | Global Privacy Control handling. |
+| `fp_privacy_reject_all_confirm` | `bool` | Default `true`: mostra `window.confirm` prima di «Rifiuta tutti» sul banner. |
+| `fp_privacy_reject_all_confirm_preview` | `bool` | In anteprima admin default `false` (nessun confirm); override qui se serve. |
 | `fp_privacy_tracking_scanner_option_keys` | `$keys` | Option keys scanned for tracking signatures. |
 | `fp_privacy_detector_cache_ttl` | `$ttl` | Detector cache TTL (seconds). |
 | `fp_privacy_csv_export_batch_size` | `$batch` | Rows per CSV batch (CLI/export). |

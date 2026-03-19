@@ -263,6 +263,7 @@ class BannerTextsManager {
 			'link_policy'        => '',
 			'link_privacy_policy' => 'Informativa sulla Privacy',
 			'link_cookie_policy'  => 'Cookie Policy',
+			'reject_all_confirm'  => 'Rifiutando non verranno attivati cookie di statistica e marketing (restano solo quelli strettamente necessari). Vuoi continuare?',
 		);
 	}
 
@@ -288,6 +289,7 @@ class BannerTextsManager {
 			'link_policy'         => '',
 			'link_privacy_policy' => 'Privacy Policy',
 			'link_cookie_policy'  => 'Cookie Policy',
+			'reject_all_confirm'  => 'If you reject, analytics and marketing cookies will not be activated (only strictly necessary cookies remain). Continue?',
 		);
 	}
 

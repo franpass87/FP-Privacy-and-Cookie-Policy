@@ -4,6 +4,15 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.5.1] - 2026-03-19
+### Changed
+- Banner: **Consent Mode / `dataLayer` aggiornati prima** dello sblocco script (`emitConsentSignals` → `fp-consent-change` → `restoreBlockedNodes`), così eventi marketing/analytics non partono con segnali ancora `denied`.
+- UX banner: **Accetta tutti** resta pulsante primario evidente; **Rifiuta tutti** in stile secondario + `window.confirm` (testo `reject_all_confirm`, traducibile). In anteprima admin il confirm è off di default (`fp_privacy_reject_all_confirm_preview`).
+### Added
+- Filtri `fp_privacy_reject_all_confirm` e `fp_privacy_reject_all_confirm_preview`; chiave testo `reject_all_confirm` nei default banner (IT/EN).
+
+---
+
 ## [0.5.0] - 2026-03-19
 ### Added
 - `AdminHeader` e header gradiente brand (design system FP) sulle pagine admin del plugin.
