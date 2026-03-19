@@ -42,8 +42,8 @@ class AIDisclosureGenerator {
 	public function generate_ai_disclosure( $lang ): string {
 		$ai_config = $this->options->get_ai_disclosure();
 
-		// Check if AI disclosure is enabled.
-		if ( empty( $ai_config['enabled'] ) || ! $ai_config['enabled'] ) {
+		// Check if AI disclosure is enabled (boolean from merged defaults).
+		if ( empty( $ai_config['enabled'] ) ) {
 			return '';
 		}
 
@@ -97,7 +97,7 @@ class AIDisclosureGenerator {
 		}
 
 		// Automated decision-making.
-		if ( ! empty( $ai_config['automated_decisions'] ) && $ai_config['automated_decisions'] ) {
+		if ( ! empty( $ai_config['automated_decisions'] ) ) {
 			$html .= '<h3>' . esc_html( $ai_texts['automated_title'] ?? __( 'Decisioni automatizzate', 'fp-privacy' ) ) . '</h3>';
 
 			$automated_text = ! empty( $ai_texts['automated_description'] )
@@ -108,7 +108,7 @@ class AIDisclosureGenerator {
 		}
 
 		// Profiling.
-		if ( ! empty( $ai_config['profiling'] ) && $ai_config['profiling'] ) {
+		if ( ! empty( $ai_config['profiling'] ) ) {
 			$html .= '<h3>' . esc_html( $ai_texts['profiling_title'] ?? __( 'Profilazione', 'fp-privacy' ) ) . '</h3>';
 
 			$profiling_text = ! empty( $ai_texts['profiling_description'] )

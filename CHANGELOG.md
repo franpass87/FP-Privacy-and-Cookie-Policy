@@ -4,6 +4,17 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.4.3] - 2026-03-19
+### Changed
+- PHPStan: `paths` include l’intero `src/Domain` (oltre a `src/REST` e facade `Integrations\ServiceRegistry`).
+### Fixed
+- `AIDisclosureGenerator`: condizioni su flag booleani semplificate (rimossi controlli ridondanti segnalati da PHPStan).
+### Added
+- Test unitari `RESTPermissionCheckerTest` per same-origin (host/scheme/porte, `www.`).
+- Bootstrap PHPUnit: stub `wp_parse_url` (delega a `parse_url`).
+
+---
+
 ## [0.4.2] - 2026-03-19
 ### Added
 - Tooling dev: `phpstan.neon.dist` (analisi parziale REST/registry), script Composer `test` e `phpstan`, PHPUnit 10 + `php-stubs/wordpress-stubs` in `require-dev`.

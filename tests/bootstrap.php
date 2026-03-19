@@ -99,6 +99,17 @@ if ( ! function_exists( 'sanitize_hex_color' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_parse_url' ) ) {
+	/**
+	 * @param string $url       URL.
+	 * @param int    $component PHP_URL_* or -1.
+	 * @return mixed
+	 */
+	function wp_parse_url( $url, $component = -1 ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals
+		return parse_url( $url, $component );
+	}
+}
+
 if ( ! function_exists( 'rest_sanitize_boolean' ) ) {
 	/**
 	 * @param mixed $value Value.

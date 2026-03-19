@@ -1,9 +1,9 @@
-# Analisi incrementale: espandere `paths` verso tutto `src/` quando la memoria CI lo consente.
+# Analisi incrementale: `src/REST` + `src/Domain` (+ facade Integrations); espandere verso tutto `src/` gradualmente.
 parameters:
     level: 5
     paths:
         - src/REST
         - src/Integrations/ServiceRegistry.php
-        - src/Domain/Services/ServiceRegistry.php
+        - src/Domain
     scanFiles:
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
