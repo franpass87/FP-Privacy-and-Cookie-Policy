@@ -57,7 +57,11 @@ class RESTServiceProvider implements ServiceProviderInterface {
 			function( ContainerInterface $c ) {
 				$state = $c->get( ConsentState::class );
 				$log_handler = $c->get( LogConsentHandler::class );
-				return new ConsentController( $state, $log_handler );
+				$revoke      = $c->has( RevokeConsentHandler::class )
+					? $c->get( RevokeConsentHandler::class )
+					: null;
+
+				return new ConsentController( $state, $log_handler, $revoke );
 			}
 		);
 

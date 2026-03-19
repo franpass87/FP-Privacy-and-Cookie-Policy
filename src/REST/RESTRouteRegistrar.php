@@ -21,9 +21,9 @@ class RESTRouteRegistrar {
 	private $summary_handler;
 
 	/**
-	 * Consent handler.
+	 * Consent handler (Presentation controller or legacy handler).
 	 *
-	 * @var RESTConsentHandler
+	 * @var ConsentRestHandlerInterface
 	 */
 	private $consent_handler;
 
@@ -45,11 +45,11 @@ class RESTRouteRegistrar {
 	 * Constructor.
 	 *
 	 * @param RESTSummaryHandler    $summary_handler    Summary handler.
-	 * @param RESTConsentHandler    $consent_handler    Consent handler.
+	 * @param ConsentRestHandlerInterface $consent_handler Consent REST handler.
 	 * @param RESTRevisionHandler   $revision_handler   Revision handler.
 	 * @param RESTPermissionChecker $permission_checker Permission checker.
 	 */
-	public function __construct( RESTSummaryHandler $summary_handler, RESTConsentHandler $consent_handler, RESTRevisionHandler $revision_handler, RESTPermissionChecker $permission_checker ) {
+	public function __construct( RESTSummaryHandler $summary_handler, ConsentRestHandlerInterface $consent_handler, RESTRevisionHandler $revision_handler, RESTPermissionChecker $permission_checker ) {
 		$this->summary_handler    = $summary_handler;
 		$this->consent_handler     = $consent_handler;
 		$this->revision_handler    = $revision_handler;

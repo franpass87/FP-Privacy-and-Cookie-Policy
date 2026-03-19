@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.4.1] - 2026-03-19
+### Changed
+- REST consenso unificato: introdotto `ConsentRestHandlerInterface`; `RESTRouteRegistrar` usa `ConsentController` dal container (revoca inclusa). `RESTConsentHandler` deprecato per 2.0, mantenuto come fallback.
+### Added
+- `ConsentController` espone `revoke_consent` con `RevokeConsentHandler` opzionale (stessa logica dell’handler legacy).
+
+---
+
 ## [0.4.0] - 2026-03-19
 ### Added
 - Documento di roadmap verso 1.0: `docs/RELEASE-1.0.md`.

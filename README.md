@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 0.4.0 |
+| Version | 0.4.1 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |
@@ -178,6 +178,8 @@ Core WordPress: `plugin_locale` is used with text domain `fp-privacy` for transl
 | `PATCH` / `PUT` | `/settings` | `manage_options` |
 
 Base URL: `/wp-json/fp-privacy/v1`.
+
+Implementazione interna: `POST /consent` e `POST /consent/revoke` usano `FP\Privacy\Presentation\REST\Controllers\ConsentController` (contratto `FP\Privacy\REST\ConsentRestHandlerInterface`). `RESTConsentHandler` resta solo fallback se il container non espone il controller.
 
 ## Support
 

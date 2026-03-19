@@ -16,9 +16,11 @@ use WP_REST_Request;
 use WP_REST_Response;
 
 /**
- * Handles consent-related REST endpoints.
+ * Legacy consent REST handler (fallback if {@see ConsentController} is not used).
+ *
+ * @deprecated 2.0.0 Kept for non-container bootstrap only; routes use {@see ConsentRestHandlerInterface}.
  */
-class RESTConsentHandler {
+class RESTConsentHandler implements ConsentRestHandlerInterface {
 	/**
 	 * Consent state.
 	 *

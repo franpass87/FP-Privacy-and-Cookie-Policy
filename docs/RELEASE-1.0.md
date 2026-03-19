@@ -12,6 +12,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 | Filtro `fp_privacy_consent_ids_for_email` a 3 argomenti documentati | v0.3.5 |
 | `Integrations\ServiceRegistry` → facade su `Domain\Services\ServiceRegistry` | v0.4.0 |
 | Limite tentativi init banner JS (nessun loop infinito senza root) | v0.4.0 |
+| REST `POST /consent` + `/consent/revoke` → `ConsentController` + `ConsentRestHandlerInterface` | v0.4.1 |
 
 ---
 
@@ -25,7 +26,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 
 ### Codice e architettura
 
-- [ ] Consolidare stack REST: un solo percorso per `POST /consent` (oggi legacy handler + `ConsentController` in container).
+- [x] Consolidare stack REST: un solo percorso per `POST /consent` e revoke (`ConsentController` + interfaccia; legacy solo fallback).
 - [ ] Rimuovere o wrappare con `_deprecated_function` le API segnate `@deprecated` (es. `fp_privacy_get_ip_salt`, `ConsentModel`, `OptionsAdapter` temporaneo) — decidere: rimozione in 1.0 vs deprecazione fino a 2.0.
 - [ ] Chiudere o documentare i `TODO` in `assets/js/admin.js`.
 - [ ] Allineare `INSTALL.md` / audit docs alla versione corrente.
