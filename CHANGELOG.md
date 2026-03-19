@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.3.5] - 2026-03-19
+### Changed
+- Allineata la firma del filtro `fp_privacy_consent_ids_for_email` ovunque: terzo argomento opzionale (`Options` dal privacy exporter, `null` dall’export applicativo); i callback a 2 parametri restano supportati.
+### Added
+- README: tabelle estese per actions, filtri e route REST `fp-privacy/v1`.
+
+---
+
 ## [0.3.4] - 2026-03-19
 ### Fixed
 - Revoca consenso: il banner torna visibile e il bottone riapertura si aggiorna subito (prima la UI poteva restare incoerente fino alla risposta `fetch`).

@@ -170,7 +170,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 		// Map email -> consent_ids using user meta recorded at consent time.
 		\add_filter(
 			'fp_privacy_consent_ids_for_email',
-			static function ( $ids, $email ) {
+			static function ( $ids, $email, $options_context = null ) {
 				if ( ! \is_array( $ids ) ) {
 					$ids = array();
 				}
@@ -202,7 +202,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 				return array_values( array_unique( $ids ) );
 			},
 			10,
-			2
+			3
 		);
 	}
 }

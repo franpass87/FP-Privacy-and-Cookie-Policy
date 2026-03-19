@@ -53,9 +53,10 @@ class CoreServiceProvider {
 - **Status**: ✅ Migrato
 
 ### 3. `fp_privacy_consent_ids_for_email`
-- **Scopo**: Mappa email a consent_ids usando user meta
-- **Source**: User meta `fp_consent_ids`
-- **Status**: ✅ Migrato
+- **Scopo**: Mappa email → `consent_id` (estensione da altri plugin o core)
+- **Firma**: `( array $ids, string $email, $options_context )` — il terzo argomento è un’istanza di `FP\Privacy\Utils\Options` quando la chiamata proviene da `ExporterEraser`; è `null` negli altri percorsi (es. `ExportConsentHandler`). I callback con solo 2 parametri restano validi.
+- **Source core**: User meta `fp_consent_ids` (registrato in `CoreServiceProvider`)
+- **Status**: ✅ Migrato / firma allineata
 
 ## Compatibilità
 
@@ -84,9 +85,9 @@ $enabled = apply_filters('fp_privacy_enable_privacy_tools', false);
 $gpc = apply_filters('fp_privacy_enable_gpc', false);
 // Expected: valore da opzione
 
-// Test 3: Consent IDs per email
-$ids = apply_filters('fp_privacy_consent_ids_for_email', [], 'user@example.com');
-// Expected: array di consent IDs se user esiste
+// Test 3: Consent IDs per email (terzo arg opzionale: null o Options)
+$ids = apply_filters('fp_privacy_consent_ids_for_email', [], 'user@example.com', null);
+// Expected: array di consent IDs se user esiste e/o altri filtri mappano l’email
 ```
 
 

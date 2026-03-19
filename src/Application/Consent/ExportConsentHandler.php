@@ -105,12 +105,16 @@ class ExportConsentHandler {
 	/**
 	 * Get consent IDs for an email address.
 	 *
+	 * Filter `fp_privacy_consent_ids_for_email`: ( $ids, $email, $options_context ).
+	 * Terzo argomento: istanza {@see \FP\Privacy\Utils\Options} quando la richiesta passa da
+	 * {@see \FP\Privacy\Consent\ExporterEraser}; altrimenti `null` (es. export applicativo).
+	 * I callback che accettano solo due parametri restano validi.
+	 *
 	 * @param string $email Email address.
 	 * @return array<string> Consent IDs.
 	 */
 	private function getConsentIdsForEmail( string $email ): array {
-		// Use WordPress filter to get consent IDs (allows other plugins to extend).
-		$ids = apply_filters( 'fp_privacy_consent_ids_for_email', array(), $email );
+		$ids = \apply_filters( 'fp_privacy_consent_ids_for_email', array(), $email, null );
 
 		// Also check user meta if user exists.
 		if ( function_exists( 'get_user_by' ) && is_email( $email ) ) {

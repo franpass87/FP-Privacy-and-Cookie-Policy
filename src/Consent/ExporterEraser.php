@@ -264,6 +264,7 @@ $done = count( $rows ) < $per_page;
         }
 
         if ( \is_email( $value ) ) {
+            // Firma filtro: ( array $ids, string $email, ?\FP\Privacy\Utils\Options $options ).
             $mapped = \apply_filters( 'fp_privacy_consent_ids_for_email', array(), $value, $this->options );
 
             if ( ! \is_array( $mapped ) ) {
