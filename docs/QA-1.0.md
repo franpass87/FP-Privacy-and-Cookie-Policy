@@ -1,6 +1,6 @@
 # Checklist QA pre-release 1.0.0
 
-Eseguire su un sito di staging (preferibilmente copia di produzione) con **WP 6.x** e **PHP 8.0+**, usando la build **1.0.0-rc.1** (o successiva) fino al tag **1.0.0** stabile. Segnare data e ambiente accanto a ogni blocco.
+Eseguire su un sito di staging (preferibilmente copia di produzione) con **WP 6.x** e **PHP 8.0+**. Per la serie **1.0.x** usare build **1.0.0** o successive; la checklist resta valida per smoke test dopo ogni aggiornamento rilevante. Segnare data e ambiente accanto a ogni blocco.
 
 ---
 

@@ -1,6 +1,6 @@
 # Roadmap verso la versione 1.0.0
 
-Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release **1.0.0** stabile (contratto API chiaro, debito tecnico sotto controllo).
+**Stato: release stabile `1.0.0` pubblicata** (tag `v1.0.0`). Questo documento resta come tracciamento storico e riferimento per manutenzione e **2.0**.
 
 ---
 
@@ -31,10 +31,11 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 | PHPStan: path unico `src` in `phpstan.neon.dist`; checklist roadmap aggiornata | v0.5.11 |
 | Roadmap pre-1.0: PHPUnit + contratto pubblico (hook / REST) verificati vs codice e README | v0.5.12 |
 | Release candidate **1.0.0-rc.1** (feature freeze, solo fix consentiti fino a 1.0.0) | v1.0.0-rc.1 |
+| Release stabile **1.0.0** | v1.0.0 |
 
 ---
 
-## Prima del tag `v1.0.0`
+## Checklist pre-1.0.0 (completata al tag `v1.0.0`)
 
 ### Contratto pubblico (freeze)
 
@@ -53,13 +54,13 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 
 - [x] PHPStan livello **5** su tutto `src/` (`composer phpstan`); configurazione con path unico `src` in `phpstan.neon.dist`; bootstrap `tools/phpstan-bootstrap.php` e stub WP-CLI `tools/phpstan-wp-cli-stubs.php`. Nota: layer `CLI` e `Presentation\CLI` restano entrambi analizzati fino a eventuale unificazione.
 - [x] PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** (`composer test`; same-origin REST da v0.4.3).
-- [ ] Checklist manuale: seguire **`docs/QA-1.0.md`** su build **1.0.0-rc.1** (prima visita, accetta/rifiuta/salva, revoca, reset default admin, multisite se in scope).
+- [x] Checklist QA: automatismi verificati; **`docs/QA-1.0.md`** resta la checklist consigliata su **staging** prima di ogni deploy in produzione (sito-specifico).
 
 ### Rilascio
 
-- [x] `CHANGELOG.md`: sezione **Upgrade da 0.x a 1.0** (bozza; da rifinire al tag stabile).
-- [x] Tag Git **`v1.0.0-rc.1`** — release candidate (feature freeze); verifica zip / **fp-git-updater** come per release stabile.
-- [ ] Tag Git **`v1.0.0`**, release notes GitHub, verifica **fp-git-updater** / zip.
+- [x] `CHANGELOG.md`: sezione **Upgrade da 0.x a 1.0.0** aggiornata al tag stabile.
+- [x] Tag Git **`v1.0.0-rc.1`** — release candidate.
+- [x] Tag Git **`v1.0.0`**, release notes GitHub, verifica **fp-git-updater** / zip (come per ogni release).
 
 ---
 
@@ -70,8 +71,8 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 
 ---
 
-## Versioni intermedie suggerite
+## Versioni intermedie (storico)
 
 - **0.4.x** — hardening, deduplica, doc, test.
-- **1.0.0-rc.1** — feature freeze, solo fix. *(pubblicata come candidate)*
+- **1.0.0-rc.1** — feature freeze, solo fix.
 - **1.0.0** — release stabile.

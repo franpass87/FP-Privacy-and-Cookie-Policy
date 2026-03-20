@@ -9,6 +9,16 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 
 
+## [1.0.0] - 2026-03-20
+### Added
+- Prima release **stabile** **1.0.0** (contratto pubblico hook/REST, PHPStan su `src/`, PHPUnit; vedere `docs/RELEASE-1.0.md`).
+
+### Changed
+- Versione da `1.0.0-rc.1` a `1.0.0`; `docs/RELEASE-1.0.md` e `docs/QA-1.0.md` aggiornati per stato post-release.
+- Sezione **Upgrade da 0.x a 1.0.0** in CHANGELOG consolidata (testo finale al tag stabile).
+
+---
+
 ## [1.0.0-rc.1] - 2026-03-20
 ### Added
 - Prima **release candidate** verso `1.0.0` (feature freeze: solo fix fino al tag stabile).
@@ -547,9 +557,9 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
-## Upgrade da 0.x a 1.0.0 (bozza)
+## Upgrade da 0.x a 1.0.0
 
-Release candidate **1.0.0-rc.1** disponibile: eseguire docs/QA-1.0.md prima del tag **1.0.0** stabile; utile per audit pre-release.
+Dalla serie **0.x** alla **1.0.0**: nessun cambiamento breaking pianificato per hook `fp_consent_update` e REST `fp-privacy/v1` nella linea 1.x. Per smoke test e deploy: `docs/QA-1.0.md`.
 
 - **Hook / REST**: nessun breaking previsto per `fp_consent_update` e namespace `fp-privacy/v1` nella serie 1.x (vedi README e `docs/INTEGRATION-FRONTEND.md`).
 - **Frontend**: dipendenze su `FP_PRIVACY_DATA` limitate alle chiavi documentate; verificare tema/JS custom dopo ogni minor.
