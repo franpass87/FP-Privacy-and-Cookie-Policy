@@ -9,6 +9,16 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 
 
+## [1.0.1] - 2026-03-20
+### Added
+- `docs/DEV-LOCAL-VERIFY.md`: guida PHP CLI (mysqli) e smoke test sito locale.
+- `tools/verify-local.ps1`: script PowerShell per verificare HTTP/REST `fp-privacy/v1` (401 atteso su summary senza auth).
+
+### Changed
+- README: link alla guida verifica locale.
+
+---
+
 ## [1.0.0] - 2026-03-20
 ### Added
 - Prima release **stabile** **1.0.0** (contratto pubblico hook/REST, PHPStan su `src/`, PHPUnit; vedere `docs/RELEASE-1.0.md`).
