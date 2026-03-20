@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.5] - 2026-03-20
+
+### Fixed
+
+- Uniformata la lingua IT/EN tra banner/modal e policy generate: le categorie core usano copy coerente per locale e le traduzioni `.mo` sono state rigenerate.
+
+---
+
 ## [1.0.4] - 2026-03-20
 
 ### Fixed

@@ -14,6 +14,53 @@ namespace FP\Privacy\Utils;
  */
 class CategoriesManager {
 	/**
+	 * Canonical localized copy for core categories.
+	 *
+	 * @var array<string, array<string, array<string, string>>>
+	 */
+	private const CORE_CATEGORY_COPY = array(
+		'necessary' => array(
+			'it' => array(
+				'label'       => 'Strettamente necessari',
+				'description' => 'Cookie essenziali necessari al funzionamento del sito e non disattivabili.',
+			),
+			'en' => array(
+				'label'       => 'Strictly necessary',
+				'description' => 'Essential cookies required for the website to function and cannot be disabled.',
+			),
+		),
+		'preferences' => array(
+			'it' => array(
+				'label'       => 'Preferenze',
+				'description' => 'Memorizzano preferenze utente come lingua o localizzazione.',
+			),
+			'en' => array(
+				'label'       => 'Preferences',
+				'description' => 'Store user preferences such as language or location.',
+			),
+		),
+		'statistics' => array(
+			'it' => array(
+				'label'       => 'Statistiche',
+				'description' => 'Raccolgono statistiche anonime per migliorare i servizi.',
+			),
+			'en' => array(
+				'label'       => 'Statistics',
+				'description' => 'Collect anonymous statistics to improve our services.',
+			),
+		),
+		'marketing' => array(
+			'it' => array(
+				'label'       => 'Marketing',
+				'description' => 'Abilitano pubblicita personalizzata e tracciamento.',
+			),
+			'en' => array(
+				'label'       => 'Marketing',
+				'description' => 'Enable personalized advertising and tracking.',
+			),
+		),
+	);
+	/**
 	 * Options handler reference.
 	 *
 	 * @var Options
@@ -84,6 +131,8 @@ class CategoriesManager {
 				'locked'      => ! empty( $category['locked'] ),
 				'services'    => $services,
 			);
+
+			$result[ $key ] = $this->normalize_core_category_copy( $key, $result[ $key ], $lang );
 		}
 
 		if ( $requested !== $lang ) {
@@ -100,6 +149,63 @@ class CategoriesManager {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Normalize core category copy to avoid mixed-language labels in frontend/policies.
+	 *
+	 * @param string               $key      Category key.
+	 * @param array<string, mixed> $category Category payload.
+	 * @param string               $lang     Requested language.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function normalize_core_category_copy( string $key, array $category, string $lang ): array {
+		if ( ! isset( self::CORE_CATEGORY_COPY[ $key ] ) ) {
+			return $category;
+		}
+
+		$is_italian = 0 === strpos( strtolower( $lang ), 'it' );
+		$bucket     = $is_italian ? 'it' : 'en';
+		$canonical  = self::CORE_CATEGORY_COPY[ $key ][ $bucket ];
+
+		$label = isset( $category['label'] ) ? Validator::text( (string) $category['label'] ) : '';
+		$desc  = isset( $category['description'] ) ? Validator::textarea( (string) $category['description'] ) : '';
+
+		if ( '' === $label || $this->is_core_category_copy( $key, $label, 'label' ) ) {
+			$category['label'] = $canonical['label'];
+		}
+
+		if ( '' === $desc || $this->is_core_category_copy( $key, $desc, 'description' ) ) {
+			$category['description'] = $canonical['description'];
+		}
+
+		return $category;
+	}
+
+	/**
+	 * Check whether a value matches a known core category copy variant.
+	 *
+	 * @param string $key   Category key.
+	 * @param string $value Value to test.
+	 * @param string $field label|description.
+	 *
+	 * @return bool
+	 */
+	private function is_core_category_copy( string $key, string $value, string $field ): bool {
+		$needle = strtolower( trim( $value ) );
+
+		foreach ( self::CORE_CATEGORY_COPY[ $key ] as $copy ) {
+			if ( ! isset( $copy[ $field ] ) ) {
+				continue;
+			}
+
+			if ( strtolower( trim( (string) $copy[ $field ] ) ) === $needle ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

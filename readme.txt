@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,9 @@ See the quick guide screen inside the plugin and the repository `README.md` for 
 Run `bin/package.sh` from the repository root. The script produces a clean archive under `dist/` without minified or binary artefacts.
 
 == Changelog ==
+
+= 1.0.5 =
+* Fixed: uniformata la lingua IT/EN tra banner/modal e pagine policy generate, con categorie core coerenti per locale e traduzioni `.mo` aggiornate.
 
 = 1.0.4 =
 * Fixed: mantenuta la visibilita' del pulsante flottante "Gestisci preferenze" anche dopo consenso, con riapertura del modal sempre disponibile fuori da preview mode.
