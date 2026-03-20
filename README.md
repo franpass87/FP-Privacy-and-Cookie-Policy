@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 1.0.2 |
+| Version | 1.0.3 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |
@@ -153,6 +153,7 @@ Per dettagli completi: `wp help fp-privacy <comando>`
 | `fp_privacy_services_registry` | `$services` | Full service registry array. |
 | `fp_privacy_custom_services` | `$custom` | Additional custom services. |
 | `fp_privacy_force_enqueue_banner` | `bool` | Force banner assets on a request. |
+| `fp_privacy_enqueue_full_banner_assets` | `bool` | Default `true`. Se `false`, solo `consent-mode.js` + bootstrap (comportamento precedente). |
 | `fp_privacy_policy_content` | `$html`, `$lang` | Privacy policy HTML from shortcode/renderer. |
 | `fp_cookie_policy_content` | `$html`, `$lang` | Cookie policy HTML (legacy filter name). |
 | `fp_privacy_view_context` | `$context`, `$template` | Template rendering context. |

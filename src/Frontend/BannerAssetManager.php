@@ -97,7 +97,19 @@ class BannerAssetManager {
 
 		\wp_enqueue_script( $consent_handle );
 
-		if ( ! $should && ! $preview && ! $shortcode ) {
+		/**
+		 * Carica sempre CSS/JS del banner (anche con consenso già salvato) così restano disponibili:
+		 * - pulsante reopen (link a preferenze, policy privacy/cookie nel modal);
+		 * - stessa UX su tutte le pagine senza dipendere da shortcode.
+		 * La logica JS nasconde il banner strip quando non serve; il reopen resta visibile.
+		 *
+		 * Filtro per siti che vogliono il vecchio comportamento (solo consent-mode.js, meno peso):
+		 *
+		 * @example add_filter( 'fp_privacy_enqueue_full_banner_assets', '__return_false' );
+		 */
+		$enqueue_full_banner = (bool) \apply_filters( 'fp_privacy_enqueue_full_banner_assets', true );
+
+		if ( ! $enqueue_full_banner && ! $should && ! $preview && ! $shortcode ) {
 			$bootstrap = "(function(){try{var data=window.FP_PRIVACY_DATA;if(!data||!data.options){return;}var state=data.options.state||{};if(state.should_display||state.preview_mode){return;}var consent=window.fpPrivacyConsent;if(!consent||typeof consent.update!==\"function\"){return;}var mapper=typeof consent.mapBannerPayload===\"function\"?consent.mapBannerPayload:null;var categories=state.categories||{};var defaults=(data.options.mode)||{};if(mapper){var payload=mapper(categories,{defaults:defaults});if(payload){consent.update(payload);}}}catch(e){}})();";
 
 			\wp_add_inline_script( $consent_handle, $bootstrap, 'after' );

@@ -96,9 +96,6 @@ var observerTeardownBound = false;
 var reopenButton = null;
 var reopenObserver = null;
 var reopenObserverBound = false;
-/** Tentativi di trovare il root del banner (evita loop infinito se manca shortcode/block). */
-var bannerInitAttempts = 0;
-var BANNER_INIT_MAX_ATTEMPTS = 100;
 
 // Override language detection if not set
 if ( ! state.lang ) {
@@ -131,7 +128,6 @@ if ( data.options && data.options.texts ) {
             currentTexts.toggle_enabled = 'Abilitato';
             currentTexts.link_privacy_policy = 'Informativa sulla Privacy';
             currentTexts.link_cookie_policy = 'Cookie Policy';
-            currentTexts.reject_all_confirm = currentTexts.reject_all_confirm || 'Rifiutando non verranno attivati cookie di statistica e marketing (restano solo quelli strettamente necessari). Vuoi continuare?';
             debugTiming( 'Testi italiani applicati' );
         }
     }
@@ -151,13 +147,10 @@ if ( data.options && data.options.texts ) {
             currentTexts.toggle_enabled = 'Enabled';
             currentTexts.link_privacy_policy = 'Privacy Policy';
             currentTexts.link_cookie_policy = 'Cookie Policy';
-            currentTexts.reject_all_confirm = currentTexts.reject_all_confirm || 'If you reject, analytics and marketing cookies will not be activated (only strictly necessary cookies remain). Continue?';
             debugTiming( 'Testi inglesi applicati' );
         }
     }
 }
-
-var uxOptions = (data.options && data.options.ux) ? data.options.ux : {};
 
 // Update the texts object reference
 if ( data.options && data.options.texts ) {
@@ -594,6 +587,25 @@ setTimeout( function() {
     }
 }, 1000 );
 
+/**
+ * Allinea Consent Mode / gtag quando il consenso è già registrato e il banner strip non è mostrato.
+ * Equivalente al vecchio bootstrap inline in PHP quando banner.js non veniva caricato.
+ *
+ * @return {void}
+ */
+function syncConsentModeFromStoredState() {
+    if ( ! window.fpPrivacyConsent || typeof window.fpPrivacyConsent.mapBannerPayload !== 'function' || typeof window.fpPrivacyConsent.update !== 'function' ) {
+        return;
+    }
+
+    var cats = state.categories || {};
+    var payload = window.fpPrivacyConsent.mapBannerPayload( cats, { defaults: consentDefaults } );
+
+    if ( payload ) {
+        window.fpPrivacyConsent.update( payload );
+    }
+}
+
 function initializeBanner() {
     debugTiming( 'initializeBanner called' );
     
@@ -609,19 +621,11 @@ function initializeBanner() {
     }
     
     if ( ! root ) {
-        bannerInitAttempts++;
-        if ( bannerInitAttempts > BANNER_INIT_MAX_ATTEMPTS ) {
-            if ( debugEnabled && typeof console !== 'undefined' && console.warn ) {
-                console.warn( 'FP Privacy: elemento banner (data-fp-privacy-banner / #fp-privacy-banner-root) non trovato dopo ' + BANNER_INIT_MAX_ATTEMPTS + ' tentativi.' );
-            }
-            return;
-        }
-        debugTiming( 'Root element not found, retrying in 50ms (attempt ' + bannerInitAttempts + ')' );
+        debugTiming( 'Root element not found, retrying in 50ms' );
+        // Retry after a short delay if root element is not found
         setTimeout( initializeBanner, 50 );
         return;
     }
-
-    bannerInitAttempts = 0;
 
     debugTiming( 'Root element found, building banner' );
     buildBanner();
@@ -682,6 +686,10 @@ function initializeBanner() {
     if ( ! state.should_display && state.categories ) {
         debugTiming( 'Ripristinando nodi bloccati con consenso esistente' );
         restoreBlockedNodes( state.categories );
+    }
+
+    if ( ! state.should_display && ! state.preview_mode && ! forceDisplay ) {
+        syncConsentModeFromStoredState();
     }
 }
 
@@ -760,17 +768,11 @@ accept.addEventListener( 'click', function ( event ) {
 });
 buttons.appendChild( accept );
 
-var reject = createButton( texts.btn_reject, 'fp-privacy-button fp-privacy-button-secondary fp-privacy-button-reject' );
+var reject = createButton( texts.btn_reject, 'fp-privacy-button fp-privacy-button-primary' );
 reject.addEventListener( 'click', function ( event ) {
     debugTiming( 'Reject button clicked' );
     event.preventDefault();
     event.stopPropagation();
-    if ( ! state.preview_mode && uxOptions.reject_all_confirm && typeof window.confirm === 'function' ) {
-        var confirmMsg = (texts && texts.reject_all_confirm) ? texts.reject_all_confirm : '';
-        if ( confirmMsg && ! window.confirm( confirmMsg ) ) {
-            return;
-        }
-    }
     handleRejectAll();
 });
 buttons.appendChild( reject );
@@ -1374,30 +1376,6 @@ function mapToConsentMode( payload ) {
     return result;
 }
 
-/**
- * Riallinea banner e pulsante riapertura preferenze dopo errore o timeout di sicurezza.
- * Senza questo, il timeout poteva nascondere il banner lasciando should_display a true:
- * nessun banner e nessun bottone fisso (l'utente non può riaprire le preferenze).
- *
- * @return {void}
- */
-function syncBannerAndReopenAfterStalledHandler() {
-    setButtonsLoading( false );
-    if ( state.should_display ) {
-        if ( banner ) {
-            banner.style.display = 'block';
-        }
-    } else {
-        if ( banner ) {
-            banner.style.display = 'none';
-        }
-        if ( modalOverlay ) {
-            modalOverlay.style.display = 'none';
-        }
-    }
-    updateReopenVisibility();
-}
-
 function setButtonsLoading( isLoading ) {
     debugTiming( 'setButtonsLoading called with isLoading: ' + isLoading );
     // FIX: Seleziona solo i bottoni del modal (non quelli del banner)
@@ -1446,288 +1424,88 @@ function enableAllToggles() {
     }
 }
 
-/**
- * Aggiorna Consent Mode / dataLayer / evento fp-consent-change PRIMA di sbloccare script.
- * Così tag marketing e analytics vedono già ad_storage/analytics_storage in granted.
- *
- * @param {string} event Nome evento consenso (accept_all, reject_all, consent).
- * @param {Object} payload Payload categorie.
- * @return {{consentId: string, timestamp: number, consentMode: Object}}
- */
-function emitConsentSignals( event, payload ) {
-    var consentMode = mapToConsentMode( payload );
-    if ( window.fpPrivacyConsent ) {
-        window.fpPrivacyConsent.update( consentMode );
-    }
-
-    if ( typeof window.dataLayer === 'undefined' ) {
-        window.dataLayer = [];
-    }
-
-    var timestamp = Date.now();
-    var consentId = ensureConsentId();
-
-    window.dataLayer.push( {
-        event: 'fp_consent_update',
-        consent: consentMode,
-        rev: state.revision,
-        ts: timestamp,
-        timestamp: timestamp,
-        consentId: consentId,
-    } );
-
-    var consentEvent = createCustomEvent( 'fp-consent-change', {
-        consent: consentMode,
-        event: event,
-        revision: state.revision,
-        timestamp: timestamp,
-        consentId: consentId,
-        states: payload,
-    } );
-
-    if ( consentEvent ) {
-        document.dispatchEvent( consentEvent );
-    }
-
-    return { consentId: consentId, timestamp: timestamp, consentMode: consentMode };
-}
-
-/**
- * Sincronizza il consenso con il backend (dopo emitConsentSignals).
- *
- * @param {string} event
- * @param {Object} payload
- * @param {{consentId: string, timestamp: number}} signalMeta
- * @return {void}
- */
-function sendConsentToServer( event, payload, signalMeta ) {
-    signalMeta = signalMeta || {};
-    var consentId = signalMeta.consentId || ensureConsentId();
-    var timestamp = typeof signalMeta.timestamp === 'number' ? signalMeta.timestamp : Date.now();
-
-    var lang = state.lang || ( data.options.state ? data.options.state.lang : '' ) || document.documentElement.lang || 'en';
-
-    var markSuccess = function ( result ) {
-        debugTiming( 'markSuccess called' );
-        setButtonsLoading( false );
-
-        if ( typeof handleConsentResponse === 'function' ) {
-            handleConsentResponse( result );
-        } else if ( result && result.consent_id ) {
-            state.consent_id = result.consent_id;
-            setConsentCookie( state.consent_id, state.revision );
-        }
-
-        if ( ! state.consent_id ) {
-            state.consent_id = consentId;
-        }
-
-        state.last_event = timestamp;
-
-        debugTiming( 'Server consent sync completed successfully' );
-    };
-
-    var handleFailure = function () {
-        debugTiming( 'handleFailure called - Server sync failed but local consent is saved' );
-        setButtonsLoading( false );
-        debugTiming( 'Local consent preserved despite server error' );
-    };
-
-    if ( state.preview_mode || ! rest.url ) {
-        debugTiming( 'Preview mode or no REST URL, using local success' );
-        markSuccess( { consent_id: consentId } );
-        return;
-    }
-
-    if ( ! rest.nonce ) {
-        debugTiming( 'No nonce available, attempting request without nonce' );
-    }
-
-    var requestBody = JSON.stringify( {
-        event: event,
-        states: payload,
-        lang: lang,
-        consent_id: consentId,
-    } );
-
-    var sendConsentRequest = function ( retry ) {
-        debugTiming( 'sendConsentRequest called with retry: ' + retry + ', nonce: ' + rest.nonce );
-
-        var headers = {
-            'Content-Type': 'application/json',
-        };
-
-        if ( rest.nonce ) {
-            headers['X-WP-Nonce'] = rest.nonce;
-        }
-
-        if ( typeof window.fetch === 'function' ) {
-            return window.fetch( rest.url, {
-                method: 'POST',
-                headers: headers,
-                credentials: 'same-origin',
-                body: requestBody,
-            } ).then( function ( response ) {
-                debugTiming( 'Fetch response status: ' + response.status );
-                if ( response && response.ok ) {
-                    return response.json().catch( function () {
-                        return { consent_id: consentId };
-                    } );
-                }
-
-                if ( ! retry && response && response.status === 403 ) {
-                    debugTiming( 'Received 403, attempting to refresh nonce' );
-                    return response
-                        .json()
-                        .then( function ( errPayload ) {
-                            debugTiming( '403 response payload: ' + JSON.stringify( errPayload ) );
-                            var nextNonce = errPayload && errPayload.data ? errPayload.data.refresh_nonce : undefined;
-
-                            if ( nextNonce ) {
-                                debugTiming( 'Got new nonce, retrying request' );
-                                rest.nonce = nextNonce;
-                                return sendConsentRequest( true );
-                            }
-
-                            debugTiming( 'No refresh nonce available, failing' );
-                            throw new Error( 'consent_request_failed' );
-                        } )
-                        .catch( function ( error ) {
-                            debugTiming( 'Error parsing 403 response: ' + error.message );
-                            throw new Error( 'consent_request_failed' );
-                        } );
-                }
-
-                debugTiming( 'Fetch request failed with status: ' + response.status );
-                throw new Error( 'consent_request_failed' );
-            } );
-        }
-
-        return new Promise( function ( resolve, reject ) {
-            debugTiming( 'Using XMLHttpRequest fallback with nonce: ' + rest.nonce );
-            var xhr = new XMLHttpRequest();
-            xhr.open( 'POST', rest.url, true );
-            xhr.withCredentials = true;
-            xhr.setRequestHeader( 'Content-Type', 'application/json' );
-            if ( rest.nonce ) {
-                xhr.setRequestHeader( 'X-WP-Nonce', rest.nonce );
-            }
-            xhr.onreadystatechange = function () {
-                if ( xhr.readyState !== 4 ) {
-                    return;
-                }
-
-                if ( xhr.status >= 200 && xhr.status < 300 ) {
-                    debugTiming( 'XHR request successful with status: ' + xhr.status );
-                    var result = { consent_id: consentId };
-
-                    try {
-                        var parsed = JSON.parse( xhr.responseText );
-                        if ( parsed && typeof parsed === 'object' ) {
-                            result = parsed;
-                        }
-                        debugTiming( 'XHR parsed response: ' + JSON.stringify( result ) );
-                    } catch ( error ) {
-                        debugTiming( 'XHR JSON parse error: ' + error.message );
-                    }
-
-                    resolve( result );
-                    return;
-                }
-
-                if ( ! retry && xhr.status === 403 ) {
-                    debugTiming( 'XHR received 403, attempting to refresh nonce' );
-                    try {
-                        var errPayload = JSON.parse( xhr.responseText );
-                        debugTiming( 'XHR 403 response payload: ' + JSON.stringify( errPayload ) );
-                        var refresh = errPayload && errPayload.data ? errPayload.data.refresh_nonce : undefined;
-
-                        if ( refresh ) {
-                            debugTiming( 'XHR got new nonce, retrying request' );
-                            rest.nonce = refresh;
-                            sendConsentRequest( true ).then( resolve ).catch( reject );
-                            return;
-                        }
-                        debugTiming( 'XHR no refresh nonce available' );
-                    } catch ( error ) {
-                        debugTiming( 'XHR error parsing 403 response: ' + error.message );
-                    }
-                }
-
-                debugTiming( 'XHR request failed with status: ' + xhr.status );
-                reject( new Error( 'consent_request_failed' ) );
-            };
-            xhr.send( requestBody );
-        } );
-    };
-
-    sendConsentRequest( false )
-        .then( markSuccess )
-        .catch( function ( error ) {
-            debugTiming( 'sendConsentRequest failed: ' + error.message );
-            handleFailure();
-        } );
-}
-
 function handleAcceptAll() {
     debugTiming( 'handleAcceptAll called' );
     setButtonsLoading( true );
-
+    
+    // TIMEOUT DI SICUREZZA: Forza la chiusura dopo 500ms
+    // Garantisce che il banner si chiuda SEMPRE, anche in caso di errori
     var safetyTimeout = setTimeout( function() {
-        debugTiming( 'Safety timeout - syncing banner and reopen button UI' );
-        syncBannerAndReopenAfterStalledHandler();
+        debugTiming( 'Safety timeout triggered - forcing banner close' );
+        if ( banner && banner.style.display !== 'none' ) {
+            banner.style.display = 'none';
+            if ( modal && modalOverlay ) {
+                modalOverlay.style.display = 'none';
+            }
+        }
     }, 500 );
-
+    
     try {
         var payload = buildConsentPayload( true, false );
-        debugTiming( 'Payload built, emit consent then persist' );
-
+        debugTiming( 'Payload built, calling persistConsent' );
+        
+        // FIX CRITICO: Salva il cookie IMMEDIATAMENTE in locale
+        var consentId = ensureConsentId();
+        setConsentCookie( consentId, state.revision );
+        
+        // FIX CRITICO: Nascondi il banner IMMEDIATAMENTE
+        // Non aspettare la risposta del server
         state.categories = Object.assign( {}, payload );
-        var signals = emitConsentSignals( 'accept_all', payload );
-
-        setConsentCookie( signals.consentId, state.revision );
         state.last_revision = state.revision;
         state.should_display = false;
         hideBanner();
+        restoreBlockedNodes( state.categories );
         updateReopenVisibility();
-
-        sendConsentToServer( 'accept_all', payload, signals );
-    } catch ( error ) {
-        debugTiming( 'Error in handleAcceptAll: ' + ( error && error.message ? error.message : error ) );
-        syncBannerAndReopenAfterStalledHandler();
-    } finally {
+        
+        // Invia al server in background (non bloccante)
+        persistConsent( 'accept_all', payload );
+        
+        // Cancella il timeout di sicurezza se tutto va bene
         clearTimeout( safetyTimeout );
+    } catch ( error ) {
+        debugTiming( 'Error in handleAcceptAll: ' + error.message );
+        // Il timeout di sicurezza chiuderà comunque il banner
     }
 }
 
 function handleRejectAll() {
     debugTiming( 'handleRejectAll called' );
     setButtonsLoading( true );
-
+    
+    // TIMEOUT DI SICUREZZA: Forza la chiusura dopo 500ms
     var safetyTimeout = setTimeout( function() {
-        debugTiming( 'Safety timeout - syncing banner and reopen button UI' );
-        syncBannerAndReopenAfterStalledHandler();
+        debugTiming( 'Safety timeout triggered - forcing banner close' );
+        if ( banner && banner.style.display !== 'none' ) {
+            banner.style.display = 'none';
+            if ( modal && modalOverlay ) {
+                modalOverlay.style.display = 'none';
+            }
+        }
     }, 500 );
-
+    
     try {
         var payload = buildConsentPayload( false, true );
-        debugTiming( 'Payload built, emit consent then persist' );
-
+        debugTiming( 'Payload built, calling persistConsent' );
+        
+        // FIX CRITICO: Salva il cookie IMMEDIATAMENTE in locale
+        var consentId = ensureConsentId();
+        setConsentCookie( consentId, state.revision );
+        
+        // FIX CRITICO: Nascondi il banner IMMEDIATAMENTE
         state.categories = Object.assign( {}, payload );
-        var signals = emitConsentSignals( 'reject_all', payload );
-
-        setConsentCookie( signals.consentId, state.revision );
         state.last_revision = state.revision;
         state.should_display = false;
         hideBanner();
+        restoreBlockedNodes( state.categories );
         updateReopenVisibility();
-
-        sendConsentToServer( 'reject_all', payload, signals );
-    } catch ( error ) {
-        debugTiming( 'Error in handleRejectAll: ' + ( error && error.message ? error.message : error ) );
-        syncBannerAndReopenAfterStalledHandler();
-    } finally {
+        
+        // Invia al server in background (non bloccante)
+        persistConsent( 'reject_all', payload );
+        
         clearTimeout( safetyTimeout );
+    } catch ( error ) {
+        debugTiming( 'Error in handleRejectAll: ' + error.message );
+        // Il timeout di sicurezza chiuderà comunque il banner
     }
 }
 
@@ -1740,13 +1518,6 @@ function revokeConsent() {
         // Update state immediately.
         state.categories = Object.assign( {}, payload );
         state.should_display = true; // Show banner again after revocation.
-
-        // Mostra subito il banner e nascondi il reopen (prima la UI dipendeva solo dal fetch async).
-        if ( banner ) {
-            showBanner();
-        } else {
-            updateReopenVisibility();
-        }
         
         // Clear consent cookie.
         var consentId = ensureConsentId();
@@ -1834,57 +1605,256 @@ function revokeConsent() {
 
 function handleSavePreferences() {
     setButtonsLoading( true );
-
+    
+    // TIMEOUT DI SICUREZZA: Forza la chiusura dopo 500ms
     var safetyTimeout = setTimeout( function() {
-        debugTiming( 'Safety timeout - syncing banner and reopen button UI' );
-        syncBannerAndReopenAfterStalledHandler();
+        debugTiming( 'Safety timeout triggered - forcing modal/banner close' );
+        if ( modalOverlay && modalOverlay.style.display !== 'none' ) {
+            modalOverlay.style.display = 'none';
+        }
+        if ( banner && banner.style.display !== 'none' ) {
+            banner.style.display = 'none';
+        }
     }, 500 );
-
+    
     try {
         var payload = buildConsentPayload( false, false );
-
+        
+        // FIX CRITICO: Salva il cookie IMMEDIATAMENTE in locale
+        var consentId = ensureConsentId();
+        setConsentCookie( consentId, state.revision );
+        
+        // FIX CRITICO: Nascondi il banner IMMEDIATAMENTE
         state.categories = Object.assign( {}, payload );
-        var signals = emitConsentSignals( 'consent', payload );
-
-        setConsentCookie( signals.consentId, state.revision );
         state.last_revision = state.revision;
         state.should_display = false;
         closeModal();
         hideBanner();
+        restoreBlockedNodes( state.categories );
         updateReopenVisibility();
-
-        sendConsentToServer( 'consent', payload, signals );
-    } catch ( error ) {
-        debugTiming( 'Error in handleSavePreferences: ' + ( error && error.message ? error.message : error ) );
-        syncBannerAndReopenAfterStalledHandler();
-    } finally {
+        
+        // Invia al server in background (non bloccante)
+        persistConsent( 'consent', payload );
+        
         clearTimeout( safetyTimeout );
+    } catch ( error ) {
+        debugTiming( 'Error in handleSavePreferences: ' + error.message );
+        // Il timeout di sicurezza chiuderà comunque il banner
     }
 }
 
 function persistConsent( event, payload ) {
-    var signals = emitConsentSignals( event, payload );
-    sendConsentToServer( event, payload, signals );
-}
+    var consentMode = mapToConsentMode( payload );
+    if ( window.fpPrivacyConsent ) {
+        window.fpPrivacyConsent.update( consentMode );
+    }
 
-/**
- * Aggiorna state.last_revision dal cookie/localStorage senza abbassare la revisione già nota al server (DB).
- *
- * @param {string} revSegment Segmento revisione dalla stringa id|rev.
- * @return {void}
- */
-function mergeConsentRevisionFromStorage( revSegment ) {
-    if ( ! revSegment ) {
+    if ( typeof window.dataLayer === 'undefined' ) {
+        window.dataLayer = [];
+    }
+
+    var timestamp = Date.now();
+    var consentId = ensureConsentId();
+
+    window.dataLayer.push( {
+        event: 'fp_consent_update',
+        consent: consentMode,
+        rev: state.revision,
+        ts: timestamp,
+        timestamp: timestamp,
+        consentId: consentId,
+    } );
+
+    var consentEvent = createCustomEvent( 'fp-consent-change', {
+        consent: consentMode,
+        event: event,
+        revision: state.revision,
+        timestamp: timestamp,
+        consentId: consentId,
+        states: payload,
+    } );
+
+    if ( consentEvent ) {
+        document.dispatchEvent( consentEvent );
+    }
+
+    var lang = state.lang || ( data.options.state ? data.options.state.lang : '' ) || document.documentElement.lang || 'en';
+
+    var markSuccess = function ( result ) {
+        debugTiming( 'markSuccess called' );
+        setButtonsLoading( false );
+        
+        // Aggiorna il consent_id dal server se disponibile
+        if ( typeof handleConsentResponse === 'function' ) {
+            handleConsentResponse( result );
+        } else if ( result && result.consent_id ) {
+            state.consent_id = result.consent_id;
+            // Aggiorna il cookie con l'ID dal server
+            setConsentCookie( state.consent_id, state.revision );
+        }
+
+        if ( ! state.consent_id ) {
+            state.consent_id = consentId;
+        }
+
+        state.last_event = timestamp;
+        
+        // NOTA: Banner già nascosto e categorie già salvate in handleAcceptAll/handleRejectAll
+        // Questo è solo per confermare che il server ha ricevuto il consenso
+        debugTiming( 'Server consent sync completed successfully' );
+    };
+
+    var handleFailure = function () {
+        debugTiming( 'handleFailure called - Server sync failed but local consent is saved' );
+        setButtonsLoading( false );
+        
+        // FIX CRITICO: Non mostrare nuovamente il banner
+        // Il consenso è già salvato in locale (cookie + localStorage)
+        // L'utente ha già dato il consenso, non dobbiamo chiederlo di nuovo
+        debugTiming( 'Local consent preserved despite server error' );
+        
+        // Il banner resta nascosto, il consenso è valido in locale
+    };
+
+    if ( state.preview_mode || ! rest.url ) {
+        debugTiming( 'Preview mode or no REST URL, using local success' );
+        markSuccess( { consent_id: consentId } );
         return;
     }
-    var fromStorage = parseInt( revSegment, 10 ) || 0;
-    // FP_PRIVACY_DATA può deserializzare last_revision come numero o stringa.
-    var prev = parseInt( String( state.last_revision ), 10 );
-    if ( isNaN( prev ) ) {
-        prev = 0;
+    
+    // If no nonce is available, try without it (for same-origin requests)
+    if ( ! rest.nonce ) {
+        debugTiming( 'No nonce available, attempting request without nonce' );
     }
-    state.last_revision = Math.max( fromStorage, prev );
-    debugTiming( 'Revisione dopo merge storage/server: ' + state.last_revision );
+
+    var requestBody = JSON.stringify( {
+        event: event,
+        states: payload,
+        lang: lang,
+        consent_id: consentId,
+    } );
+
+    var sendConsentRequest = function ( retry ) {
+        debugTiming( 'sendConsentRequest called with retry: ' + retry + ', nonce: ' + rest.nonce );
+        
+        // Prepare headers
+        var headers = {
+            'Content-Type': 'application/json',
+        };
+        
+        // Only add nonce if available
+        if ( rest.nonce ) {
+            headers['X-WP-Nonce'] = rest.nonce;
+        }
+        
+        if ( typeof window.fetch === 'function' ) {
+            return window.fetch( rest.url, {
+                method: 'POST',
+                headers: headers,
+                credentials: 'same-origin',
+                body: requestBody,
+            } ).then( function ( response ) {
+                debugTiming( 'Fetch response status: ' + response.status );
+                if ( response && response.ok ) {
+                    return response.json().catch( function () {
+                        return { consent_id: consentId };
+                    } );
+                }
+
+                if ( ! retry && response && response.status === 403 ) {
+                    debugTiming( 'Received 403, attempting to refresh nonce' );
+                    return response
+                        .json()
+                        .then( function ( payload ) {
+                            debugTiming( '403 response payload: ' + JSON.stringify( payload ) );
+                            var nextNonce = payload && payload.data ? payload.data.refresh_nonce : undefined;
+
+                            if ( nextNonce ) {
+                                debugTiming( 'Got new nonce, retrying request' );
+                                rest.nonce = nextNonce;
+                                return sendConsentRequest( true );
+                            }
+
+                            debugTiming( 'No refresh nonce available, failing' );
+                            throw new Error( 'consent_request_failed' );
+                        } )
+                        .catch( function ( error ) {
+                            debugTiming( 'Error parsing 403 response: ' + error.message );
+                            throw new Error( 'consent_request_failed' );
+                        } );
+                }
+
+                debugTiming( 'Fetch request failed with status: ' + response.status );
+                throw new Error( 'consent_request_failed' );
+            } );
+        }
+
+        return new Promise( function ( resolve, reject ) {
+            debugTiming( 'Using XMLHttpRequest fallback with nonce: ' + rest.nonce );
+            var xhr = new XMLHttpRequest();
+            xhr.open( 'POST', rest.url, true );
+            xhr.withCredentials = true;
+            xhr.setRequestHeader( 'Content-Type', 'application/json' );
+            if ( rest.nonce ) {
+                xhr.setRequestHeader( 'X-WP-Nonce', rest.nonce );
+            }
+            xhr.onreadystatechange = function () {
+                if ( xhr.readyState !== 4 ) {
+                    return;
+                }
+
+                if ( xhr.status >= 200 && xhr.status < 300 ) {
+                    debugTiming( 'XHR request successful with status: ' + xhr.status );
+                    var result = { consent_id: consentId };
+
+                    try {
+                        var parsed = JSON.parse( xhr.responseText );
+                        if ( parsed && typeof parsed === 'object' ) {
+                            result = parsed;
+                        }
+                        debugTiming( 'XHR parsed response: ' + JSON.stringify( result ) );
+                    } catch ( error ) {
+                        debugTiming( 'XHR JSON parse error: ' + error.message );
+                        // Ignore malformed JSON responses.
+                    }
+
+                    resolve( result );
+                    return;
+                }
+
+                if ( ! retry && xhr.status === 403 ) {
+                    debugTiming( 'XHR received 403, attempting to refresh nonce' );
+                    try {
+                        var payload = JSON.parse( xhr.responseText );
+                        debugTiming( 'XHR 403 response payload: ' + JSON.stringify( payload ) );
+                        var refresh = payload && payload.data ? payload.data.refresh_nonce : undefined;
+
+                        if ( refresh ) {
+                            debugTiming( 'XHR got new nonce, retrying request' );
+                            rest.nonce = refresh;
+                            sendConsentRequest( true ).then( resolve ).catch( reject );
+                            return;
+                        }
+                        debugTiming( 'XHR no refresh nonce available' );
+                    } catch ( error ) {
+                        debugTiming( 'XHR error parsing 403 response: ' + error.message );
+                        // Ignore JSON parsing issues so the failure can bubble up.
+                    }
+                }
+
+                debugTiming( 'XHR request failed with status: ' + xhr.status );
+                reject( new Error( 'consent_request_failed' ) );
+            };
+            xhr.send( requestBody );
+        } );
+    };
+
+    sendConsentRequest( false )
+        .then( markSuccess )
+        .catch( function ( error ) {
+            debugTiming( 'sendConsentRequest failed: ' + error.message );
+            handleFailure();
+        } );
 }
 
 function readConsentIdFromCookie() {
@@ -1899,8 +1869,11 @@ function readConsentIdFromCookie() {
             var segments = value.split( '|' );
             debugTiming( 'Cookie trovato: ' + value + ', ID: ' + ( segments[ 0 ] || '' ) + ', Rev: ' + ( segments[ 1 ] || '0' ) );
             
+            // CORREZIONE: Aggiorna anche la revisione se presente e assicurati che sia valida
             if ( segments[ 1 ] ) {
-                mergeConsentRevisionFromStorage( segments[ 1 ] );
+                var revision = parseInt( segments[ 1 ], 10 ) || 0;
+                state.last_revision = revision;
+                debugTiming( 'Revisione dal cookie: ' + revision );
             }
             
             // CORREZIONE: Verifica che l'ID del consenso sia valido (non vuoto)
@@ -1926,8 +1899,10 @@ function readConsentIdFromCookie() {
                 var segments = storedValue.split( '|' );
                 var consentId = segments[ 0 ] || '';
                 if ( consentId && consentId.length > 0 ) {
+                    // Aggiorna la revisione
                     if ( segments[ 1 ] ) {
-                        mergeConsentRevisionFromStorage( segments[ 1 ] );
+                        var revision = parseInt( segments[ 1 ], 10 ) || 0;
+                        state.last_revision = revision;
                     }
                     debugTiming( 'Consenso recuperato da localStorage: ' + consentId );
                     // Prova a ripristinare il cookie

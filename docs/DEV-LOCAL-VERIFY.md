@@ -40,7 +40,7 @@ php -r "chdir('C:/path/to/wordpress'); require 'wp-load.php'; echo FP_PRIVACY_VE
 
 Comportamento **normale** se:
 
-1. **Hai già dato il consenso** (cookie `fp_consent_state_id` / stato salvato): `ConsentState` imposta `should_display` a false e `BannerAssetManager` non carica `banner.js` / CSS del banner (resta solo lo script Consent Mode per aggiornare `gtag` se serve).
+1. **Hai già dato il consenso** (cookie `fp_consent_state_id` / stato salvato): `ConsentState` imposta `should_display` a false, quindi **il banner strip iniziale non viene mostrato**; di default il plugin carica comunque `banner.js` / CSS così restano il **pulsante reopen** (basso a sinistra) e il modal con link policy. Solo se un sito usa il filtro `fp_privacy_enqueue_full_banner_assets` a `false` torna il caricamento minimo solo `consent-mode.js` (senza reopen).
 2. **Sei loggato** e hai navigato in passato: spesso il cookie è già presente nella sessione del browser.
 
 ### Come vedere il banner in sviluppo

@@ -9,6 +9,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 
 
+## [1.0.3] - 2026-03-20
+
+### Changed
+
+- Frontend: con consenso già salvato vengono sempre caricati `banner.css` / `banner.js`, così il pulsante reopen (preferenze + link privacy/cookie nel modal) resta disponibile. Filtro `fp_privacy_enqueue_full_banner_assets` (default `true`) per ripristinare il caricamento minimo solo `consent-mode.js`.
+- `banner.js`: sincronizzazione Consent Mode all'avvio quando il banner strip è nascosto (`syncConsentModeFromStoredState`), equivalente al vecchio bootstrap inline.
+
+---
 ## [1.0.2] - 2026-03-20
 
 ### Changed
