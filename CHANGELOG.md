@@ -4,7 +4,7 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
-## [0.3.5] - 2026-03-20
+## [1.0.4] - 2026-03-20
 
 ### Fixed
 
