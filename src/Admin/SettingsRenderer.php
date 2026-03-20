@@ -20,13 +20,6 @@ use FP\Privacy\Utils\Options;
  */
 class SettingsRenderer {
 	/**
-	 * Options handler.
-	 *
-	 * @var Options
-	 */
-	private $options;
-
-	/**
 	 * Tab renderers.
 	 *
 	 * @var array<string, object>
@@ -39,8 +32,6 @@ class SettingsRenderer {
 	 * @param Options $options Options handler.
 	 */
 	public function __construct( Options $options ) {
-		$this->options = $options;
-		
 		// Initialize tab renderers
 		$this->tab_renderers = array(
 			'banner'   => new BannerTabRenderer( $options ),

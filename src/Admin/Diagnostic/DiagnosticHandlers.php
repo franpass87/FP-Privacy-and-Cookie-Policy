@@ -9,7 +9,7 @@
 
 namespace FP\Privacy\Admin\Diagnostic;
 
-use FP\Privacy\Consent\ConsentState;
+use FP\Privacy\Frontend\ConsentState;
 use FP\Privacy\Utils\Options;
 
 /**

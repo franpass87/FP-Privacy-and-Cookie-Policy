@@ -28,13 +28,6 @@ class IntegrationAudit {
     private $options;
 
     /**
-     * Policy generator.
-     *
-     * @var PolicyGenerator
-     */
-    private $generator;
-
-    /**
      * Integration auditor.
      *
      * @var IntegrationAuditor
@@ -70,14 +63,13 @@ class IntegrationAudit {
 	 * @param PolicyAutoUpdater|null   $auto_updater Policy auto-updater (optional for backward compatibility).
 	 */
 	public function __construct( Options $options, PolicyGenerator $generator, ?PolicyAutoUpdater $auto_updater = null ) {
-		$this->options   = $options;
-		$this->generator = $generator;
+		$this->options = $options;
 
 		// Initialize components
 		$alert_manager = new DetectorAlertManager( $options );
 		$this->formatter = new ServiceFormatter();
 		$this->auditor = new IntegrationAuditor( $options, $generator, $alert_manager, $auto_updater );
-		$this->email_notifier = new EmailNotifier( $options, $alert_manager, $this->formatter );
+		$this->email_notifier = new EmailNotifier( $alert_manager, $this->formatter );
 		$this->notice_renderer = new IntegrationAuditNoticeRenderer( $this->formatter );
 	}
 

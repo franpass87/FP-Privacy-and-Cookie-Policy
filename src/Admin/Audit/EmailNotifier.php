@@ -9,7 +9,6 @@
 
 namespace FP\Privacy\Admin\Audit;
 
-use FP\Privacy\Utils\Options;
 use FP\Privacy\Utils\DetectorAlertManager;
 
 /**
@@ -17,13 +16,6 @@ use FP\Privacy\Utils\DetectorAlertManager;
  */
 class EmailNotifier {
 	const EMAIL_COOLDOWN = DAY_IN_SECONDS;
-
-	/**
-	 * Options handler.
-	 *
-	 * @var Options
-	 */
-	private $options;
 
 	/**
 	 * Detector alert manager.
@@ -42,12 +34,10 @@ class EmailNotifier {
 	/**
 	 * Constructor.
 	 *
-	 * @param Options            $options      Options handler.
 	 * @param DetectorAlertManager $alert_manager Alert manager.
-	 * @param ServiceFormatter   $formatter    Service formatter.
+	 * @param ServiceFormatter     $formatter    Service formatter.
 	 */
-	public function __construct( Options $options, DetectorAlertManager $alert_manager, ServiceFormatter $formatter ) {
-		$this->options       = $options;
+	public function __construct( DetectorAlertManager $alert_manager, ServiceFormatter $formatter ) {
 		$this->alert_manager = $alert_manager;
 		$this->formatter     = $formatter;
 	}

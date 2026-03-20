@@ -45,8 +45,8 @@ class PolicyDiffGenerator {
 	 * Diff preview.
 	 *
 	 * @param array<int, string>        $languages     Active languages.
-	 * @param array<string, \WP_Post?> $privacy_posts Privacy posts keyed by language.
-	 * @param array<string, \WP_Post?> $cookie_posts  Cookie posts keyed by language.
+	 * @param array<string, \WP_Post|null> $privacy_posts Privacy posts keyed by language.
+	 * @param array<string, \WP_Post|null> $cookie_posts  Cookie posts keyed by language.
 	 *
 	 * @return string
 	 */

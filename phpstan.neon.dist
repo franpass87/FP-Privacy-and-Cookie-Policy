@@ -13,5 +13,6 @@ parameters:
         - src/Frontend
         - src/Infrastructure
         - src/Consent
+        - src/Admin
     scanFiles:
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php

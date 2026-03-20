@@ -118,10 +118,6 @@ class PolicyDocumentGenerator {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( sprintf( 'FP Privacy: Error generating %s document for page %d: %s', $type, $post_id, $e->getMessage() ) );
 			}
-		} catch ( \Exception $e ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'FP Privacy: Error generating %s document for page %d: %s', $type, $post_id, $e->getMessage() ) );
-			}
 		}
 	}
 }

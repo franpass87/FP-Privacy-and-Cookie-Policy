@@ -9,10 +9,15 @@
 
 namespace FP\Privacy\Admin;
 
+use FP\Privacy\Admin\Handler\PolicyLinksAutoPopulator as LegacyPolicyLinksAutoPopulator;
+use FP\Privacy\Admin\Handler\SettingsDataPreparer as LegacySettingsDataPreparer;
+use FP\Privacy\Admin\Handler\SettingsExportImportHandler as LegacySettingsExportImportHandler;
+use FP\Privacy\Admin\Handler\SettingsSaveHandler as LegacySettingsSaveHandler;
 use FP\Privacy\Admin\Menu;
 use FP\Privacy\Presentation\Admin\Controllers\PolicyLinksAutoPopulator;
 use FP\Privacy\Presentation\Admin\Controllers\SettingsDataPreparer;
 use FP\Privacy\Presentation\Admin\Controllers\SettingsExportImportHandler;
+use FP\Privacy\Presentation\Admin\Controllers\SettingsSaveHandler;
 use FP\Privacy\Integrations\DetectorRegistry;
 use FP\Privacy\Utils\Options;
 
@@ -28,20 +33,6 @@ class SettingsController {
 	private $options;
 
 	/**
-	 * Detector registry.
-	 *
-	 * @var DetectorRegistry
-	 */
-	private $detector;
-
-	/**
-	 * Policy generator.
-	 *
-	 * @var PolicyGenerator
-	 */
-	private $generator;
-
-	/**
 	 * Settings renderer.
 	 *
 	 * @var SettingsRenderer
@@ -49,57 +40,54 @@ class SettingsController {
 	private $renderer;
 
 	/**
-	 * Settings data preparer.
+	 * Settings data preparer (Presentation o legacy Handler).
 	 *
-	 * @var SettingsDataPreparer
+	 * @var SettingsDataPreparer|LegacySettingsDataPreparer
 	 */
 	private $data_preparer;
 
 	/**
-	 * Policy links auto-populator.
+	 * Policy links auto-populator (Presentation o legacy Handler).
 	 *
-	 * @var PolicyLinksAutoPopulator
+	 * @var PolicyLinksAutoPopulator|LegacyPolicyLinksAutoPopulator
 	 */
 	private $policy_links_populator;
 
 	/**
-	 * Export/import handler.
+	 * Export/import handler (Presentation o legacy Handler).
 	 *
-	 * @var SettingsExportImportHandler
+	 * @var SettingsExportImportHandler|LegacySettingsExportImportHandler
 	 */
 	private $export_import_handler;
 
 	/**
-	 * Save handler.
+	 * Save handler (Presentation o legacy Handler).
 	 *
-	 * @var SettingsSaveHandler
+	 * @var SettingsSaveHandler|LegacySettingsSaveHandler
 	 */
 	private $save_handler;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param Options          $options   Options handler.
-	 * @param DetectorRegistry $detector  Detector.
-	 * @param PolicyGenerator  $generator Generator.
+	 * @param Options          $options  Options handler.
+	 * @param DetectorRegistry $detector Detector.
 	 */
-	public function __construct( Options $options, DetectorRegistry $detector, PolicyGenerator $generator ) {
-		$this->options                = $options;
-		$this->detector               = $detector;
-		$this->generator              = $generator;
-		$this->renderer              = new SettingsRenderer( $options );
+	public function __construct( Options $options, DetectorRegistry $detector ) {
+		$this->options = $options;
+		$this->renderer = new SettingsRenderer( $options );
 		// Use new Presentation layer classes, fallback to old for compatibility.
 		if ( class_exists( '\\FP\\Privacy\\Presentation\\Admin\\Controllers\\PolicyLinksAutoPopulator' ) ) {
-			$this->policy_links_populator = new \FP\Privacy\Presentation\Admin\Controllers\PolicyLinksAutoPopulator( $options );
-			$this->data_preparer          = new \FP\Privacy\Presentation\Admin\Controllers\SettingsDataPreparer( $options, $detector, $this->policy_links_populator );
-			$this->export_import_handler  = new \FP\Privacy\Presentation\Admin\Controllers\SettingsExportImportHandler( $options );
-			$this->save_handler           = new \FP\Privacy\Presentation\Admin\Controllers\SettingsSaveHandler( $options, $this->policy_links_populator );
+			$this->policy_links_populator = new PolicyLinksAutoPopulator( $options );
+			$this->data_preparer          = new SettingsDataPreparer( $options, $detector, $this->policy_links_populator );
+			$this->export_import_handler  = new SettingsExportImportHandler( $options );
+			$this->save_handler           = new SettingsSaveHandler( $options, $this->policy_links_populator );
 		} else {
 			// Fallback to old location during migration.
-			$this->policy_links_populator = new \FP\Privacy\Admin\Handler\PolicyLinksAutoPopulator( $options );
-			$this->data_preparer          = new \FP\Privacy\Admin\Handler\SettingsDataPreparer( $options, $detector, $this->policy_links_populator );
-			$this->export_import_handler  = new \FP\Privacy\Admin\Handler\SettingsExportImportHandler( $options );
-			$this->save_handler           = new \FP\Privacy\Admin\Handler\SettingsSaveHandler( $options, $this->policy_links_populator );
+			$this->policy_links_populator = new LegacyPolicyLinksAutoPopulator( $options );
+			$this->data_preparer          = new LegacySettingsDataPreparer( $options, $detector, $this->policy_links_populator );
+			$this->export_import_handler  = new LegacySettingsExportImportHandler( $options );
+			$this->save_handler           = new LegacySettingsSaveHandler( $options, $this->policy_links_populator );
 		}
 	}
 

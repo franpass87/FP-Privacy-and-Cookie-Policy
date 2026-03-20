@@ -25,6 +25,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 | PHPStan livello 5 su `src/Frontend` + costanti bootstrap (`DAY_IN_SECONDS`, URL/versione plugin, …) | v0.5.5 |
 | PHPStan livello 5 su `src/Infrastructure` + costanti `ARRAY_A` / `ARRAY_N` in bootstrap | v0.5.6 |
 | PHPStan livello 5 su `src/Consent` + fix `LogModel` / `LogModelTable` | v0.5.7 |
+| PHPStan livello 5 su `src/Admin` + fix diagnostica/DI/settings | v0.5.8 |
 
 ---
 
@@ -45,7 +46,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 
 ### Qualità
 
-- [ ] PHPStan livello concordato — **copertura attuale**: `src/REST`, `src/Domain`, `src/Application`, `src/Providers`, `src/Utils`, `src/Frontend`, `src/Infrastructure`, `src/Consent`, `src/Integrations/ServiceRegistry.php` + bootstrap `tools/phpstan-bootstrap.php` (livello **5**, `composer phpstan`). Eventuale estensione: altri file sotto `src/` non ancora inclusi (es. `Admin`, `Presentation`, `Core` a blocchi).
+- [ ] PHPStan livello concordato — **copertura attuale**: `src/REST`, `src/Domain`, `src/Application`, `src/Providers`, `src/Utils`, `src/Frontend`, `src/Infrastructure`, `src/Consent`, `src/Admin`, `src/Integrations/ServiceRegistry.php` + bootstrap `tools/phpstan-bootstrap.php` (livello **5**, `composer phpstan`). Eventuale estensione: altri file sotto `src/` non ancora inclusi (es. `Presentation`, `Core`, `CLI` a blocchi).
 - [ ] PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** da v0.4.2+ (`composer test`; same-origin REST da v0.4.3).
 - [ ] Checklist manuale: seguire **`docs/QA-1.0.md`** (prima visita, accetta/rifiuta/salva, revoca, reset default admin, multisite se in scope).
 

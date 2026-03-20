@@ -10,7 +10,6 @@
 namespace FP\Privacy\Admin;
 
 use FP\Privacy\Admin\Menu;
-use FP\Privacy\Admin\PolicyGenerator;
 use FP\Privacy\Frontend\BannerPaletteBuilder;
 use FP\Privacy\Integrations\DetectorRegistry;
 use FP\Privacy\Utils\Options;
@@ -36,13 +35,12 @@ class Settings {
 	/**
 	 * Constructor.
 	 *
-	 * @param Options          $options   Options handler.
-	 * @param DetectorRegistry $detector  Detector.
-	 * @param PolicyGenerator  $generator Generator.
+	 * @param Options          $options  Options handler.
+	 * @param DetectorRegistry $detector Detector.
 	 */
-	public function __construct( Options $options, DetectorRegistry $detector, PolicyGenerator $generator ) {
+	public function __construct( Options $options, DetectorRegistry $detector ) {
 		$this->options    = $options;
-		$this->controller = new SettingsController( $options, $detector, $generator );
+		$this->controller = new SettingsController( $options, $detector );
 	}
 
 	/**
@@ -99,14 +97,14 @@ class Settings {
 		
 		if ( $privacy_page_id && $privacy_page_id > 0 ) {
 			$privacy_permalink = \get_permalink( $privacy_page_id );
-			if ( $privacy_permalink && ! \is_wp_error( $privacy_permalink ) ) {
+			if ( \is_string( $privacy_permalink ) && $privacy_permalink !== '' ) {
 				$privacy_url = $privacy_permalink;
 			}
 		}
 		
 		if ( $cookie_page_id && $cookie_page_id > 0 && $cookie_page_id !== $privacy_page_id ) {
 			$cookie_permalink = \get_permalink( $cookie_page_id );
-			if ( $cookie_permalink && ! \is_wp_error( $cookie_permalink ) ) {
+			if ( \is_string( $cookie_permalink ) && $cookie_permalink !== '' ) {
 				$cookie_url = $cookie_permalink;
 			}
 		}

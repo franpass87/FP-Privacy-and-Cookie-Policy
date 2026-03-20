@@ -31,13 +31,6 @@ class PolicyEditorHandler {
 	private $generator;
 
 	/**
-	 * Document generator.
-	 *
-	 * @var PolicyDocumentGenerator
-	 */
-	private $document_generator;
-
-	/**
 	 * Snapshot manager.
 	 *
 	 * @var PolicySnapshotManager
@@ -47,16 +40,14 @@ class PolicyEditorHandler {
 	/**
 	 * Constructor.
 	 *
-	 * @param Options                  $options           Options handler.
-	 * @param PolicyGenerator         $generator         Generator.
-	 * @param PolicyDocumentGenerator $document_generator Document generator.
-	 * @param PolicySnapshotManager   $snapshot_manager  Snapshot manager.
+	 * @param Options                 $options          Options handler.
+	 * @param PolicyGenerator         $generator        Generator.
+	 * @param PolicySnapshotManager   $snapshot_manager Snapshot manager.
 	 */
-	public function __construct( Options $options, PolicyGenerator $generator, PolicyDocumentGenerator $document_generator, PolicySnapshotManager $snapshot_manager ) {
-		$this->options           = $options;
-		$this->generator         = $generator;
-		$this->document_generator = $document_generator;
-		$this->snapshot_manager  = $snapshot_manager;
+	public function __construct( Options $options, PolicyGenerator $generator, PolicySnapshotManager $snapshot_manager ) {
+		$this->options          = $options;
+		$this->generator        = $generator;
+		$this->snapshot_manager   = $snapshot_manager;
 	}
 
 	/**

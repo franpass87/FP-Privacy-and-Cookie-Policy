@@ -10,26 +10,11 @@
 namespace FP\Privacy\Admin;
 
 use FP\Privacy\Consent\LogModel;
-use FP\Privacy\Utils\Options;
 
 /**
  * Displays consent log entries.
  */
 class ConsentLogTable {
-	/**
-	 * Log model.
-	 *
-	 * @var LogModel
-	 */
-	private $log_model;
-
-	/**
-	 * Options handler.
-	 *
-	 * @var Options
-	 */
-	private $options;
-
 	/**
 	 * Data loader.
 	 *
@@ -55,11 +40,8 @@ class ConsentLogTable {
 	 * Constructor.
 	 *
 	 * @param LogModel $log_model Log model.
-	 * @param Options  $options   Options.
 	 */
-	public function __construct( LogModel $log_model, Options $options ) {
-		$this->log_model   = $log_model;
-		$this->options     = $options;
+	public function __construct( LogModel $log_model ) {
 		$this->data_loader = new ConsentLogDataLoader( $log_model, 50 );
 		$this->renderer    = new ConsentLogRenderer();
 		$this->exporter    = new ConsentLogExporter( $log_model );

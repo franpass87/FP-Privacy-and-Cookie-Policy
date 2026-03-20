@@ -9,19 +9,10 @@
 
 namespace FP\Privacy\Admin;
 
-use FP\Privacy\Utils\Options;
-
 /**
  * Handles rendering of policy editor page.
  */
 class PolicyEditorRenderer {
-	/**
-	 * Options handler.
-	 *
-	 * @var Options
-	 */
-	private $options;
-
 	/**
 	 * Diff generator.
 	 *
@@ -32,11 +23,9 @@ class PolicyEditorRenderer {
 	/**
 	 * Constructor.
 	 *
-	 * @param Options              $options        Options handler.
-	 * @param PolicyDiffGenerator  $diff_generator Diff generator.
+	 * @param PolicyDiffGenerator $diff_generator Diff generator.
 	 */
-	public function __construct( Options $options, PolicyDiffGenerator $diff_generator ) {
-		$this->options        = $options;
+	public function __construct( PolicyDiffGenerator $diff_generator ) {
 		$this->diff_generator = $diff_generator;
 	}
 
@@ -44,8 +33,8 @@ class PolicyEditorRenderer {
 	 * Render page.
 	 *
 	 * @param array<int, string>        $languages     Active languages.
-	 * @param array<string, \WP_Post?> $privacy_posts Privacy posts keyed by language.
-	 * @param array<string, \WP_Post?> $cookie_posts  Cookie posts keyed by language.
+	 * @param array<string, \WP_Post|null> $privacy_posts Privacy posts keyed by language.
+	 * @param array<string, \WP_Post|null> $cookie_posts  Cookie posts keyed by language.
 	 *
 	 * @return void
 	 */

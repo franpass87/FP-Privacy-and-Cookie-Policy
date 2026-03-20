@@ -5,6 +5,20 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 ---
 
 
+
+## [0.5.8] - 2026-03-20
+### Changed
+- PHPStan (livello 5): incluso `src/Admin` in `phpstan.neon.dist`.
+- `Settings` / `SettingsController`: costruttori snelliti (rimosso `PolicyGenerator` non usato); `EmailNotifier` senza dipendenza `Options` inutilizzata.
+- `AnalyticsPage`, `ConsentLogTable`: costruttore solo con `LogModel` (allineato al container).
+
+### Fixed
+- Diagnostica: `ConsentState` in `FP\Privacy\Frontend\ConsentState`; `DiagnosticPageRenderer` passa `LogModel` a `ConsentState`.
+- PHPDoc `array<string, \WP_Post|null>` in `PolicyDiffGenerator` / `PolicyEditorRenderer`.
+- `PolicyDocumentGenerator`: catch `Throwable` unico.
+- `PolicyServiceGrouper`, `PolicyLinksAutoPopulator`, `Settings`, `SettingsController`: fix PHPStan livello 5.
+
+---
 ## [0.5.7] - 2026-03-20
 ### Changed
 - PHPStan (livello 5): incluso `src/Consent` in `phpstan.neon.dist`.

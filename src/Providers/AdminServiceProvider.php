@@ -56,8 +56,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			function( ContainerInterface $c ) {
 				$options = self::resolveOptions( $c );
 				$detector = $c->get( DetectorRegistry::class );
-				$generator = $c->get( PolicyGenerator::class );
-				return new Settings( $options, $detector, $generator );
+				return new Settings( $options, $detector );
 			}
 		);
 
@@ -87,8 +86,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			ConsentLogTable::class,
 			function( ContainerInterface $c ) {
 				$log_model = $c->get( LogModel::class );
-				$options = self::resolveOptions( $c );
-				return new ConsentLogTable( $log_model, $options );
+				return new ConsentLogTable( $log_model );
 			}
 		);
 
@@ -106,8 +104,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			AnalyticsPage::class,
 			function( ContainerInterface $c ) {
 				$log_model = $c->get( LogModel::class );
-				$options = self::resolveOptions( $c );
-				return new AnalyticsPage( $log_model, $options );
+				return new AnalyticsPage( $log_model );
 			}
 		);
 

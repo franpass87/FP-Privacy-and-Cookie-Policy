@@ -70,6 +70,7 @@ class PolicyServiceGrouper {
 
 		$this->ensure_services_cache( $force, $lang );
 
+		/** @var array<string, array<int, array<string, mixed>>> */
 		return isset( $this->grouped_services[ $lang ] ) ? $this->grouped_services[ $lang ] : array();
 	}
 

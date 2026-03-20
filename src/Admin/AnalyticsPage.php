@@ -10,26 +10,11 @@
 namespace FP\Privacy\Admin;
 
 use FP\Privacy\Consent\LogModel;
-use FP\Privacy\Utils\Options;
 
 /**
  * Analytics dashboard con metriche e grafici consent rate
  */
 class AnalyticsPage {
-	/**
-	 * Log model.
-	 *
-	 * @var LogModel
-	 */
-	private $log_model;
-
-	/**
-	 * Options handler.
-	 *
-	 * @var Options
-	 */
-	private $options;
-
 	/**
 	 * Asset manager.
 	 *
@@ -48,11 +33,8 @@ class AnalyticsPage {
 	 * Constructor.
 	 *
 	 * @param LogModel $log_model Log model.
-	 * @param Options  $options   Options.
 	 */
-	public function __construct( LogModel $log_model, Options $options ) {
-		$this->log_model     = $log_model;
-		$this->options       = $options;
+	public function __construct( LogModel $log_model ) {
 		$this->asset_manager = new AnalyticsAssetManager( $log_model );
 		$this->renderer      = new AnalyticsRenderer( $log_model );
 	}

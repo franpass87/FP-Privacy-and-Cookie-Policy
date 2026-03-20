@@ -23,13 +23,6 @@ class PolicyEditor {
 	private $options;
 
 	/**
-	 * Generator.
-	 *
-	 * @var PolicyGenerator
-	 */
-	private $generator;
-
-	/**
 	 * Renderer.
 	 *
 	 * @var PolicyEditorRenderer
@@ -57,14 +50,13 @@ class PolicyEditor {
 	 * @param PolicyGenerator $generator Generator.
 	 */
 	public function __construct( Options $options, PolicyGenerator $generator ) {
-		$this->options   = $options;
-		$this->generator = $generator;
+		$this->options = $options;
 
-		$diff_generator      = new PolicyDiffGenerator( $options, $generator );
-		$this->renderer      = new PolicyEditorRenderer( $options, $diff_generator );
+		$diff_generator       = new PolicyDiffGenerator( $options, $generator );
+		$this->renderer       = new PolicyEditorRenderer( $diff_generator );
 		$this->document_generator = new PolicyDocumentGenerator( $options, $generator );
-		$snapshot_manager    = new PolicySnapshotManager( $options );
-		$this->handler       = new PolicyEditorHandler( $options, $generator, $this->document_generator, $snapshot_manager );
+		$snapshot_manager     = new PolicySnapshotManager( $options );
+		$this->handler        = new PolicyEditorHandler( $options, $generator, $snapshot_manager );
 	}
 
 /**

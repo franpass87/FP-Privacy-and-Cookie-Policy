@@ -10,6 +10,7 @@
 namespace FP\Privacy\Admin\Diagnostic;
 
 use FP\Privacy\Admin\AdminHeader;
+use FP\Privacy\Consent\LogModel;
 use FP\Privacy\Frontend\ConsentState as FrontendConsentState;
 use FP\Privacy\Utils\Options;
 
@@ -43,7 +44,7 @@ class DiagnosticPageRenderer {
 			return;
 		}
 
-		$consent_state  = new FrontendConsentState( $this->options, null );
+		$consent_state  = new FrontendConsentState( $this->options, new LogModel() );
 		$lang           = \determine_locale();
 		$frontend_state = $consent_state->get_frontend_state( $lang );
 		$all_options    = $this->options->all();

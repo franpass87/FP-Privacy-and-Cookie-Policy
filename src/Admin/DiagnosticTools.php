@@ -19,20 +19,6 @@ use FP\Privacy\Utils\Options;
  */
 class DiagnosticTools {
 	/**
-	 * Options handler.
-	 *
-	 * @var Options
-	 */
-	private $options;
-
-	/**
-	 * Log model.
-	 *
-	 * @var LogModel
-	 */
-	private $log_model;
-
-	/**
 	 * Page renderer.
 	 *
 	 * @var DiagnosticPageRenderer
@@ -53,8 +39,6 @@ class DiagnosticTools {
 	 * @param LogModel $log_model Log model.
 	 */
 	public function __construct( Options $options, LogModel $log_model ) {
-		$this->options       = $options;
-		$this->log_model     = $log_model;
 		$this->page_renderer = new DiagnosticPageRenderer( $options, $log_model );
 		$this->handlers      = new DiagnosticHandlers( $options );
 	}
