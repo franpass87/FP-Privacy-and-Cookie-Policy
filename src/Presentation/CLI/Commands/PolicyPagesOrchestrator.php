@@ -46,27 +46,18 @@ class PolicyPagesOrchestrator {
 	private $page_validator;
 
 	/**
-	 * Snapshot manager.
-	 *
-	 * @var PolicySnapshotManager
-	 */
-	private $snapshot_manager;
-
-	/**
 	 * Constructor.
 	 *
-	 * @param Options               $options         Options handler.
-	 * @param DetectorRegistry      $detector        Detector registry.
-	 * @param PolicyPageGenerator   $page_generator  Page generator.
-	 * @param PolicyPageValidator   $page_validator  Page validator.
-	 * @param PolicySnapshotManager $snapshot_manager Snapshot manager.
+	 * @param Options             $options        Options handler.
+	 * @param DetectorRegistry      $detector       Detector registry.
+	 * @param PolicyPageGenerator   $page_generator Page generator.
+	 * @param PolicyPageValidator   $page_validator Page validator.
 	 */
-	public function __construct( Options $options, DetectorRegistry $detector, PolicyPageGenerator $page_generator, PolicyPageValidator $page_validator, PolicySnapshotManager $snapshot_manager ) {
-		$this->options         = $options;
-		$this->detector        = $detector;
-		$this->page_generator  = $page_generator;
-		$this->page_validator  = $page_validator;
-		$this->snapshot_manager = $snapshot_manager;
+	public function __construct( Options $options, DetectorRegistry $detector, PolicyPageGenerator $page_generator, PolicyPageValidator $page_validator ) {
+		$this->options        = $options;
+		$this->detector       = $detector;
+		$this->page_generator = $page_generator;
+		$this->page_validator = $page_validator;
 	}
 
 	/**
@@ -98,7 +89,7 @@ class PolicyPagesOrchestrator {
 	/**
 	 * Detect services and log results.
 	 *
-	 * @return array<int, array<string, mixed>>
+	 * @return array{0: array<int, array<string, mixed>>, 1: int}
 	 */
 	public function detect_and_log_services() {
 		WP_CLI::log( '🔍 Rilevamento servizi integrati...' );

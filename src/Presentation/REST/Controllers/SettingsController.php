@@ -51,7 +51,7 @@ class SettingsController {
 	 * Get settings endpoint.
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response|WP_Error Response or error.
+	 * @return WP_REST_Response Response.
 	 */
 	public function get_settings( WP_REST_Request $request ): WP_REST_Response {
 		$settings = $this->get_handler->all();

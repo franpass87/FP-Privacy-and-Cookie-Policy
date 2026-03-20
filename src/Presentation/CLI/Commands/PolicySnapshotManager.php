@@ -35,9 +35,9 @@ class PolicySnapshotManager {
 	/**
 	 * Save snapshot of services and policies.
 	 *
-	 * @param array<int, array<string, mixed>> $services         Detected services.
-	 * @param array<string, array<string, string>> $generated_privacy Generated privacy policies.
-	 * @param array<string, array<string, string>> $generated_cookie  Generated cookie policies.
+	 * @param array<int, array<string, mixed>> $services          Detected services.
+	 * @param array<string, string>           $generated_privacy Generated privacy HTML per language.
+	 * @param array<string, string>           $generated_cookie  Generated cookie HTML per language.
 	 * @param int                                $timestamp       Timestamp.
 	 *
 	 * @return void

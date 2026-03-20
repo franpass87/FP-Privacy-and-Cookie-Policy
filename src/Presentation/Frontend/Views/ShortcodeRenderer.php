@@ -10,6 +10,7 @@
 namespace FP\Privacy\Presentation\Frontend\Views;
 
 use FP\Privacy\Admin\PolicyGenerator;
+use FP\Privacy\Frontend\ConsentState;
 use FP\Privacy\Utils\Options;
 use FP\Privacy\Frontend\ShortcodeAssetManager;
 

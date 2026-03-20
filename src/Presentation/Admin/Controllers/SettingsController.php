@@ -11,14 +11,10 @@ namespace FP\Privacy\Presentation\Admin\Controllers;
 
 use FP\Privacy\Application\Settings\GetSettingsHandler;
 use FP\Privacy\Application\Settings\UpdateSettingsHandler;
-use FP\Privacy\Admin\SettingsRenderer;
-use FP\Privacy\Integrations\DetectorRegistry;
-use FP\Privacy\Admin\PolicyGenerator;
-use FP\Privacy\Utils\Options;
 
 /**
  * Settings controller in Presentation layer.
- * 
+ *
  * This is the new controller structure. The old Admin\SettingsController is kept for backward compatibility.
  */
 class SettingsController {
@@ -37,27 +33,17 @@ class SettingsController {
 	private $update_handler;
 
 	/**
-	 * Settings renderer (legacy, will be moved to Views later).
-	 *
-	 * @var SettingsRenderer
-	 */
-	private $renderer;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param GetSettingsHandler    $get_handler Get settings handler.
 	 * @param UpdateSettingsHandler $update_handler Update settings handler.
-	 * @param SettingsRenderer      $renderer Settings renderer.
 	 */
 	public function __construct(
 		GetSettingsHandler $get_handler,
-		UpdateSettingsHandler $update_handler,
-		SettingsRenderer $renderer
+		UpdateSettingsHandler $update_handler
 	) {
 		$this->get_handler    = $get_handler;
 		$this->update_handler = $update_handler;
-		$this->renderer       = $renderer;
 	}
 
 	/**

@@ -6,6 +6,19 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 
 
+
+## [0.5.9] - 2026-03-20
+### Changed
+- PHPStan (livello 5): incluso `src/Presentation` in `phpstan.neon.dist`; `scanFiles` con `tools/phpstan-wp-cli-stubs.php` (classi `WP_CLI` / `WP_CLI_Command`).
+- `Presentation\Admin\SettingsController`: rimosso `SettingsRenderer` non usato dal costruttore.
+- `ConsentController` (REST): costruttore senza `LogConsentHandler` non utilizzato; `RESTServiceProvider` aggiornato.
+- `PolicyPagesOrchestrator` / `PolicyPageValidator`: DI snellita.
+
+### Fixed
+- `PolicyLinksAutoPopulator` (Presentation), `PrivacyTabRenderer`, `ShortcodeRenderer` (import `ConsentState`), PHPDoc REST `get_settings`.
+- `PolicySnapshotManager` / `PolicyPageGenerator`: tipi `wp_update_post(..., true)` e PHPDoc snapshot; `detect_and_log_services` con tipo di ritorno esplicito.
+
+---
 ## [0.5.8] - 2026-03-20
 ### Changed
 - PHPStan (livello 5): incluso `src/Admin` in `phpstan.neon.dist`.

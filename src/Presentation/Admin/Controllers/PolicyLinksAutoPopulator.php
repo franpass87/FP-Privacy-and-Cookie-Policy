@@ -59,7 +59,7 @@ class PolicyLinksAutoPopulator {
 			if ( $privacy_page_id > 0 ) {
 				$permalink = \get_permalink( $privacy_page_id );
 
-				if ( $permalink && ! \is_wp_error( $permalink ) ) {
+				if ( \is_string( $permalink ) && $permalink !== '' ) {
 					// Initialize banner_texts for this language if needed
 					if ( ! isset( $options['banner_texts'][ $normalized ] ) || ! \is_array( $options['banner_texts'][ $normalized ] ) ) {
 						$options['banner_texts'][ $normalized ] = array();
@@ -102,7 +102,7 @@ class PolicyLinksAutoPopulator {
 			if ( $privacy_page_id > 0 ) {
 				$permalink = \get_permalink( $privacy_page_id );
 
-				if ( $permalink && ! \is_wp_error( $permalink ) ) {
+				if ( \is_string( $permalink ) && $permalink !== '' ) {
 					// Initialize banner_texts for this language if needed
 					if ( ! isset( $payload['banner_texts'][ $normalized ] ) || ! \is_array( $payload['banner_texts'][ $normalized ] ) ) {
 						$payload['banner_texts'][ $normalized ] = array();

@@ -151,7 +151,7 @@ class PrivacyTabRenderer extends SettingsRendererBase {
 		</div>
 		<label>
 		<span><?php \esc_html_e( 'Retention days', 'fp-privacy' ); ?></span>
-		<input type="number" min="1" name="retention_days" value="<?php echo \esc_attr( $retention_days ); ?>" />
+		<input type="number" min="1" name="retention_days" value="<?php echo \esc_attr( (string) $retention_days ); ?>" />
 		</label>
 		<label>
 		<input type="checkbox" name="preview_mode" value="1" <?php \checked( $preview_mode, true ); ?> />

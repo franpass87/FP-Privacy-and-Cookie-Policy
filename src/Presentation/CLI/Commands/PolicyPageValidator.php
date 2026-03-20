@@ -17,19 +17,9 @@ use WP_CLI;
  */
 class PolicyPageValidator {
 	/**
-	 * Options handler.
-	 *
-	 * @var Options
-	 */
-	private $options;
-
-	/**
 	 * Constructor.
-	 *
-	 * @param Options $options Options handler.
 	 */
-	public function __construct( Options $options ) {
-		$this->options = $options;
+	public function __construct() {
 	}
 
 	/**

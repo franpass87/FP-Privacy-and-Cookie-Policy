@@ -85,7 +85,8 @@ class PolicyPageGenerator {
 					'ID'           => $privacy_id,
 					'post_content' => $privacy,
 					'post_status'  => 'publish',
-				)
+				),
+				true
 			);
 
 			$cookie_result = \wp_update_post(
@@ -93,7 +94,8 @@ class PolicyPageGenerator {
 					'ID'           => $cookie_id,
 					'post_content' => $cookie,
 					'post_status'  => 'publish',
-				)
+				),
+				true
 			);
 
 			if ( ! \is_wp_error( $privacy_result ) && ! \is_wp_error( $cookie_result ) ) {

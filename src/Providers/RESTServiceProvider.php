@@ -16,7 +16,6 @@ use FP\Privacy\Presentation\REST\Controllers\ConsentController;
 use FP\Privacy\Presentation\REST\Controllers\SettingsController;
 use FP\Privacy\Presentation\REST\Controllers\SummaryController;
 use FP\Privacy\Application\Consent\GetConsentSummaryQuery;
-use FP\Privacy\Application\Consent\LogConsentHandler;
 use FP\Privacy\Application\Consent\RevokeConsentHandler;
 use FP\Privacy\Application\Settings\GetSettingsHandler;
 use FP\Privacy\Application\Settings\UpdateSettingsHandler;
@@ -56,12 +55,11 @@ class RESTServiceProvider implements ServiceProviderInterface {
 			ConsentController::class,
 			function( ContainerInterface $c ) {
 				$state = $c->get( ConsentState::class );
-				$log_handler = $c->get( LogConsentHandler::class );
-				$revoke      = $c->has( RevokeConsentHandler::class )
+				$revoke = $c->has( RevokeConsentHandler::class )
 					? $c->get( RevokeConsentHandler::class )
 					: null;
 
-				return new ConsentController( $state, $log_handler, $revoke );
+				return new ConsentController( $state, $revoke );
 			}
 		);
 

@@ -9,7 +9,6 @@
 
 namespace FP\Privacy\Presentation\REST\Controllers;
 
-use FP\Privacy\Application\Consent\LogConsentHandler;
 use FP\Privacy\Application\Consent\RevokeConsentHandler;
 use FP\Privacy\Frontend\ConsentState;
 use FP\Privacy\REST\ConsentRestHandlerInterface;
@@ -30,13 +29,6 @@ class ConsentController implements ConsentRestHandlerInterface {
 	private $state;
 
 	/**
-	 * Log consent handler (reserved for future use / domain logging paths).
-	 *
-	 * @var LogConsentHandler
-	 */
-	private $log_handler;
-
-	/**
 	 * Revoke consent handler (optional).
 	 *
 	 * @var RevokeConsentHandler|null
@@ -47,12 +39,10 @@ class ConsentController implements ConsentRestHandlerInterface {
 	 * Constructor.
 	 *
 	 * @param ConsentState              $state          Consent state.
-	 * @param LogConsentHandler         $log_handler    Log consent handler.
 	 * @param RevokeConsentHandler|null $revoke_handler Revoke handler.
 	 */
-	public function __construct( ConsentState $state, LogConsentHandler $log_handler, ?RevokeConsentHandler $revoke_handler = null ) {
+	public function __construct( ConsentState $state, ?RevokeConsentHandler $revoke_handler = null ) {
 		$this->state          = $state;
-		$this->log_handler    = $log_handler;
 		$this->revoke_handler = $revoke_handler;
 	}
 
