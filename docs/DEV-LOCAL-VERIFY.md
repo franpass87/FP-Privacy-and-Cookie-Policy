@@ -35,22 +35,3 @@ php -r "chdir('C:/path/to/wordpress'); require 'wp-load.php'; echo FP_PRIVACY_VE
 ```
 
 (con path corretto alla root WordPress del sito Local)
-
-## Perché non vedo il banner cookie nel browser?
-
-Comportamento **normale** se:
-
-1. **Hai già dato il consenso** (cookie `fp_consent_state_id` / stato salvato): `ConsentState` imposta `should_display` a false e `BannerAssetManager` non carica `banner.js` / CSS del banner (resta solo lo script Consent Mode per aggiornare `gtag` se serve).
-2. **Sei loggato** e hai navigato in passato: spesso il cookie è già presente nella sessione del browser.
-
-### Come vedere il banner in sviluppo
-
-| Metodo | Cosa fare |
-|--------|-----------|
-| **A. Modalità anteprima (consigliata per admin)** | **Privacy e Cookie → Impostazioni → tab «Privacy e Consenso»** → sezione **Retention & Revision** → spunta **«Abilita modalità anteprima (solo admin)»** → **Salva impostazioni privacy**. Poi ricarica il frontend: il banner viene forzato (`preview_mode` nel payload `FP_PRIVACY_DATA`). Ricordati di **disattivare** l’anteprima in produzione. |
-| **B. Finestra anonima / altro browser** | Nessun cookie di consenso → il banner compare se serve ancora il consenso. |
-| **C. Cancella cookie del sito** | Per il dominio locale (es. `fp-development.local`), rimuovi i cookie del plugin e ricarica. |
-| **D. Nuova revisione consenso** | Stesso tab: **«Forza nuovo consenso (incrementa revisione)»** invalida i consensi precedenti. |
-
-Anteprima **solo aspetto** (palette/testi) senza logica di consenso: dalla stessa schermata impostazioni usa **«Preview Banner»** (anteprima admin, non sostituisce il frontend).
-

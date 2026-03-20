@@ -4,21 +4,247 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
-## [0.3.4] - 2026-03-19
+
+
+
+
+
+## [1.0.1] - 2026-03-20
+### Added
+- `docs/DEV-LOCAL-VERIFY.md`: guida PHP CLI (mysqli) e smoke test sito locale.
+- `tools/verify-local.ps1`: script PowerShell per verificare HTTP/REST `fp-privacy/v1` (401 atteso su summary senza auth).
 
 ### Changed
-
-- Documentazione sviluppo: in `docs/DEV-LOCAL-VERIFY.md` aggiunta la sezione «Perché non vedo il banner cookie nel browser?» (consenso già dato, modalità anteprima admin, finestra anonima, bump revisione).
+- README: link alla guida verifica locale.
 
 ---
 
-## [0.3.3] - 2026-03-19
+## [1.0.0] - 2026-03-20
+### Added
+- Prima release **stabile** **1.0.0** (contratto pubblico hook/REST, PHPStan su `src/`, PHPUnit; vedere `docs/RELEASE-1.0.md`).
+
+### Changed
+- Versione da `1.0.0-rc.1` a `1.0.0`; `docs/RELEASE-1.0.md` e `docs/QA-1.0.md` aggiornati per stato post-release.
+- Sezione **Upgrade da 0.x a 1.0.0** in CHANGELOG consolidata (testo finale al tag stabile).
+
+---
+
+## [1.0.0-rc.1] - 2026-03-20
+### Added
+- Prima **release candidate** verso `1.0.0` (feature freeze: solo fix fino al tag stabile).
+
+### Changed
+- `docs/RELEASE-1.0.md`: tracciamento candidate; prossimo passo: checklist `docs/QA-1.0.md` e tag `v1.0.0`. 
+
+---
+
+## [0.5.12] - 2026-03-19
+### Changed
+- `docs/RELEASE-1.0.md`: PHPUnit segnato come soddisfatto; contratto pubblico (`fp_consent_update`, REST `fp-privacy/v1`) verificato vs codice e README; tabella tracciamento v0.5.12.
+- `docs/QA-1.0.md`: riga su tracciamento requisiti automatizzati e path PHPStan `src`.
+
+---
+## [0.5.11] - 2026-03-19
+### Changed
+- PHPStan: `phpstan.neon.dist` usa un unico path `src` (equivalente all'elenco di cartelle precedente; nuove directory sotto `src/` incluse automaticamente nell'analisi).
+- `docs/RELEASE-1.0.md`: roadmap 1.0 - checklist PHPStan (livello 5 su tutto `src/`) segnata come completata.
+
+### Fixed
+- `MultilanguageCompatibility`: condizioni e ternario allineati ai tipi reali (`Options` da costruttore; `WP_Post`/oggetto nel filtro WPML).
+- `MultisiteManager` (root): rimosso controllo ridondante su `Options` (sempre valorizzato dal costruttore).
+
+---
+
+## [0.5.10] - 2026-03-20
+### Changed
+- PHPStan (livello 5): inclusi `src/Core`, `src/Services`, `src/CLI`, `src/Interfaces`, `src/Shared`; `src/Integrations` per intero (non solo `ServiceRegistry.php`).
+- `CLI` (root): allineamento a `Presentation\CLI` — snapshot/orchestrator/validator/generator (`wp_update_post` con `$wp_error=true`, tipi PHPDoc).
+- `DetectorRegistry`: rimossi `UnknownServiceAnalyzer` inutilizzato e metodo privato `get_known_domains()` mai chiamato.
+- `ServiceDetector`: rimosso controllo ridondante su tipi registry (come per `Consent\\LogModel`).
+
+### Fixed
+- `UnknownServiceDetector`, `TrackingPatternScanner`: condizioni ridondanti per PHPStan (queue script/stili WP; `WP_Query` posts).
+
+---
+## [0.5.9] - 2026-03-20
+### Changed
+- PHPStan (livello 5): incluso `src/Presentation` in `phpstan.neon.dist`; `scanFiles` con `tools/phpstan-wp-cli-stubs.php` (classi `WP_CLI` / `WP_CLI_Command`).
+- `Presentation\Admin\SettingsController`: rimosso `SettingsRenderer` non usato dal costruttore.
+- `ConsentController` (REST): costruttore senza `LogConsentHandler` non utilizzato; `RESTServiceProvider` aggiornato.
+- `PolicyPagesOrchestrator` / `PolicyPageValidator`: DI snellita.
+
+### Fixed
+- `PolicyLinksAutoPopulator` (Presentation), `PrivacyTabRenderer`, `ShortcodeRenderer` (import `ConsentState`), PHPDoc REST `get_settings`.
+- `PolicySnapshotManager` / `PolicyPageGenerator`: tipi `wp_update_post(..., true)` e PHPDoc snapshot; `detect_and_log_services` con tipo di ritorno esplicito.
+
+---
+## [0.5.8] - 2026-03-20
+### Changed
+- PHPStan (livello 5): incluso `src/Admin` in `phpstan.neon.dist`.
+- `Settings` / `SettingsController`: costruttori snelliti (rimosso `PolicyGenerator` non usato); `EmailNotifier` senza dipendenza `Options` inutilizzata.
+- `AnalyticsPage`, `ConsentLogTable`: costruttore solo con `LogModel` (allineato al container).
+
+### Fixed
+- Diagnostica: `ConsentState` in `FP\Privacy\Frontend\ConsentState`; `DiagnosticPageRenderer` passa `LogModel` a `ConsentState`.
+- PHPDoc `array<string, \WP_Post|null>` in `PolicyDiffGenerator` / `PolicyEditorRenderer`.
+- `PolicyDocumentGenerator`: catch `Throwable` unico.
+- `PolicyServiceGrouper`, `PolicyLinksAutoPopulator`, `Settings`, `SettingsController`: fix PHPStan livello 5.
+
+---
+## [0.5.7] - 2026-03-20
 ### Changed
 - PHPStan (livello 5): incluso `src/Consent` in `phpstan.neon.dist`.
 
 ### Fixed
 - `Consent\LogModel`: rimosso controllo ridondante su tipi tabella (coerente con PHPDoc del costruttore).
 - `Consent\LogModelTable`: guard su `$wpdb instanceof \wpdb` per analisi statica; migrazione schema senza confronto sempre vero.
+
+---
+
+## [0.5.6] - 2026-03-20
+### Changed
+- PHPStan: analisi estesa a `src/Infrastructure` (livello 5); `tools/phpstan-bootstrap.php` con `ARRAY_A` / `ARRAY_N`.
+### Fixed
+- `HttpClientInterface`: PHPDoc `@return` con `\WP_Error` (namespace globale).
+- `MultisiteManager`: firme `void` e tipi allineati all’interfaccia; rimosso controllo ridondante su `$options`.
+- `ConsentTable`: guard `instanceof \wpdb` per `$wpdb`; migrazione schema senza confronto ridondante.
+
+---
+
+## [0.5.5] - 2026-03-20
+### Changed
+- PHPStan: analisi estesa a `src/Frontend` (livello 5); `tools/phpstan-bootstrap.php` arricchito (`FP_PRIVACY_PLUGIN_URL`, `FP_PRIVACY_PLUGIN_VERSION`, `DAY_IN_SECONDS`, `HOUR_IN_SECONDS`).
+### Fixed
+- `Banner`, `Blocks`, `Shortcodes`: rimosse proprietà non lette; `Shortcodes` non richiede più `View` iniettato (solo `Options` + `PolicyGenerator`).
+- `BannerPaletteBuilder`, `ConsentState`, `ConsentStateSanitizer`, `ScriptBlocker`, `ScriptBlockerPlaceholder`, `ScriptBlockerRules`, `BlockRegistry`: adattamenti per PHPStan (merge palette, permalink, regole script/iframe, `WP_Block_Type` editor script).
+
+---
+
+## [0.5.4] - 2026-03-20
+### Added
+- `docs/QA-1.0.md`: checklist QA manuale pre-release 1.0; `tools/phpstan-bootstrap.php` per costanti `ABSPATH` / `FP_PRIVACY_*` in analisi statica.
+### Changed
+- PHPStan: incluso `src/Utils` nei path; aggiornati `RELEASE-1.0.md` e link in README.
+### Fixed
+- `Options`: `BannerLayout` default con 4 argomenti validi; `$instance` tipizzato `@var self|null`; ramo WPML senza `isset()` ridondante su chiave `foreach`.
+- `PageManager`, `Logger`, `View`, `AutoTranslator`, `BannerValidator`: allineamento a livello 5 PHPStan; `wp_insert_post` annotato `int|\WP_Error`.
+- `BannerTextsManager` / `CategoriesManager`: rimossi costruttori con `LanguageNormalizer` non usato (solo `Options` / `AutoTranslator`).
+
+---
+
+## [0.5.3] - 2026-03-19
+### Changed
+- Roadmap 1.0: `docs/RELEASE-1.0.md` aggiornato (completati 0.5.x, decisione deprecazioni fino a 2.0, stato PHPStan).
+### Fixed
+- PHPStan: incluso `src/Providers` in `phpstan.neon.dist`; correzioni in `CoreServiceProvider` (condizioni ridondanti su `resolveOptions` / `WP_User`).
+
+---
+
+## [0.5.2] - 2026-03-19
+### Fixed
+- i18n: completate le traduzioni inglesi (`fp-privacy-en_US.po`) per granularità EDPB, titoli policy e paragrafi lunghi della privacy template; rigenerati `.mo`. Script di supporto in `bin/` (`build-chunk-b-json.php`, `gen-chunk-b-extra.php`, `apply-en-overrides.php`) e chunk JSON in `languages/`.
+
+---
+
+## [0.5.1] - 2026-03-19
+### Changed
+- Banner: **Consent Mode / `dataLayer` aggiornati prima** dello sblocco script (`emitConsentSignals` → `fp-consent-change` → `restoreBlockedNodes`), così eventi marketing/analytics non partono con segnali ancora `denied`.
+- UX banner: **Accetta tutti** resta pulsante primario evidente; **Rifiuta tutti** in stile secondario + `window.confirm` (testo `reject_all_confirm`, traducibile). In anteprima admin il confirm è off di default (`fp_privacy_reject_all_confirm_preview`).
+### Added
+- Filtri `fp_privacy_reject_all_confirm` e `fp_privacy_reject_all_confirm_preview`; chiave testo `reject_all_confirm` nei default banner (IT/EN).
+
+---
+
+## [0.5.0] - 2026-03-19
+### Added
+- `AdminHeader` e header gradiente brand (design system FP) sulle pagine admin del plugin.
+- `BannerPaletteBuilder::build_policy_page_css()`: variabili CSS per informativa/cookie policy allineate alla palette impostazioni.
+- Inline palette anche su `#fp-privacy-preview-banner` e in admin (`Settings::enqueue_assets`) così l’anteprima banner usa i colori salvati.
+### Changed
+- `admin.css`: token FPDMS, header pagina, card Tools/Guide, pulsanti primari/sticky, statistiche analytics e focus coerenti col viola brand (solo backend).
+- `banner.css` / `privacy-policy.css`: struttura (radius, ombre, transizioni) tipo linee guida FP; accenti da `--fp-privacy-*` (nessun viola di default in frontend).
+- `ShortcodeAssetManager`: enqueue policy + inline palette; guard contro doppio hook `wp_enqueue_scripts`.
+### Fixed
+- Anteprima banner in impostazioni che non ereditava le variabili CSS definite solo per `#fp-privacy-banner-root`.
+
+---
+
+## [0.4.4] - 2026-03-19
+### Added
+- `Options::reset_to_factory_defaults()` e `admin_post_fp_privacy_reset_settings`: il pulsante **Reset a default** in Settings invia un POST sicuro e ripristina le opzioni sanificate ai default di fabbrica; notice di successo e hook `fp_privacy_settings_saved`.
+- `docs/INTEGRATION-FRONTEND.md`: contratto minimo per `FP_PRIVACY_VERSION` / `window.FP_PRIVACY_DATA` (chiavi `options`, `cookie`, `rest`).
+### Changed
+- PHPStan: analisi anche su `src/Application` (fix ExportConsentHandler, GetConsentStateQuery, RevokeConsentHandler, GetConsentSummaryQuery, UpdatePolicyHandler, UpdateSettingsHandler).
+- `GetConsentSummaryQuery`: costruttore semplificato (solo `LogModel`) — uso previsto via container.
+- `UpdatePolicyHandler`: costruttore ridotto a `PolicyService` + sanitizer + logger (repository/validator duplicati rimossi).
+- `INSTALL.md`: versione documento allineata; admin: badge tab “completato” se i campi `[required]` del tab sono compilati.
+### Fixed
+- Notice “Settings saved.” su `?updated=true` nella pagina Settings.
+
+---
+
+## [0.4.3] - 2026-03-19
+### Changed
+- PHPStan: `paths` include l’intero `src/Domain` (oltre a `src/REST` e facade `Integrations\ServiceRegistry`).
+### Fixed
+- `AIDisclosureGenerator`: condizioni su flag booleani semplificate (rimossi controlli ridondanti segnalati da PHPStan).
+### Added
+- Test unitari `RESTPermissionCheckerTest` per same-origin (host/scheme/porte, `www.`).
+- Bootstrap PHPUnit: stub `wp_parse_url` (delega a `parse_url`).
+
+---
+
+## [0.4.2] - 2026-03-19
+### Added
+- Tooling dev: `phpstan.neon.dist` (analisi parziale REST/registry), script Composer `test` e `phpstan`, PHPUnit 10 + `php-stubs/wordpress-stubs` in `require-dev`.
+- Test: `ConsentRestHandlerContractTest`, `ServiceRegistryFacadeTest`.
+- `tests/bootstrap.php`: stub minime WordPress (`apply_filters`, `wp_parse_args`, `wp_kses_post`, ecc.) per PHPUnit fuori da WP.
+### Fixed
+- `phpunit.xml.dist`: bootstrap su `tests/bootstrap.php`.
+- Test `ColorPaletteTest` allineato al value object (`surface_*`, `button_*`, …).
+- `ServiceRegistryFacadeTest`: confronto registry senza `assertSame` su array con closure ricreate; detector stringa vs `Closure`.
+- `OptionsValidatorTest`: default con `sync_modal_and_button` e struttura `detector_notifications` completa (niente warning PHP).
+
+---
+
+## [0.4.1] - 2026-03-19
+### Changed
+- REST consenso unificato: introdotto `ConsentRestHandlerInterface`; `RESTRouteRegistrar` usa `ConsentController` dal container (revoca inclusa). `RESTConsentHandler` deprecato per 2.0, mantenuto come fallback.
+### Added
+- `ConsentController` espone `revoke_consent` con `RevokeConsentHandler` opzionale (stessa logica dell’handler legacy).
+
+---
+
+## [0.4.0] - 2026-03-19
+### Added
+- Documento di roadmap verso 1.0: `docs/RELEASE-1.0.md`.
+### Changed
+- `FP\Privacy\Integrations\ServiceRegistry` è ora un facade che delega a `FP\Privacy\Domain\Services\ServiceRegistry` (una sola definizione dei servizi; classe Integrations deprecata per rimozione in 2.0).
+- `DetectorRegistry` e `IntegrationServiceProvider` usano direttamente il registry di Domain.
+### Fixed
+- Banner JS: dopo al massimo 100 tentativi (≈5 s) smette di cercare il root se manca shortcode/block, evitando `setTimeout` infiniti.
+
+---
+
+## [0.3.5] - 2026-03-19
+### Changed
+- Allineata la firma del filtro `fp_privacy_consent_ids_for_email` ovunque: terzo argomento opzionale (`Options` dal privacy exporter, `null` dall’export applicativo); i callback a 2 parametri restano supportati.
+### Added
+- README: tabelle estese per actions, filtri e route REST `fp-privacy/v1`.
+
+---
+
+## [0.3.4] - 2026-03-19
+### Fixed
+- Revoca consenso: il banner torna visibile e il bottone riapertura si aggiorna subito (prima la UI poteva restare incoerente fino alla risposta `fetch`).
+- Merge revisione cookie: gestione robusta se `last_revision` dal server arriva come stringa nel JSON.
+
+---
+
+## [0.3.3] - 2026-03-19
+### Fixed
+- Banner cookie: il bottone fisso “preferenze” poteva sparire in caso di errore durante accetto/rifiuto/salva o dopo il timeout di sicurezza a 500ms, perché il banner veniva nascosto senza aggiornare `should_display` e la visibilità del reopen.
+- Lettura cookie consenso: la revisione nel browser non sovrascrive più una `last_revision` più alta già fornita dal server (evita stati incoerenti all’avvio).
 
 ---
 
@@ -338,6 +564,17 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 - WP-CLI (9 commands)
 - PSR-4 autoloading
 - Hooks & Filters
+
+---
+
+## Upgrade da 0.x a 1.0.0
+
+Dalla serie **0.x** alla **1.0.0**: nessun cambiamento breaking pianificato per hook `fp_consent_update` e REST `fp-privacy/v1` nella linea 1.x. Per smoke test e deploy: `docs/QA-1.0.md`.
+
+- **Hook / REST**: nessun breaking previsto per `fp_consent_update` e namespace `fp-privacy/v1` nella serie 1.x (vedi README e `docs/INTEGRATION-FRONTEND.md`).
+- **Frontend**: dipendenze su `FP_PRIVACY_DATA` limitate alle chiavi documentate; verificare tema/JS custom dopo ogni minor.
+- **Deprecazioni**: classi/funzioni segnate `@deprecated 2.0.0` restano in 1.0; pianificare migrazione prima di una future major.
+- **Manuale**: prima visita, accetta/rifiuta/salva, revoca, bump revisione, reset impostazioni (se usato), multisite se in scope.
 
 ---
 
