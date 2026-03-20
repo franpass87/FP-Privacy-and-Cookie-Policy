@@ -29,6 +29,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 | PHPStan livello 5 su `src/Presentation` + stub WP-CLI per analisi | v0.5.9 |
 | PHPStan su `src/Core`, `Services`, `CLI`, `Interfaces`, `Shared` + `Integrations` intera; pulizia `DetectorRegistry` | v0.5.10 |
 | PHPStan: path unico `src` in `phpstan.neon.dist`; checklist roadmap aggiornata | v0.5.11 |
+| Roadmap pre-1.0: PHPUnit + contratto pubblico (hook / REST) verificati vs codice e README | v0.5.12 |
 
 ---
 
@@ -36,8 +37,8 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 
 ### Contratto pubblico (freeze)
 
-- [ ] Nessuna modifica breaking a `do_action( 'fp_consent_update', … )` senza major successiva.
-- [ ] REST `fp-privacy/v1` — stessi path e semantica risposta documentati; eventuale `v2` solo in major.
+- [x] `do_action( 'fp_consent_update', … )`: firma attuale `($states, $event, $revision)` documentata in README e usata in `ConsentState`; per **1.0.0** non sono previste modifiche breaking; eventuali cambi incompatibili solo in **major** successiva.
+- [x] REST `fp-privacy/v1`: path e semantica allineati a README e implementazione (`RESTServiceProvider`, `ConsentController`); eventuale `v2` solo in **major**.
 - [x] `FP_PRIVACY_VERSION` / `FP_PRIVACY_DATA` — chiavi minime documentate in `docs/INTEGRATION-FRONTEND.md` (estendere se emergono nuovi campi).
 
 ### Codice e architettura
@@ -50,7 +51,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 ### Qualità
 
 - [x] PHPStan livello **5** su tutto `src/` (`composer phpstan`); configurazione con path unico `src` in `phpstan.neon.dist`; bootstrap `tools/phpstan-bootstrap.php` e stub WP-CLI `tools/phpstan-wp-cli-stubs.php`. Nota: layer `CLI` e `Presentation\CLI` restano entrambi analizzati fino a eventuale unificazione.
-- [ ] PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** da v0.4.2+ (`composer test`; same-origin REST da v0.4.3).
+- [x] PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** (`composer test`; same-origin REST da v0.4.3).
 - [ ] Checklist manuale: seguire **`docs/QA-1.0.md`** (prima visita, accetta/rifiuta/salva, revoca, reset default admin, multisite se in scope).
 
 ### Rilascio

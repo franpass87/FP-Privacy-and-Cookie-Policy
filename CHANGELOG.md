@@ -9,6 +9,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 
 
+## [0.5.12] - 2026-03-19
+### Changed
+- `docs/RELEASE-1.0.md`: PHPUnit segnato come soddisfatto; contratto pubblico (`fp_consent_update`, REST `fp-privacy/v1`) verificato vs codice e README; tabella tracciamento v0.5.12.
+- `docs/QA-1.0.md`: riga su tracciamento requisiti automatizzati e path PHPStan `src`.
+
+---
 ## [0.5.11] - 2026-03-19
 ### Changed
 - PHPStan: `phpstan.neon.dist` usa un unico path `src` (equivalente all'elenco di cartelle precedente; nuove directory sotto `src/` incluse automaticamente nell'analisi).

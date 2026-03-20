@@ -9,7 +9,8 @@ Eseguire su un sito di staging (preferibilmente copia di produzione) con **WP 6.
 | Passo | Comando / verifica |
 | --- | --- |
 | PHPUnit | `composer test` |
-| PHPStan (livello 5, percorsi in `phpstan.neon.dist`) | `composer phpstan` |
+| PHPStan (livello 5, path `src` in `phpstan.neon.dist`) | `composer phpstan` |
+| Tracciamento requisiti automatizzati pre-1.0 | Vedi `docs/RELEASE-1.0.md` (sezione Qualità) |
 | i18n (dopo modifiche stringhe) | `wp i18n make-pot` / `make-mo` come da workflow plugin |
 
 ---
