@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 1.0.3 |
+| Version | 0.3.5 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |
@@ -124,72 +124,22 @@ wp fp-privacy recreate [--force]
 
 Per dettagli completi: `wp help fp-privacy <comando>`
 
-## Hooks, filters & REST
+## Hooks / Filters
 
-### Actions
-
-| Hook | Arguments | When |
-| --- | --- | --- |
-| `fp_consent_update` | `$states`, `$event`, `$revision` | After a consent event is stored (also other plugins listen for this). |
-| `fp_privacy_settings_saved` | `$payload` | After settings are saved in admin. |
-| `fp_privacy_settings_imported` | `$settings` (full options array) | After settings import (admin or WP-CLI). |
-| `fp_privacy_snapshots_refreshed` | `$snapshots` | After policy snapshots refresh (CLI/admin flows). |
-| `fp_privacy_auto_update_completed` | `$snapshots`, `$services` | After automatic policy/service update audit. |
-| `fp_privacy_enqueue_banner_assets` | `$lang` | When banner scripts/styles are enqueued for a language. |
-| `fp_privacy_admin_page_settings` | — | Inside Privacy & Cookie → Settings screen. |
-| `fp_privacy_admin_page_policy_editor` | — | Policy editor screen. |
-| `fp_privacy_admin_page_consent_log` | — | Consent log screen. |
-| `fp_privacy_admin_page_tools` | — | Tools screen. |
-| `fp_privacy_admin_page_analytics` | — | Analytics screen. |
-| `fp_privacy_admin_page_guide` | — | Guide screen. |
-
-### Filters
-
-| Filter | Arguments | Notes |
-| --- | --- | --- |
-| `fp_privacy_consent_ids_for_email` | `$ids`, `$email`, `$options_context` | Map an email to consent IDs. `$options_context` is `FP\Privacy\Utils\Options` when invoked from privacy exporter/eraser; `null` from application export. Callbacks with 2 parameters remain supported. |
-| `fp_privacy_cookie_duration_days` | `$days` | Cookie lifetime in days. |
-| `fp_privacy_cookie_options` | `$options`, `$value`, `$id`, `$rev` | Cookie `setcookie` options array. |
-| `fp_privacy_services_registry` | `$services` | Full service registry array. |
-| `fp_privacy_custom_services` | `$custom` | Additional custom services. |
-| `fp_privacy_force_enqueue_banner` | `bool` | Force banner assets on a request. |
-| `fp_privacy_enqueue_full_banner_assets` | `bool` | Default `true`. Se `false`, solo `consent-mode.js` + bootstrap (comportamento precedente). |
-| `fp_privacy_policy_content` | `$html`, `$lang` | Privacy policy HTML from shortcode/renderer. |
-| `fp_cookie_policy_content` | `$html`, `$lang` | Cookie policy HTML (legacy filter name). |
-| `fp_privacy_view_context` | `$context`, `$template` | Template rendering context. |
-| `fp_privacy_enable_privacy_tools` | `bool`, `$options` | WP privacy tools integration. |
-| `fp_privacy_enable_gpc` | `bool` | Global Privacy Control handling. |
-| `fp_privacy_reject_all_confirm` | `bool` | Default `true`: mostra `window.confirm` prima di «Rifiuta tutti» sul banner. |
-| `fp_privacy_reject_all_confirm_preview` | `bool` | In anteprima admin default `false` (nessun confirm); override qui se serve. |
-| `fp_privacy_tracking_scanner_option_keys` | `$keys` | Option keys scanned for tracking signatures. |
-| `fp_privacy_detector_cache_ttl` | `$ttl` | Detector cache TTL (seconds). |
-| `fp_privacy_csv_export_batch_size` | `$batch` | Rows per CSV batch (CLI/export). |
-| `fp_privacy_chartjs_src` | `$url` | Chart.js script URL (admin analytics). |
-| `fp_privacy_service_purpose_{key}` | `$purpose`, `$locale` | Per-service purpose string (e.g. `fp_privacy_service_purpose_ga4`). |
-
-Core WordPress: `plugin_locale` is used with text domain `fp-privacy` for translations.
-
-### REST API (`fp-privacy/v1`)
-
-| Method | Route | Access |
-| --- | --- | --- |
-| `GET` | `/consent/summary` | `manage_options` |
-| `POST` | `/consent` | Public consent submission (permission/nonce handled in handler). |
-| `POST` | `/consent/revoke` | Same as consent POST. |
-| `POST` | `/revision/bump` | `manage_options` |
-| `GET` | `/settings` | `manage_options` |
-| `PATCH` / `PUT` | `/settings` | `manage_options` |
-
-Base URL: `/wp-json/fp-privacy/v1`.
-
-Implementazione interna: `POST /consent` e `POST /consent/revoke` usano `FP\Privacy\Presentation\REST\Controllers\ConsentController` (contratto `FP\Privacy\REST\ConsentRestHandlerInterface`). `RESTConsentHandler` resta solo fallback se il container non espone il controller.
+- `fp_consent_update( $states, $event, $revision )`
+- `fp_privacy_settings_imported( $settings )`
+- `fp_privacy_policy_content`
+- `fp_privacy_cookie_policy_content`
+- `fp_privacy_services_registry`
+- `fp_privacy_service_purpose_{key}`
+- `fp_privacy_csv_export_batch_size`
+- `fp_privacy_cookie_duration_days`
+- `fp_privacy_cookie_options`
+- `fp_privacy_detector_cache_ttl`
+- `fp_privacy_enqueue_banner_assets`
 
 ## Support
 
-- Integrazione frontend (`FP_PRIVACY_DATA`, costanti versione): [`docs/INTEGRATION-FRONTEND.md`](docs/INTEGRATION-FRONTEND.md)
-- Roadmap release **1.0**: [`docs/RELEASE-1.0.md`](docs/RELEASE-1.0.md)
-- Checklist QA pre-1.0: [`docs/QA-1.0.md`](docs/QA-1.0.md)
-- Verifica ambiente locale (PHP CLI / REST): [`docs/DEV-LOCAL-VERIFY.md`](docs/DEV-LOCAL-VERIFY.md)
 - Documentation: see the [`docs/`](docs/) directory for overview, architecture notes, and FAQs.
 - Issues & contact: [https://francescopasseri.com](https://francescopasseri.com)
 - Builds: run `bash build.sh --bump=patch` to prepare a distributable ZIP without development artefacts.

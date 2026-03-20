@@ -1177,7 +1177,10 @@ function updateReopenVisibility() {
         return;
     }
 
-    reopenButton.style.display = state.should_display ? 'none' : 'flex';
+    var isBannerVisible = !! banner && document.body && document.body.contains( banner ) && banner.style.display !== 'none';
+    var hasConsent = !! state.consent_id || !! readConsentIdFromCookie();
+    var shouldShowReopen = ! isBannerVisible && ( hasConsent || ! state.should_display );
+    reopenButton.style.display = shouldShowReopen ? 'flex' : 'none';
 }
 
 function startReopenObserver() {
