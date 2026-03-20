@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,10 @@ See the quick guide screen inside the plugin and the repository `README.md` for 
 Run `bin/package.sh` from the repository root. The script produces a clean archive under `dist/` without minified or binary artefacts.
 
 == Changelog ==
+
+
+= 1.0.2 =
+* Docs: in `docs/DEV-LOCAL-VERIFY.md` guida su perché il banner può non apparire nel browser (consenso già dato, modalità anteprima admin, finestra anonima, bump revisione).
 
 = 1.0.1 =
 * Dev: guida verifica locale (mysqli CLI), script `tools/verify-local.ps1`. 

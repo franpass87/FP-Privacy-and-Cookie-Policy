@@ -9,6 +9,13 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 
 
+## [1.0.2] - 2026-03-20
+
+### Changed
+
+- `docs/DEV-LOCAL-VERIFY.md`: sezione «Perché non vedo il banner cookie nel browser?» (consenso già dato, anteprima admin, finestra anonima, bump revisione).
+
+---
 ## [1.0.1] - 2026-03-20
 ### Added
 - `docs/DEV-LOCAL-VERIFY.md`: guida PHP CLI (mysqli) e smoke test sito locale.
