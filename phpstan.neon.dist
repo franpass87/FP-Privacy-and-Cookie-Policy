@@ -5,7 +5,7 @@ parameters:
     level: 5
     paths:
         - src/REST
-        - src/Integrations/ServiceRegistry.php
+        - src/Integrations
         - src/Domain
         - src/Application
         - src/Providers
@@ -15,6 +15,11 @@ parameters:
         - src/Consent
         - src/Admin
         - src/Presentation
+        - src/Core
+        - src/Services
+        - src/CLI
+        - src/Interfaces
+        - src/Shared
     scanFiles:
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
         - tools/phpstan-wp-cli-stubs.php

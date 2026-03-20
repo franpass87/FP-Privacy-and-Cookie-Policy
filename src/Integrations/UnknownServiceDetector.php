@@ -27,10 +27,6 @@ class UnknownServiceDetector {
 
 		$wp_scripts = \wp_scripts();
 
-		if ( empty( $wp_scripts->registered ) || ! is_array( $wp_scripts->registered ) ) {
-			return $domains;
-		}
-
 		foreach ( $wp_scripts->registered as $handle => $script ) {
 			if ( empty( $script->src ) ) {
 				continue;
@@ -66,10 +62,6 @@ class UnknownServiceDetector {
 		}
 
 		$wp_styles = \wp_styles();
-
-		if ( empty( $wp_styles->registered ) || ! is_array( $wp_styles->registered ) ) {
-			return $domains;
-		}
 
 		foreach ( $wp_styles->registered as $handle => $style ) {
 			if ( empty( $style->src ) ) {

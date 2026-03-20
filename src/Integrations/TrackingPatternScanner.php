@@ -94,7 +94,7 @@ class TrackingPatternScanner {
 				continue;
 			}
 			$haystack = is_scalar( $value ) ? (string) $value : ( function_exists( 'wp_json_encode' ) ? wp_json_encode( $value ) : \json_encode( $value, \JSON_UNESCAPED_UNICODE ) );
-			if ( ! is_string( $haystack ) || $haystack === '' ) {
+			if ( ! is_string( $haystack ) ) {
 				continue;
 			}
 			foreach ( $patterns as $needle ) {
@@ -215,7 +215,7 @@ class TrackingPatternScanner {
 			)
 		);
 
-		if ( empty( $query->posts ) || ! is_array( $query->posts ) ) {
+		if ( ! is_array( $query->posts ) || count( $query->posts ) === 0 ) {
 			return false;
 		}
 

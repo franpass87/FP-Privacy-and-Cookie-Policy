@@ -7,6 +7,18 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 
 
+
+## [0.5.10] - 2026-03-20
+### Changed
+- PHPStan (livello 5): inclusi `src/Core`, `src/Services`, `src/CLI`, `src/Interfaces`, `src/Shared`; `src/Integrations` per intero (non solo `ServiceRegistry.php`).
+- `CLI` (root): allineamento a `Presentation\CLI` — snapshot/orchestrator/validator/generator (`wp_update_post` con `$wp_error=true`, tipi PHPDoc).
+- `DetectorRegistry`: rimossi `UnknownServiceAnalyzer` inutilizzato e metodo privato `get_known_domains()` mai chiamato.
+- `ServiceDetector`: rimosso controllo ridondante su tipi registry (come per `Consent\\LogModel`).
+
+### Fixed
+- `UnknownServiceDetector`, `TrackingPatternScanner`: condizioni ridondanti per PHPStan (queue script/stili WP; `WP_Query` posts).
+
+---
 ## [0.5.9] - 2026-03-20
 ### Changed
 - PHPStan (livello 5): incluso `src/Presentation` in `phpstan.neon.dist`; `scanFiles` con `tools/phpstan-wp-cli-stubs.php` (classi `WP_CLI` / `WP_CLI_Command`).

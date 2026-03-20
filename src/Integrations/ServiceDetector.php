@@ -25,11 +25,7 @@ class ServiceDetector {
 	 *
 	 * @param ServiceRegistry|\FP\Privacy\Domain\Services\ServiceRegistry $service_registry Service registry.
 	 */
-	public function __construct( $service_registry ) {
-		// Accept both ServiceRegistry implementations (they have the same interface)
-		if ( ! ( $service_registry instanceof ServiceRegistry ) && ! ( $service_registry instanceof \FP\Privacy\Domain\Services\ServiceRegistry ) ) {
-			throw new \InvalidArgumentException( 'Service registry must be an instance of FP\Privacy\Integrations\ServiceRegistry or FP\Privacy\Domain\Services\ServiceRegistry' );
-		}
+	public function __construct( ServiceRegistry|\FP\Privacy\Domain\Services\ServiceRegistry $service_registry ) {
 		$this->service_registry = $service_registry;
 	}
 

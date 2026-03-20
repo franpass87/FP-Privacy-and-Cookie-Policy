@@ -79,9 +79,9 @@ class PolicyCommands {
 		$this->generator       = $generator;
 		$this->detector        = $detector;
 		$this->page_generator  = new PolicyPageGenerator( $options, $generator );
-		$this->page_validator  = new PolicyPageValidator( $options );
+		$this->page_validator  = new PolicyPageValidator();
 		$this->snapshot_manager = new PolicySnapshotManager( $options );
-		$this->orchestrator     = new PolicyPagesOrchestrator( $options, $detector, $this->page_generator, $this->page_validator, $this->snapshot_manager );
+		$this->orchestrator     = new PolicyPagesOrchestrator( $options, $detector, $this->page_generator, $this->page_validator );
 	}
 
 	/**

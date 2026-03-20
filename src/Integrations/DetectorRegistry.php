@@ -30,13 +30,6 @@ class DetectorRegistry {
     private $service_detector;
 
     /**
-     * Unknown service analyzer instance.
-     *
-     * @var UnknownServiceAnalyzer
-     */
-    private $unknown_analyzer;
-
-    /**
      * Constructor.
      *
      * @param CacheInterface|null $cache Cache interface for persistence. If null, DetectorCache will use fallback.
@@ -45,7 +38,6 @@ class DetectorRegistry {
 		$this->cache = new DetectorCache( $cache );
 		$service_registry       = new \FP\Privacy\Domain\Services\ServiceRegistry();
 		$this->service_detector = new ServiceDetector( $service_registry );
-        $this->unknown_analyzer  = new UnknownServiceAnalyzer();
     }
 /**
  * Get registry of services.
@@ -173,36 +165,6 @@ private function get_hardcoded_additional_services() {
 	 */
 	public function detect_services( $force = true ) {
 		return $this->run_detectors();
-	}
-
-	/**
-	 * Get list of known domains from the registry.
-	 *
-	 * Extracts domains from policy URLs in the registry services.
-	 * This can be used by UnknownServiceAnalyzer to identify known services.
-	 *
-	 * @return array<int, string>
-	 */
-	private function get_known_domains() {
-		$domains = array();
-		$registry = $this->get_registry();
-
-		foreach ( $registry as $service_key => $service_data ) {
-			if ( isset( $service_data['policy_url'] ) && ! empty( $service_data['policy_url'] ) ) {
-				$parsed_url = \wp_parse_url( $service_data['policy_url'] );
-				if ( isset( $parsed_url['host'] ) ) {
-					$domain = $parsed_url['host'];
-					// Remove 'www.' prefix if present for consistency.
-					$domain = \preg_replace( '/^www\./', '', $domain );
-					if ( ! \in_array( $domain, $domains, true ) ) {
-						$domains[] = $domain;
-					}
-				}
-			}
-		}
-
-		\sort( $domains );
-		return $domains;
 	}
 
 	/**

@@ -27,6 +27,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 | PHPStan livello 5 su `src/Consent` + fix `LogModel` / `LogModelTable` | v0.5.7 |
 | PHPStan livello 5 su `src/Admin` + fix diagnostica/DI/settings | v0.5.8 |
 | PHPStan livello 5 su `src/Presentation` + stub WP-CLI per analisi | v0.5.9 |
+| PHPStan su `src/Core`, `Services`, `CLI`, `Interfaces`, `Shared` + `Integrations` intera; pulizia `DetectorRegistry` | v0.5.10 |
 
 ---
 
@@ -47,7 +48,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 
 ### Qualità
 
-- [ ] PHPStan livello concordato — **copertura attuale**: `src/REST`, `src/Domain`, `src/Application`, `src/Providers`, `src/Utils`, `src/Frontend`, `src/Infrastructure`, `src/Consent`, `src/Admin`, `src/Presentation`, `src/Integrations/ServiceRegistry.php` + bootstrap `tools/phpstan-bootstrap.php` e stub `tools/phpstan-wp-cli-stubs.php` (livello **5**, `composer phpstan`). Eventuale estensione: altri file sotto `src/` non ancora inclusi (es. `Core`, `Services`, `CLI` root se separati).
+- [ ] PHPStan livello concordato — **copertura attuale**: `src/REST`, `src/Domain`, `src/Application`, `src/Providers`, `src/Utils`, `src/Frontend`, `src/Infrastructure`, `src/Consent`, `src/Admin`, `src/Presentation`, `src/Integrations`, `src/Core`, `src/Services`, `src/CLI`, `src/Interfaces`, `src/Shared` + bootstrap `tools/phpstan-bootstrap.php` e stub `tools/phpstan-wp-cli-stubs.php` (livello **5**, `composer phpstan`). Eventuale raffinamento: escludere duplicati `CLI` vs `Presentation\CLI` in analisi se si unifica il layer.
 - [ ] PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** da v0.4.2+ (`composer test`; same-origin REST da v0.4.3).
 - [ ] Checklist manuale: seguire **`docs/QA-1.0.md`** (prima visita, accetta/rifiuta/salva, revoca, reset default admin, multisite se in scope).
 
