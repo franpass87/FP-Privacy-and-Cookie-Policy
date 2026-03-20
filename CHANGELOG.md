@@ -9,6 +9,15 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 
 
+## [1.0.0-rc.1] - 2026-03-20
+### Added
+- Prima **release candidate** verso `1.0.0` (feature freeze: solo fix fino al tag stabile).
+
+### Changed
+- `docs/RELEASE-1.0.md`: tracciamento candidate; prossimo passo: checklist `docs/QA-1.0.md` e tag `v1.0.0`. 
+
+---
+
 ## [0.5.12] - 2026-03-19
 ### Changed
 - `docs/RELEASE-1.0.md`: PHPUnit segnato come soddisfatto; contratto pubblico (`fp_consent_update`, REST `fp-privacy/v1`) verificato vs codice e README; tabella tracciamento v0.5.12.
@@ -540,7 +549,7 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ## Upgrade da 0.x a 1.0.0 (bozza)
 
-Da completare al tag **1.0.0**; utile per audit pre-release.
+Release candidate **1.0.0-rc.1** disponibile: eseguire docs/QA-1.0.md prima del tag **1.0.0** stabile; utile per audit pre-release.
 
 - **Hook / REST**: nessun breaking previsto per `fp_consent_update` e namespace `fp-privacy/v1` nella serie 1.x (vedi README e `docs/INTEGRATION-FRONTEND.md`).
 - **Frontend**: dipendenze su `FP_PRIVACY_DATA` limitate alle chiavi documentate; verificare tema/JS custom dopo ogni minor.
