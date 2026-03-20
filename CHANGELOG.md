@@ -4,6 +4,15 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.5.5] - 2026-03-20
+### Changed
+- PHPStan: analisi estesa a `src/Frontend` (livello 5); `tools/phpstan-bootstrap.php` arricchito (`FP_PRIVACY_PLUGIN_URL`, `FP_PRIVACY_PLUGIN_VERSION`, `DAY_IN_SECONDS`, `HOUR_IN_SECONDS`).
+### Fixed
+- `Banner`, `Blocks`, `Shortcodes`: rimosse proprietà non lette; `Shortcodes` non richiede più `View` iniettato (solo `Options` + `PolicyGenerator`).
+- `BannerPaletteBuilder`, `ConsentState`, `ConsentStateSanitizer`, `ScriptBlocker`, `ScriptBlockerPlaceholder`, `ScriptBlockerRules`, `BlockRegistry`: adattamenti per PHPStan (merge palette, permalink, regole script/iframe, `WP_Block_Type` editor script).
+
+---
+
 ## [0.5.4] - 2026-03-20
 ### Added
 - `docs/QA-1.0.md`: checklist QA manuale pre-release 1.0; `tools/phpstan-bootstrap.php` per costanti `ABSPATH` / `FP_PRIVACY_*` in analisi statica.

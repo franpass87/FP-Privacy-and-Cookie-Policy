@@ -32,10 +32,6 @@ class ScriptBlockerPlaceholder {
 	public static function build( $original, $type, $category, $label = '' ) {
 		$encoded = base64_encode( $original );
 
-		if ( false === $encoded ) {
-			return $original;
-		}
-
 		$category_attr = esc_attr( $category );
 		$encoded_attr  = esc_attr( $encoded );
 

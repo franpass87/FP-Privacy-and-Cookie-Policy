@@ -137,14 +137,14 @@ class ConsentState {
         
         if ( $privacy_page_id && $privacy_page_id > 0 ) {
             $privacy_permalink = \get_permalink( $privacy_page_id );
-            if ( $privacy_permalink && ! \is_wp_error( $privacy_permalink ) ) {
+            if ( $privacy_permalink ) {
                 $privacy_url = $privacy_permalink;
             }
         }
         
         if ( $cookie_page_id && $cookie_page_id > 0 && $cookie_page_id !== $privacy_page_id ) {
             $cookie_permalink = \get_permalink( $cookie_page_id );
-            if ( $cookie_permalink && ! \is_wp_error( $cookie_permalink ) ) {
+            if ( $cookie_permalink ) {
                 $cookie_url = $cookie_permalink;
             }
         }

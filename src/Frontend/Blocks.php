@@ -16,13 +16,6 @@ use FP\Privacy\Utils\Options;
  */
 class Blocks {
 	/**
-	 * Options handler.
-	 *
-	 * @var Options
-	 */
-	private $options;
-
-	/**
 	 * Block registry.
 	 *
 	 * @var BlockRegistry
@@ -35,7 +28,6 @@ class Blocks {
 	 * @param Options $options Options.
 	 */
 	public function __construct( Options $options ) {
-		$this->options  = $options;
 		$this->registry = new BlockRegistry( $options );
 	}
 

@@ -41,7 +41,7 @@ class BannerPaletteBuilder {
 			'focus'               => '#2563EB',
 		);
 
-		$palette = is_array( $palette ) ? array_merge( $defaults, $palette ) : $defaults;
+		$palette = array_merge( $defaults, $palette );
 
 		$surface_bg          = $this->sanitize_palette_value( $palette, 'surface_bg', $defaults['surface_bg'] );
 		$surface_text        = $this->sanitize_palette_value( $palette, 'surface_text', $defaults['surface_text'] );
@@ -97,7 +97,7 @@ class BannerPaletteBuilder {
 			'focus'        => '#2563EB',
 		);
 
-		$palette = is_array( $palette ) ? array_merge( $defaults, $palette ) : $defaults;
+		$palette = array_merge( $defaults, $palette );
 
 		$surface_bg   = $this->sanitize_palette_value( $palette, 'surface_bg', $defaults['surface_bg'] );
 		$surface_text = $this->sanitize_palette_value( $palette, 'surface_text', $defaults['surface_text'] );

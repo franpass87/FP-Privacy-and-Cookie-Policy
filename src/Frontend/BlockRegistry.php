@@ -63,7 +63,9 @@ class BlockRegistry {
 			);
 
 			if ( $type instanceof \WP_Block_Type ) {
-				$this->maybe_localize_languages( $slug, $type->editor_script );
+				// Proprietà runtime su WP_Block_Type (handle script editor).
+				$editor_script = $type->editor_script ?? null;
+				$this->maybe_localize_languages( $slug, $editor_script );
 			}
 		}
 	}

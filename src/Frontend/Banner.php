@@ -16,20 +16,6 @@ use FP\Privacy\Utils\Options;
  */
 class Banner {
 	/**
-	 * Options handler.
-	 *
-	 * @var Options
-	 */
-	private $options;
-
-	/**
-	 * Consent state.
-	 *
-	 * @var ConsentState
-	 */
-	private $state;
-
-	/**
 	 * Asset manager.
 	 *
 	 * @var BannerAssetManager
@@ -50,9 +36,6 @@ class Banner {
 	 * @param ConsentState $state   Consent state.
 	 */
 	public function __construct( Options $options, ConsentState $state ) {
-		$this->options = $options;
-		$this->state   = $state;
-
 		$palette_builder = new BannerPaletteBuilder();
 		$this->asset_manager = new BannerAssetManager( $options, $state, $palette_builder );
 		$this->renderer      = new BannerRenderer();

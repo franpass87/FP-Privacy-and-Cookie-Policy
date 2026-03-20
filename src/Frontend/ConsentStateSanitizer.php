@@ -54,7 +54,7 @@ class ConsentStateSanitizer {
 			if ( $enable_sub_categories && is_array( $value ) && isset( $value['enabled'] ) && isset( $value['services'] ) ) {
 				$sanitized[ $clean_key ] = array(
 					'enabled' => $this->normalize_boolean( $value['enabled'] ),
-					'services' => $this->sanitize_services_payload( $value['services'] ?? array() ),
+					'services' => $this->sanitize_services_payload( $value['services'] ),
 				);
 			} else {
 				// Legacy format: simple boolean value.

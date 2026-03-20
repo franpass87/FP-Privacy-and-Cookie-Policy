@@ -11,40 +11,11 @@ namespace FP\Privacy\Frontend;
 
 use FP\Privacy\Admin\PolicyGenerator;
 use FP\Privacy\Utils\Options;
-use FP\Privacy\Utils\View;
 
 /**
  * Registers frontend shortcodes.
  */
 class Shortcodes {
-/**
- * Options handler.
- *
- * @var Options
- */
-private $options;
-
-    /**
-     * View renderer.
-     *
-     * @var View
-     */
-    private $view;
-
-    /**
-     * Policy generator.
-     *
-     * @var PolicyGenerator
-     */
-    private $generator;
-
-	/**
-	 * Consent state.
-	 *
-	 * @var ConsentState
-	 */
-	private $state;
-
 	/**
 	 * Renderer.
 	 *
@@ -69,14 +40,10 @@ private $force_enqueue = false;
 /**
  * Constructor.
  *
-     * @param Options         $options   Options handler.
-     * @param View            $view      View renderer.
-     * @param PolicyGenerator $generator Policy generator.
-     */
-	public function __construct( Options $options, View $view, PolicyGenerator $generator ) {
-		$this->options       = $options;
-		$this->view          = $view;
-		$this->generator     = $generator;
+	 * @param Options         $options   Options handler.
+	 * @param PolicyGenerator $generator Policy generator.
+	 */
+	public function __construct( Options $options, PolicyGenerator $generator ) {
 		$this->asset_manager = new ShortcodeAssetManager( $options );
 		$this->renderer      = new ShortcodeRenderer( $options, $generator, $this->asset_manager );
 		$this->renderer->set_force_enqueue_callback( array( $this, 'set_force_enqueue' ) );
@@ -101,7 +68,6 @@ private $force_enqueue = false;
  * @return void
  */
 	public function set_state( ConsentState $state ) {
-		$this->state = $state;
 		$this->renderer->set_state( $state );
 	}
 

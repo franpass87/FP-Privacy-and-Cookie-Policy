@@ -129,7 +129,7 @@ class ScriptBlocker {
 					$category = '';
 
 					if ( preg_match( '/src\s*=\s*(?:"([^"]+)"|\'([^\']+)\')/i', $tag, $src_match ) ) {
-						$src_value = isset( $src_match[1] ) && '' !== $src_match[1] ? $src_match[1] : ( isset( $src_match[2] ) ? $src_match[2] : '' );
+						$src_value = '' !== $src_match[1] ? $src_match[1] : $src_match[2];
 						$category  = $this->rules_manager->get_script_pattern_category( $src_value );
 					}
 
@@ -152,7 +152,7 @@ class ScriptBlocker {
 					$category = '';
 
 					if ( preg_match( '/src\s*=\s*(?:"([^"]+)"|\'([^\']+)\')/i', $tag, $src_match ) ) {
-						$src_value = isset( $src_match[1] ) && '' !== $src_match[1] ? $src_match[1] : ( isset( $src_match[2] ) ? $src_match[2] : '' );
+						$src_value = '' !== $src_match[1] ? $src_match[1] : $src_match[2];
 						$category  = $this->rules_manager->get_iframe_pattern_category( $src_value );
 					}
 

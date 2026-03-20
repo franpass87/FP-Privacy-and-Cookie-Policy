@@ -17,7 +17,6 @@ use FP\Privacy\Frontend\ConsentState;
 use FP\Privacy\Frontend\Shortcodes;
 use FP\Privacy\Frontend\ScriptBlocker;
 use FP\Privacy\Utils\Options;
-use FP\Privacy\Utils\View;
 use FP\Privacy\Admin\PolicyGenerator;
 use FP\Privacy\Integrations\DetectorRegistry;
 
@@ -58,10 +57,9 @@ class FrontendServiceProvider implements ServiceProviderInterface {
 			Shortcodes::class,
 			function( ContainerInterface $c ) {
 				$options = self::resolveOptions( $c );
-				$view = new View();
 				// Use PolicyGenerator from container instead of creating a new instance.
 				$generator = $c->get( PolicyGenerator::class );
-				$shortcodes = new Shortcodes( $options, $view, $generator );
+				$shortcodes = new Shortcodes( $options, $generator );
 				$shortcodes->set_state( $c->get( ConsentState::class ) );
 				return $shortcodes;
 			}

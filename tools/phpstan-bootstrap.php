@@ -20,3 +20,19 @@ if ( ! defined( 'FP_PRIVACY_PLUGIN_FILE' ) ) {
 if ( ! defined( 'FP_PRIVACY_PLUGIN_PATH' ) ) {
 	define( 'FP_PRIVACY_PLUGIN_PATH', $plugin_root );
 }
+
+if ( ! defined( 'FP_PRIVACY_PLUGIN_URL' ) ) {
+	define( 'FP_PRIVACY_PLUGIN_URL', 'https://example.test/wp-content/plugins/fp-privacy/' );
+}
+
+if ( ! defined( 'FP_PRIVACY_PLUGIN_VERSION' ) ) {
+	define( 'FP_PRIVACY_PLUGIN_VERSION', '0.0.0' );
+}
+
+if ( ! defined( 'DAY_IN_SECONDS' ) ) {
+	define( 'DAY_IN_SECONDS', 86400 );
+}
+
+if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
+	define( 'HOUR_IN_SECONDS', 3600 );
+}

@@ -41,13 +41,6 @@ class ScriptBlockerRules {
 	private $prepared = false;
 
 	/**
-	 * Current language.
-	 *
-	 * @var string
-	 */
-	private $language = '';
-
-	/**
 	 * Blocking rules.
 	 *
 	 * @var array<string, mixed>
@@ -124,20 +117,23 @@ class ScriptBlockerRules {
 				continue;
 			}
 
-			if ( ! empty( $rule_set['script_handles'] ) && is_array( $rule_set['script_handles'] ) ) {
-				foreach ( $rule_set['script_handles'] as $handle ) {
+			$script_handles_list = $rule_set['script_handles'] ?? null;
+			if ( is_array( $script_handles_list ) && ! empty( $script_handles_list ) ) {
+				foreach ( $script_handles_list as $handle ) {
 					$script_handles[ $handle ] = $category;
 				}
 			}
 
-			if ( ! empty( $rule_set['style_handles'] ) && is_array( $rule_set['style_handles'] ) ) {
-				foreach ( $rule_set['style_handles'] as $handle ) {
+			$style_handles_list = $rule_set['style_handles'] ?? null;
+			if ( is_array( $style_handles_list ) && ! empty( $style_handles_list ) ) {
+				foreach ( $style_handles_list as $handle ) {
 					$style_handles[ $handle ] = $category;
 				}
 			}
 
-			if ( ! empty( $rule_set['patterns'] ) && is_array( $rule_set['patterns'] ) ) {
-				foreach ( $rule_set['patterns'] as $pattern ) {
+			$patterns_list = $rule_set['patterns'] ?? null;
+			if ( is_array( $patterns_list ) && ! empty( $patterns_list ) ) {
+				foreach ( $patterns_list as $pattern ) {
 					$pattern = trim( $pattern );
 
 					if ( '' === $pattern ) {
@@ -151,8 +147,9 @@ class ScriptBlockerRules {
 				}
 			}
 
-			if ( ! empty( $rule_set['iframes'] ) && is_array( $rule_set['iframes'] ) ) {
-				foreach ( $rule_set['iframes'] as $pattern ) {
+			$iframes_list = $rule_set['iframes'] ?? null;
+			if ( is_array( $iframes_list ) && ! empty( $iframes_list ) ) {
+				foreach ( $iframes_list as $pattern ) {
 					$pattern = trim( $pattern );
 
 					if ( '' === $pattern ) {
@@ -167,7 +164,6 @@ class ScriptBlockerRules {
 			}
 		}
 
-		$this->language        = $locale;
 		$this->rules           = array(
 			'script_handles'  => $script_handles,
 			'style_handles'   => $style_handles,
