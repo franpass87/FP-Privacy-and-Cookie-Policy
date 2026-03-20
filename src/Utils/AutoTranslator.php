@@ -78,10 +78,6 @@ class AutoTranslator implements AutoTranslatorInterface {
 			}
 		}
 
-		if ( ! $this->translator ) {
-			return $source;
-		}
-
 		$translated = $this->translator->translate_banner_texts( $source, $source_lang, $target_lang );
 
 		if ( empty( $translated ) ) {
@@ -169,10 +165,6 @@ class AutoTranslator implements AutoTranslatorInterface {
 
 				return $categories;
 			}
-		}
-
-		if ( ! $this->translator ) {
-			return $categories;
 		}
 
 		$cache_items = array();

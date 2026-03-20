@@ -100,11 +100,11 @@ class Options {
 	private $options_validator;
 
 	/**
-	 * Instance.
+	 * Singleton (null fino al primo accesso).
 	 *
-	 * @var Options
+	 * @var self|null
 	 */
-	private static $instance;
+	private static $instance = null;
 
 	/**
 	 * Translate a string only once translations are available.
@@ -170,9 +170,9 @@ class Options {
 		$this->page_manager           = new PageManager( $this->language_normalizer );
 		
 		// Initialize managers
-		$this->banner_texts_manager   = new BannerTextsManager( $this, $this->language_normalizer );
+		$this->banner_texts_manager   = new BannerTextsManager( $this );
 		$this->detector_alert_manager = new DetectorAlertManager( $this );
-		$this->categories_manager     = new CategoriesManager( $this, $this->auto_translator, $this->language_normalizer );
+		$this->categories_manager     = new CategoriesManager( $this, $this->auto_translator );
 		
 		// Initialize options validator with dependencies.
 		$this->options_validator = new OptionsValidator(
@@ -374,8 +374,7 @@ class Options {
 			'floating',
 			'bottom',
 			$default_palette_vo,
-			true,
-			false
+			true
 		);
 		
 		// Use ConsentModeDefaults value object for default consent mode.
@@ -1105,7 +1104,7 @@ class Options {
 						if ( ! in_array( $locale, $languages, true ) ) {
 							$languages[] = $locale;
 						}
-					} elseif ( isset( $lang_code ) ) {
+					} else {
 						// Fallback: convert language code to locale
 						$locale = $this->convert_lang_code_to_locale( $lang_code );
 						if ( $locale && ! in_array( $locale, $languages, true ) ) {

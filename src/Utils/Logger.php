@@ -23,8 +23,8 @@ class Logger {
 	/**
 	 * Log an error message.
 	 *
-	 * @param string                       $message   Error message.
-	 * @param \Throwable|array<mixed>|null $context   Optional exception or data array for context.
+	 * @param string $message Error message.
+	 * @param mixed  $context Optional exception, array, object o valore scalare per il contesto.
 	 * @return void
 	 */
 	public static function error( string $message, $context = null ): void {
@@ -39,7 +39,9 @@ class Logger {
 			if ( $context->getFile() ) {
 				$log_message .= sprintf( ' in %s:%d', $context->getFile(), $context->getLine() );
 			}
-		} elseif ( \is_array( $context ) || \is_object( $context ) ) {
+		} elseif ( \is_array( $context ) ) {
+			$log_message .= ' - ' . wp_json_encode( $context, JSON_PRETTY_PRINT );
+		} elseif ( \is_object( $context ) ) {
 			$log_message .= ' - ' . wp_json_encode( $context, JSON_PRETTY_PRINT );
 		} elseif ( null !== $context ) {
 			$log_message .= ' - ' . (string) $context;

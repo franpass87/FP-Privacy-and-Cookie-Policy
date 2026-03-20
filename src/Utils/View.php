@@ -48,13 +48,6 @@ class View {
 				error_log( sprintf( 'FP Privacy: Error rendering template %s: %s', $template, $e->getMessage() ) );
 			}
 			return '';
-		} catch ( \Exception $e ) {
-			ob_end_clean();
-			// Log error but don't crash the site.
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'FP Privacy: Error rendering template %s: %s', $template, $e->getMessage() ) );
-			}
-			return '';
 		}
 
 		return (string) ob_get_clean();

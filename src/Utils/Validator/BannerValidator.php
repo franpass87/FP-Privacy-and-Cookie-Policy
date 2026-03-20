@@ -57,7 +57,10 @@ class BannerValidator {
 
 		foreach ( $languages as $language ) {
 			$language = BasicValidator::locale( $language, 'en_US' );
-			$source   = isset( $texts[ $language ] ) && is_array( $texts[ $language ] ) ? $texts[ $language ] : array();
+			$source = isset( $texts[ $language ] ) ? $texts[ $language ] : array();
+			if ( ! is_array( $source ) ) {
+				$source = array();
+			}
 
 			// Get translated defaults for this language
 			$translated_defaults = self::get_translated_banner_defaults_for_language( $language );

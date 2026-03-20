@@ -28,23 +28,14 @@ class CategoriesManager {
 	private $auto_translator;
 
 	/**
-	 * Language normalizer.
-	 *
-	 * @var LanguageNormalizer
-	 */
-	private $language_normalizer;
-
-	/**
 	 * Constructor.
 	 *
-	 * @param Options            $options            Options handler.
-	 * @param AutoTranslator     $auto_translator    Auto translator.
-	 * @param LanguageNormalizer $language_normalizer Language normalizer.
+	 * @param Options        $options         Options handler.
+	 * @param AutoTranslator $auto_translator Auto translator.
 	 */
-	public function __construct( Options $options, AutoTranslator $auto_translator, LanguageNormalizer $language_normalizer ) {
-		$this->options            = $options;
-		$this->auto_translator    = $auto_translator;
-		$this->language_normalizer = $language_normalizer;
+	public function __construct( Options $options, AutoTranslator $auto_translator ) {
+		$this->options         = $options;
+		$this->auto_translator = $auto_translator;
 	}
 
 	/**

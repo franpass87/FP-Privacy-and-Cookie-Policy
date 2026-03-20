@@ -21,21 +21,12 @@ class BannerTextsManager {
 	private $options;
 
 	/**
-	 * Language normalizer.
-	 *
-	 * @var LanguageNormalizer
-	 */
-	private $language_normalizer;
-
-	/**
 	 * Constructor.
 	 *
-	 * @param Options            $options            Options handler.
-	 * @param LanguageNormalizer $language_normalizer Language normalizer.
+	 * @param Options $options Options handler.
 	 */
-	public function __construct( Options $options, LanguageNormalizer $language_normalizer ) {
-		$this->options            = $options;
-		$this->language_normalizer = $language_normalizer;
+	public function __construct( Options $options ) {
+		$this->options = $options;
 	}
 
 	/**

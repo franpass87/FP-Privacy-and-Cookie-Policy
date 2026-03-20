@@ -4,6 +4,18 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.5.4] - 2026-03-20
+### Added
+- `docs/QA-1.0.md`: checklist QA manuale pre-release 1.0; `tools/phpstan-bootstrap.php` per costanti `ABSPATH` / `FP_PRIVACY_*` in analisi statica.
+### Changed
+- PHPStan: incluso `src/Utils` nei path; aggiornati `RELEASE-1.0.md` e link in README.
+### Fixed
+- `Options`: `BannerLayout` default con 4 argomenti validi; `$instance` tipizzato `@var self|null`; ramo WPML senza `isset()` ridondante su chiave `foreach`.
+- `PageManager`, `Logger`, `View`, `AutoTranslator`, `BannerValidator`: allineamento a livello 5 PHPStan; `wp_insert_post` annotato `int|\WP_Error`.
+- `BannerTextsManager` / `CategoriesManager`: rimossi costruttori con `LanguageNormalizer` non usato (solo `Options` / `AutoTranslator`).
+
+---
+
 ## [0.5.3] - 2026-03-19
 ### Changed
 - Roadmap 1.0: `docs/RELEASE-1.0.md` aggiornato (completati 0.5.x, decisione deprecazioni fino a 2.0, stato PHPStan).

@@ -130,7 +130,7 @@ class PageManager implements PageManagerInterface {
 		if ( $post instanceof WP_Post && 'trash' === $post->post_status ) {
 			$restored = \wp_untrash_post( $post->ID );
 
-			if ( ! \is_wp_error( $restored ) && $restored ) {
+			if ( $restored ) {
 				$post = \get_post( $post->ID );
 			}
 		}
@@ -176,6 +176,7 @@ class PageManager implements PageManagerInterface {
 			);
 		}
 
+		/** @var int|\WP_Error $created */
 		$created = \wp_insert_post(
 			array(
 				'post_title'   => $title,
@@ -185,7 +186,14 @@ class PageManager implements PageManagerInterface {
 			)
 		);
 
-		if ( $created && ! \is_wp_error( $created ) ) {
+		if ( \is_wp_error( $created ) ) {
+			return array(
+				'page_id' => 0,
+				'updated' => false,
+			);
+		}
+
+		if ( $created > 0 ) {
 			\update_post_meta( $created, self::PAGE_MANAGED_META_KEY, \hash( 'sha256', $content ) );
 
 			return array(
@@ -258,7 +266,11 @@ class PageManager implements PageManagerInterface {
 					true
 				);
 
-				return $result && ! \is_wp_error( $result );
+				if ( \is_wp_error( $result ) ) {
+					return false;
+				}
+
+				return true;
 			}
 
 			return false;
@@ -282,13 +294,13 @@ class PageManager implements PageManagerInterface {
 			true
 		);
 
-		if ( $result && ! \is_wp_error( $result ) ) {
-			\update_post_meta( $post->ID, self::PAGE_MANAGED_META_KEY, $expected_signature );
-
-			return true;
+		if ( \is_wp_error( $result ) ) {
+			return false;
 		}
 
-		return false;
+		\update_post_meta( $post->ID, self::PAGE_MANAGED_META_KEY, $expected_signature );
+
+		return true;
 	}
 
 	/**

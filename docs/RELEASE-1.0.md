@@ -20,6 +20,8 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 | Consent Mode / `dataLayer` prima dello sblocco script; UX rifiuta tutti + filtri `fp_privacy_reject_all_confirm*` | v0.5.1 |
 | i18n `en_US` completa (policy lunga, EDPB, tooling `bin/` + chunk JSON) | v0.5.2 |
 | PHPStan esteso a `src/Providers` (fix `CoreServiceProvider` livello 5) | v0.5.3 |
+| PHPStan esteso a `src/Utils` + bootstrap costanti (`tools/phpstan-bootstrap.php`); fix static analysis in Logger, View, Options, PageManager, AutoTranslator, BannerValidator; rimozione dipendenze inutilizzate in BannerTextsManager/CategoriesManager | v0.5.4 |
+| Checklist QA manuale pre-1.0: `docs/QA-1.0.md` | v0.5.4 |
 
 ---
 
@@ -40,9 +42,9 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 
 ### Qualità
 
-- [ ] PHPStan livello concordato — **copertura attuale**: `src/REST`, `src/Domain`, `src/Application`, `src/Providers`, `src/Integrations/ServiceRegistry.php` (livello **5**, `composer phpstan`). Da valutare: `src/Frontend`, `src/Utils`, `src/Infrastructure` a step successivi.
+- [ ] PHPStan livello concordato — **copertura attuale**: `src/REST`, `src/Domain`, `src/Application`, `src/Providers`, `src/Utils`, `src/Integrations/ServiceRegistry.php` + bootstrap `tools/phpstan-bootstrap.php` (livello **5**, `composer phpstan`). Prossimo step: `src/Frontend`, `src/Infrastructure` (a blocchi).
 - [ ] PHPUnit su use case critici (consenso, cookie, REST permission) — **suite base verde** da v0.4.2+ (`composer test`; same-origin REST da v0.4.3).
-- [ ] Checklist manuale: prima visita, accetta/rifiuta/salva, revoca, bump revisione, **reset impostazioni ai default** (admin), multisite (se in scope).
+- [ ] Checklist manuale: seguire **`docs/QA-1.0.md`** (prima visita, accetta/rifiuta/salva, revoca, reset default admin, multisite se in scope).
 
 ### Rilascio
 

@@ -1,5 +1,7 @@
 # Analisi incrementale: REST, Domain, Application, Providers (+ facade Integrations); espandere verso tutto `src/` gradualmente.
 parameters:
+    bootstrapFiles:
+        - tools/phpstan-bootstrap.php
     level: 5
     paths:
         - src/REST
@@ -7,5 +9,6 @@ parameters:
         - src/Domain
         - src/Application
         - src/Providers
+        - src/Utils
     scanFiles:
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
