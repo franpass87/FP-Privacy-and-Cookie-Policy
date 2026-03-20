@@ -1,25 +1,10 @@
-# Analisi incrementale: REST, Domain, Application, Providers (+ facade Integrations); espandere verso tutto `src/` gradualmente.
+# Analisi statica su tutto `src/` (livello 5); bootstrap e stub WP-CLI per analisi locale.
 parameters:
     bootstrapFiles:
         - tools/phpstan-bootstrap.php
     level: 5
     paths:
-        - src/REST
-        - src/Integrations
-        - src/Domain
-        - src/Application
-        - src/Providers
-        - src/Utils
-        - src/Frontend
-        - src/Infrastructure
-        - src/Consent
-        - src/Admin
-        - src/Presentation
-        - src/Core
-        - src/Services
-        - src/CLI
-        - src/Interfaces
-        - src/Shared
+        - src
     scanFiles:
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
         - tools/phpstan-wp-cli-stubs.php

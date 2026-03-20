@@ -92,7 +92,7 @@ class MultilanguageCompatibility {
 			return $skip; // Already skipped for other reasons
 		}
 
-		$options = $this->options ? $this->options->all() : array();
+		$options = $this->options->all();
 		$pages   = isset( $options['pages'] ) && \is_array( $options['pages'] ) ? $options['pages'] : array();
 
 		// Extract all privacy/cookie page IDs
@@ -183,7 +183,7 @@ class MultilanguageCompatibility {
 	 * @return bool
 	 */
 	public function wpml_exclude_privacy_pages( $use_user_lang, $post ) {
-		if ( ! $post || ! isset( $post->ID ) ) {
+		if ( ! is_object( $post ) || ! isset( $post->ID ) ) {
 			return $use_user_lang;
 		}
 
@@ -200,10 +200,6 @@ class MultilanguageCompatibility {
 	 * @return string
 	 */
 	public function translate_policy_url( $url, $type, $lang ) {
-		if ( ! $this->options ) {
-			return $url;
-		}
-
 		$options = $this->options->all();
 		$pages   = isset( $options['pages'] ) && \is_array( $options['pages'] ) ? $options['pages'] : array();
 
@@ -230,10 +226,6 @@ class MultilanguageCompatibility {
 	 * @return void
 	 */
 	public function ensure_wpml_pages_exist() {
-		if ( ! $this->options ) {
-			return;
-		}
-
 		// Only run once per request to avoid performance issues
 		static $ran = false;
 		if ( $ran ) {

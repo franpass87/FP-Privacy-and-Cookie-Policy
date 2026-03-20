@@ -1,4 +1,4 @@
-﻿# Changelog - FP Privacy and Cookie Policy
+# Changelog - FP Privacy and Cookie Policy
 
 Tutte le modifiche importanti al progetto sono documentate in questo file.
 
@@ -7,6 +7,18 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 
 
+
+
+## [0.5.11] - 2026-03-19
+### Changed
+- PHPStan: `phpstan.neon.dist` usa un unico path `src` (equivalente all'elenco di cartelle precedente; nuove directory sotto `src/` incluse automaticamente nell'analisi).
+- `docs/RELEASE-1.0.md`: roadmap 1.0 - checklist PHPStan (livello 5 su tutto `src/`) segnata come completata.
+
+### Fixed
+- `MultilanguageCompatibility`: condizioni e ternario allineati ai tipi reali (`Options` da costruttore; `WP_Post`/oggetto nel filtro WPML).
+- `MultisiteManager` (root): rimosso controllo ridondante su `Options` (sempre valorizzato dal costruttore).
+
+---
 
 ## [0.5.10] - 2026-03-20
 ### Changed

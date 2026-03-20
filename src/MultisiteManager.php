@@ -66,10 +66,6 @@ class MultisiteManager {
 	 * @return void
 	 */
 	public function setup_site() {
-		// Options should always be provided via constructor.
-		if ( ! $this->options ) {
-			throw new \RuntimeException( 'Options instance is required but not provided.' );
-		}
 		$options = $this->options;
 		$options->set( $options->all() );
 		$options->ensure_pages_exist();
