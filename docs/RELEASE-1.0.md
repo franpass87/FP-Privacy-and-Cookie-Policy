@@ -24,7 +24,7 @@ Documento di lavoro per portare **FP Privacy and Cookie Policy** a una release *
 | Checklist QA manuale pre-1.0: `docs/QA-1.0.md` | v0.5.4 |
 | PHPStan livello 5 su `src/Frontend` + costanti bootstrap (`DAY_IN_SECONDS`, URL/versione plugin, …) | v0.5.5 |
 | PHPStan livello 5 su `src/Infrastructure` + costanti `ARRAY_A` / `ARRAY_N` in bootstrap | v0.5.6 |
-| PHPStan livello 5 su `src/Consent` + fix `LogModel` / `LogModelTable` | v0.3.3 |
+| PHPStan livello 5 su `src/Consent` + fix `LogModel` / `LogModelTable` | v0.5.7 |
 
 ---
 
