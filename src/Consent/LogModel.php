@@ -40,10 +40,6 @@ class LogModel {
 		$this->database = $database;
 
 		if ( $table_manager ) {
-			// Accept both LogModelTable and ConsentTable (they have the same interface)
-			if ( ! ( $table_manager instanceof LogModelTable ) && ! ( $table_manager instanceof \FP\Privacy\Infrastructure\Database\ConsentTable ) ) {
-				throw new \InvalidArgumentException( 'Table manager must be an instance of LogModelTable or ConsentTable' );
-			}
 			$this->table_manager = $table_manager;
 		} else {
 			// Fallback: create table manager (backward compatibility).

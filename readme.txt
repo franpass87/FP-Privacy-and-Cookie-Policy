@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 0.5.6
+Stable tag: 0.3.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,50 +71,8 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
-= 0.5.6 =
-* PHPStan su src/Infrastructure; bootstrap ARRAY_A/ARRAY_N; fix MultisiteManager, ConsentTable, HttpClientInterface.
-
-= 0.5.5 =
-* PHPStan su src/Frontend; bootstrap costanti WP/plugin; piccoli refactor DI Shortcodes (senza View inutilizzato).
-
-= 0.5.4 =
-* Verso 1.0: checklist QA `docs/QA-1.0.md`; PHPStan su `src/Utils` + bootstrap costanti; fix static analysis (Options, PageManager, Logger, View, …).
-
-= 0.5.3 =
-* Roadmap 1.0: documento RELEASE-1.0 aggiornato; PHPStan esteso a src/Providers; piccoli fix static analysis in CoreServiceProvider.
-
-= 0.5.2 =
-* i18n: traduzioni EN complete per policy lunga e admin (granularità EDPB); `.mo` aggiornati; tooling in `bin/` per rigenerare chunk.
-
-= 0.5.1 =
-* Consent Mode aggiornato prima dello sblocco script (fix eventi marketing/analytics). UX: rifiuta secondario + conferma opzionale (filtri PHP); testo reject_all_confirm.
-
-= 0.5.0 =
-* UI admin allineata al design system FP (header viola, card, pulsanti); frontend banner/policy con struttura FP e colori dalla palette; anteprima admin con palette inline; variabili CSS sulla pagina policy.
-
-= 0.4.4 =
-* Reset impostazioni ai default (admin-post sicuro); documento integrazione frontend FP_PRIVACY_DATA; PHPStan su Application; bozza sezione upgrade 1.0 in CHANGELOG.
-
-= 0.4.3 =
-* PHPStan: analisi estesa a `src/Domain`; fix condizioni in `AIDisclosureGenerator`; test `RESTPermissionChecker::is_same_origin`; stub `wp_parse_url` nel bootstrap PHPUnit.
-
-= 0.4.2 =
-* Dev: bootstrap PHPUnit con stub WP minime; test ColorPalette/ServiceRegistry/OptionsValidator allineati; `composer test` verde.
-
-= 0.4.1 =
-* REST: route consent/revoke su ConsentController + ConsentRestHandlerInterface; RESTConsentHandler solo fallback.
-
-= 0.4.0 =
-* Roadmap 1.0 in docs/RELEASE-1.0.md; ServiceRegistry Integrations → facade su Domain; limite retry init banner JS.
-
-= 0.3.5 =
-* Changed: filtro `fp_privacy_consent_ids_for_email` con terzo argomento opzionale documentato; README con hook/filtri/REST in tabella.
-
-= 0.3.4 =
-* Fixed: revoca consenso — aggiornamento immediato banner/reopen; merge revisione cookie con last_revision stringa dal server.
-
 = 0.3.3 =
-* Fixed: bottone flottante preferenze cookie — riallineamento stato UI dopo timeout/errore; merge revisione cookie con dato server per evitare incoerenze.
+* Dev: PHPStan livello 5 esteso a `src/Consent`; fix analisi statica su `LogModel` / `LogModelTable`.
 
 = 0.3.2 =
 * Fixed: silenziati i log/warn di debug in console in produzione per banner e analytics (attivi solo con flag debug).
