@@ -52,7 +52,7 @@ class MultisiteManager implements MultisiteManagerInterface {
 	 *
 	 * @return void
 	 */
-	public function switch_call( $blog_id, $callback ) {
+	public function switch_call( $blog_id, $callback ): void {
 		if ( ! \function_exists( 'switch_to_blog' ) ) {
 			\call_user_func( $callback );
 			return;
@@ -71,11 +71,7 @@ class MultisiteManager implements MultisiteManagerInterface {
 	 *
 	 * @return void
 	 */
-	public function setup_site() {
-		// Options should always be provided via constructor.
-		if ( ! $this->options ) {
-			throw new \RuntimeException( 'Options instance is required but not provided.' );
-		}
+	public function setup_site(): void {
 		$options = $this->options;
 		$options->set( $options->all() );
 		$options->ensure_pages_exist();
@@ -109,7 +105,7 @@ class MultisiteManager implements MultisiteManagerInterface {
 	 *
 	 * @return void
 	 */
-	public function provision_new_site( $blog_id ) {
+	public function provision_new_site( int $blog_id ): void {
 		$this->switch_call( $blog_id, array( $this, 'setup_site' ) );
 	}
 
@@ -120,7 +116,7 @@ class MultisiteManager implements MultisiteManagerInterface {
 	 *
 	 * @return void
 	 */
-	public function activate( $network_wide ) {
+	public function activate( bool $network_wide ): void {
 		if ( \is_multisite() && $network_wide ) {
 			$sites = \get_sites( array( 'fields' => 'ids' ) );
 			foreach ( $sites as $site_id ) {
@@ -136,7 +132,7 @@ class MultisiteManager implements MultisiteManagerInterface {
 	 *
 	 * @return void
 	 */
-	public function deactivate() {
+	public function deactivate(): void {
 		if ( \is_multisite() ) {
 			$sites = \get_sites( array( 'fields' => 'ids' ) );
 			foreach ( $sites as $site_id ) {

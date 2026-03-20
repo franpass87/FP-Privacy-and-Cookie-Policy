@@ -4,6 +4,16 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [0.5.6] - 2026-03-20
+### Changed
+- PHPStan: analisi estesa a `src/Infrastructure` (livello 5); `tools/phpstan-bootstrap.php` con `ARRAY_A` / `ARRAY_N`.
+### Fixed
+- `HttpClientInterface`: PHPDoc `@return` con `\WP_Error` (namespace globale).
+- `MultisiteManager`: firme `void` e tipi allineati all’interfaccia; rimosso controllo ridondante su `$options`.
+- `ConsentTable`: guard `instanceof \wpdb` per `$wpdb`; migrazione schema senza confronto ridondante.
+
+---
+
 ## [0.5.5] - 2026-03-20
 ### Changed
 - PHPStan: analisi estesa a `src/Frontend` (livello 5); `tools/phpstan-bootstrap.php` arricchito (`FP_PRIVACY_PLUGIN_URL`, `FP_PRIVACY_PLUGIN_VERSION`, `DAY_IN_SECONDS`, `HOUR_IN_SECONDS`).

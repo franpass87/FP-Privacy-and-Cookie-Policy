@@ -89,7 +89,7 @@ class ConsentTable {
 		// Fallback to global $wpdb for backward compatibility.
 		global $wpdb;
 
-		if ( ! isset( $wpdb ) || ! isset( $wpdb->dbh ) ) {
+		if ( ! isset( $wpdb ) || ! isset( $wpdb->dbh ) || ! ( $wpdb instanceof \wpdb ) ) {
 			return false;
 		}
 
@@ -164,8 +164,8 @@ KEY rev (rev)
 
 		global $wpdb;
 
-		if ( $current_version < 2 ) {
-			// v2: add consent_revoked and consent_withdrawn to ENUM.
+		// v2: add consent_revoked and consent_withdrawn to ENUM (eseguito solo se $current_version < SCHEMA_VERSION).
+		if ( $wpdb instanceof \wpdb ) {
 			$wpdb->query(
 				"ALTER TABLE {$this->table} MODIFY COLUMN event ENUM('accept_all','reject_all','consent','reset','revision_bump','consent_revoked','consent_withdrawn') NOT NULL"
 			);

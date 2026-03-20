@@ -18,7 +18,7 @@ interface HttpClientInterface {
 	 *
 	 * @param string $url Request URL.
 	 * @param array<string, mixed> $args Request arguments.
-	 * @return array<string, mixed>|WP_Error Response array or WP_Error on failure.
+	 * @return array<string, mixed>|\WP_Error Response array or WP_Error on failure.
 	 */
 	public function get( string $url, array $args = array() );
 
@@ -27,7 +27,7 @@ interface HttpClientInterface {
 	 *
 	 * @param string $url Request URL.
 	 * @param array<string, mixed> $args Request arguments.
-	 * @return array<string, mixed>|WP_Error Response array or WP_Error on failure.
+	 * @return array<string, mixed>|\WP_Error Response array or WP_Error on failure.
 	 */
 	public function post( string $url, array $args = array() );
 
@@ -36,7 +36,7 @@ interface HttpClientInterface {
 	 *
 	 * @param string $url Request URL.
 	 * @param array<string, mixed> $args Request arguments.
-	 * @return array<string, mixed>|WP_Error Response array or WP_Error on failure.
+	 * @return array<string, mixed>|\WP_Error Response array or WP_Error on failure.
 	 */
 	public function put( string $url, array $args = array() );
 
@@ -45,7 +45,7 @@ interface HttpClientInterface {
 	 *
 	 * @param string $url Request URL.
 	 * @param array<string, mixed> $args Request arguments.
-	 * @return array<string, mixed>|WP_Error Response array or WP_Error on failure.
+	 * @return array<string, mixed>|\WP_Error Response array or WP_Error on failure.
 	 */
 	public function delete( string $url, array $args = array() );
 }
