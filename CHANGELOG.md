@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.8] - 2026-03-23
+
+### Changed
+
+- Menu position 56.8 per ordine alfabetico FP.
+
+---
+
 ## [1.0.7] - 2026-03-23
 
 ### Changed
