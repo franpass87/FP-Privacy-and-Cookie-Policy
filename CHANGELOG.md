@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.7] - 2026-03-23
+
+### Changed
+
+- Menu WordPress: titolo "FP Privacy & Cookie" (allineamento naming con altri plugin FP).
+
+---
+
 ## [1.0.6] - 2026-03-22
 
 ### Fixed

@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,9 @@ See the quick guide screen inside the plugin and the repository `README.md` for 
 Run `bin/package.sh` from the repository root. The script produces a clean archive under `dist/` without minified or binary artefacts.
 
 == Changelog ==
+
+= 1.0.7 =
+* Changed: Menu WordPress - titolo "FP Privacy & Cookie" (allineamento naming con altri plugin FP).
 
 = 1.0.6 =
 * Fixed: tutti gli error_log (LogModelTable, ConsentTable, Cleanup) condizionati a WP_DEBUG per evitare output debug in produzione.

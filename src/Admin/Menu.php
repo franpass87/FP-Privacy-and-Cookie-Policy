@@ -35,8 +35,8 @@ return;
 }
 
 \add_menu_page(
-\__( 'Privacy & Cookie', 'fp-privacy' ),
-\__( 'Privacy & Cookie', 'fp-privacy' ),
+\__( 'FP Privacy & Cookie', 'fp-privacy' ),
+\__( 'FP Privacy & Cookie', 'fp-privacy' ),
 'manage_options',
 self::MENU_SLUG,
 array( $this, 'render_settings_page' ),

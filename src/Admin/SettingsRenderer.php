@@ -135,7 +135,7 @@ AdminHeader::render(
 
 <!-- Breadcrumb -->
 <nav class="fp-privacy-breadcrumb" aria-label="<?php \esc_attr_e( 'Breadcrumb', 'fp-privacy' ); ?>">
-	<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy' ) ); ?>"><?php \esc_html_e( 'Privacy & Cookie', 'fp-privacy' ); ?></a>
+	<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy' ) ); ?>"><?php \esc_html_e( 'FP Privacy & Cookie', 'fp-privacy' ); ?></a>
 	<span class="separator" aria-hidden="true">›</span>
 	<span><?php \esc_html_e( 'Settings', 'fp-privacy' ); ?></span>
 </nav>
