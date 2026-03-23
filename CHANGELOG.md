@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.6] - 2026-03-22
+
+### Fixed
+
+- Tutti gli `error_log` (LogModelTable, ConsentTable, Cleanup) condizionati a `WP_DEBUG` per evitare output di debug in produzione (no-debug-in-production).
+
+---
+
 ## [1.0.5] - 2026-03-20
 
 ### Fixed

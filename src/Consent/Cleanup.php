@@ -61,7 +61,7 @@ public function run() {
 
 		$this->log_model->delete_older_than( $days );
 	} catch ( \Throwable $e ) {
-		if ( \function_exists( 'error_log' ) ) {
+		if ( \defined( 'WP_DEBUG' ) && \WP_DEBUG && \function_exists( 'error_log' ) ) {
 			\error_log( \sprintf( '[FP Privacy] Cleanup failed: %s', $e->getMessage() ) );
 		}
 	}

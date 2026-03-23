@@ -76,7 +76,7 @@ class LogModelTable {
 				return true;
 			}
 
-			if ( function_exists( 'error_log' ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'error_log' ) ) {
 				error_log( sprintf( '[FP Privacy] Unable to create consent log table %s', $this->table ) );
 			}
 
@@ -108,7 +108,7 @@ class LogModelTable {
 			return true;
 		}
 
-		if ( function_exists( 'error_log' ) ) {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'error_log' ) ) {
 			error_log( sprintf( '[FP Privacy] Unable to create consent log table %s', $table ) );
 		}
 
