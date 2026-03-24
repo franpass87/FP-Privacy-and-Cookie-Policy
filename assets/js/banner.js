@@ -130,6 +130,11 @@ if ( data.options && data.options.texts ) {
             currentTexts.link_cookie_policy = 'Cookie Policy';
             debugTiming( 'Testi italiani applicati' );
         }
+        // Tab Info: usa sempre il testo standard se about_content è breve (vecchio testo deprecato)
+        var stdAboutIt = 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.';
+        if ( ! currentTexts.about_content || currentTexts.about_content.length < 250 ) {
+            currentTexts.about_content = stdAboutIt;
+        }
     }
     // If we have English language, use English texts
     else if ( state.lang === 'en_US' || state.lang.indexOf( 'en' ) === 0 ) {
@@ -148,6 +153,11 @@ if ( data.options && data.options.texts ) {
             currentTexts.link_privacy_policy = 'Privacy Policy';
             currentTexts.link_cookie_policy = 'Cookie Policy';
             debugTiming( 'Testi inglesi applicati' );
+        }
+        // Tab Info: usa sempre il testo standard se about_content è breve (vecchio testo deprecato)
+        var stdAboutEn = 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
+        if ( ! currentTexts.about_content || currentTexts.about_content.length < 250 ) {
+            currentTexts.about_content = stdAboutEn;
         }
     }
 }
@@ -708,13 +718,47 @@ banner.style.bottom = layout.position === 'top' ? '' : '24px';
 banner.style.top = layout.position === 'top' ? '24px' : '';
 }
 
+var isItalian = ( state.lang === 'it_IT' || ( state.lang && state.lang.indexOf( 'it' ) === 0 ) );
+var tabLabels = {
+    consent: texts.tab_consent || ( isItalian ? 'Consenso' : 'Consent' ),
+    details: texts.tab_details || ( isItalian ? 'Dettagli' : 'Details' ),
+    about: texts.tab_about || ( isItalian ? 'Info' : 'About' ),
+};
+
+var bannerTabs = document.createElement( 'div' );
+bannerTabs.className = 'fp-privacy-banner-tabs';
+bannerTabs.setAttribute( 'role', 'tablist' );
+
+[ 'consent', 'details', 'about' ].forEach( function( tabId ) {
+    var btn = document.createElement( 'button' );
+    btn.type = 'button';
+    btn.className = 'fp-privacy-banner-tab' + ( tabId === 'consent' ? ' is-active' : '' );
+    btn.setAttribute( 'role', 'tab' );
+    btn.setAttribute( 'aria-selected', tabId === 'consent' ? 'true' : 'false' );
+    btn.setAttribute( 'data-tab', tabId );
+    btn.textContent = tabLabels[ tabId ];
+    bannerTabs.appendChild( btn );
+} );
+
+banner.appendChild( bannerTabs );
+
+var bannerPanels = document.createElement( 'div' );
+bannerPanels.className = 'fp-privacy-banner-panels';
+
+var consentPanel = document.createElement( 'div' );
+consentPanel.className = 'fp-privacy-banner-tab-panel';
+consentPanel.setAttribute( 'role', 'tabpanel' );
+consentPanel.setAttribute( 'data-tab', 'consent' );
+
 var title = document.createElement( 'h2' );
+title.className = 'fp-privacy-banner-title';
 title.textContent = texts.title || '';
-banner.appendChild( title );
+consentPanel.appendChild( title );
 
 var message = document.createElement( 'p' );
+message.className = 'fp-privacy-banner-message';
 message.innerHTML = texts.message || '';
-banner.appendChild( message );
+consentPanel.appendChild( message );
 
 revisionNotice = document.createElement( 'div' );
 revisionNotice.className = 'fp-privacy-revision-notice';
@@ -722,17 +766,14 @@ revisionNotice.style.display = 'none';
 if ( texts.revision_notice ) {
     revisionNotice.textContent = texts.revision_notice;
 }
-banner.appendChild( revisionNotice );
+consentPanel.appendChild( revisionNotice );
 
-// Add policy links
 var policyUrls = data.options.policy_urls || {};
-
 debugTiming( 'Policy URLs loaded for banner' );
 
 if ( policyUrls.privacy || policyUrls.cookie ) {
     var linksWrapper = document.createElement( 'div' );
     linksWrapper.className = 'fp-privacy-banner-links';
-    
     if ( policyUrls.privacy ) {
         var privacyLink = document.createElement( 'a' );
         privacyLink.href = policyUrls.privacy;
@@ -742,7 +783,6 @@ if ( policyUrls.privacy || policyUrls.cookie ) {
         privacyLink.textContent = texts.link_privacy_policy || '';
         linksWrapper.appendChild( privacyLink );
     }
-    
     if ( policyUrls.cookie ) {
         var cookieLink = document.createElement( 'a' );
         cookieLink.href = policyUrls.cookie;
@@ -752,9 +792,82 @@ if ( policyUrls.privacy || policyUrls.cookie ) {
         cookieLink.textContent = texts.link_cookie_policy || '';
         linksWrapper.appendChild( cookieLink );
     }
-    
-    banner.appendChild( linksWrapper );
+    consentPanel.appendChild( linksWrapper );
 }
+
+bannerPanels.appendChild( consentPanel );
+
+var detailsPanel = document.createElement( 'div' );
+detailsPanel.className = 'fp-privacy-banner-tab-panel';
+detailsPanel.setAttribute( 'role', 'tabpanel' );
+detailsPanel.setAttribute( 'data-tab', 'details' );
+detailsPanel.style.display = 'none';
+
+var detailsTitle = document.createElement( 'h3' );
+detailsTitle.className = 'fp-privacy-banner-details-title';
+detailsTitle.textContent = texts.tab_details_title || ( isItalian ? 'Categorie e servizi' : 'Categories and services' );
+detailsPanel.appendChild( detailsTitle );
+
+for ( var detKey in categories ) {
+    if ( ! categories.hasOwnProperty( detKey ) ) { continue; }
+    var detCat = categories[ detKey ];
+    var detBlock = document.createElement( 'div' );
+    detBlock.className = 'fp-privacy-banner-details-category';
+    var detH4 = document.createElement( 'h4' );
+    detH4.textContent = detCat.label || detKey;
+    detBlock.appendChild( detH4 );
+    var detP = document.createElement( 'p' );
+    detP.innerHTML = detCat.description || '';
+    detBlock.appendChild( detP );
+    if ( detCat.services && Array.isArray( detCat.services ) && detCat.services.length > 0 ) {
+        var servList = document.createElement( 'ul' );
+        servList.className = 'fp-privacy-banner-details-services';
+        for ( var si = 0; si < detCat.services.length; si++ ) {
+            var svc = detCat.services[ si ];
+            if ( ! svc || typeof svc !== 'object' ) { continue; }
+            var li = document.createElement( 'li' );
+            li.textContent = svc.name || svc.key || '';
+            servList.appendChild( li );
+        }
+        detBlock.appendChild( servList );
+    }
+    detailsPanel.appendChild( detBlock );
+}
+
+bannerPanels.appendChild( detailsPanel );
+
+var aboutPanel = document.createElement( 'div' );
+aboutPanel.className = 'fp-privacy-banner-tab-panel';
+aboutPanel.setAttribute( 'role', 'tabpanel' );
+aboutPanel.setAttribute( 'data-tab', 'about' );
+aboutPanel.style.display = 'none';
+
+var aboutContent = texts.about_content || texts.message || ( isItalian
+    ? 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.'
+    : 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.' );
+var aboutP = document.createElement( 'p' );
+aboutP.className = 'fp-privacy-banner-about-text';
+aboutP.innerHTML = aboutContent;
+aboutPanel.appendChild( aboutP );
+
+bannerPanels.appendChild( aboutPanel );
+
+banner.appendChild( bannerPanels );
+
+bannerTabs.querySelectorAll( '.fp-privacy-banner-tab' ).forEach( function( btn ) {
+    btn.addEventListener( 'click', function() {
+        var tabId = btn.getAttribute( 'data-tab' );
+        bannerTabs.querySelectorAll( '.fp-privacy-banner-tab' ).forEach( function( b ) {
+            b.classList.remove( 'is-active' );
+            b.setAttribute( 'aria-selected', 'false' );
+        } );
+        btn.classList.add( 'is-active' );
+        btn.setAttribute( 'aria-selected', 'true' );
+        bannerPanels.querySelectorAll( '.fp-privacy-banner-tab-panel' ).forEach( function( p ) {
+            p.style.display = ( p.getAttribute( 'data-tab' ) === tabId ) ? '' : 'none';
+        } );
+    } );
+} );
 
 var buttons = document.createElement( 'div' );
 buttons.className = 'fp-privacy-banner-buttons';
@@ -768,7 +881,7 @@ accept.addEventListener( 'click', function ( event ) {
 });
 buttons.appendChild( accept );
 
-var reject = createButton( texts.btn_reject, 'fp-privacy-button fp-privacy-button-primary' );
+var reject = createButton( texts.btn_reject, 'fp-privacy-button fp-privacy-button-secondary fp-privacy-button-reject' );
 reject.addEventListener( 'click', function ( event ) {
     debugTiming( 'Reject button clicked' );
     event.preventDefault();
@@ -822,59 +935,63 @@ modal.id = 'fp-privacy-modal';
 modal.setAttribute( 'role', 'dialog' );
 modal.setAttribute( 'aria-modal', 'true' );
 
+var modalHeader = document.createElement( 'div' );
+modalHeader.className = 'fp-privacy-modal-header';
+
 var close = document.createElement( 'button' );
 close.type = 'button';
-close.className = 'close';
-    close.setAttribute( 'aria-label', texts.modal_close || texts.btn_prefs || '' );
+close.className = 'fp-privacy-modal-close';
+close.setAttribute( 'aria-label', texts.modal_close || texts.btn_prefs || '' );
 close.innerHTML = '&times;';
 close.addEventListener( 'click', function( event ) {
     event.preventDefault();
     event.stopPropagation();
     closeModal();
 });
-modal.appendChild( close );
+modalHeader.appendChild( close );
 
 var heading = document.createElement( 'h2' );
 heading.id = 'fp-privacy-modal-title';
-    heading.textContent = texts.modal_title || texts.btn_prefs || '';
-modal.appendChild( heading );
+heading.className = 'fp-privacy-modal-title';
+heading.textContent = texts.modal_title || texts.btn_prefs || '';
+modalHeader.appendChild( heading );
 modal.setAttribute( 'aria-labelledby', heading.id );
 
-    // Add policy links
-    var policyUrls = data.options.policy_urls || {};
-    
-    debugTiming( 'Policy URLs loaded for modal' );
-    
-    if ( policyUrls.privacy || policyUrls.cookie ) {
-        var linksWrapper = document.createElement( 'div' );
-        linksWrapper.className = 'fp-privacy-modal-links';
-        
-        if ( policyUrls.privacy ) {
-            var privacyLink = document.createElement( 'a' );
-            privacyLink.href = policyUrls.privacy;
-            privacyLink.className = 'fp-privacy-link';
-            privacyLink.setAttribute( 'target', '_blank' );
-            privacyLink.rel = 'noopener noreferrer';
-            privacyLink.textContent = texts.link_privacy_policy || '';
-            linksWrapper.appendChild( privacyLink );
-        }
-        
-        if ( policyUrls.cookie ) {
-            var cookieLink = document.createElement( 'a' );
-            cookieLink.href = policyUrls.cookie;
-            cookieLink.className = 'fp-privacy-link';
-            cookieLink.setAttribute( 'target', '_blank' );
-            cookieLink.rel = 'noopener noreferrer';
-            cookieLink.textContent = texts.link_cookie_policy || '';
-            linksWrapper.appendChild( cookieLink );
-        }
-        
-        modal.appendChild( linksWrapper );
+var policyUrls = data.options.policy_urls || {};
+debugTiming( 'Policy URLs loaded for modal' );
+
+if ( policyUrls.privacy || policyUrls.cookie ) {
+    var linksWrapper = document.createElement( 'div' );
+    linksWrapper.className = 'fp-privacy-modal-links';
+    if ( policyUrls.privacy ) {
+        var privacyLink = document.createElement( 'a' );
+        privacyLink.href = policyUrls.privacy;
+        privacyLink.className = 'fp-privacy-link';
+        privacyLink.setAttribute( 'target', '_blank' );
+        privacyLink.rel = 'noopener noreferrer';
+        privacyLink.textContent = texts.link_privacy_policy || '';
+        linksWrapper.appendChild( privacyLink );
     }
+    if ( policyUrls.cookie ) {
+        var cookieLink = document.createElement( 'a' );
+        cookieLink.href = policyUrls.cookie;
+        cookieLink.className = 'fp-privacy-link';
+        cookieLink.setAttribute( 'target', '_blank' );
+        cookieLink.rel = 'noopener noreferrer';
+        cookieLink.textContent = texts.link_cookie_policy || '';
+        linksWrapper.appendChild( cookieLink );
+    }
+    modalHeader.appendChild( linksWrapper );
+}
 
-    var savedCategories = state.categories || {};
+modal.appendChild( modalHeader );
 
-    for ( var key in categories ) {
+var modalBody = document.createElement( 'div' );
+modalBody.className = 'fp-privacy-modal-body';
+
+var savedCategories = state.categories || {};
+
+for ( var key in categories ) {
         if ( ! categories.hasOwnProperty( key ) ) {
             continue;
         }
@@ -930,14 +1047,9 @@ wrapper.appendChild( toggle );
         if ( enableSubCategories && cat.services && Array.isArray( cat.services ) && cat.services.length > 0 ) {
             var servicesWrapper = document.createElement( 'div' );
             servicesWrapper.className = 'fp-privacy-sub-services';
-            servicesWrapper.style.marginTop = '12px';
-            servicesWrapper.style.paddingLeft = '20px';
-            servicesWrapper.style.borderLeft = '2px solid #ddd';
 
             var servicesTitle = document.createElement( 'h4' );
             servicesTitle.textContent = 'Servizi individuali:';
-            servicesTitle.style.fontSize = '14px';
-            servicesTitle.style.marginBottom = '8px';
             servicesWrapper.appendChild( servicesTitle );
 
             for ( var s = 0; s < cat.services.length; s++ ) {
@@ -951,11 +1063,9 @@ wrapper.appendChild( toggle );
 
                 var serviceWrapper = document.createElement( 'div' );
                 serviceWrapper.className = 'fp-privacy-service-toggle';
-                serviceWrapper.style.marginBottom = '8px';
 
                 var serviceLabel = document.createElement( 'label' );
                 serviceLabel.className = 'fp-privacy-switch';
-                serviceLabel.style.fontSize = '13px';
 
                 var serviceCheckbox = document.createElement( 'input' );
                 serviceCheckbox.type = 'checkbox';
@@ -994,66 +1104,61 @@ wrapper.appendChild( toggle );
             wrapper.appendChild( servicesWrapper );
         }
 
-modal.appendChild( wrapper );
+    modalBody.appendChild( wrapper );
 }
 
-var actions = document.createElement( 'div' );
-actions.className = 'fp-privacy-modal-actions';
+modal.appendChild( modalBody );
 
-    var saveLabel = texts.modal_save || texts.btn_prefs || '';
-    var save = createButton( saveLabel, 'fp-privacy-button fp-privacy-button-primary' );
+var modalFooter = document.createElement( 'div' );
+modalFooter.className = 'fp-privacy-modal-footer';
+
+var actionsPrimary = document.createElement( 'div' );
+actionsPrimary.className = 'fp-privacy-modal-actions fp-privacy-modal-actions-primary';
+
+var saveLabel = texts.modal_save || texts.btn_prefs || '';
+var save = createButton( saveLabel, 'fp-privacy-button fp-privacy-button-primary' );
 save.addEventListener( 'click', function( event ) {
     event.preventDefault();
     event.stopPropagation();
     handleSavePreferences();
 });
-actions.appendChild( save );
+actionsPrimary.appendChild( save );
 
 var acceptAll = createButton( texts.btn_accept, 'fp-privacy-button fp-privacy-button-secondary' );
-acceptAll.addEventListener( 'click', function ( event ) {
+acceptAll.addEventListener( 'click', function( event ) {
     event.preventDefault();
     event.stopPropagation();
-    
-    // Abilita tutti i toggle visivamente PRIMA di salvare
     enableAllToggles();
-    
-    // Forza un reflow per assicurarsi che i cambiamenti visivi siano applicati
     if ( modal ) {
-        modal.offsetHeight; // Trigger reflow
+        modal.offsetHeight;
     }
-    
-    // Salva il consenso con tutte le categorie abilitate
-    // Il payload verrà costruito con grantAll=true, quindi tutte le categorie saranno abilitate
     handleAcceptAll();
-    
-    // Chiudi il modal dopo un breve delay per permettere l'aggiornamento visivo
     setTimeout( function() {
         closeModal();
     }, 150 );
 });
-actions.appendChild( acceptAll );
+actionsPrimary.appendChild( acceptAll );
 
-// Add revoke consent button
 var revokeButtonText = texts.btn_revoke || ( state.lang === 'it_IT' ? 'Revoca tutti i consensi' : 'Revoke all consent' );
 var revokeConfirmText = texts.revoke_confirm || ( state.lang === 'it_IT' ? 'Sei sicuro di voler revocare tutti i consensi? Il banner riapparirà e dovrai accettare nuovamente i cookie.' : 'Are you sure you want to revoke all consent? The banner will reappear and you will need to accept cookies again.' );
-var revokeButton = createButton( revokeButtonText, 'fp-privacy-button fp-privacy-button-danger' );
-revokeButton.style.marginLeft = '10px';
-revokeButton.style.backgroundColor = '#dc3232';
-revokeButton.style.color = '#fff';
+var revokeButton = createButton( revokeButtonText, 'fp-privacy-button fp-privacy-button-danger fp-privacy-button-revoke' );
 revokeButton.addEventListener( 'click', function( event ) {
     event.preventDefault();
     event.stopPropagation();
-    
-    // Show confirmation dialog
     var confirmed = confirm( revokeConfirmText );
     if ( confirmed ) {
         revokeConsent();
         closeModal();
     }
 } );
-actions.appendChild( revokeButton );
 
-modal.appendChild( actions );
+modalFooter.appendChild( actionsPrimary );
+
+var actionsSecondary = document.createElement( 'div' );
+actionsSecondary.className = 'fp-privacy-modal-actions fp-privacy-modal-actions-secondary';
+actionsSecondary.appendChild( revokeButton );
+modalFooter.appendChild( actionsSecondary );
+modal.appendChild( modalFooter );
 modalOverlay.appendChild( modal );
 document.body.appendChild( modalOverlay );
 

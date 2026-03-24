@@ -169,6 +169,7 @@ class ConsentState {
             'categories'=> $categories,
             'state'     => $states,
             'mode'      => $this->options->get( 'consent_mode_defaults' ),
+            'enable_sub_categories' => (bool) $this->options->get( 'enable_sub_categories', false ),
 			'ux'        => array(
 				'reject_all_confirm' => $reject_confirm,
 			),

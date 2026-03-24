@@ -14,6 +14,7 @@ use FP\Privacy\Core\ServiceProviderInterface;
 use FP\Privacy\Frontend\Banner;
 use FP\Privacy\Frontend\Blocks;
 use FP\Privacy\Frontend\ConsentState;
+use FP\Privacy\Frontend\FooterPolicyLinks;
 use FP\Privacy\Frontend\Shortcodes;
 use FP\Privacy\Frontend\ScriptBlocker;
 use FP\Privacy\Utils\Options;
@@ -83,6 +84,15 @@ class FrontendServiceProvider implements ServiceProviderInterface {
 				return new ScriptBlocker( $options, $state );
 			}
 		);
+
+		// Footer policy links.
+		$container->singleton(
+			FooterPolicyLinks::class,
+			function( ContainerInterface $c ) {
+				$options = self::resolveOptions( $c );
+				return new FooterPolicyLinks( $options );
+			}
+		);
 	}
 
 	/**
@@ -111,6 +121,11 @@ class FrontendServiceProvider implements ServiceProviderInterface {
 		$script_blocker = $container->get( ScriptBlocker::class );
 		if ( method_exists( $script_blocker, 'hooks' ) ) {
 			$script_blocker->hooks();
+		}
+
+		$footer_links = $container->get( FooterPolicyLinks::class );
+		if ( method_exists( $footer_links, 'hooks' ) ) {
+			$footer_links->hooks();
 		}
 	}
 }

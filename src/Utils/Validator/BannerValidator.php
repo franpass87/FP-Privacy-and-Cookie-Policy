@@ -81,6 +81,7 @@ class BannerValidator {
 				'link_policy'     => BasicValidator::url( $source['link_policy'] ?? $translated_defaults['link_policy'] ),
 				'link_privacy_policy' => BasicValidator::text( $source['link_privacy_policy'] ?? $translated_defaults['link_privacy_policy'] ),
 				'link_cookie_policy'  => BasicValidator::text( $source['link_cookie_policy'] ?? $translated_defaults['link_cookie_policy'] ),
+				'about_content'   => BasicValidator::textarea( $source['about_content'] ?? $translated_defaults['about_content'] ),
 			);
 		}
 
@@ -113,6 +114,7 @@ class BannerValidator {
 				'link_policy'         => '',
 				'link_privacy_policy' => 'Informativa sulla Privacy',
 				'link_cookie_policy'  => 'Cookie Policy',
+				'about_content'      => 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.',
 			);
 		}
 
@@ -138,6 +140,7 @@ class BannerValidator {
 			'link_policy'        => '',
 			'link_privacy_policy' => self::translate( 'Privacy Policy' ),
 			'link_cookie_policy'  => self::translate( 'Cookie Policy' ),
+			'about_content'      => self::translate( 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.' ),
 		);
 
 		// Restore original locale

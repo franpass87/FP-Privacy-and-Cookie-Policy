@@ -56,6 +56,13 @@ class BannerTabRenderer extends SettingsRendererBase {
 			<h2><?php \esc_html_e( 'Layout', 'fp-privacy' ); ?></h2>
 			<?php $this->render_layout_settings( $options['banner_layout'] ); ?>
 
+			<h2><?php \esc_html_e( 'Footer links', 'fp-privacy' ); ?></h2>
+			<label>
+				<input type="checkbox" name="footer_policy_links_enabled" value="1" <?php \checked( isset( $options['footer_policy_links_enabled'] ) ? (bool) $options['footer_policy_links_enabled'] : true ); ?> />
+				<?php \esc_html_e( 'Show Privacy Policy | Cookie Policy links at the bottom of every page', 'fp-privacy' ); ?>
+			</label>
+			<p class="description"><?php \esc_html_e( 'Adds a small block with policy links at the end of the page (before closing body). Requires at least one policy page: configure in FP Privacy → Privacy, or set the page in WordPress Settings → Privacy.', 'fp-privacy' ); ?></p>
+
 			<h2><?php \esc_html_e( 'Palette', 'fp-privacy' ); ?></h2>
 			<?php $this->render_palette_settings( $options['banner_layout']['palette'] ); ?>
 
@@ -92,6 +99,10 @@ class BannerTabRenderer extends SettingsRendererBase {
 			$field_type = 'message' === $key ? 'textarea' : 'text';
 			$this->render_text_field( "banner_texts[{$lang}][{$key}]", $label, $text[ $key ] ?? '', $field_type, $key );
 		}
+
+		// Tab Info — testo azienda
+		$about_label = \__( 'Tab Info — company / about text', 'fp-privacy' );
+		$this->render_text_field( "banner_texts[{$lang}][about_content]", $about_label, $text['about_content'] ?? '', 'textarea', 'about_content' );
 
 		// Policy link texts
 		?>

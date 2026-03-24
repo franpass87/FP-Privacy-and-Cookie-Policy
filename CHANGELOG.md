@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.9] - 2026-03-23
+
+### Fixed
+
+- Tab Info del banner: mostra sempre il testo standard completo invece del vecchio testo breve deprecato. Migrazione backend estesa (anche testi brevi con frasi deprecate) e fallback lato JS per IT/EN.
+
+---
+
 ## [1.0.8] - 2026-03-23
 
 ### Changed

@@ -28,8 +28,9 @@ function contrastRatio(hex1, hex2) {
 
 function createPreview(container) {
     var banner = $( '<div class="fp-privacy-banner"></div>' );
-    var title = $( '<h2></h2>' );
-    var message = $( '<p></p>' );
+    var bannerContent = $( '<div class="fp-privacy-banner-content"></div>' );
+    var title = $( '<h2 class="fp-privacy-banner-title"></h2>' );
+    var message = $( '<p class="fp-privacy-banner-message"></p>' );
     var revision = $( '<div class="fp-privacy-revision-notice"></div>' ).hide();
     var linksWrapper = $( '<div class="fp-privacy-banner-links"></div>' );
     var privacyLink = $( '<a class="fp-privacy-link" target="_blank" rel="noopener noreferrer"></a>' ).hide();
@@ -40,8 +41,9 @@ function createPreview(container) {
     var prefs = $( '<button type="button" class="fp-privacy-button fp-privacy-button-secondary"></button>' );
 
     linksWrapper.append( privacyLink, cookieLink );
+    bannerContent.append( title, message, revision, linksWrapper );
     buttons.append( accept, reject, prefs );
-    banner.append( title, message, revision, linksWrapper, buttons );
+    banner.append( bannerContent, buttons );
     container.empty().append( banner );
 
     return {

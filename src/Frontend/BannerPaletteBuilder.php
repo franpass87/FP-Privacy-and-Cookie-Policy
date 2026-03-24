@@ -68,7 +68,7 @@ class BannerPaletteBuilder {
 
 		if ( $sync_modal ) {
 			$css .= '.fp-privacy-modal{background:' . $surface_bg . ';color:' . $surface_text . ';border:1px solid ' . $border . ';}' . PHP_EOL;
-			$css .= '.fp-privacy-modal button.close{color:' . $surface_text . ';}' . PHP_EOL;
+			$css .= '.fp-privacy-modal .fp-privacy-modal-close,.fp-privacy-modal button.close{color:' . $surface_text . ';}' . PHP_EOL;
 			$css .= '.fp-privacy-modal .fp-privacy-button-primary{background:' . $button_primary_bg . ';color:' . $button_primary_tx . ';}' . PHP_EOL;
 			$css .= '.fp-privacy-modal .fp-privacy-button-secondary{background:' . $button_secondary_bg . ';color:' . $button_secondary_tx . ';border-color:' . $border . ';}' . PHP_EOL;
 			$css .= '.fp-privacy-modal .fp-privacy-switch input[type="checkbox"]:checked{background:' . $button_primary_bg . ';}' . PHP_EOL;

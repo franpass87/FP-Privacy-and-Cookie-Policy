@@ -85,6 +85,7 @@ class SettingsSaveHandler {
 			),
 			'auto_update_services'   => isset( $_POST['auto_update_services'] ),
 			'auto_update_policies'   => isset( $_POST['auto_update_policies'] ),
+			'footer_policy_links_enabled' => isset( $_POST['footer_policy_links_enabled'] ),
 		);
 
 		// Auto-populate link_policy fields before saving

@@ -191,6 +191,7 @@ class OptionsValidator {
 			'ai_disclosure'              => $this->sanitize_ai_disclosure( isset( $value['ai_disclosure'] ) && \is_array( $value['ai_disclosure'] ) ? $value['ai_disclosure'] : array(), $defaults['ai_disclosure'] ?? array() ),
 			'algorithmic_transparency'   => $this->sanitize_algorithmic_transparency( isset( $value['algorithmic_transparency'] ) && \is_array( $value['algorithmic_transparency'] ) ? $value['algorithmic_transparency'] : array(), $defaults['algorithmic_transparency'] ?? array() ),
 			'enable_sub_categories'      => Validator::bool( $value['enable_sub_categories'] ?? ( $defaults['enable_sub_categories'] ?? false ) ),
+			'footer_policy_links_enabled' => Validator::bool( $value['footer_policy_links_enabled'] ?? ( $defaults['footer_policy_links_enabled'] ?? true ) ),
 		);
 	}
 

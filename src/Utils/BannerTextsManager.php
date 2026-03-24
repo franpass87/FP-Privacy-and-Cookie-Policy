@@ -71,18 +71,17 @@ class BannerTextsManager {
 			// Check if there are custom texts saved for this language
 			$texts = $this->options->all()['banner_texts'] ?? array();
 			if ( isset( $texts[ $requested ] ) && \is_array( $texts[ $requested ] ) ) {
-				// Merge custom texts with Italian translations (custom texts take priority)
-				return array_merge( $italian_translations, $texts[ $requested ] );
+				$result = array_merge( $italian_translations, $texts[ $requested ] );
+				return $this->migrate_about_content_to_standard( $result, 'it_IT' );
 			}
 
 			// Check normalized language
 			$normalized = $this->options->normalize_language( $requested );
 			if ( isset( $texts[ $normalized ] ) && \is_array( $texts[ $normalized ] ) && $normalized !== $requested ) {
-				// Merge with Italian translations
-				return array_merge( $italian_translations, $texts[ $normalized ] );
+				$result = array_merge( $italian_translations, $texts[ $normalized ] );
+				return $this->migrate_about_content_to_standard( $result, 'it_IT' );
 			}
 
-			// Return hardcoded Italian translations
 			return $italian_translations;
 		}
 
@@ -93,18 +92,17 @@ class BannerTextsManager {
 			// Check if there are custom texts saved for this language
 			$texts = $this->options->all()['banner_texts'] ?? array();
 			if ( isset( $texts[ $requested ] ) && \is_array( $texts[ $requested ] ) ) {
-				// Merge custom texts with English translations (custom texts take priority)
-				return array_merge( $english_translations, $texts[ $requested ] );
+				$result = array_merge( $english_translations, $texts[ $requested ] );
+				return $this->migrate_about_content_to_standard( $result, 'en_US' );
 			}
 
 			// Check normalized language
 			$normalized = $this->options->normalize_language( $requested );
 			if ( isset( $texts[ $normalized ] ) && \is_array( $texts[ $normalized ] ) && $normalized !== $requested ) {
-				// Merge with English translations
-				return array_merge( $english_translations, $texts[ $normalized ] );
+				$result = array_merge( $english_translations, $texts[ $normalized ] );
+				return $this->migrate_about_content_to_standard( $result, 'en_US' );
 			}
 
-			// Return hardcoded English translations
 			return $english_translations;
 		}
 
@@ -114,19 +112,103 @@ class BannerTextsManager {
 		// Check if there are custom texts saved for this language
 		$texts = $this->options->all()['banner_texts'] ?? array();
 		if ( isset( $texts[ $requested ] ) && \is_array( $texts[ $requested ] ) ) {
-			// Merge custom texts with translated defaults (custom texts take priority)
-			return array_merge( $translated_defaults, $texts[ $requested ] );
+			$result = array_merge( $translated_defaults, $texts[ $requested ] );
+			return $this->migrate_about_content_to_standard( $result, $requested );
 		}
 
 		// Check normalized language
 		$normalized = $this->options->normalize_language( $requested );
 		if ( isset( $texts[ $normalized ] ) && \is_array( $texts[ $normalized ] ) && $normalized !== $requested ) {
-			// Merge with translated defaults
-			return array_merge( $translated_defaults, $texts[ $normalized ] );
+			$result = array_merge( $translated_defaults, $texts[ $normalized ] );
+			return $this->migrate_about_content_to_standard( $result, $requested );
 		}
 
-		// Return translated defaults as ultimate fallback
 		return $translated_defaults;
+	}
+
+	/**
+	 * Migrate deprecated about_content (old short/company text) to the new standard text.
+	 * Persists the fix so it applies on next load.
+	 *
+	 * @param array<string, string> $result Merged banner texts.
+	 * @param string                $lang  Language code.
+	 *
+	 * @return array<string, string>
+	 */
+	private function migrate_about_content_to_standard( array $result, string $lang ): array {
+		$current = isset( $result['about_content'] ) ? trim( (string) $result['about_content'] ) : '';
+		if ( '' === $current ) {
+			return $result;
+		}
+
+		$deprecated = array(
+			'it_IT' => array(
+				'Scopri di più sulla nostra azienda, i nostri valori e la nostra storia. Puoi trovare maggiori informazioni nella sezione Chi siamo del nostro sito.',
+				'Utilizziamo i cookie per personalizzare contenuti e annunci, fornire funzionalità per i social media e analizzare il nostro traffico. Condividiamo inoltre informazioni sull\'utilizzo del nostro sito con i nostri partner per social media, pubblicità e analisi.',
+			),
+			'en_US' => array(
+				'Learn more about our company, our values and our story. Find more information in the About us section of our website.',
+				'We use cookies to personalise content and ads, to provide social media features and to analyse our traffic. We also share information about your use of our site with our social media, advertising and analytics partners.',
+			),
+		);
+
+		$lang_key   = ( strpos( $lang, 'it' ) === 0 ) ? 'it_IT' : 'en_US';
+		$to_replace = $deprecated[ $lang_key ] ?? array();
+		$new_text   = $lang_key === 'it_IT'
+			? 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.'
+			: 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
+
+		$should_replace = false;
+
+		foreach ( $to_replace as $old ) {
+			if ( $current === $old ) {
+				$should_replace = true;
+				break;
+			}
+		}
+
+		// Sostituisci anche testi brevi (< 250 caratteri) che sembrano vecchi deprecati.
+		if ( ! $should_replace && \strlen( $current ) < 250 ) {
+			$short_deprecated_phrases = array(
+				'it_IT' => array( 'personalizzare contenuti', 'azienda', 'Chi siamo' ),
+				'en_US' => array( 'personalise content', 'our company', 'About us' ),
+			);
+			$phrases = $short_deprecated_phrases[ $lang_key ] ?? array();
+			foreach ( $phrases as $phrase ) {
+				if ( false !== \strpos( \strtolower( $current ), \strtolower( $phrase ) ) ) {
+					$should_replace = true;
+					break;
+				}
+			}
+		}
+
+		if ( $should_replace ) {
+			$result['about_content'] = $new_text;
+			$this->persist_about_content_migration( $lang, $new_text );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Persist migrated about_content to options so the fix is permanent.
+	 *
+	 * @param string $lang Language code.
+	 * @param string $text New about_content text.
+	 *
+	 * @return void
+	 */
+	private function persist_about_content_migration( string $lang, string $text ): void {
+		$all     = $this->options->all();
+		$texts   = isset( $all['banner_texts'] ) && \is_array( $all['banner_texts'] ) ? $all['banner_texts'] : array();
+		$norm    = $this->options->normalize_language( $lang );
+		$lang_key = ( strpos( $norm, 'it' ) === 0 ) ? 'it_IT' : ( ( strpos( $norm, 'en' ) === 0 ) ? 'en_US' : $norm );
+
+		if ( ! isset( $texts[ $lang_key ] ) || ! \is_array( $texts[ $lang_key ] ) ) {
+			$texts[ $lang_key ] = array();
+		}
+		$texts[ $lang_key ]['about_content'] = $text;
+		$this->options->set( array( 'banner_texts' => $texts ) );
 	}
 
 	/**
@@ -169,6 +251,11 @@ class BannerTextsManager {
 			'link_policy'        => '',
 			'link_privacy_policy' => Options::maybe_translate( 'Privacy Policy' ),
 			'link_cookie_policy'  => Options::maybe_translate( 'Cookie Policy' ),
+			'tab_consent'        => Options::maybe_translate( 'Consent' ),
+			'tab_details'        => Options::maybe_translate( 'Details' ),
+			'tab_about'          => Options::maybe_translate( 'About' ),
+			'tab_details_title'  => Options::maybe_translate( 'Categories and services' ),
+			'about_content'      => Options::maybe_translate( 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.' ),
 		);
 
 		// Restore original locale
@@ -255,6 +342,11 @@ class BannerTextsManager {
 			'link_privacy_policy' => 'Informativa sulla Privacy',
 			'link_cookie_policy'  => 'Cookie Policy',
 			'reject_all_confirm'  => 'Rifiutando non verranno attivati cookie di statistica e marketing (restano solo quelli strettamente necessari). Vuoi continuare?',
+			'tab_consent'        => 'Consenso',
+			'tab_details'        => 'Dettagli',
+			'tab_about'          => 'Info',
+			'tab_details_title'  => 'Categorie e servizi',
+			'about_content'      => 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.',
 		);
 	}
 
@@ -281,6 +373,11 @@ class BannerTextsManager {
 			'link_privacy_policy' => 'Privacy Policy',
 			'link_cookie_policy'  => 'Cookie Policy',
 			'reject_all_confirm'  => 'If you reject, analytics and marketing cookies will not be activated (only strictly necessary cookies remain). Continue?',
+			'tab_consent'        => 'Consent',
+			'tab_details'        => 'Details',
+			'tab_about'          => 'About',
+			'tab_details_title'  => 'Categories and services',
+			'about_content'      => 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.',
 		);
 	}
 
