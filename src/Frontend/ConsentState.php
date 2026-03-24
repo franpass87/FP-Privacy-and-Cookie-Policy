@@ -123,6 +123,7 @@ class ConsentState {
         }
 
         $text       = $this->options->get_banner_text( $requested );
+        $text       = $this->ensure_about_content_standard( $text, $requested );
         $categories = $this->options->get_categories_for_language( $normalized );
         
         // Get policy page URLs
@@ -178,6 +179,26 @@ class ConsentState {
                 'cookie' => $cookie_url,
             ),
         );
+    }
+
+    /**
+     * Ensure about_content is the standard text when it is short (deprecated old text).
+     *
+     * @param array<string, string> $text  Banner texts.
+     * @param string                $lang Language code.
+     *
+     * @return array<string, string>
+     */
+    private function ensure_about_content_standard( array $text, string $lang ): array {
+        $current = isset( $text['about_content'] ) ? trim( (string) $text['about_content'] ) : '';
+        if ( '' !== $current && \strlen( $current ) >= 250 ) {
+            return $text;
+        }
+        $is_it = ( strpos( $lang, 'it' ) === 0 );
+        $text['about_content'] = $is_it
+            ? 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.'
+            : 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
+        return $text;
     }
 
     /**

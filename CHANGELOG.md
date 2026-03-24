@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.11] - 2026-03-23
+
+### Fixed
+
+- Tab Info: override about_content lato backend in ConsentState — i dati in FP_PRIVACY_DATA sono corretti prima del JS, evitando cache/ordinamento.
+
+---
+
 ## [1.0.10] - 2026-03-23
 
 ### Fixed
