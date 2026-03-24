@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.9
+Stable tag: 1.0.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.10 =
+* Fixed: Tab Info - fallback robusto in buildBanner() per testo breve deprecato.
 
 = 1.0.9 =
 * Fixed: Tab Info del banner - mostra sempre il testo standard completo invece del vecchio testo breve deprecato (migrazione backend + fallback JS IT/EN).

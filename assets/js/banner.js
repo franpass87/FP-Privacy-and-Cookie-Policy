@@ -842,9 +842,10 @@ aboutPanel.setAttribute( 'role', 'tabpanel' );
 aboutPanel.setAttribute( 'data-tab', 'about' );
 aboutPanel.style.display = 'none';
 
-var aboutContent = texts.about_content || texts.message || ( isItalian
-    ? 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.'
-    : 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.' );
+var stdAboutIt = 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.';
+var stdAboutEn = 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
+var rawAbout = texts.about_content || texts.message || '';
+var aboutContent = ( rawAbout && rawAbout.length >= 250 ) ? rawAbout : ( isItalian ? stdAboutIt : stdAboutEn );
 var aboutP = document.createElement( 'p' );
 aboutP.className = 'fp-privacy-banner-about-text';
 aboutP.innerHTML = aboutContent;

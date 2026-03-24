@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.10] - 2026-03-23
+
+### Fixed
+
+- Tab Info: fallback robusto in buildBanner() — sostituisce il testo breve anche se l'override iniziale non è applicato (cache, ordine esecuzione).
+
+---
+
 ## [1.0.9] - 2026-03-23
 
 ### Fixed
