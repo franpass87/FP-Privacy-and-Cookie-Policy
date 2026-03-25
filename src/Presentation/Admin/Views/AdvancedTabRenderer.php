@@ -30,7 +30,7 @@ class AdvancedTabRenderer extends SettingsRendererBase {
 			<h2><?php \esc_html_e( 'Integration alerts', 'fp-privacy' ); ?></h2>
 			<?php $this->render_detector_notifications( $notifications, $notification_recipients ); ?>
 
-			<?php \submit_button( \__( 'Salva impostazioni avanzate', 'fp-privacy' ), 'primary', 'submit-advanced', false ); ?>
+			<?php \submit_button( \__( 'Save advanced tab (use Save all at the top for full settings)', 'fp-privacy' ), 'primary', 'submit-advanced', false ); ?>
 		</div>
 		<?php
 	}

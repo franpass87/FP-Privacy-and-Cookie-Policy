@@ -28,10 +28,13 @@ class BannerTabRenderer extends SettingsRendererBase {
 		$primary_lang = $data['primary_lang'];
 		?>
 		<div class="fp-privacy-tab-content active" id="fp-privacy-tab-content-banner" role="tabpanel" aria-labelledby="fp-privacy-tab-button-banner" data-tab-content="banner">
+			<div class="fp-privacy-accordion-section" data-fp-section="banner-languages">
 			<h2><?php \esc_html_e( 'Languages', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Provide active languages (comma separated locale codes).', 'fp-privacy' ); ?></p>
 			<input type="text" name="languages_active" class="regular-text" value="<?php echo \esc_attr( implode( ',', $languages ) ); ?>" />
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="banner-content">
 			<h2><?php \esc_html_e( 'Banner content', 'fp-privacy' ); ?></h2>
 			<?php foreach ( $languages as $lang ) :
 				$lang = $this->options->normalize_language( $lang );
@@ -46,27 +49,36 @@ class BannerTabRenderer extends SettingsRendererBase {
 					<?php $this->render_banner_text_fields( $lang, $text ); ?>
 				</div>
 			<?php endforeach; ?>
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="banner-preview">
+			<h2><?php \esc_html_e( 'Banner preview', 'fp-privacy' ); ?></h2>
 			<div class="fp-privacy-preview">
-				<h2><?php \esc_html_e( 'Banner preview', 'fp-privacy' ); ?></h2>
 				<p class="description"><?php \esc_html_e( 'Adjust copy, colors, and layout to see a live preview of the cookie banner.', 'fp-privacy' ); ?></p>
 				<?php $this->render_preview_controls( $languages, $primary_lang ); ?>
 			</div>
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="banner-layout">
 			<h2><?php \esc_html_e( 'Layout', 'fp-privacy' ); ?></h2>
 			<?php $this->render_layout_settings( $options['banner_layout'] ); ?>
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="banner-footer-links">
 			<h2><?php \esc_html_e( 'Footer links', 'fp-privacy' ); ?></h2>
 			<label>
 				<input type="checkbox" name="footer_policy_links_enabled" value="1" <?php \checked( isset( $options['footer_policy_links_enabled'] ) ? (bool) $options['footer_policy_links_enabled'] : true ); ?> />
 				<?php \esc_html_e( 'Show Privacy Policy | Cookie Policy links at the bottom of every page', 'fp-privacy' ); ?>
 			</label>
 			<p class="description"><?php \esc_html_e( 'Adds a small block with policy links at the end of the page (before closing body). Requires at least one policy page: configure in FP Privacy → Privacy, or set the page in WordPress Settings → Privacy.', 'fp-privacy' ); ?></p>
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="banner-palette">
 			<h2><?php \esc_html_e( 'Palette', 'fp-privacy' ); ?></h2>
 			<?php $this->render_palette_settings( $options['banner_layout']['palette'] ); ?>
+			</div>
 
-			<?php \submit_button( \__( 'Salva impostazioni banner', 'fp-privacy' ), 'primary', 'submit-banner', false ); ?>
+			<?php \submit_button( \__( 'Save banner tab (use Save all at the top for full settings)', 'fp-privacy' ), 'primary', 'submit-banner', false ); ?>
 		</div>
 		<?php
 	}

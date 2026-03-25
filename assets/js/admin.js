@@ -1268,9 +1268,22 @@ $( function () {
     var detectedTable = $( '.fp-privacy-detected' );
     if ( detectedTable.length ) {
         var filterRow = $( '<div class="fp-privacy-table-filters"></div>' );
-        var searchInput = $( '<input type="text" placeholder="🔍 Cerca servizio..." />' );
-        var categoryFilter = $( '<select><option value="">Tutte le categorie</option><option value="marketing">Marketing</option><option value="analytics">Analytics</option><option value="necessary">Necessari</option><option value="preferences">Preferenze</option></select>' );
-        var statusFilter = $( '<select><option value="">Tutti gli stati</option><option value="detected">Rilevati</option><option value="not-detected">Non rilevati</option></select>' );
+        var searchInput = $( '<input type="text" />' ).attr(
+            'placeholder',
+            l10n.detectedSearchPlaceholder || 'Search service…'
+        );
+        var categoryFilter = $( '<select></select>' ).append(
+            $( '<option value=""></option>' ).text( l10n.detectedCategoryAll || 'All categories' ),
+            $( '<option value="marketing"></option>' ).text( l10n.categoryMarketing || 'Marketing' ),
+            $( '<option value="analytics"></option>' ).text( l10n.categoryAnalytics || 'Analytics' ),
+            $( '<option value="necessary"></option>' ).text( l10n.categoryNecessary || 'Necessary' ),
+            $( '<option value="preferences"></option>' ).text( l10n.categoryPreferences || 'Preferences' )
+        );
+        var statusFilter = $( '<select></select>' ).append(
+            $( '<option value=""></option>' ).text( l10n.detectedStatusAll || 'All statuses' ),
+            $( '<option value="detected"></option>' ).text( l10n.statusDetected || 'Detected' ),
+            $( '<option value="not-detected"></option>' ).text( l10n.statusNotDetected || 'Not detected' )
+        );
         
         filterRow.append( searchInput, categoryFilter, statusFilter );
         detectedTable.before( filterRow );
@@ -1319,104 +1332,106 @@ $( function () {
         });
     }
     
-    // Sistema accordion per organizzare le sezioni
-    function initAccordion() {
-        var sections = [
-            { id: 'languages', title: '🌐 Lingue', selector: 'h2:contains("Languages"), h2:contains("Lingue")' },
-            { id: 'banner', title: '📢 Contenuto Banner', selector: 'h2:contains("Banner content"), h2:contains("Banner")' },
-            { id: 'preview', title: '👁️ Anteprima', selector: '.fp-privacy-preview' },
-            { id: 'layout', title: '🎨 Layout', selector: 'h2:contains("Layout")' },
-            { id: 'palette', title: '🎨 Palette', selector: 'h2:contains("Palette")' },
-            { id: 'consent-mode', title: '⚙️ Consent Mode', selector: 'h2:contains("Consent Mode")' },
-            { id: 'gpc', title: '🌍 GPC', selector: 'h2:contains("Global Privacy Control"), h2:contains("GPC")' },
-            { id: 'retention', title: '📅 Retention', selector: 'h2:contains("Retention")' },
-            { id: 'controller', title: '🏢 Controller & DPO', selector: 'h2:contains("Controller"), h2:contains("DPO")' },
-            { id: 'alerts', title: '🔔 Alerts', selector: 'h2:contains("Integration alerts"), h2:contains("alert")' },
-            { id: 'scripts', title: '🚫 Script Blocking', selector: 'h2:contains("Script blocking"), h2:contains("Script")' }
-        ];
-        
-        sections.forEach( function( section ) {
-            var sectionElement = $( section.selector ).first();
-            if ( ! sectionElement.length ) return;
-            
-            // Wrap section in accordion
-            var nextElements = sectionElement.nextUntil( 'h2' ).addBack();
-            if ( nextElements.length === 1 ) {
-                nextElements = sectionElement.nextUntil( 'h2, .fp-privacy-preview' ).addBack();
+    /**
+     * Accordion: sezioni marcate in PHP con .fp-privacy-accordion-section[data-fp-section].
+     */
+    function initSettingsAccordions() {
+        var $sections = form.find( '.fp-privacy-accordion-section' );
+        if ( $sections.length < 2 ) {
+            return;
+        }
+
+        $sections.each( function() {
+            var $wrap = $( this );
+            if ( $wrap.data( 'fpPrivacyAccordionInited' ) ) {
+                return;
             }
-            
-            var accordion = $( '<div class="fp-privacy-section-accordion" id="section-' + section.id + '"></div>' );
-            var header = $( '<div class="fp-privacy-section-header"><h3>' + section.title + '</h3><span class="fp-privacy-section-toggle">▼</span></div>' );
-            var content = $( '<div class="fp-privacy-section-content"></div>' );
-            
-            nextElements.wrapAll( content );
-            content = sectionElement.nextUntil( 'h2' ).parent();
-            
-            sectionElement.before( accordion );
-            accordion.append( header );
-            
-            // Sposta contenuto nell'accordion
-            var elementsToMove = sectionElement.nextUntil( 'h2, .fp-privacy-section-accordion' );
-            if ( section.selector === '.fp-privacy-preview' ) {
-                elementsToMove = sectionElement;
+            var sectionId = $wrap.attr( 'data-fp-section' );
+            if ( ! sectionId ) {
+                return;
             }
-            
-            var contentWrapper = $( '<div class="fp-privacy-section-content"></div>' );
-            accordion.append( contentWrapper );
-            contentWrapper.append( sectionElement );
-            contentWrapper.append( elementsToMove );
-            
-            // Toggle accordion
-            var toggleBtn = header.find( '.fp-privacy-section-toggle' ).first();
-            if ( ! toggleBtn.length ) {
-                toggleBtn = header;
+            var $h2 = $wrap.children( 'h2' ).first();
+            if ( ! $h2.length ) {
+                return;
             }
-            
-            toggleBtn.attr( 'aria-expanded', 'true' );
-            header.attr( 'aria-expanded', 'true' );
-            
-            header.on( 'click', function() {
-                var isCollapsed = accordion.hasClass( 'collapsed' );
-                accordion.toggleClass( 'collapsed' );
-                
-                var newState = ! isCollapsed;
-                toggleBtn.attr( 'aria-expanded', newState ? 'false' : 'true' );
-                header.attr( 'aria-expanded', newState ? 'false' : 'true' );
-                
-                // Salva stato in localStorage
-                localStorage.setItem( 'fp-privacy-section-' + section.id, newState ? 'collapsed' : 'expanded' );
-            });
-            
-            // Ripristina stato aria-expanded
-            var savedState = localStorage.getItem( 'fp-privacy-section-' + section.id );
+
+            var titleHtml = $h2.html();
+            var panelId = 'fp-privacy-acc-panel-' + sectionId.replace( /[^a-z0-9_-]/gi, '' );
+            var btnId = 'fp-privacy-acc-btn-' + sectionId.replace( /[^a-z0-9_-]/gi, '' );
+
+            var $panel = $( '<div class="fp-privacy-section-content" role="region"></div>' )
+                .attr( 'id', panelId )
+                .attr( 'aria-labelledby', btnId );
+            var $heading = $( '<h2 class="fp-privacy-section-heading"></h2>' );
+            var $btn = $( '<button type="button" class="fp-privacy-section-toggle-btn"></button>' )
+                .attr( 'id', btnId )
+                .attr( 'aria-controls', panelId )
+                .attr( 'aria-expanded', 'true' );
+            $btn.append( $( '<span class="fp-privacy-section-toggle-label"></span>' ).html( titleHtml ) );
+            $btn.append( $( '<span class="dashicons dashicons-arrow-up-alt2 fp-privacy-section-chevron" aria-hidden="true"></span>' ) );
+            $heading.append( $btn );
+
+            var $rest = $wrap.contents().not( $h2 );
+            $panel.append( $rest );
+            $wrap.empty()
+                .removeClass( 'fp-privacy-accordion-section' )
+                .addClass( 'fp-privacy-section-accordion' )
+                .attr( 'data-fp-section', sectionId );
+            $wrap.append( $heading, $panel );
+            $wrap.data( 'fpPrivacyAccordionInited', true );
+
+            var storageKey = 'fp-privacy-section-' + sectionId;
+
+            $btn.on( 'click', function() {
+                var collapsed = $wrap.toggleClass( 'collapsed' ).hasClass( 'collapsed' );
+                $( this ).attr( 'aria-expanded', collapsed ? 'false' : 'true' );
+                localStorage.setItem( storageKey, collapsed ? 'collapsed' : 'expanded' );
+            } );
+
+            var savedState = localStorage.getItem( storageKey );
             if ( savedState === 'collapsed' ) {
-                toggleBtn.attr( 'aria-expanded', 'false' );
-                header.attr( 'aria-expanded', 'false' );
+                $wrap.addClass( 'collapsed' );
+                $btn.attr( 'aria-expanded', 'false' );
             }
-            
-            // Ripristina stato da localStorage
-            var savedState = localStorage.getItem( 'fp-privacy-section-' + section.id );
-            if ( savedState === 'collapsed' ) {
-                accordion.addClass( 'collapsed' );
+        } );
+
+        form.find( '.fp-privacy-tab-content' ).each( function() {
+            var $tab = $( this );
+            var $accs = $tab.find( '.fp-privacy-section-accordion' );
+            if ( $accs.length < 2 || $tab.find( '.fp-privacy-accordion-toolbar' ).length ) {
+                return;
             }
-        });
-        
-        // Espandi/Collassa tutto
-        var toggleAll = $( '<div style="margin-bottom:20px;"><button type="button" class="button" id="fp-expand-all">⬇️ Espandi tutto</button> <button type="button" class="button" id="fp-collapse-all">⬆️ Collassa tutto</button></div>' );
-        form.before( toggleAll );
-        
-        $( '#fp-expand-all' ).on( 'click', function() {
-            $( '.fp-privacy-section-accordion' ).removeClass( 'collapsed' );
-        });
-        
-        $( '#fp-collapse-all' ).on( 'click', function() {
-            $( '.fp-privacy-section-accordion' ).addClass( 'collapsed' );
-        });
+            var expandLabel = l10n.expandAllSections || 'Expand all sections';
+            var collapseLabel = l10n.collapseAllSections || 'Collapse all sections';
+            var $tb = $( '<div class="fp-privacy-accordion-toolbar"></div>' );
+            var $expand = $( '<button type="button" class="fp-privacy-btn fp-privacy-btn-secondary fp-privacy-accordion-expand-all"></button>' ).text( expandLabel );
+            var $collapse = $( '<button type="button" class="fp-privacy-btn fp-privacy-btn-secondary fp-privacy-accordion-collapse-all"></button>' ).text( collapseLabel );
+            $tb.append( $expand, $collapse );
+            $tab.prepend( $tb );
+
+            $expand.on( 'click', function() {
+                $tab.find( '.fp-privacy-section-accordion' ).removeClass( 'collapsed' );
+                $tab.find( '.fp-privacy-section-toggle-btn' ).attr( 'aria-expanded', 'true' );
+                $tab.find( '.fp-privacy-section-accordion' ).each( function() {
+                    var sid = $( this ).attr( 'data-fp-section' );
+                    if ( sid ) {
+                        localStorage.setItem( 'fp-privacy-section-' + sid, 'expanded' );
+                    }
+                } );
+            } );
+            $collapse.on( 'click', function() {
+                $tab.find( '.fp-privacy-section-accordion' ).addClass( 'collapsed' );
+                $tab.find( '.fp-privacy-section-toggle-btn' ).attr( 'aria-expanded', 'false' );
+                $tab.find( '.fp-privacy-section-accordion' ).each( function() {
+                    var sid = $( this ).attr( 'data-fp-section' );
+                    if ( sid ) {
+                        localStorage.setItem( 'fp-privacy-section-' + sid, 'collapsed' );
+                    }
+                } );
+            } );
+        } );
     }
-    
-    // Inizializza accordion se ci sono abbastanza sezioni
-    if ( $( 'h2' ).length > 3 ) {
-        setTimeout( initAccordion, 100 );
-    }
+
+    setTimeout( initSettingsAccordions, 100 );
 } );
 })( window.jQuery );

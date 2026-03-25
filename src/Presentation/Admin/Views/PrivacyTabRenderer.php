@@ -26,22 +26,32 @@ class PrivacyTabRenderer extends SettingsRendererBase {
 		$options = $data['options'];
 		?>
 		<div class="fp-privacy-tab-content" id="fp-privacy-tab-content-privacy" role="tabpanel" aria-labelledby="fp-privacy-tab-button-privacy" data-tab-content="privacy">
+			<div class="fp-privacy-accordion-section" data-fp-section="privacy-consent-mode">
 			<h2><?php \esc_html_e( 'Consent Mode defaults', 'fp-privacy' ); ?></h2>
 			<?php $this->render_consent_mode_settings(); ?>
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="privacy-gpc">
 			<h2><?php \esc_html_e( 'Global Privacy Control (GPC)', 'fp-privacy' ); ?></h2>
 			<?php $this->render_gpc_settings( $options['gpc_enabled'] ); ?>
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="privacy-retention">
 			<h2><?php \esc_html_e( 'Retention & Revision', 'fp-privacy' ); ?></h2>
 			<?php $this->render_retention_settings( $options['retention_days'], $options['preview_mode'], $options['consent_revision'] ); ?>
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="privacy-controller">
 			<h2><?php \esc_html_e( 'Controller & DPO', 'fp-privacy' ); ?></h2>
 			<?php $this->render_organization_settings( $options ); ?>
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="privacy-algorithmic">
 			<h2><?php \esc_html_e( 'Algorithmic Transparency (Digital Omnibus)', 'fp-privacy' ); ?></h2>
 			<?php $this->render_algorithmic_transparency_settings( $options ); ?>
+			</div>
 
-			<?php \submit_button( \__( 'Salva impostazioni privacy', 'fp-privacy' ), 'primary', 'submit-privacy', false ); ?>
+			<?php \submit_button( \__( 'Save privacy tab (use Save all at the top for full settings)', 'fp-privacy' ), 'primary', 'submit-privacy', false ); ?>
 		</div>
 		<?php
 	}

@@ -29,18 +29,24 @@ class CookiesTabRenderer extends SettingsRendererBase {
 		$detected          = $data['detected'];
 		?>
 		<div class="fp-privacy-tab-content" id="fp-privacy-tab-content-cookies" role="tabpanel" aria-labelledby="fp-privacy-tab-button-cookies" data-tab-content="cookies">
-			<h2><?php \esc_html_e( 'Granularità Consenso (EDPB 2025)', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-accordion-section" data-fp-section="cookies-consent-granularity">
+			<h2><?php \esc_html_e( 'Consent granularity (EDPB 2025)', 'fp-privacy' ); ?></h2>
 			<?php $this->render_sub_categories_settings( $data['options'] ); ?>
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="cookies-script-blocking">
 			<h2><?php \esc_html_e( 'Script blocking', 'fp-privacy' ); ?></h2>
 			<?php $this->render_script_blocking_settings( $languages, $script_rules, $script_categories ); ?>
+			</div>
 
+			<div class="fp-privacy-accordion-section" data-fp-section="cookies-detected-services">
 			<h2><?php \esc_html_e( 'Detected services', 'fp-privacy' ); ?></h2>
 			<?php $this->render_detected_services( $detected ); ?>
+			</div>
 
 			<p class="description"><?php \esc_html_e( 'Use the policy editor to regenerate your documents after services change.', 'fp-privacy' ); ?></p>
 
-			<?php \submit_button( \__( 'Salva impostazioni cookie', 'fp-privacy' ), 'primary', 'submit-cookies', false ); ?>
+			<?php \submit_button( \__( 'Save cookies tab (use Save all at the top for full settings)', 'fp-privacy' ), 'primary', 'submit-cookies', false ); ?>
 		</div>
 		<?php
 	}

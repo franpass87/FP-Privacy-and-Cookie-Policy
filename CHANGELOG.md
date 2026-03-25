@@ -4,6 +4,17 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.31] - 2026-03-25
+
+### Changed
+
+- Impostazioni admin: sezioni collassabili basate su `.fp-privacy-accordion-section[data-fp-section]` emesse dai tab renderer (niente più selettori jQuery `:contains` sugli `h2`); intestazione `h2` + `button` con `aria-controls` / `role="region"` sul pannello.
+- `admin.css`: stile accordion allineato a token/card FP (`.fp-privacy-section-accordion`, `.fp-privacy-btn-secondary`); esclusi `.fp-privacy-section-heading` dalle regole decorative sugli `h2` legacy; toolbar “Expand/Collapse all” per tab con almeno due sezioni.
+- `admin.js` + `fpPrivacyL10n`: etichette filtri tabella servizi rilevati e pulsanti accordion in msgid inglesi.
+- Tab Banner/Cookie/Privacy: wrapper sezioni; titolo cookie “Consent granularity (EDPB 2025)” in inglese; testi `submit_button` dei tab chiariti (salvataggio completo via “Save all”).
+
+---
+
 ## [1.0.30] - 2026-03-25
 
 ### Added
