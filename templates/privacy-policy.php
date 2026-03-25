@@ -166,7 +166,8 @@ $fp_privacy_section_label_map = array(
 
 $sections = array();
 foreach ( $fp_privacy_section_label_map as $id => $en_label ) {
-	$sections[ $id ] = esc_html( fp_privacy_policy_msg( $en_label, $fp_policy_is_en ) );
+	// Non escapare qui: il foreach del TOC applica esc_html() su $title.
+	$sections[ $id ] = fp_privacy_policy_msg( $en_label, $fp_policy_is_en );
 }
 ?>
 <section class="fp-privacy-policy">

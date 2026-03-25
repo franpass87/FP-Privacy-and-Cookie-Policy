@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.25] - 2026-03-25
+
+### Fixed
+
+- Template `privacy-policy.php`: le voci del sommario non usano più **doppio `esc_html`** (prima in array e poi nel `foreach`), evitando entità HTML doppie su titoli con `&` o caratteri speciali.
+
+---
+
 ## [1.0.24] - 2026-03-25
 
 ### Fixed

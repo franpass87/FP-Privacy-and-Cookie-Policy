@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.24
+Stable tag: 1.0.25
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.25 =
+* Fixed: sommario policy — rimosso doppio escape HTML sulle voci del TOC.
 
 = 1.0.24 =
 * Fixed: policy in inglese — titoli sommario, h2, tabella servizi e “Last updated” in inglese letterale quando `$lang` è en_* (evita WPML/gettext ancora su it_IT).
