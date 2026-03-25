@@ -186,19 +186,16 @@ body.fp-privacy-admin-shell .fp-privacy-admin-page .button:not(.button-primary):
     color: var(--fpdms-primary);
 }
 
-/* Header pagina — standard FP (fp-admin-ui-design-system: banner universale) */
+/* Header pagina — stesso look di FP Mail SMTP (.fpmail-page-header) */
 .fp-privacy-admin-page .fp-privacy-page-header {
     background: var(--fpdms-gradient-primary);
-    border-radius: 16px;
-    padding: 28px 32px;
+    border-radius: var(--radius-xl);
+    padding: 1.5rem 2rem;
     margin-bottom: 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: #fff;
-    box-shadow: var(--shadow-md);
-    flex-wrap: wrap;
-    gap: 1rem;
 }
 
 .fp-privacy-page-header-content {
@@ -206,46 +203,36 @@ body.fp-privacy-admin-shell .fp-privacy-admin-page .button:not(.button-primary):
     min-width: 200px;
 }
 
-.fp-privacy-page-header-content .fp-privacy-page-header-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.fp-privacy-page-header .fp-privacy-page-header-title {
     margin: 0 0 0.25rem 0;
-    font-size: 26px;
-    font-weight: 700;
     color: #fff !important;
-    line-height: 1.25;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
-.fp-privacy-page-header-title .dashicons {
-    font-size: 26px;
-    width: 26px;
-    height: 26px;
+.fp-privacy-page-header .fp-privacy-page-header-title .dashicons {
+    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-right: 0.5rem;
     vertical-align: middle;
 }
 
-.fp-privacy-page-header-content .fp-privacy-page-header-desc,
-.fp-privacy-page-header-content > p {
+.fp-privacy-page-header .fp-privacy-page-header-desc,
+.fp-privacy-page-header p {
     margin: 0;
-    font-size: 15px;
-    line-height: 1.5;
-    max-width: 42rem;
-    color: rgba(255, 255, 255, 0.88) !important;
+    opacity: 0.95;
+    font-size: 0.95rem;
+    color: #fff !important;
 }
 
 .fp-privacy-page-header-badge {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.35rem 0.85rem;
-    border-radius: 999px;
-    font-size: 11px;
+    background: rgba(255, 255, 255, 0.25);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.8rem;
     font-weight: 600;
     color: #fff;
-    text-transform: none;
-    letter-spacing: normal;
-    box-shadow: none;
 }
 
 /* ——— Subnav orizzontale (tutte le pagine FP Privacy) ——— */

@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.34] - 2026-03-25
+
+### Changed
+
+- Banner titolo admin (`.fp-privacy-page-header`): stessi valori CSS di **FP Mail SMTP** (`admin.css` — padding `1.5rem 2rem`, titolo `1.5rem`, sottotitolo `opacity: 0.95` / `0.95rem`, badge `0.25rem 0.75rem` / `0.8rem`, niente ombra sul box).
+
+---
+
 ## [1.0.33] - 2026-03-25
 
 ### Fixed
