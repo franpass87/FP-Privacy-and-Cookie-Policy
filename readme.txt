@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.17
+Stable tag: 1.0.18
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.18 =
+* Fixed: vendor/composer/platform_check.php incluso nel repo (fix require autoload in produzione).
 
 = 1.0.17 =
 * Fixed: Hardening generazione policy (contesto vista, palette, testi AI, template, lingua); try/catch shortcode privacy/cookie.

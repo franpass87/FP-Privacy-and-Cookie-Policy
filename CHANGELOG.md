@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.18] - 2026-03-25
+
+### Fixed
+
+- Aggiunto `vendor/composer/platform_check.php` mancante (generato da Composer 2): senza questo file `autoload_real.php` causava fatal/warning in produzione se il deploy non includeva l’intero `vendor/composer/`.
+
+---
+
 ## [1.0.17] - 2026-03-25
 
 ### Fixed
