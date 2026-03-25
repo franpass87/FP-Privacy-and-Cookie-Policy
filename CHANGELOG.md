@@ -4,6 +4,15 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.21] - 2026-03-25
+
+### Fixed
+
+- Traduzioni **en_US** (`fp-privacy-en_US.po`): corretti `msgstr` ancora in italiano per titoli/sommario policy (es. Overview, Definitions, Applicable laws) così in editor WPML con lingua **en_US** il testo generato dal plugin non mescola IT/EN.
+- Rigenerato **`fp-privacy-en_US.mo`** dal `.po` aggiornato (WordPress carica solo il binario a runtime).
+
+---
+
 ## [1.0.20] - 2026-03-25
 
 ### Fixed

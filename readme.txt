@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.20
+Stable tag: 1.0.21
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.21 =
+* Fixed: traduzioni en_US (PO + MO) per titoli/sommario policy — niente più testo italiano quando la lingua attiva è en_US.
 
 = 1.0.20 =
 * Fixed: salvataggio cache traduzioni categorie senza ensure_pages_exist durante il render policy (evita errori critici con shortcode en_US/en_GB e WPML).

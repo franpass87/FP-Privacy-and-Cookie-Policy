@@ -1642,7 +1642,7 @@ msgstr "Profilazione"
 #: src/Domain/Policy/AIDisclosureGenerator.php:122
 #: src/Domain/Policy/AIDisclosureGenerator.php:162
 msgid "I tuoi diritti"
-msgstr "I tuoi diritti"
+msgstr "Your rights"
 
 #: src/Domain/Policy/AIDisclosureGenerator.php:157
 #: templates/privacy-policy.php:125
@@ -1720,7 +1720,7 @@ msgstr "To exercise your rights or for more information about the AI systems use
 #: src/Domain/Policy/AlgorithmicTransparencyGenerator.php:53
 #: templates/privacy-policy.php:126
 msgid "Trasparenza Algoritmica"
-msgstr "Trasparenza Algoritmica"
+msgstr "Algorithmic transparency"
 
 #: src/Domain/Policy/AlgorithmicTransparencyGenerator.php:54
 msgid "Algorithmic Transparency"
@@ -2206,12 +2206,12 @@ msgstr "%1$s (%2$s)"
 #: templates/privacy-policy.php:112
 #: templates/privacy-policy.php:170
 msgid "Panoramica"
-msgstr "Panoramica"
+msgstr "Overview"
 
 #: templates/privacy-policy.php:113
 #: templates/privacy-policy.php:173
 msgid "Definizioni"
-msgstr "Definizioni"
+msgstr "Definitions"
 
 #: templates/privacy-policy.php:114
 #: templates/privacy-policy.php:176
@@ -2221,7 +2221,7 @@ msgstr "Data controller"
 #: templates/privacy-policy.php:115
 #: templates/privacy-policy.php:184
 msgid "Normative applicabili"
-msgstr "Normative applicabili"
+msgstr "Applicable laws"
 
 #: templates/privacy-policy.php:116
 #: templates/privacy-policy.php:187
@@ -2231,22 +2231,22 @@ msgstr "Categories of personal data we process"
 #: templates/privacy-policy.php:117
 #: templates/privacy-policy.php:190
 msgid "Origine dei dati"
-msgstr "Origine dei dati"
+msgstr "Origin of data"
 
 #: templates/privacy-policy.php:118
 #: templates/privacy-policy.php:193
 msgid "Dati obbligatori e facoltativi"
-msgstr "Dati obbligatori e facoltativi"
+msgstr "Mandatory and optional data"
 
 #: templates/privacy-policy.php:120
 #: templates/privacy-policy.php:199
 msgid "Basi giuridiche"
-msgstr "Basi giuridiche"
+msgstr "Legal bases"
 
 #: templates/privacy-policy.php:121
 #: templates/privacy-policy.php:202
 msgid "Destinatari e trasferimenti di dati"
-msgstr "Destinatari e trasferimenti di dati"
+msgstr "Recipients and international transfers"
 
 #: templates/privacy-policy.php:122
 #: templates/privacy-policy.php:205
@@ -2256,27 +2256,27 @@ msgstr "Processors and authorised staff"
 #: templates/privacy-policy.php:123
 #: templates/privacy-policy.php:208
 msgid "Misure di sicurezza"
-msgstr "Misure di sicurezza"
+msgstr "Security measures"
 
 #: templates/privacy-policy.php:124
 #: templates/privacy-policy.php:211
 msgid "Processo decisionale automatizzato e profilazione"
-msgstr "Processo decisionale automatizzato e profilazione"
+msgstr "Automated decision-making and profiling"
 
 #: templates/privacy-policy.php:127
 #: templates/privacy-policy.php:228
 msgid "Conservazione"
-msgstr "Conservazione"
+msgstr "Retention"
 
 #: templates/privacy-policy.php:128
 #: templates/privacy-policy.php:231
 msgid "Diritti dell'interessato"
-msgstr "Diritti dell'interessato"
+msgstr "Data subject rights"
 
 #: templates/privacy-policy.php:129
 #: templates/privacy-policy.php:234
 msgid "Come esercitare i tuoi diritti"
-msgstr "Come esercitare i tuoi diritti"
+msgstr "How to exercise your rights"
 
 #: templates/privacy-policy.php:130
 #: templates/privacy-policy.php:237
@@ -2286,7 +2286,7 @@ msgstr "Withdrawal of consent and cookie management"
 #: templates/privacy-policy.php:131
 #: templates/privacy-policy.php:240
 msgid "Dati dei minori"
-msgstr "Dati dei minori"
+msgstr "Children's data"
 
 #: templates/privacy-policy.php:132
 #: templates/privacy-policy.php:243
@@ -2296,7 +2296,7 @@ msgstr "Personal data breach handling"
 #: templates/privacy-policy.php:133
 #: templates/privacy-policy.php:247
 msgid "Responsabile della Protezione dei Dati"
-msgstr "Responsabile della Protezione dei Dati"
+msgstr "Data Protection Officer"
 
 #: templates/privacy-policy.php:134
 #: templates/privacy-policy.php:251
@@ -2306,16 +2306,16 @@ msgstr "Contacting the supervisory authority"
 #: templates/privacy-policy.php:135
 #: templates/privacy-policy.php:254
 msgid "Governance e aggiornamenti dell'informativa"
-msgstr "Governance e aggiornamenti dell'informativa"
+msgstr "Governance and updates to this notice"
 
 #: templates/privacy-policy.php:136
 #: templates/privacy-policy.php:257
 msgid "Servizi e cookie"
-msgstr "Servizi e cookie"
+msgstr "Services and cookies"
 
 #: templates/privacy-policy.php:137
 msgid "Ultimo aggiornamento"
-msgstr "Ultimo aggiornamento"
+msgstr "Last updated"
 
 #: templates/privacy-policy.php:171
 msgid "La presente informativa sulla privacy spiega come raccogliamo, utilizziamo, conserviamo, condividiamo e proteggiamo i dati personali quando visiti o interagisci con il nostro sito web e i nostri servizi. Ci impegniamo a trattare i dati personali in piena conformità con il Regolamento (UE) 2016/679 (Regolamento Generale sulla Protezione dei Dati, \"GDPR\"), la Direttiva ePrivacy 2002/58/CE come modificata e recepita negli Stati membri dell'UE, le leggi nazionali sulla privacy applicabili e le linee guida pertinenti emanate dal Comitato Europeo per la Protezione dei Dati (EDPB) e dalle autorità di controllo nazionali. La presente informativa riflette lo stato delle linee guida sulla privacy dell'UE e del SEE aggiornate a ottobre 2025 e incorpora la giurisprudenza recente della Corte di Giustizia dell'Unione Europea (CGUE). Siamo trasparenti riguardo alle nostre attività di trattamento dei dati e ti forniamo un controllo significativo sulle tue informazioni personali."
@@ -2328,12 +2328,12 @@ msgstr "For the purposes of this notice: “personal data” means any informati
 #: templates/privacy-policy.php:179
 #, php-format
 msgid "P.IVA/Codice fiscale: %s"
-msgstr "P.IVA/Codice fiscale: %s"
+msgstr "VAT / Tax ID: %s"
 
 #: templates/privacy-policy.php:181
 #, php-format
 msgid "Contatto: %s"
-msgstr "Contatto: %s"
+msgstr "Contact: %s"
 
 #: templates/privacy-policy.php:185
 msgid "Tutte le attività di trattamento sono svolte in stretta conformità con il GDPR (Regolamento (UE) 2016/679), la Direttiva ePrivacy (Direttiva 2002/58/CE) come recepita nella legislazione nazionale degli Stati membri dell'UE, le norme sulla protezione dei consumatori ai sensi del Regolamento (UE) 2016/679, la Direttiva 2005/29/CE relativa alle pratiche commerciali sleali e qualsiasi obbligo settoriale specifico applicabile ai nostri servizi. Rispettiamo inoltre le leggi nazionali sulla protezione dei dati che attuano questi quadri normativi europei, comprese le disposizioni sulla riservatezza delle comunicazioni elettroniche, il marketing diretto, i cookie e tecnologie di tracciamento simili. Le nostre attività di trattamento rispettano i diritti e le libertà fondamentali degli interessati come garantiti dalla Carta dei diritti fondamentali dell'Unione europea, in particolare l'articolo 7 (rispetto della vita privata e familiare) e l'articolo 8 (protezione dei dati personali). Seguiamo le raccomandazioni e le linee guida emanate dal Comitato europeo per la protezione dei dati, dal Gruppo di lavoro Articolo 29 e dalle autorità di controllo nazionali competenti."
