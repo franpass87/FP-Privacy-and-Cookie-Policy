@@ -4,6 +4,29 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.14] - 2026-03-25
+
+### Added
+
+- `AdminSubnav`: navigazione orizzontale tra tutte le sezioni admin (design system FP).
+- `Menu::ADMIN_PAGE_SLUGS`, filtro `admin_body_class` con `fp-privacy-admin-shell` per scope CSS.
+
+### Changed
+
+- Menu riordinato: **Settings → Consent log → Analytics → Policy editor → Tools → Diagnostics → Quick guide** (operatività → contenuti → sistema → supporto).
+- Diagnostica registrata dal `Menu` (dependency injection); `DiagnosticTools` gestisce solo gli `admin_post`.
+- Impostazioni: azioni rapide in **card**; rimosso breadcrumb ridondante.
+- **Tools**, **Guida**, **Policy editor**, **Consent log**, **Analytics**, **Diagnostics**: layout a **card** e/o subnav allineata al design system.
+- CSS admin: token FP, header titolo 26px/700 + `!important`, subnav, card, tabella `fp-privacy-table`, griglia diagnostica responsive.
+- Enqueue admin e Chart.js: fallback `$_GET['page']` per hook non standard.
+- `AdminHeader`: badge versione da `FP_PRIVACY_VERSION`.
+
+### Removed
+
+- `src/Presentation/Admin/Menu/Menu.php` (duplicato della classe `Menu` nello stesso namespace).
+
+---
+
 ## [1.0.12] - 2026-03-25
 
 ### Fixed

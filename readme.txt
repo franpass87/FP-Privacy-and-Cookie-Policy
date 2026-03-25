@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.12
+Stable tag: 1.0.14
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.14 =
+* Changed: Admin ristrutturato (menu, subnav FP, card, body class, enqueue); rimosso Menu.php duplicato in Presentation.
 
 = 1.0.12 =
 * Fixed: Tab Info con UI italiana ma testo Info ancora in inglese — rilevamento paragrafo standard EN e sostituzione con IT (backend + JS).

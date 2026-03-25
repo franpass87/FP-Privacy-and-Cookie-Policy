@@ -70,9 +70,17 @@ AdminHeader::render(
 	\__( 'Privacy & Cookie Settings', 'fp-privacy' ),
 	\__( 'Banner, cookie, policy links and advanced options.', 'fp-privacy' )
 );
+AdminSubnav::render( Menu::MENU_SLUG );
 ?>
 
-<!-- Quick Actions Bar -->
+<div class="fp-privacy-card fp-privacy-card--actions">
+	<div class="fp-privacy-card-header">
+		<div class="fp-privacy-card-header-left">
+			<span class="dashicons dashicons-admin-plugins" aria-hidden="true"></span>
+			<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Quick actions', 'fp-privacy' ); ?></h2>
+		</div>
+	</div>
+	<div class="fp-privacy-card-body">
 <div class="fp-privacy-quick-actions">
 	<div class="fp-quick-actions-primary">
 		<button type="submit" form="fp-privacy-settings-form-id" class="button button-primary">
@@ -111,10 +119,16 @@ AdminHeader::render(
 			<span class="dashicons dashicons-list-view"></span>
 			<?php \esc_html_e( 'Consent Log', 'fp-privacy' ); ?>
 		</a>
+		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-diagnostics' ) ); ?>" class="fp-quick-link">
+			<span class="dashicons dashicons-info"></span>
+			<?php \esc_html_e( 'Diagnostics', 'fp-privacy' ); ?>
+		</a>
 		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-guide' ) ); ?>" class="fp-quick-link">
 			<span class="dashicons dashicons-book"></span>
-			<?php \esc_html_e( 'Guide', 'fp-privacy' ); ?>
+			<?php \esc_html_e( 'Quick guide', 'fp-privacy' ); ?>
 		</a>
+	</div>
+</div>
 	</div>
 </div>
 
@@ -132,13 +146,6 @@ AdminHeader::render(
 ?>
 <div class="notice notice-warning fp-privacy-stale-notice"><p><?php echo \esc_html( $message ); ?> <a href="<?php echo \esc_url( $tools_link ); ?>"><?php \esc_html_e( 'Open Tools', 'fp-privacy' ); ?></a></p></div>
 <?php endif; ?>
-
-<!-- Breadcrumb -->
-<nav class="fp-privacy-breadcrumb" aria-label="<?php \esc_attr_e( 'Breadcrumb', 'fp-privacy' ); ?>">
-	<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy' ) ); ?>"><?php \esc_html_e( 'FP Privacy & Cookie', 'fp-privacy' ); ?></a>
-	<span class="separator" aria-hidden="true">›</span>
-	<span><?php \esc_html_e( 'Settings', 'fp-privacy' ); ?></span>
-</nav>
 
 <!-- Tabs Navigation -->
 <nav class="fp-privacy-tabs-nav" role="tablist" aria-label="<?php \esc_attr_e( 'Settings tabs', 'fp-privacy' ); ?>">
@@ -213,24 +220,63 @@ AdminHeader::render(
 				\__( 'Tools', 'fp-privacy' ),
 				\__( 'Export or import configuration, regenerate policies and reset revision.', 'fp-privacy' )
 			);
+			AdminSubnav::render( 'fp-privacy-tools' );
 			?>
+
+			<div class="fp-privacy-card">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-download" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Export', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-tools-export">
 				<?php \wp_nonce_field( 'fp_privacy_export_settings', 'fp_privacy_export_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_export_settings" />
+				<p class="description"><?php \esc_html_e( 'Download the full plugin configuration as JSON.', 'fp-privacy' ); ?></p>
 				<?php \submit_button( \__( 'Download settings JSON', 'fp-privacy' ), 'secondary' ); ?>
 			</form>
+				</div>
+			</div>
+
+			<div class="fp-privacy-card">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-upload" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Import', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data" class="fp-privacy-tools-import">
 				<?php \wp_nonce_field( 'fp_privacy_import_settings', 'fp_privacy_import_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_import_settings" />
-				<input type="file" name="settings_file" accept="application/json" required />
-				<?php \submit_button( \__( 'Import settings', 'fp-privacy' ) ); ?>
+				<p class="description"><?php \esc_html_e( 'Restore settings from a previously exported JSON file.', 'fp-privacy' ); ?></p>
+				<p><input type="file" name="settings_file" accept="application/json" required /></p>
+				<?php \submit_button( \__( 'Import settings', 'fp-privacy' ), 'primary' ); ?>
 			</form>
+				</div>
+			</div>
+
+			<div class="fp-privacy-card">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-update" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Policies & consent revision', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-tools-regenerate">
 				<?php \wp_nonce_field( 'fp_privacy_regenerate_policy', 'fp_privacy_regenerate_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_regenerate_policy" />
+				<p class="description"><?php \esc_html_e( 'Regenerate privacy and cookie policy pages from the current detector configuration.', 'fp-privacy' ); ?></p>
 				<?php \submit_button( \__( 'Regenerate policies', 'fp-privacy' ), 'secondary' ); ?>
 			</form>
-			<p><a class="button" href="<?php echo \esc_url( \wp_nonce_url( \admin_url( 'admin-post.php?action=fp_privacy_bump_revision' ), 'fp_privacy_bump_revision' ) ); ?>"><?php \esc_html_e( 'Reset consent (bump revision)', 'fp-privacy' ); ?></a></p>
+			<hr class="fp-privacy-card-divider" />
+			<p class="description"><?php \esc_html_e( 'Bump the consent revision to force visitors to see the banner again.', 'fp-privacy' ); ?></p>
+			<p><a class="button button-secondary" href="<?php echo \esc_url( \wp_nonce_url( \admin_url( 'admin-post.php?action=fp_privacy_bump_revision' ), 'fp_privacy_bump_revision' ) ); ?>"><?php \esc_html_e( 'Reset consent (bump revision)', 'fp-privacy' ); ?></a></p>
+				</div>
+			</div>
 		</div>
 		<?php
 	}
@@ -254,25 +300,66 @@ AdminHeader::render(
 				\__( 'Quick guide', 'fp-privacy' ),
 				\__( 'Shortcodes, blocks and developer hooks.', 'fp-privacy' )
 			);
+			AdminSubnav::render( 'fp-privacy-guide' );
 			?>
-			<h2><?php \esc_html_e( 'Shortcodes', 'fp-privacy' ); ?></h2>
-			<ul>
-				<li><code>[fp_privacy_policy]</code></li>
-				<li><code>[fp_cookie_policy]</code></li>
-				<li><code>[fp_cookie_preferences]</code></li>
-				<li><code>[fp_cookie_banner]</code></li>
-			</ul>
-			<h2><?php \esc_html_e( 'Blocks', 'fp-privacy' ); ?></h2>
-			<p><?php \esc_html_e( 'Use the Privacy Policy, Cookie Policy, Cookie Preferences and Cookie Banner blocks inside the block editor. Each block mirrors the shortcode output.', 'fp-privacy' ); ?></p>
-			<h2><?php \esc_html_e( 'Hooks', 'fp-privacy' ); ?></h2>
-			<ul>
-				<li><code>fp_consent_update</code></li>
-				<li><code>fp_privacy_settings_imported</code></li>
-				<li><code>fp_privacy_policy_content</code></li>
-				<li><code>fp_cookie_policy_content</code></li>
-			</ul>
-			<h2><?php \esc_html_e( 'Legal notice', 'fp-privacy' ); ?></h2>
-			<p><?php \esc_html_e( 'This plugin provides technical tooling to help comply with privacy regulations. Consult your legal advisor to validate the generated documents.', 'fp-privacy' ); ?></p>
+
+			<div class="fp-privacy-card">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-editor-code" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Shortcodes', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
+					<ul class="fp-privacy-guide-list">
+						<li><code>[fp_privacy_policy]</code></li>
+						<li><code>[fp_cookie_policy]</code></li>
+						<li><code>[fp_cookie_preferences]</code></li>
+						<li><code>[fp_cookie_banner]</code></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="fp-privacy-card">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-editor-kitchensink" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Blocks', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
+					<p><?php \esc_html_e( 'Use the Privacy Policy, Cookie Policy, Cookie Preferences and Cookie Banner blocks inside the block editor. Each block mirrors the shortcode output.', 'fp-privacy' ); ?></p>
+				</div>
+			</div>
+
+			<div class="fp-privacy-card">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-editor-code" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Hooks', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
+					<ul class="fp-privacy-guide-list">
+						<li><code>fp_consent_update</code></li>
+						<li><code>fp_privacy_settings_imported</code></li>
+						<li><code>fp_privacy_policy_content</code></li>
+						<li><code>fp_cookie_policy_content</code></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="fp-privacy-card fp-privacy-card--notice">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-warning" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Legal notice', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
+					<p><?php \esc_html_e( 'This plugin provides technical tooling to help comply with privacy regulations. Consult your legal advisor to validate the generated documents.', 'fp-privacy' ); ?></p>
+				</div>
+			</div>
 		</div>
 		<?php
 	}

@@ -42,6 +42,7 @@ class ConsentLogRenderer {
 				\__( 'Consent log', 'fp-privacy' ),
 				\__( 'Review consent events and export them for compliance.', 'fp-privacy' )
 			);
+			AdminSubnav::render( 'fp-privacy-consent-log' );
 			?>
 
 			<?php if ( ! empty( $data['error'] ) ) : ?>
@@ -50,16 +51,23 @@ class ConsentLogRenderer {
 
 			<?php $this->render_filters( $args, $urls['export'] ); ?>
 
-			<div class="fp-privacy-summary">
-				<h2><?php \esc_html_e( 'Last 30 days overview', 'fp-privacy' ); ?></h2>
-				<ul>
+			<div class="fp-privacy-card fp-privacy-card--summary">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-calendar-alt" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Last 30 days overview', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
+					<ul class="fp-privacy-summary-list">
 					<?php foreach ( $data['summary'] as $event => $count ) : ?>
 						<li><strong><?php echo \esc_html( $this->event_label( $event ) ); ?>:</strong> <?php echo (int) $count; ?></li>
 					<?php endforeach; ?>
-				</ul>
+					</ul>
+				</div>
 			</div>
 
-			<table class="widefat fp-privacy-log-table">
+			<table class="widefat fp-privacy-log-table fp-privacy-table">
 				<thead>
 					<tr>
 						<th><?php \esc_html_e( 'Date', 'fp-privacy' ); ?></th>

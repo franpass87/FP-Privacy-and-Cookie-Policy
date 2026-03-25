@@ -23,13 +23,13 @@ final class AdminHeader {
 	 * @return void
 	 */
 	public static function render( string $dashicon_class, string $title, string $subtitle = '' ): void {
-		$ver = \defined( 'FP_PRIVACY_PLUGIN_VERSION' )
-			? (string) \constant( 'FP_PRIVACY_PLUGIN_VERSION' )
-			: '';
+		$ver = \defined( 'FP_PRIVACY_VERSION' )
+			? (string) \constant( 'FP_PRIVACY_VERSION' )
+			: ( \defined( 'FP_PRIVACY_PLUGIN_VERSION' ) ? (string) \constant( 'FP_PRIVACY_PLUGIN_VERSION' ) : '' );
 		?>
 		<div class="fp-privacy-page-header">
 			<div class="fp-privacy-page-header-content">
-				<h2 class="fp-privacy-page-header-title">
+				<h2 class="fp-privacy-page-header-title" aria-hidden="true">
 					<span class="dashicons <?php echo \esc_attr( $dashicon_class ); ?>" aria-hidden="true"></span>
 					<?php echo \esc_html( $title ); ?>
 				</h2>

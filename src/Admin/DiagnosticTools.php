@@ -49,27 +49,10 @@ class DiagnosticTools {
 	 * @return void
 	 */
 	public function hooks() {
-		\add_action( 'admin_menu', array( $this, 'add_menu_page' ), 100 );
 		\add_action( 'admin_post_fp_privacy_setup_defaults', array( $this->handlers, 'handle_setup_defaults' ) );
 		\add_action( 'admin_post_fp_privacy_force_banner', array( $this->handlers, 'handle_force_banner' ) );
 		\add_action( 'admin_post_fp_privacy_disable_preview', array( $this->handlers, 'handle_disable_preview' ) );
 		\add_action( 'admin_post_fp_privacy_clear_consent', array( $this->handlers, 'handle_clear_consent' ) );
-	}
-
-	/**
-	 * Add diagnostic tools submenu page.
-	 *
-	 * @return void
-	 */
-	public function add_menu_page() {
-		\add_submenu_page(
-			'fp-privacy',
-			\__( 'Strumenti Diagnostica', 'fp-privacy' ),
-			\__( 'Diagnostica', 'fp-privacy' ),
-			'manage_options',
-			'fp-privacy-diagnostics',
-			array( $this, 'render_page' )
-		);
 	}
 
 	/**

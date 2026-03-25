@@ -99,8 +99,7 @@
 }
 
 /* Spazio tra notice WP native e contenuto plugin (design system FP) */
-body.toplevel_page_fp-privacy #wpbody-content > .wrap.fp-privacy-admin-page,
-body[class*="fp-privacy_page_"] #wpbody-content > .wrap.fp-privacy-admin-page {
+body.fp-privacy-admin-shell #wpbody-content > .wrap.fp-privacy-admin-page {
     margin-top: 12px;
 }
 
@@ -129,9 +128,10 @@ body[class*="fp-privacy_page_"] #wpbody-content > .wrap.fp-privacy-admin-page {
     align-items: center;
     gap: var(--fp-space-3);
     margin: 0 0 var(--fp-space-2);
-    font-size: var(--fp-font-size-2xl);
-    font-weight: var(--fp-font-weight-semibold);
-    color: #fff;
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
     line-height: 1.25;
 }
 
@@ -145,7 +145,7 @@ body[class*="fp-privacy_page_"] #wpbody-content > .wrap.fp-privacy-admin-page {
 .fp-privacy-page-header-desc {
     margin: 0;
     font-size: var(--fp-font-size-base);
-    color: rgba(255, 255, 255, 0.88);
+    color: rgba(255, 255, 255, 0.88) !important;
     line-height: 1.5;
     max-width: 42rem;
 }
@@ -164,26 +164,187 @@ body[class*="fp-privacy_page_"] #wpbody-content > .wrap.fp-privacy-admin-page {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
-/* Tools: sezioni come card FP */
-.fp-privacy-admin-page.fp-privacy-tools form,
-.fp-privacy-admin-page.fp-privacy-tools > p {
+/* ——— Subnav orizzontale (tutte le pagine FP Privacy) ——— */
+.fp-privacy-admin-subnav {
+    margin: 0 0 var(--fp-space-6);
+    padding: var(--fp-space-2);
     background: var(--fpdms-bg-white);
     border: 1px solid var(--fpdms-border);
     border-radius: var(--radius-lg);
-    padding: var(--fp-space-6);
-    margin-bottom: var(--fp-space-4);
+    box-shadow: var(--shadow-md);
+    overflow-x: auto;
+}
+
+.fp-privacy-admin-subnav__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fp-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    align-items: stretch;
+}
+
+.fp-privacy-admin-subnav__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--fpdms-text);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    transition: var(--transition-fpdms);
+}
+
+.fp-privacy-admin-subnav__link .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    opacity: 0.85;
+}
+
+.fp-privacy-admin-subnav__link:hover,
+.fp-privacy-admin-subnav__link:focus {
+    background: var(--fpdms-bg-light);
+    color: var(--fpdms-primary);
+    border-color: var(--fpdms-border);
+    box-shadow: none;
+}
+
+.fp-privacy-admin-subnav__link.is-active {
+    background: var(--fpdms-gradient-primary);
+    color: #fff !important;
+    border-color: transparent;
     box-shadow: var(--shadow-md);
 }
 
-.fp-privacy-admin-page.fp-privacy-guide h2 {
-    margin-top: var(--fp-space-8);
-    padding-bottom: var(--fp-space-2);
-    border-bottom: 2px solid var(--fpdms-border-light);
+.fp-privacy-admin-subnav__link.is-active .dashicons {
+    color: #fff;
+    opacity: 1;
+}
+
+/* ——— Card design system FP ——— */
+.fp-privacy-card {
+    background: var(--fpdms-bg-white);
+    border: 1px solid var(--fpdms-border);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--fp-space-6);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.fp-privacy-card--notice {
+    border-left: 4px solid var(--fpdms-warning);
+}
+
+.fp-privacy-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fp-space-4);
+    padding: var(--fp-space-4) var(--fp-space-6);
+    background: var(--fpdms-bg-light);
+    border-bottom: 1px solid var(--fpdms-border);
+}
+
+.fp-privacy-card-header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--fp-space-3);
+}
+
+.fp-privacy-card-header-left .dashicons {
+    color: var(--fpdms-primary);
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+}
+
+.fp-privacy-card-title {
+    margin: 0;
+    font-size: var(--fp-font-size-lg);
+    font-weight: 600;
     color: var(--fpdms-text);
 }
 
-.fp-privacy-admin-page.fp-privacy-guide h2:first-of-type {
+.fp-privacy-card-body {
+    padding: var(--fp-space-6);
+}
+
+.fp-privacy-card-body .description {
+    margin-top: 0;
+}
+
+.fp-privacy-card-divider {
+    margin: var(--fp-space-6) 0;
+    border: none;
+    border-top: 1px solid var(--fpdms-border);
+}
+
+.fp-privacy-card--actions .fp-privacy-card-body {
+    padding-top: var(--fp-space-4);
+}
+
+.fp-privacy-guide-list {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.fp-privacy-summary-list {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.fp-privacy-language-section__subtitle {
+    margin: var(--fp-space-6) 0 var(--fp-space-2);
+    font-size: var(--fp-font-size-base);
+    font-weight: 600;
+    color: var(--fpdms-text);
+}
+
+.fp-privacy-language-section__subtitle:first-child {
+    margin-top: 0;
+}
+
+/* Tabella log / liste con thead gradiente FP */
+table.fp-privacy-table thead th {
+    background: var(--fpdms-gradient-primary);
+    color: #fff !important;
+    font-weight: 600;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+table.fp-privacy-table.widefat {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--fpdms-border);
+}
+
+/* Diagnostica: griglia responsive (niente inline style) */
+.fp-privacy-diagnostic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--fp-space-6);
     margin-top: var(--fp-space-4);
+}
+
+@media (max-width: 782px) {
+    .fp-privacy-diagnostic-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tools: form dentro card */
+.fp-privacy-admin-page.fp-privacy-tools .fp-privacy-card-body form {
+    margin: 0;
+}
+
+.fp-privacy-admin-page.fp-privacy-tools .fp-privacy-card-body .button {
+    margin-top: var(--fp-space-2);
 }
 
 /* ========================================

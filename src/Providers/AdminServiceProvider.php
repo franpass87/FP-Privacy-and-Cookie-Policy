@@ -118,11 +118,12 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			}
 		);
 
-		// Menu.
+		// Menu (registra anche Diagnostics se il servizio è disponibile).
 		$container->singleton(
 			Menu::class,
-			function() {
-				return new Menu();
+			function( ContainerInterface $c ) {
+				$diag = $c->get( DiagnosticTools::class );
+				return new Menu( $diag );
 			}
 		);
 

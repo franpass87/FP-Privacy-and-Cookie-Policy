@@ -39,7 +39,10 @@ class AnalyticsAssetManager {
 	 * @return void
 	 */
 	public function enqueue_chart_assets( $hook ) {
-		if ( false === strpos( $hook, 'fp-privacy' ) || false === strpos( $hook, 'analytics' ) ) {
+		$page = isset( $_GET['page'] ) ? \sanitize_text_field( \wp_unslash( (string) $_GET['page'] ) ) : '';
+		$on_analytics = ( 'fp-privacy-analytics' === $page )
+			|| ( false !== strpos( (string) $hook, 'fp-privacy' ) && false !== strpos( (string) $hook, 'analytics' ) );
+		if ( ! $on_analytics ) {
 			return;
 		}
 

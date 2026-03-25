@@ -68,7 +68,10 @@ class Settings {
 	 * @return void
 	 */
 	public function enqueue_assets( $hook ) {
-		if ( false === strpos( $hook, Menu::MENU_SLUG ) ) {
+		$page    = isset( $_GET['page'] ) ? \sanitize_text_field( \wp_unslash( (string) $_GET['page'] ) ) : '';
+		$is_ours = ( false !== strpos( (string) $hook, Menu::MENU_SLUG ) )
+			|| \in_array( $page, Menu::ADMIN_PAGE_SLUGS, true );
+		if ( ! $is_ours ) {
 			return;
 		}
 

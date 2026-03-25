@@ -48,10 +48,16 @@ class PolicyEditorRenderer {
 				\__( 'Policy editor', 'fp-privacy' ),
 				\__( 'Edit privacy and cookie policy content per language.', 'fp-privacy' )
 			);
+			AdminSubnav::render( 'fp-privacy-policy-editor' );
 			?>
-			<p><?php \esc_html_e( 'Customize the generated documents or regenerate them using the detector.', 'fp-privacy' ); ?></p>
 
-			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>">
+			<div class="fp-privacy-card fp-privacy-card--intro">
+				<div class="fp-privacy-card-body">
+					<p class="description"><?php \esc_html_e( 'Customize the generated documents or regenerate them using the detector.', 'fp-privacy' ); ?></p>
+				</div>
+			</div>
+
+			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-policy-save-form">
 				<?php \wp_nonce_field( 'fp_privacy_save_policy', 'fp_privacy_policy_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_save_policy" />
 
@@ -60,28 +66,54 @@ class PolicyEditorRenderer {
 					$privacy  = $privacy_posts[ $language ];
 					$cookie   = $cookie_posts[ $language ];
 					?>
-					<div class="fp-privacy-language-section">
-						<h2><?php echo \esc_html( \sprintf( \__( 'Privacy policy (%s)', 'fp-privacy' ), $language ) ); ?></h2>
+					<div class="fp-privacy-language-section fp-privacy-card">
+						<div class="fp-privacy-card-header">
+							<div class="fp-privacy-card-header-left">
+								<span class="dashicons dashicons-translation" aria-hidden="true"></span>
+								<h2 class="fp-privacy-card-title"><?php echo \esc_html( $language ); ?></h2>
+							</div>
+						</div>
+						<div class="fp-privacy-card-body">
+						<h3 class="fp-privacy-language-section__subtitle"><?php echo \esc_html( \sprintf( \__( 'Privacy policy (%s)', 'fp-privacy' ), $language ) ); ?></h3>
 						<?php \wp_editor( $privacy ? $privacy->post_content : '', 'fp_privacy_policy_' . $lang_key, array( 'textarea_name' => 'privacy_content[' . \esc_attr( $language ) . ']', 'textarea_rows' => 12 ) ); ?>
 
-						<h2><?php echo \esc_html( \sprintf( \__( 'Cookie policy (%s)', 'fp-privacy' ), $language ) ); ?></h2>
+						<h3 class="fp-privacy-language-section__subtitle"><?php echo \esc_html( \sprintf( \__( 'Cookie policy (%s)', 'fp-privacy' ), $language ) ); ?></h3>
 						<?php \wp_editor( $cookie ? $cookie->post_content : '', 'fp_privacy_cookie_' . $lang_key, array( 'textarea_name' => 'cookie_content[' . \esc_attr( $language ) . ']', 'textarea_rows' => 12 ) ); ?>
+						</div>
 					</div>
 				<?php endforeach; ?>
 
 				<?php \submit_button( \__( 'Save policies', 'fp-privacy' ) ); ?>
 			</form>
 
+			<div class="fp-privacy-card">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-search" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Detector & regenerate', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-regenerate">
 				<?php \wp_nonce_field( 'fp_privacy_regenerate_policy', 'fp_privacy_regenerate_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_regenerate_policy" />
+				<p class="description"><?php \esc_html_e( 'Run the integration detector and overwrite policy pages with freshly generated HTML.', 'fp-privacy' ); ?></p>
 				<?php \submit_button( \__( 'Detect integrations and regenerate', 'fp-privacy' ), 'secondary' ); ?>
 			</form>
+				</div>
+			</div>
 
 			<?php $diff = $this->diff_generator->get_diff_preview( $languages, $privacy_posts, $cookie_posts ); ?>
 			<?php if ( $diff ) : ?>
-				<h2><?php \esc_html_e( 'Differences between generated templates and current documents', 'fp-privacy' ); ?></h2>
-				<div class="fp-privacy-diff"><?php echo wp_kses_post( $diff ); ?></div>
+				<div class="fp-privacy-card">
+					<div class="fp-privacy-card-header">
+						<div class="fp-privacy-card-header-left">
+							<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+							<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Differences between generated templates and current documents', 'fp-privacy' ); ?></h2>
+						</div>
+					</div>
+					<div class="fp-privacy-card-body fp-privacy-diff"><?php echo wp_kses_post( $diff ); ?></div>
+				</div>
 			<?php endif; ?>
 		</div>
 		<?php
