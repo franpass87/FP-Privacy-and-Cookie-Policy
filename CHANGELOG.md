@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.19] - 2026-03-25
+
+### Fixed
+
+- `BasicValidator::locale`: il valore errato `en_EN` (non è un locale WordPress valido) viene normalizzato in `en_US`, così shortcode/blocchi con `lang="en_EN"` non espongono più comportamenti imprevedibili con `switch_to_locale` e caricamento `.mo`.
+
+---
+
 ## [1.0.18] - 2026-03-25
 
 ### Fixed

@@ -146,6 +146,11 @@ class BasicValidator {
 			return $default;
 		}
 
+		// Errore frequente negli shortcode: "en_EN" non è un locale WP valido (manca codice paese ISO; usare en_US, en_GB, …).
+		if ( 0 === strcasecmp( $value, 'en_EN' ) ) {
+			return 'en_US';
+		}
+
 		return $value;
 	}
 
