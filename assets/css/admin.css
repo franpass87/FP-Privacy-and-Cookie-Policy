@@ -1612,6 +1612,33 @@ transition: border-color 0.2s ease;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
+/* Selettore tema palette + pannello personalizzato (details) */
+.fp-privacy-palette-theme-row {
+    margin-top: 8px;
+}
+
+.fp-privacy-palette-theme-row select.regular-text {
+    max-width: 28rem;
+}
+
+.fp-privacy-palette-custom {
+    margin-top: 12px;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.fp-privacy-palette-custom-summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #374151;
+}
+
+.fp-privacy-palette--custom {
+    margin-top: 12px;
+}
+
 /* QUICK WIN #1: WordPress Color Picker Styling */
 .fp-privacy-palette {
     display: grid;

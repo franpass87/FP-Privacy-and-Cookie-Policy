@@ -4,6 +4,16 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.0] - 2026-03-25
+
+### Added
+
+- Scheda **Banner** — **Tema colore**: selettore con palette predefinite (predefinito FP, neutro morbido, alto contrasto, scuro); i valori hex restano salvati come prima. Opzione **Personalizzato** apre un pannello comprimibile con i campi manuali.
+
+### Changed
+
+- Salvataggio: con un tema predefinito selezionato, la palette salvata è quella del tema (coerente con l’anteprima admin).
+
 ## [1.1.16] - 2026-03-25
 
 ### Fixed

@@ -13,6 +13,7 @@ use FP\Privacy\Domain\ValueObjects\BannerLayout;
 use FP\Privacy\Domain\ValueObjects\ColorPalette;
 use FP\Privacy\Domain\ValueObjects\ConsentModeDefaults;
 use FP\Privacy\Integrations\DetectorRegistry;
+use FP\Privacy\Support\PalettePresetRegistry;
 use FP\Privacy\Services\Validation\OptionsValidator;
 use FP\Privacy\Shared\Constants;
 use FP\Privacy\Utils\DetectorAlertManager;
@@ -485,20 +486,25 @@ class Options {
 			)
 		);
 
-	// Use BannerLayout value object for validation and sanitization.
-	$layout_data = array_merge(
-		$defaults['banner_layout'],
-		array(
-			'type'                  => $layout_raw['type'] ?? $defaults['banner_layout']['type'],
-			'position'              => $layout_raw['position'] ?? $defaults['banner_layout']['position'],
-			'palette'               => isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ? $layout_raw['palette'] : $defaults['banner_layout']['palette'],
-			'sync_modal_and_button' => $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'],
-		)
-	);
-	
-	// Create BannerLayout value object which validates and sanitizes automatically.
-	$banner_layout = BannerLayout::from_array( $layout_data );
-	$layout = $banner_layout->to_array();
+		$palette_resolved = PalettePresetRegistry::resolve_palette_from_request(
+			$layout_raw,
+			$defaults['banner_layout']['palette']
+		);
+
+		// Use BannerLayout value object for validation and sanitization.
+		$layout_data = array_merge(
+			$defaults['banner_layout'],
+			array(
+				'type'                  => $layout_raw['type'] ?? $defaults['banner_layout']['type'],
+				'position'              => $layout_raw['position'] ?? $defaults['banner_layout']['position'],
+				'palette'               => $palette_resolved,
+				'sync_modal_and_button' => $layout_raw['sync_modal_and_button'] ?? $defaults['banner_layout']['sync_modal_and_button'],
+			)
+		);
+
+		// Create BannerLayout value object which validates and sanitizes automatically.
+		$banner_layout = BannerLayout::from_array( $layout_data );
+		$layout         = $banner_layout->to_array();
 
 		$categories = $this->normalize_categories( $categories_raw, $defaults['categories'], $languages );
 

@@ -744,6 +744,61 @@ $( function () {
     layoutType.on( 'change', updatePreview );
     layoutPosition.on( 'change', updatePreview );
     languageSelect.on( 'change', updatePreview );
+
+    var palettePresets = l10n.palettePresets || {};
+    var $palettePreset = $( '#fp-privacy-palette-preset' );
+    var $paletteCustom = $( '.fp-privacy-palette-custom' );
+
+    function applyPalettePresetToFormInputs( presetId ) {
+        if ( presetId === 'custom' || ! palettePresets[ presetId ] ) {
+            return;
+        }
+        var colors = palettePresets[ presetId ];
+        Object.keys( colors ).forEach( function ( key ) {
+            form.find( 'input[name="banner_layout[palette][' + key + ']"]' ).val( colors[ key ] );
+        } );
+    }
+
+    function setPaletteCustomPanelVisible( isCustom ) {
+        if ( ! $paletteCustom.length ) {
+            return;
+        }
+        if ( isCustom ) {
+            $paletteCustom.removeAttr( 'hidden' ).prop( 'open', true );
+        } else {
+            $paletteCustom.attr( 'hidden', 'hidden' ).prop( 'open', false );
+        }
+    }
+
+    function syncPaletteCustomPanel() {
+        if ( ! $palettePreset.length ) {
+            return;
+        }
+        var v = String( $palettePreset.val() || '' );
+        if ( v === 'custom' ) {
+            setPaletteCustomPanelVisible( true );
+        } else {
+            setPaletteCustomPanelVisible( false );
+            applyPalettePresetToFormInputs( v );
+        }
+    }
+
+    function refreshPaletteInputsUi() {
+        $( '.fp-privacy-hex-input' ).each( function () {
+            updateColorPreview( $( this ) );
+        } );
+        evaluateContrast();
+    }
+
+    if ( $palettePreset.length ) {
+        $palettePreset.on( 'change', function () {
+            syncPaletteCustomPanel();
+            refreshPaletteInputsUi();
+            updatePreview();
+        } );
+        syncPaletteCustomPanel();
+        refreshPaletteInputsUi();
+    }
     
     // ========================================
     // PREVIEW CONTROLS ENHANCEMENT

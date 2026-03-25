@@ -12,6 +12,7 @@ namespace FP\Privacy\Admin;
 use FP\Privacy\Admin\Menu;
 use FP\Privacy\Frontend\BannerPaletteBuilder;
 use FP\Privacy\Integrations\DetectorRegistry;
+use FP\Privacy\Support\PalettePresetRegistry;
 use FP\Privacy\Utils\Options;
 
 /**
@@ -147,6 +148,7 @@ class Settings {
 					'privacy' => $privacy_url,
 					'cookie'  => $cookie_url,
 				),
+				'palettePresets'      => PalettePresetRegistry::get_js_preset_map(),
 			)
 		);
 	}

@@ -10,6 +10,7 @@
 namespace FP\Privacy\Presentation\Admin\Views;
 
 use FP\Privacy\Admin\AdminUi;
+use FP\Privacy\Support\PalettePresetRegistry;
 use FP\Privacy\Utils\Options;
 
 /**
@@ -90,7 +91,7 @@ class BannerTabRenderer extends SettingsRendererBase {
 			<?php
 			$this->render_settings_section_open( 'dashicons-art', \__( 'Palette colori', 'fp-privacy' ) );
 			?>
-			<p class="description"><?php \esc_html_e( 'Colori del banner e dei pulsanti (hex). Allineati al design system FP del plugin.', 'fp-privacy' ); ?></p>
+			<p class="description"><?php \esc_html_e( 'Scegli un tema predefinito per banner e pulsanti. Solo se serve una regolazione fine, usa «Personalizzato» e i campi esadecimali.', 'fp-privacy' ); ?></p>
 			<?php $this->render_palette_settings( $options['banner_layout']['palette'] ); ?>
 			<?php $this->render_settings_section_close(); ?>
 
@@ -246,7 +247,9 @@ class BannerTabRenderer extends SettingsRendererBase {
 	 * @return void
 	 */
 	private function render_palette_settings( $palette ) {
-		// Descriptive labels for palette colors
+		$detected = PalettePresetRegistry::detect_preset( $palette );
+		$is_custom = PalettePresetRegistry::ID_CUSTOM === $detected;
+
 		$labels = array(
 			'surface_bg'          => \__( 'Sfondo banner', 'fp-privacy' ),
 			'surface_text'        => \__( 'Testo banner', 'fp-privacy' ),
@@ -259,26 +262,45 @@ class BannerTabRenderer extends SettingsRendererBase {
 			'focus'               => \__( 'Colore focus (accessibilità)', 'fp-privacy' ),
 		);
 		?>
-		<div class="fp-privacy-palette">
-		<?php foreach ( $palette as $key => $color ) : ?>
-		<div class="fp-privacy-palette-item">
-		<label>
-			<strong class="fp-palette-label-text"><?php echo \esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', $key ) ) ); ?></strong>
-			<div class="fp-privacy-color-input-wrapper">
-				<div class="fp-privacy-color-preview" style="background-color: <?php echo \esc_attr( $color ?: '#000000' ); ?>"></div>
-				<input type="text" 
-				       name="banner_layout[palette][<?php echo \esc_attr( $key ); ?>]" 
-				       value="<?php echo \esc_attr( $color ); ?>" 
-				       class="fp-privacy-hex-input" 
-				       placeholder="#000000"
-				       pattern="^#[0-9A-Fa-f]{6}$"
-				       maxlength="7"
-				       data-label="<?php echo \esc_attr( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', $key ) ) ); ?>" />
+		<div class="fp-privacy-fields-grid fp-privacy-palette-theme-row">
+			<div class="fp-privacy-field fp-privacy-field--full">
+				<label for="fp-privacy-palette-preset"><?php \esc_html_e( 'Tema colore', 'fp-privacy' ); ?></label>
+				<select name="banner_layout[palette_preset]" id="fp-privacy-palette-preset" class="regular-text">
+					<?php foreach ( PalettePresetRegistry::builtin_preset_ids() as $preset_id ) : ?>
+						<option value="<?php echo \esc_attr( $preset_id ); ?>" <?php \selected( $detected, $preset_id ); ?>>
+							<?php echo \esc_html( PalettePresetRegistry::get_label( $preset_id ) ); ?>
+						</option>
+					<?php endforeach; ?>
+					<option value="<?php echo \esc_attr( PalettePresetRegistry::ID_CUSTOM ); ?>" <?php \selected( $detected, PalettePresetRegistry::ID_CUSTOM ); ?>>
+						<?php echo \esc_html( PalettePresetRegistry::get_label( PalettePresetRegistry::ID_CUSTOM ) ); ?>
+					</option>
+				</select>
 			</div>
-		</label>
 		</div>
-		<?php endforeach; ?>
-		</div>
+		<details class="fp-privacy-palette-custom"<?php echo $is_custom ? ' open' : ''; ?> <?php echo $is_custom ? '' : ' hidden'; ?>>
+			<summary class="fp-privacy-palette-custom-summary"><?php \esc_html_e( 'Colori personalizzati (hex)', 'fp-privacy' ); ?></summary>
+			<p class="description"><?php \esc_html_e( 'Modifica solo se il tema scelto non basta. Formato #RRGGBB.', 'fp-privacy' ); ?></p>
+			<div class="fp-privacy-palette fp-privacy-palette--custom">
+				<?php foreach ( $palette as $key => $color ) : ?>
+				<div class="fp-privacy-palette-item">
+					<label>
+						<strong class="fp-palette-label-text"><?php echo \esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', (string) $key ) ) ); ?></strong>
+						<div class="fp-privacy-color-input-wrapper">
+							<div class="fp-privacy-color-preview" style="background-color: <?php echo \esc_attr( $color ?: '#000000' ); ?>"></div>
+							<input type="text"
+								name="banner_layout[palette][<?php echo \esc_attr( (string) $key ); ?>]"
+								value="<?php echo \esc_attr( (string) $color ); ?>"
+								class="fp-privacy-hex-input"
+								placeholder="#000000"
+								pattern="^#[0-9A-Fa-f]{6}$"
+								maxlength="7"
+								data-label="<?php echo \esc_attr( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', (string) $key ) ) ); ?>" />
+						</div>
+					</label>
+				</div>
+				<?php endforeach; ?>
+			</div>
+		</details>
 		<?php
 	}
 }
