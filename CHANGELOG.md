@@ -4,6 +4,18 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.23] - 2026-03-25
+
+### Changed
+
+- Template `privacy-policy.php`: titoli sezioni e voci del sommario usano **msgid in inglese** (best practice WordPress). Se il catalogo `en_US` non viene caricato (cache, WPML, deploy `.mo` incompleto), il fallback è **inglese dal codice**, non italiano — elimina il sommario misto IT/EN su pagine in lingua inglese.
+
+### Fixed
+
+- `fp-privacy-it_IT.po` / `fp-privacy-en_US.po`: voci allineate ai nuovi msgid; rigenerati `.mo`.
+
+---
+
 ## [1.0.22] - 2026-03-25
 
 ### Fixed

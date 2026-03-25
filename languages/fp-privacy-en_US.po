@@ -157,11 +157,6 @@ msgstr "Last update"
 msgid "This policy was generated on %s."
 msgstr "This policy was generated on %s."
 
-#: templates/privacy-policy.php:119
-#: templates/privacy-policy.php:196
-msgid "Purposes of processing"
-msgstr "Purposes of processing"
-
 #: src/Presentation/Admin/Views/CookiesTabRenderer.php:152
 #: templates/privacy-policy.php:273
 msgid "Provider"
@@ -2203,118 +2198,108 @@ msgstr "Consent request not allowed from this origin."
 msgid "%1$s (%2$s)"
 msgstr "%1$s (%2$s)"
 
-#: templates/privacy-policy.php:112
-#: templates/privacy-policy.php:170
-msgid "Panoramica"
+#: templates/privacy-policy.php
+msgid "Overview"
 msgstr "Overview"
 
-#: templates/privacy-policy.php:113
-#: templates/privacy-policy.php:173
-msgid "Definizioni"
+#: templates/privacy-policy.php
+msgid "Definitions"
 msgstr "Definitions"
 
-#: templates/privacy-policy.php:114
-#: templates/privacy-policy.php:176
-msgid "Titolare del trattamento"
+#: templates/privacy-policy.php
+msgid "Data controller"
 msgstr "Data controller"
 
-#: templates/privacy-policy.php:115
-#: templates/privacy-policy.php:184
-msgid "Normative applicabili"
+#: templates/privacy-policy.php
+msgid "Applicable laws"
 msgstr "Applicable laws"
 
-#: templates/privacy-policy.php:116
-#: templates/privacy-policy.php:187
-msgid "Categorie di dati che trattiamo"
+#: templates/privacy-policy.php
+msgid "Categories of personal data we process"
 msgstr "Categories of personal data we process"
 
-#: templates/privacy-policy.php:117
-#: templates/privacy-policy.php:190
-msgid "Origine dei dati"
-msgstr "Origin of data"
+#: templates/privacy-policy.php
+msgid "Origin of personal data"
+msgstr "Origin of personal data"
 
-#: templates/privacy-policy.php:118
-#: templates/privacy-policy.php:193
-msgid "Dati obbligatori e facoltativi"
+#: templates/privacy-policy.php
+msgid "Mandatory and optional data"
 msgstr "Mandatory and optional data"
 
-#: templates/privacy-policy.php:120
-#: templates/privacy-policy.php:199
-msgid "Basi giuridiche"
+#: templates/privacy-policy.php
+msgid "Purposes of processing"
+msgstr "Purposes of processing"
+
+#: templates/privacy-policy.php
+msgid "Legal bases"
 msgstr "Legal bases"
 
-#: templates/privacy-policy.php:121
-#: templates/privacy-policy.php:202
-msgid "Destinatari e trasferimenti di dati"
+#: templates/privacy-policy.php
+msgid "Recipients and international transfers"
 msgstr "Recipients and international transfers"
 
-#: templates/privacy-policy.php:122
-#: templates/privacy-policy.php:205
-msgid "Responsabili del trattamento e personale autorizzato"
+#: templates/privacy-policy.php
+msgid "Processors and authorised staff"
 msgstr "Processors and authorised staff"
 
-#: templates/privacy-policy.php:123
-#: templates/privacy-policy.php:208
-msgid "Misure di sicurezza"
+#: templates/privacy-policy.php
+msgid "Security measures"
 msgstr "Security measures"
 
-#: templates/privacy-policy.php:124
-#: templates/privacy-policy.php:211
-msgid "Processo decisionale automatizzato e profilazione"
+#: templates/privacy-policy.php
+msgid "Automated decision-making and profiling"
 msgstr "Automated decision-making and profiling"
 
-#: templates/privacy-policy.php:127
-#: templates/privacy-policy.php:228
-msgid "Conservazione"
+#: templates/privacy-policy.php
+msgid "AI and machine learning data processing"
+msgstr "AI and machine learning data processing"
+
+#: templates/privacy-policy.php
+msgid "Algorithmic transparency"
+msgstr "Algorithmic transparency"
+
+#: templates/privacy-policy.php
+msgid "Retention"
 msgstr "Retention"
 
-#: templates/privacy-policy.php:128
-#: templates/privacy-policy.php:231
-msgid "Diritti dell'interessato"
+#: templates/privacy-policy.php
+msgid "Data subject rights"
 msgstr "Data subject rights"
 
-#: templates/privacy-policy.php:129
-#: templates/privacy-policy.php:234
-msgid "Come esercitare i tuoi diritti"
+#: templates/privacy-policy.php
+msgid "How to exercise your rights"
 msgstr "How to exercise your rights"
 
-#: templates/privacy-policy.php:130
-#: templates/privacy-policy.php:237
-msgid "Revoca del consenso e gestione dei cookie"
+#: templates/privacy-policy.php
+msgid "Withdrawal of consent and cookie management"
 msgstr "Withdrawal of consent and cookie management"
 
-#: templates/privacy-policy.php:131
-#: templates/privacy-policy.php:240
-msgid "Dati dei minori"
-msgstr "Children's data"
+#: templates/privacy-policy.php
+msgid "Children's personal data"
+msgstr "Children's personal data"
 
-#: templates/privacy-policy.php:132
-#: templates/privacy-policy.php:243
-msgid "Gestione delle violazioni dei dati"
+#: templates/privacy-policy.php
+msgid "Personal data breach handling"
 msgstr "Personal data breach handling"
 
-#: templates/privacy-policy.php:133
-#: templates/privacy-policy.php:247
-msgid "Responsabile della Protezione dei Dati"
+#: templates/privacy-policy.php
+msgid "Data Protection Officer"
 msgstr "Data Protection Officer"
 
-#: templates/privacy-policy.php:134
-#: templates/privacy-policy.php:251
-msgid "Contatto autorità di controllo"
+#: templates/privacy-policy.php
+msgid "Contacting the supervisory authority"
 msgstr "Contacting the supervisory authority"
 
-#: templates/privacy-policy.php:135
-#: templates/privacy-policy.php:254
-msgid "Governance e aggiornamenti dell'informativa"
-msgstr "Governance and updates to this notice"
+#: templates/privacy-policy.php
+msgid "Governance and updates to this privacy notice"
+msgstr "Governance and updates to this privacy notice"
 
-#: templates/privacy-policy.php:136
-#: templates/privacy-policy.php:257
-msgid "Servizi e cookie"
+#: templates/privacy-policy.php
+msgid "Services and cookies"
 msgstr "Services and cookies"
 
-#: templates/privacy-policy.php:137
-msgid "Ultimo aggiornamento"
+#: templates/privacy-policy.php
+msgid "Last updated"
 msgstr "Last updated"
 
 #: templates/privacy-policy.php:171
