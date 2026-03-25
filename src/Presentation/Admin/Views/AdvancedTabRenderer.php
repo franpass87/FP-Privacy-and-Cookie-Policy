@@ -9,6 +9,7 @@
 
 namespace FP\Privacy\Presentation\Admin\Views;
 
+use FP\Privacy\Admin\AdminUi;
 use FP\Privacy\Utils\Options;
 
 /**
@@ -30,7 +31,18 @@ class AdvancedTabRenderer extends SettingsRendererBase {
 			<h2><?php \esc_html_e( 'Integration alerts', 'fp-privacy' ); ?></h2>
 			<?php $this->render_detector_notifications( $notifications, $notification_recipients ); ?>
 
-			<?php \submit_button( \__( 'Save advanced tab (use Save all at the top for full settings)', 'fp-privacy' ), 'primary', 'submit-advanced', false ); ?>
+			<?php
+			AdminUi::render_submit_button(
+				\__( 'Save advanced tab (use Save all at the top for full settings)', 'fp-privacy' ),
+				'primary',
+				array(
+					'name'     => 'submit-advanced',
+					'id'       => 'submit-advanced',
+					'dashicon' => 'dashicons-saved',
+				),
+				false
+			);
+			?>
 		</div>
 		<?php
 	}
@@ -53,7 +65,7 @@ class AdvancedTabRenderer extends SettingsRendererBase {
 			<input type="checkbox" name="auto_update_services" value="1" <?php \checked( $auto_update_services, true ); ?> />
 			<?php \esc_html_e( 'Automatically add newly detected services to the system', 'fp-privacy' ); ?>
 		</label>
-		<p class="description" style="margin-left: 1.5em; margin-top: 0.5em;">
+		<p class="fp-privacy-checkbox-help description">
 			<?php \esc_html_e( 'When enabled, new services detected by the daily scan will be automatically added to your snapshots.', 'fp-privacy' ); ?>
 		</p>
 
@@ -61,11 +73,11 @@ class AdvancedTabRenderer extends SettingsRendererBase {
 			<input type="checkbox" name="auto_update_policies" value="1" <?php \checked( $auto_update_policies, true ); ?> />
 			<?php \esc_html_e( 'Automatically regenerate privacy and cookie policies', 'fp-privacy' ); ?>
 		</label>
-		<p class="description" style="margin-left: 1.5em; margin-top: 0.5em;">
+		<p class="fp-privacy-checkbox-help description">
 			<?php \esc_html_e( 'When enabled, policies will be automatically regenerated when new services are detected. Requires "Automatically add newly detected services" to be enabled.', 'fp-privacy' ); ?>
 		</p>
 
-		<hr style="margin: 1.5em 0;">
+		<div class="fp-privacy-advanced-section-gap" aria-hidden="true"></div>
 
 		<label>
 			<input type="checkbox" name="detector_notifications[email]" value="1" <?php \checked( ! empty( $notifications['email'] ) ); ?> />

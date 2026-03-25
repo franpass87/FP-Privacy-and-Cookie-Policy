@@ -368,6 +368,255 @@ body.fp-privacy-admin-shell .fp-privacy-admin-page .button:not(.button-primary):
     border-top: 1px solid var(--fpdms-border);
 }
 
+/* Spaziatura tra blocchi dentro una card (sostituisce <hr>) */
+.fp-privacy-card-stack-gap {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--fpdms-border-light);
+}
+
+.fp-privacy-checkbox-help {
+    margin: 0.5em 0 1em 1.5em;
+}
+
+.fp-privacy-advanced-section-gap {
+    margin: 1.5rem 0;
+    height: 0;
+}
+
+/* Design system — griglia campi (FP Mail / fp-admin-ui-design-system) */
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-field--full {
+    grid-column: 1 / -1;
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-field > label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--fpdms-text);
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-hint {
+    font-size: 0.85rem;
+    color: var(--fpdms-text-muted);
+}
+
+/* Alert DS */
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-alert {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-alert .dashicons {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-alert-success {
+    background: var(--fpdms-success-bg);
+    border-left: 4px solid var(--fpdms-success);
+    color: var(--fpdms-success-text);
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-alert-warning {
+    background: var(--fpdms-warning-bg);
+    border-left: 4px solid var(--fpdms-warning);
+    color: var(--fpdms-warning-text);
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-alert-danger {
+    background: var(--fpdms-danger-bg);
+    border-left: 4px solid var(--fpdms-danger);
+    color: var(--fpdms-danger-text);
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-alert-info {
+    background: var(--fpdms-info-bg);
+    border-left: 4px solid var(--fpdms-info);
+    color: var(--fpdms-info-text);
+}
+
+/* Input / select / textarea — token FP (escludi editor TinyMCE) */
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='text']:not(.mce-textbox),
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='email'],
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='number'],
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='password'],
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='search'],
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='url'],
+body.fp-privacy-admin-shell .fp-privacy-admin-page select,
+body.fp-privacy-admin-shell .fp-privacy-admin-page textarea:not(.wp-editor-area):not(.mce-textbox) {
+    border: 2px solid var(--fpdms-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.75rem;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='text']:focus,
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='email']:focus,
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='number']:focus,
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='password']:focus,
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='search']:focus,
+body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='url']:focus,
+body.fp-privacy-admin-shell .fp-privacy-admin-page select:focus,
+body.fp-privacy-admin-shell .fp-privacy-admin-page textarea:focus {
+    border-color: var(--fpdms-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+body.fp-privacy-admin-shell .fp-privacy-admin-page .is-monospace {
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+}
+
+/* Pulsante DS — variante large (diagnostica) */
+.fp-privacy-btn--large {
+    padding: 0.65rem 1.35rem;
+    font-size: 1rem;
+}
+
+.fp-privacy-btn--large .dashicons {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+/* Diagnostica — card e liste */
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-card--spaced {
+    margin-top: var(--fp-space-6);
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-list__item {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--fpdms-border);
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-list__item:last-child {
+    border-bottom: none;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-muted {
+    color: var(--fpdms-text-muted);
+    margin-left: 0.35rem;
+    font-size: 0.9rem;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-warning {
+    color: var(--fpdms-danger-text);
+    margin: 0;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-subheading {
+    margin: 1rem 0 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--fpdms-text);
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-subheading:first-child {
+    margin-top: 0;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-line {
+    padding: 0.35rem 0;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-line--error {
+    color: var(--fpdms-danger-text);
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-action-block {
+    margin-bottom: 0;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-action-title {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--fpdms-text);
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-inline-forms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-links {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-links li {
+    margin-bottom: 0.5rem;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-decoration: none;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-links a:hover {
+    color: var(--fpdms-primary);
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-flag {
+    font-weight: 600;
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-flag--yes {
+    color: var(--fpdms-success-text);
+}
+
+.fp-privacy-diagnostics-wrap .fp-privacy-diagnostic-flag--no {
+    color: var(--fpdms-danger-text);
+}
+
+.fp-privacy-card-body--flush-table {
+    padding: 0;
+}
+
+.fp-privacy-card-body--flush-table .fp-privacy-table {
+    margin: 0;
+    border: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.fp-privacy-card-body--flush-table .fp-privacy-table td,
+.fp-privacy-card-body--flush-table .fp-privacy-table th {
+    padding: 0.75rem 1.25rem;
+}
+
+.fp-privacy-card-body--flush-table .fp-privacy-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
 .fp-privacy-card--actions .fp-privacy-card-body {
     padding-top: var(--fp-space-4);
 }
@@ -1263,14 +1512,15 @@ textarea:focus-visible {
 .fp-privacy-settings .fp-privacy-layout,
 .fp-privacy-settings .fp-privacy-palette,
 .fp-privacy-settings .fp-privacy-consent-mode {
-margin-bottom: 24px;
-background: #fff;
-padding: 24px;
-border: 1px solid #e5e7eb;
-border-radius: 12px;
-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-transition: all 0.2s ease;
-position: relative;
+    margin-bottom: 1.5rem;
+    background: var(--fpdms-bg-white);
+    padding: 1.5rem;
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
 }
 
 .fp-privacy-settings .fp-privacy-language-panel:hover,
@@ -1278,8 +1528,7 @@ position: relative;
 .fp-privacy-settings .fp-privacy-layout:hover,
 .fp-privacy-settings .fp-privacy-palette:hover,
 .fp-privacy-settings .fp-privacy-consent-mode:hover {
-    border-color: #d1d5db;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-lg);
     transform: translateY(-1px);
 }
 

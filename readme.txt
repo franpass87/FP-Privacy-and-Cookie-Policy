@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.36
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.1.0 =
+* Added: AdminUi submit FP-style; CSS design system (fields-grid, alert, input focus, diagnostica).
+* Changed: niente submit_button/hr/inline su admin principale; diagnostica in card FP; pannelli legacy e tabella rilevati allineati DS.
 
 = 1.0.36 =
 * Changed: navigazione sezioni nel menu laterale WordPress (sottopagine); barra orizzontale solo con filtro `fp_privacy_collapse_admin_submenus` = true (legacy).

@@ -4,6 +4,22 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.0] - 2026-03-25
+
+### Added
+
+- `FP\Privacy\Admin\AdminUi::render_submit_button()` — pulsanti submit allineati a `.fp-privacy-btn` (design system FP).
+- CSS admin: `.fp-privacy-fields-grid`, `.fp-privacy-field`, `.fp-privacy-hint`, varianti `.fp-privacy-alert-*`, input/select/textarea con bordo 2px e focus token; utilità `.fp-privacy-card-stack-gap`, `.fp-privacy-checkbox-help`, diagnostica (card FP, flag yes/no, link utili).
+
+### Changed
+
+- Rimossi `submit_button()` core dai tab impostazioni, Tools, Policy editor; testo intro impostazioni aggiornato (sottomenu WP).
+- Rimossi `<hr>` e stili inline da Advanced tab e Tools; sezione **Diagnostica** e **stato/debug** in card FP con stringhe msgid inglesi e link corretto a `admin.php?page=fp-privacy`.
+- Tab Banner: blocco lingue in `.fp-privacy-fields-grid` con label accessibile.
+- Pannelli legacy impostazioni (language-panel, org, layout, …) allineati a token `--fpdms-*` e ombre card; tabella servizi rilevati con classe `fp-privacy-table`.
+
+---
+
 ## [1.0.36] - 2026-03-25
 
 ### Changed

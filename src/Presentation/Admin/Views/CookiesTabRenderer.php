@@ -9,6 +9,7 @@
 
 namespace FP\Privacy\Presentation\Admin\Views;
 
+use FP\Privacy\Admin\AdminUi;
 use FP\Privacy\Utils\Options;
 
 /**
@@ -46,7 +47,18 @@ class CookiesTabRenderer extends SettingsRendererBase {
 
 			<p class="description"><?php \esc_html_e( 'Use the policy editor to regenerate your documents after services change.', 'fp-privacy' ); ?></p>
 
-			<?php \submit_button( \__( 'Save cookies tab (use Save all at the top for full settings)', 'fp-privacy' ), 'primary', 'submit-cookies', false ); ?>
+			<?php
+			AdminUi::render_submit_button(
+				\__( 'Save cookies tab (use Save all at the top for full settings)', 'fp-privacy' ),
+				'primary',
+				array(
+					'name'     => 'submit-cookies',
+					'id'       => 'submit-cookies',
+					'dashicon' => 'dashicons-saved',
+				),
+				false
+			);
+			?>
 		</div>
 		<?php
 	}
@@ -149,7 +161,7 @@ class CookiesTabRenderer extends SettingsRendererBase {
 	 */
 	private function render_detected_services( $detected ) {
 		?>
-		<table class="widefat fp-privacy-detected">
+		<table class="widefat fp-privacy-detected fp-privacy-table">
 		<thead>
 		<tr>
 		<th><?php \esc_html_e( 'Service', 'fp-privacy' ); ?></th>

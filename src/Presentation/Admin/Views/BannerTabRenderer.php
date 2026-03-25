@@ -9,6 +9,7 @@
 
 namespace FP\Privacy\Presentation\Admin\Views;
 
+use FP\Privacy\Admin\AdminUi;
 use FP\Privacy\Utils\Options;
 
 /**
@@ -30,8 +31,13 @@ class BannerTabRenderer extends SettingsRendererBase {
 		<div class="fp-privacy-tab-content active" id="fp-privacy-tab-content-banner" role="tabpanel" aria-labelledby="fp-privacy-tab-button-banner" data-tab-content="banner">
 			<div class="fp-privacy-accordion-section" data-fp-section="banner-languages">
 			<h2><?php \esc_html_e( 'Languages', 'fp-privacy' ); ?></h2>
-			<p class="description"><?php \esc_html_e( 'Provide active languages (comma separated locale codes).', 'fp-privacy' ); ?></p>
-			<input type="text" name="languages_active" class="regular-text" value="<?php echo \esc_attr( implode( ',', $languages ) ); ?>" />
+			<div class="fp-privacy-fields-grid">
+				<div class="fp-privacy-field fp-privacy-field--full">
+					<label for="fp-privacy-languages-active"><?php \esc_html_e( 'Active languages', 'fp-privacy' ); ?></label>
+					<input type="text" id="fp-privacy-languages-active" name="languages_active" class="regular-text" value="<?php echo \esc_attr( \implode( ',', $languages ) ); ?>" />
+					<span class="fp-privacy-hint"><?php \esc_html_e( 'Comma-separated locale codes (e.g. it_IT, en_US).', 'fp-privacy' ); ?></span>
+				</div>
+			</div>
 			</div>
 
 			<div class="fp-privacy-accordion-section" data-fp-section="banner-content">
@@ -78,7 +84,18 @@ class BannerTabRenderer extends SettingsRendererBase {
 			<?php $this->render_palette_settings( $options['banner_layout']['palette'] ); ?>
 			</div>
 
-			<?php \submit_button( \__( 'Save banner tab (use Save all at the top for full settings)', 'fp-privacy' ), 'primary', 'submit-banner', false ); ?>
+			<?php
+			AdminUi::render_submit_button(
+				\__( 'Save banner tab (use Save all at the top for full settings)', 'fp-privacy' ),
+				'primary',
+				array(
+					'name'     => 'submit-banner',
+					'id'       => 'submit-banner',
+					'dashicon' => 'dashicons-saved',
+				),
+				false
+			);
+			?>
 		</div>
 		<?php
 	}

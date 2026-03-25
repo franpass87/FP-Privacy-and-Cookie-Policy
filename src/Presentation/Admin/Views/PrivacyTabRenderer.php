@@ -9,6 +9,7 @@
 
 namespace FP\Privacy\Presentation\Admin\Views;
 
+use FP\Privacy\Admin\AdminUi;
 use FP\Privacy\Utils\Options;
 
 /**
@@ -51,7 +52,18 @@ class PrivacyTabRenderer extends SettingsRendererBase {
 			<?php $this->render_algorithmic_transparency_settings( $options ); ?>
 			</div>
 
-			<?php \submit_button( \__( 'Save privacy tab (use Save all at the top for full settings)', 'fp-privacy' ), 'primary', 'submit-privacy', false ); ?>
+			<?php
+			AdminUi::render_submit_button(
+				\__( 'Save privacy tab (use Save all at the top for full settings)', 'fp-privacy' ),
+				'primary',
+				array(
+					'name'     => 'submit-privacy',
+					'id'       => 'submit-privacy',
+					'dashicon' => 'dashicons-saved',
+				),
+				false
+			);
+			?>
 		</div>
 		<?php
 	}

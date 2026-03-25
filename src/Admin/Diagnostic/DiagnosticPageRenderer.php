@@ -76,7 +76,7 @@ class DiagnosticPageRenderer {
 				<!-- Colonna 2: Azioni -->
 				<div>
 					<?php DiagnosticContentRenderer::render_quick_actions(); ?>
-					<?php DiagnosticStateRenderer::render_debug_info( $frontend_state ); ?>
+					<?php DiagnosticStateRenderer::render_debug_info(); ?>
 					<?php DiagnosticContentRenderer::render_useful_links(); ?>
 				</div>
 			</div>

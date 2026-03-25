@@ -133,7 +133,7 @@ AdminSubnav::maybe_render( Menu::MENU_SLUG );
 		<span class="separator" aria-hidden="true">/</span>
 		<span class="fp-privacy-breadcrumb-current"><?php \esc_html_e( 'Configuration sections', 'fp-privacy' ); ?></span>
 	</nav>
-	<p class="fp-privacy-settings-form-intro description"><?php \esc_html_e( 'Use the tabs below to edit each area. Save everything at once with Save all or the bar at the bottom. Other plugin sections (log, tools, guide) are available from the horizontal navigation above.', 'fp-privacy' ); ?></p>
+	<p class="fp-privacy-settings-form-intro description"><?php \esc_html_e( 'Use the tabs below to edit each area. Save everything at once with Save all or the bar at the bottom. Other sections (log, analytics, policy editor, tools, guide) are in the FP Privacy submenu.', 'fp-privacy' ); ?></p>
 </div>
 
 <nav class="fp-privacy-tabs-nav" role="tablist" aria-label="<?php \esc_attr_e( 'Settings configuration tabs', 'fp-privacy' ); ?>">
@@ -209,7 +209,7 @@ AdminSubnav::maybe_render( Menu::MENU_SLUG );
 				\__( 'Tools', 'fp-privacy' ),
 				\__( 'Export or import configuration, regenerate policies and reset revision.', 'fp-privacy' )
 			);
-			AdminSubnav::render( 'fp-privacy-tools' );
+			AdminSubnav::maybe_render( 'fp-privacy-tools' );
 			?>
 
 			<div class="fp-privacy-card">
@@ -224,7 +224,13 @@ AdminSubnav::maybe_render( Menu::MENU_SLUG );
 				<?php \wp_nonce_field( 'fp_privacy_export_settings', 'fp_privacy_export_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_export_settings" />
 				<p class="description"><?php \esc_html_e( 'Download the full plugin configuration as JSON.', 'fp-privacy' ); ?></p>
-				<?php \submit_button( \__( 'Download settings JSON', 'fp-privacy' ), 'secondary' ); ?>
+				<?php
+				AdminUi::render_submit_button(
+					\__( 'Download settings JSON', 'fp-privacy' ),
+					'secondary',
+					array( 'name' => 'submit', 'id' => 'submit', 'dashicon' => 'dashicons-download' )
+				);
+				?>
 			</form>
 				</div>
 			</div>
@@ -242,7 +248,13 @@ AdminSubnav::maybe_render( Menu::MENU_SLUG );
 				<input type="hidden" name="action" value="fp_privacy_import_settings" />
 				<p class="description"><?php \esc_html_e( 'Restore settings from a previously exported JSON file.', 'fp-privacy' ); ?></p>
 				<p><input type="file" name="settings_file" accept="application/json" required /></p>
-				<?php \submit_button( \__( 'Import settings', 'fp-privacy' ), 'primary' ); ?>
+				<?php
+				AdminUi::render_submit_button(
+					\__( 'Import settings', 'fp-privacy' ),
+					'primary',
+					array( 'name' => 'submit', 'id' => 'submit', 'dashicon' => 'dashicons-upload' )
+				);
+				?>
 			</form>
 				</div>
 			</div>
@@ -259,11 +271,18 @@ AdminSubnav::maybe_render( Menu::MENU_SLUG );
 				<?php \wp_nonce_field( 'fp_privacy_regenerate_policy', 'fp_privacy_regenerate_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_regenerate_policy" />
 				<p class="description"><?php \esc_html_e( 'Regenerate privacy and cookie policy pages from the current detector configuration.', 'fp-privacy' ); ?></p>
-				<?php \submit_button( \__( 'Regenerate policies', 'fp-privacy' ), 'secondary' ); ?>
+				<?php
+				AdminUi::render_submit_button(
+					\__( 'Regenerate policies', 'fp-privacy' ),
+					'secondary',
+					array( 'name' => 'submit', 'id' => 'submit', 'dashicon' => 'dashicons-update' )
+				);
+				?>
 			</form>
-			<hr class="fp-privacy-card-divider" />
+			<div class="fp-privacy-card-stack-gap">
 			<p class="description"><?php \esc_html_e( 'Bump the consent revision to force visitors to see the banner again.', 'fp-privacy' ); ?></p>
 			<p><a class="button button-secondary" href="<?php echo \esc_url( \wp_nonce_url( \admin_url( 'admin-post.php?action=fp_privacy_bump_revision' ), 'fp_privacy_bump_revision' ) ); ?>"><?php \esc_html_e( 'Reset consent (bump revision)', 'fp-privacy' ); ?></a></p>
+			</div>
 				</div>
 			</div>
 		</div>

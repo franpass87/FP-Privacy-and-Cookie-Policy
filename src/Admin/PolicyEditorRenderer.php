@@ -83,7 +83,13 @@ class PolicyEditorRenderer {
 					</div>
 				<?php endforeach; ?>
 
-				<?php \submit_button( \__( 'Save policies', 'fp-privacy' ) ); ?>
+				<?php
+				AdminUi::render_submit_button(
+					\__( 'Save policies', 'fp-privacy' ),
+					'primary',
+					array( 'name' => 'submit', 'id' => 'submit', 'dashicon' => 'dashicons-saved' )
+				);
+				?>
 			</form>
 
 			<div class="fp-privacy-card">
@@ -98,7 +104,13 @@ class PolicyEditorRenderer {
 				<?php \wp_nonce_field( 'fp_privacy_regenerate_policy', 'fp_privacy_regenerate_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_regenerate_policy" />
 				<p class="description"><?php \esc_html_e( 'Run the integration detector and overwrite policy pages with freshly generated HTML.', 'fp-privacy' ); ?></p>
-				<?php \submit_button( \__( 'Detect integrations and regenerate', 'fp-privacy' ), 'secondary' ); ?>
+				<?php
+				AdminUi::render_submit_button(
+					\__( 'Detect integrations and regenerate', 'fp-privacy' ),
+					'secondary',
+					array( 'name' => 'submit', 'id' => 'submit', 'dashicon' => 'dashicons-search' )
+				);
+				?>
 			</form>
 				</div>
 			</div>

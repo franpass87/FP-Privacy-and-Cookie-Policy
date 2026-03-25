@@ -2,10 +2,12 @@
 /**
  * Diagnostic content renderer.
  *
- * @package FP\Privacy\Admin\Diagnostic
+ * @package FP\Privacy\Presentation\Admin\Controllers\Diagnostic
  * @author Francesco Passeri
  * @link https://francescopasseri.com
  */
+
+declare(strict_types=1);
 
 namespace FP\Privacy\Presentation\Admin\Controllers\Diagnostic;
 
@@ -17,36 +19,43 @@ class DiagnosticContentRenderer {
 	 * Render consent categories section.
 	 *
 	 * @param array<string, mixed> $all_options All options.
-	 * @param string                $lang        Current language.
+	 * @param string               $lang        Current language.
 	 * @return void
 	 */
-	public static function render_consent_categories( array $all_options, string $lang ) {
+	public static function render_consent_categories( array $all_options, string $lang ): void {
 		?>
-		<div class="card" style="margin-top: 20px;">
-			<h2 class="title"><?php esc_html_e( 'Categorie Consenso', 'fp-privacy' ); ?></h2>
+		<div class="fp-privacy-card fp-privacy-diagnostic-card fp-privacy-diagnostic-card--spaced">
+			<div class="fp-privacy-card-header">
+				<div class="fp-privacy-card-header-left">
+					<span class="dashicons dashicons-category" aria-hidden="true"></span>
+					<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Consent categories', 'fp-privacy' ); ?></h2>
+				</div>
+			</div>
+			<div class="fp-privacy-card-body">
 			<?php
 			$categories = $all_options['categories'] ?? array();
 			if ( ! empty( $categories ) ) :
 				?>
-				<ul style="list-style: none; padding-left: 0;">
+				<ul class="fp-privacy-diagnostic-list">
 					<?php foreach ( $categories as $cat_id => $cat_data ) : ?>
 						<?php
 						$label  = $cat_data['label'][ $lang ] ?? $cat_data['label']['en_US'] ?? $cat_id;
 						$locked = ! empty( $cat_data['locked'] );
 						?>
-						<li style="padding: 8px 0; border-bottom: 1px solid #ddd;">
-							<strong><?php echo esc_html( $label ); ?></strong>
+						<li class="fp-privacy-diagnostic-list__item">
+							<strong><?php echo \esc_html( $label ); ?></strong>
 							<?php if ( $locked ) : ?>
-								<span style="color: #999;">🔒 <?php esc_html_e( '(Sempre attivo)', 'fp-privacy' ); ?></span>
+								<span class="fp-privacy-diagnostic-muted"><?php \esc_html_e( '(Always active)', 'fp-privacy' ); ?></span>
 							<?php endif; ?>
 						</li>
 					<?php endforeach; ?>
 				</ul>
 			<?php else : ?>
-				<p style="color: #dc3232;">
-					⚠️ <?php esc_html_e( 'Nessuna categoria configurata. Usa il pulsante "Configura Default" qui sotto.', 'fp-privacy' ); ?>
+				<p class="fp-privacy-diagnostic-warning">
+					<?php \esc_html_e( 'No categories configured. Use “Configure defaults” in Quick actions below.', 'fp-privacy' ); ?>
 				</p>
 			<?php endif; ?>
+			</div>
 		</div>
 		<?php
 	}
@@ -57,41 +66,48 @@ class DiagnosticContentRenderer {
 	 * @param array<string, mixed> $all_options All options.
 	 * @return void
 	 */
-	public static function render_policy_pages( array $all_options ) {
+	public static function render_policy_pages( array $all_options ): void {
 		?>
-		<div class="card" style="margin-top: 20px;">
-			<h2 class="title"><?php esc_html_e( 'Pagine Policy', 'fp-privacy' ); ?></h2>
+		<div class="fp-privacy-card fp-privacy-diagnostic-card fp-privacy-diagnostic-card--spaced">
+			<div class="fp-privacy-card-header">
+				<div class="fp-privacy-card-header-left">
+					<span class="dashicons dashicons-admin-page" aria-hidden="true"></span>
+					<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Policy pages', 'fp-privacy' ); ?></h2>
+				</div>
+			</div>
+			<div class="fp-privacy-card-body">
 			<?php
 			$pages = $all_options['pages'] ?? array();
 			foreach ( array( 'privacy_policy_page_id', 'cookie_policy_page_id' ) as $key ) :
-				$type = str_replace( '_page_id', '', $key );
+				$type = \str_replace( '_page_id', '', $key );
 				?>
-				<h4><?php echo esc_html( ucfirst( str_replace( '_', ' ', $type ) ) ); ?></h4>
+				<h3 class="fp-privacy-diagnostic-subheading"><?php echo \esc_html( \ucfirst( \str_replace( '_', ' ', $type ) ) ); ?></h3>
 				<?php
-				if ( ! empty( $pages[ $key ] ) && is_array( $pages[ $key ] ) ) :
+				if ( ! empty( $pages[ $key ] ) && \is_array( $pages[ $key ] ) ) :
 					foreach ( $pages[ $key ] as $lang_code => $page_id ) :
 						$page = \get_post( $page_id );
 						if ( $page ) :
 							?>
-							<div style="padding: 5px 0;">
-								<strong><?php echo esc_html( $lang_code ); ?>:</strong>
-								<a href="<?php echo esc_url( \get_permalink( $page_id ) ); ?>" target="_blank">
-									<?php echo esc_html( $page->post_title ); ?>
+							<div class="fp-privacy-diagnostic-line">
+								<strong><?php echo \esc_html( $lang_code ); ?>:</strong>
+								<a href="<?php echo \esc_url( \get_permalink( $page_id ) ); ?>" target="_blank" rel="noopener noreferrer">
+									<?php echo \esc_html( $page->post_title ); ?>
 								</a>
-								<code>(ID: <?php echo esc_html( $page_id ); ?>)</code>
+								<code class="is-monospace">(ID: <?php echo \esc_html( (string) $page_id ); ?>)</code>
 							</div>
 						<?php else : ?>
-							<div style="padding: 5px 0; color: #dc3232;">
-								<strong><?php echo esc_html( $lang_code ); ?>:</strong>
-								<?php esc_html_e( 'Pagina non trovata', 'fp-privacy' ); ?>
-								<code>(ID: <?php echo esc_html( $page_id ); ?>)</code>
+							<div class="fp-privacy-diagnostic-line fp-privacy-diagnostic-line--error">
+								<strong><?php echo \esc_html( $lang_code ); ?>:</strong>
+								<?php \esc_html_e( 'Page not found', 'fp-privacy' ); ?>
+								<code class="is-monospace">(ID: <?php echo \esc_html( (string) $page_id ); ?>)</code>
 							</div>
 						<?php endif; ?>
 					<?php endforeach; ?>
 				<?php else : ?>
-					<p style="color: #999;"><em><?php esc_html_e( 'Nessuna pagina configurata', 'fp-privacy' ); ?></em></p>
+					<p class="fp-privacy-diagnostic-muted"><em><?php \esc_html_e( 'No page configured', 'fp-privacy' ); ?></em></p>
 				<?php endif; ?>
 			<?php endforeach; ?>
+			</div>
 		</div>
 		<?php
 	}
@@ -101,56 +117,64 @@ class DiagnosticContentRenderer {
 	 *
 	 * @return void
 	 */
-	public static function render_quick_actions() {
+	public static function render_quick_actions(): void {
 		?>
-		<div class="card">
-			<h2 class="title"><?php esc_html_e( 'Azioni Rapide', 'fp-privacy' ); ?></h2>
-			
-			<div style="margin-bottom: 20px;">
-				<h3><?php esc_html_e( '1. Configura Impostazioni di Default', 'fp-privacy' ); ?></h3>
-				<p><?php esc_html_e( 'Configura categorie, testi del banner e layout predefiniti.', 'fp-privacy' ); ?></p>
-				<form method="post" action="<?php echo esc_url( \admin_url( 'admin-post.php' ) ); ?>">
+		<div class="fp-privacy-card fp-privacy-diagnostic-card">
+			<div class="fp-privacy-card-header">
+				<div class="fp-privacy-card-header-left">
+					<span class="dashicons dashicons-admin-tools" aria-hidden="true"></span>
+					<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Quick actions', 'fp-privacy' ); ?></h2>
+				</div>
+			</div>
+			<div class="fp-privacy-card-body">
+			<div class="fp-privacy-diagnostic-action-block">
+				<h3 class="fp-privacy-diagnostic-action-title"><?php \esc_html_e( '1. Configure default settings', 'fp-privacy' ); ?></h3>
+				<p><?php \esc_html_e( 'Set categories, banner texts and default layout.', 'fp-privacy' ); ?></p>
+				<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>">
 					<?php \wp_nonce_field( 'fp_privacy_setup_defaults' ); ?>
 					<input type="hidden" name="action" value="fp_privacy_setup_defaults">
-					<button type="submit" class="button button-primary button-large">
-						⚙️ <?php esc_html_e( 'Configura Default', 'fp-privacy' ); ?>
+					<button type="submit" class="fp-privacy-btn fp-privacy-btn-primary fp-privacy-btn--large">
+						<span class="dashicons dashicons-admin-generic" aria-hidden="true"></span>
+						<?php \esc_html_e( 'Configure defaults', 'fp-privacy' ); ?>
 					</button>
 				</form>
 			</div>
 
-			<hr>
-
-			<div style="margin-bottom: 20px;">
-				<h3><?php esc_html_e( '2. Forza Visualizzazione Banner', 'fp-privacy' ); ?></h3>
-				<p><?php esc_html_e( 'Attiva la modalità preview e cancella il cookie di consenso per forzare la visualizzazione del banner.', 'fp-privacy' ); ?></p>
-				<form method="post" action="<?php echo esc_url( \admin_url( 'admin-post.php' ) ); ?>" style="display: inline-block; margin-right: 10px;">
-					<?php \wp_nonce_field( 'fp_privacy_force_banner' ); ?>
-					<input type="hidden" name="action" value="fp_privacy_force_banner">
-					<button type="submit" class="button button-secondary button-large">
-						👁️ <?php esc_html_e( 'Attiva Preview', 'fp-privacy' ); ?>
-					</button>
-				</form>
-				<form method="post" action="<?php echo esc_url( \admin_url( 'admin-post.php' ) ); ?>" style="display: inline-block;">
-					<?php \wp_nonce_field( 'fp_privacy_disable_preview' ); ?>
-					<input type="hidden" name="action" value="fp_privacy_disable_preview">
-					<button type="submit" class="button button-secondary button-large">
-						❌ <?php esc_html_e( 'Disattiva Preview', 'fp-privacy' ); ?>
-					</button>
-				</form>
+			<div class="fp-privacy-diagnostic-action-block fp-privacy-card-stack-gap">
+				<h3 class="fp-privacy-diagnostic-action-title"><?php \esc_html_e( '2. Force banner preview', 'fp-privacy' ); ?></h3>
+				<p><?php \esc_html_e( 'Enable preview mode and clear the consent cookie to show the banner again.', 'fp-privacy' ); ?></p>
+				<div class="fp-privacy-diagnostic-inline-forms">
+					<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>">
+						<?php \wp_nonce_field( 'fp_privacy_force_banner' ); ?>
+						<input type="hidden" name="action" value="fp_privacy_force_banner">
+						<button type="submit" class="fp-privacy-btn fp-privacy-btn-secondary fp-privacy-btn--large">
+							<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+							<?php \esc_html_e( 'Enable preview', 'fp-privacy' ); ?>
+						</button>
+					</form>
+					<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>">
+						<?php \wp_nonce_field( 'fp_privacy_disable_preview' ); ?>
+						<input type="hidden" name="action" value="fp_privacy_disable_preview">
+						<button type="submit" class="fp-privacy-btn fp-privacy-btn-secondary fp-privacy-btn--large">
+							<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+							<?php \esc_html_e( 'Disable preview', 'fp-privacy' ); ?>
+						</button>
+					</form>
+				</div>
 			</div>
 
-			<hr>
-
-			<div style="margin-bottom: 20px;">
-				<h3><?php esc_html_e( '3. Cancella Consenso Corrente', 'fp-privacy' ); ?></h3>
-				<p><?php esc_html_e( 'Cancella il tuo consenso corrente per testare il banner (solo per il tuo account).', 'fp-privacy' ); ?></p>
-				<form method="post" action="<?php echo esc_url( \admin_url( 'admin-post.php' ) ); ?>">
+			<div class="fp-privacy-diagnostic-action-block fp-privacy-card-stack-gap">
+				<h3 class="fp-privacy-diagnostic-action-title"><?php \esc_html_e( '3. Clear current consent', 'fp-privacy' ); ?></h3>
+				<p><?php \esc_html_e( 'Clear your own consent cookie to test the banner (this browser only).', 'fp-privacy' ); ?></p>
+				<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>">
 					<?php \wp_nonce_field( 'fp_privacy_clear_consent' ); ?>
 					<input type="hidden" name="action" value="fp_privacy_clear_consent">
-					<button type="submit" class="button button-secondary button-large">
-						🗑️ <?php esc_html_e( 'Cancella Consenso', 'fp-privacy' ); ?>
+					<button type="submit" class="fp-privacy-btn fp-privacy-btn-secondary fp-privacy-btn--large">
+						<span class="dashicons dashicons-trash" aria-hidden="true"></span>
+						<?php \esc_html_e( 'Clear consent', 'fp-privacy' ); ?>
 					</button>
 				</form>
+			</div>
 			</div>
 		</div>
 		<?php
@@ -161,31 +185,38 @@ class DiagnosticContentRenderer {
 	 *
 	 * @return void
 	 */
-	public static function render_useful_links() {
+	public static function render_useful_links(): void {
 		?>
-		<div class="card" style="margin-top: 20px;">
-			<h2 class="title"><?php esc_html_e( 'Link Utili', 'fp-privacy' ); ?></h2>
-			<ul>
-				<li><a href="<?php echo esc_url( \admin_url( 'admin.php?page=fp-privacy-settings' ) ); ?>">⚙️ <?php esc_html_e( 'Impostazioni', 'fp-privacy' ); ?></a></li>
-				<li><a href="<?php echo esc_url( \home_url( '/' ) ); ?>" target="_blank">🏠 <?php esc_html_e( 'Visualizza Sito', 'fp-privacy' ); ?></a></li>
-				<li><a href="<?php echo esc_url( \admin_url( 'admin.php?page=fp-privacy-consent-log' ) ); ?>">📊 <?php esc_html_e( 'Log Consensi', 'fp-privacy' ); ?></a></li>
+		<div class="fp-privacy-card fp-privacy-diagnostic-card fp-privacy-diagnostic-card--spaced">
+			<div class="fp-privacy-card-header">
+				<div class="fp-privacy-card-header-left">
+					<span class="dashicons dashicons-admin-links" aria-hidden="true"></span>
+					<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Useful links', 'fp-privacy' ); ?></h2>
+				</div>
+			</div>
+			<div class="fp-privacy-card-body">
+			<ul class="fp-privacy-diagnostic-links">
+				<li>
+					<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy' ) ); ?>">
+						<span class="dashicons dashicons-admin-settings" aria-hidden="true"></span>
+						<?php \esc_html_e( 'Settings', 'fp-privacy' ); ?>
+					</a>
+				</li>
+				<li>
+					<a href="<?php echo \esc_url( \home_url( '/' ) ); ?>" target="_blank" rel="noopener noreferrer">
+						<span class="dashicons dashicons-admin-home" aria-hidden="true"></span>
+						<?php \esc_html_e( 'View site', 'fp-privacy' ); ?>
+					</a>
+				</li>
+				<li>
+					<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-consent-log' ) ); ?>">
+						<span class="dashicons dashicons-list-view" aria-hidden="true"></span>
+						<?php \esc_html_e( 'Consent log', 'fp-privacy' ); ?>
+					</a>
+				</li>
 			</ul>
+			</div>
 		</div>
 		<?php
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
