@@ -90,7 +90,7 @@ class BannerTabRenderer extends SettingsRendererBase {
 
 			<?php
 			AdminUi::render_submit_button(
-				\__( 'Salva scheda Banner (usa Salva tutto in alto per l’intera configurazione)', 'fp-privacy' ),
+				\__( 'Salva scheda Banner', 'fp-privacy' ),
 				'primary',
 				array(
 					'name'     => 'submit-banner',

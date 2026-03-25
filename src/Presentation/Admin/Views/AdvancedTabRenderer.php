@@ -36,7 +36,7 @@ class AdvancedTabRenderer extends SettingsRendererBase {
 
 			<?php
 			AdminUi::render_submit_button(
-				\__( 'Salva scheda Avanzate (usa Salva tutto in alto per l’intera configurazione)', 'fp-privacy' ),
+				\__( 'Salva scheda Avanzate', 'fp-privacy' ),
 				'primary',
 				array(
 					'name'     => 'submit-advanced',

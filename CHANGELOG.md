@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.12] - 2026-03-25
+
+### Changed
+
+- Pulsanti **Salva** in fondo a ogni scheda Impostazioni: etichette corte (`Salva scheda Banner`, `Cookie`, `Privacy`, `Avanzate`) senza riferimento al salvataggio globale in alto.
+
 ## [1.1.11] - 2026-03-25
 
 ### Changed

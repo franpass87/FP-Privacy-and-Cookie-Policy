@@ -59,7 +59,7 @@ class PrivacyTabRenderer extends SettingsRendererBase {
 
 			<?php
 			AdminUi::render_submit_button(
-				\__( 'Salva scheda Privacy (usa Salva tutto in alto per l’intera configurazione)', 'fp-privacy' ),
+				\__( 'Salva scheda Privacy', 'fp-privacy' ),
 				'primary',
 				array(
 					'name'     => 'submit-privacy',

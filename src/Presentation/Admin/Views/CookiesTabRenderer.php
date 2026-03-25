@@ -52,7 +52,7 @@ class CookiesTabRenderer extends SettingsRendererBase {
 
 			<?php
 			AdminUi::render_submit_button(
-				\__( 'Salva scheda Cookie (usa Salva tutto in alto per l’intera configurazione)', 'fp-privacy' ),
+				\__( 'Salva scheda Cookie', 'fp-privacy' ),
 				'primary',
 				array(
 					'name'     => 'submit-cookies',
