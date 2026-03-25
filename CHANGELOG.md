@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.26] - 2026-03-25
+
+### Fixed
+
+- Template `cookie-policy.php`: stessa logica della privacy policy per **`$lang` en_*** — titoli `h2`, intestazioni tabella, «No cookies declared.», testo retention con `%d`, «Last update» e riga generata con `%s` in **inglese letterale** quando la cookie policy è generata in inglese (coerenza con WPML / gettext su `it_IT`).
+
+---
+
 ## [1.0.25] - 2026-03-25
 
 ### Fixed
