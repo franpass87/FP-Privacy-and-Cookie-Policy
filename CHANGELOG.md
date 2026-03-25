@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.2] - 2026-03-25
+
+### Changed
+
+- Scheda **Banner** — griglia **hex personalizzati** rifatta da zero: layout a 3 colonne (responsive 2/1), celle con bordi, `label`/`id` per accessibilità, `fieldset` logico via `role="group"`; stili allineati ai token FP; classi legacy per anteprima colore e validazione JS invariati (`fp-privacy-hex-input`, `fp-privacy-color-input-wrapper`, `fp-privacy-palette-item`).
+
 ## [1.2.1] - 2026-03-25
 
 ### Fixed

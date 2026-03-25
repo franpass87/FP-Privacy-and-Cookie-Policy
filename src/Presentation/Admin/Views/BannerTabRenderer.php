@@ -261,6 +261,18 @@ class BannerTabRenderer extends SettingsRendererBase {
 			'border'              => \__( 'Bordo', 'fp-privacy' ),
 			'focus'               => \__( 'Colore focus (accessibilità)', 'fp-privacy' ),
 		);
+
+		$palette_keys = array(
+			'surface_bg',
+			'surface_text',
+			'button_primary_bg',
+			'button_primary_tx',
+			'button_secondary_bg',
+			'button_secondary_tx',
+			'link',
+			'border',
+			'focus',
+		);
 		?>
 		<div class="fp-privacy-fields-grid fp-privacy-palette-theme-row">
 			<div class="fp-privacy-field fp-privacy-field--full">
@@ -279,26 +291,48 @@ class BannerTabRenderer extends SettingsRendererBase {
 		</div>
 		<details class="fp-privacy-palette-custom"<?php echo $is_custom ? ' open' : ''; ?> <?php echo $is_custom ? '' : ' hidden'; ?>>
 			<summary class="fp-privacy-palette-custom-summary"><?php \esc_html_e( 'Colori personalizzati (hex)', 'fp-privacy' ); ?></summary>
-			<p class="description"><?php \esc_html_e( 'Modifica solo se il tema scelto non basta. Formato #RRGGBB.', 'fp-privacy' ); ?></p>
-			<div class="fp-privacy-palette fp-privacy-palette--custom">
-				<?php foreach ( $palette as $key => $color ) : ?>
-				<div class="fp-privacy-palette-item">
-					<label>
-						<strong class="fp-palette-label-text"><?php echo \esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', (string) $key ) ) ); ?></strong>
-						<div class="fp-privacy-color-input-wrapper">
-							<div class="fp-privacy-color-preview" style="background-color: <?php echo \esc_attr( $color ?: '#000000' ); ?>"></div>
-							<input type="text"
-								name="banner_layout[palette][<?php echo \esc_attr( (string) $key ); ?>]"
-								value="<?php echo \esc_attr( (string) $color ); ?>"
-								class="fp-privacy-hex-input"
+			<p class="fp-privacy-hex-grid-intro description"><?php \esc_html_e( 'Valori #RRGGBB. Anteprima a sinistra; il contrasto sfondo/testo è controllato sotto l’anteprima banner.', 'fp-privacy' ); ?></p>
+			<div
+				class="fp-privacy-hex-grid"
+				role="group"
+				aria-label="<?php echo \esc_attr__( 'Campi colore esadecimale del banner', 'fp-privacy' ); ?>"
+			>
+				<?php
+				foreach ( $palette_keys as $key ) :
+					$color = isset( $palette[ $key ] ) ? (string) $palette[ $key ] : '';
+					$label = isset( $labels[ $key ] ) ? $labels[ $key ] : \ucwords( \str_replace( '_', ' ', $key ) );
+					$input_id = 'fp-privacy-hex-' . $key;
+					$swatch   = '' !== $color ? $color : '#000000';
+					?>
+				<div class="fp-privacy-hex-grid__cell fp-privacy-palette-item">
+					<label class="fp-privacy-hex-grid__label" for="<?php echo \esc_attr( $input_id ); ?>">
+						<span class="fp-privacy-hex-grid__title"><?php echo \esc_html( $label ); ?></span>
+						<span class="fp-privacy-hex-grid__field fp-privacy-color-input-wrapper">
+							<span
+								class="fp-privacy-hex-grid__swatch fp-privacy-color-preview"
+								style="background-color: <?php echo \esc_attr( $swatch ); ?>;"
+								aria-hidden="true"
+							></span>
+							<input
+								type="text"
+								id="<?php echo \esc_attr( $input_id ); ?>"
+								name="banner_layout[palette][<?php echo \esc_attr( $key ); ?>]"
+								value="<?php echo \esc_attr( $color ); ?>"
+								class="fp-privacy-hex-grid__input fp-privacy-hex-input"
 								placeholder="#000000"
 								pattern="^#[0-9A-Fa-f]{6}$"
 								maxlength="7"
-								data-label="<?php echo \esc_attr( isset( $labels[ $key ] ) ? $labels[ $key ] : ucwords( str_replace( '_', ' ', (string) $key ) ) ); ?>" />
-						</div>
+								inputmode="text"
+								autocomplete="off"
+								spellcheck="false"
+								data-label="<?php echo \esc_attr( $label ); ?>"
+							/>
+						</span>
 					</label>
 				</div>
-				<?php endforeach; ?>
+					<?php
+				endforeach;
+				?>
 			</div>
 		</details>
 		<?php
