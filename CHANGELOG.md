@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.3] - 2026-03-25
+
+### Changed
+
+- Frontend banner e modal preferenze: padding e margini verticali leggermente ridotti (tab, pannelli, area bottoni, barra superiore), altezza area tab leggermente compattata; stessi aggiustamenti proporzionati nel breakpoint mobile.
+
+---
+
 ## [1.1.2] - 2026-03-25
 
 ### Changed

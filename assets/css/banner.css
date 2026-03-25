@@ -53,17 +53,17 @@
 .fp-privacy-banner::before {
     content: '';
     display: block;
-    height: 4px;
+    height: 3px;
     background: var(--fp-privacy-button_primary_bg);
 }
 
 .fp-privacy-banner-content {
-    padding: 24px 28px 20px;
+    padding: 18px 24px 14px;
 }
 
 .fp-privacy-banner-title {
     margin-top: 0;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.35rem;
     font-size: 1.25rem;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -72,7 +72,7 @@
 }
 
 .fp-privacy-banner-message {
-    margin-bottom: 1rem;
+    margin-bottom: 0.65rem;
     font-size: 0.9375rem;
     color: inherit;
     opacity: 0.92;
@@ -120,7 +120,7 @@
 
 /* Notice revisione policy — bordo accent da palette */
 .fp-privacy-revision-notice {
-    margin-bottom: 1rem;
+    margin-bottom: 0.65rem;
     padding: 12px 18px;
     border-radius: var(--fp-privacy-radius-sm);
     background: color-mix(in srgb, var(--fp-privacy-button_primary_bg) 8%, var(--fp-privacy-surface_bg));
@@ -146,12 +146,12 @@
 }
 
 .fp-privacy-banner-tab {
-    padding: 8px 14px;
+    padding: 6px 12px;
     font-size: 0.8125rem;
     font-weight: 600;
     background: none;
     border: none;
-    border-bottom: 3px solid transparent;
+    border-bottom: 2px solid transparent;
     color: inherit;
     opacity: 0.7;
     cursor: pointer;
@@ -170,15 +170,15 @@
 }
 
 .fp-privacy-banner-panels {
-    padding: 20px 28px;
-    height: 220px;
+    padding: 14px 22px;
+    height: 200px;
     overflow: hidden;
     box-sizing: border-box;
 }
 
 .fp-privacy-banner-tab-panel {
     display: block;
-    height: 180px;
+    height: 164px;
     overflow-y: auto;
 }
 
@@ -188,7 +188,7 @@
 
 /* Tab Details banner */
 .fp-privacy-banner-details-title {
-    margin: 0 0 10px;
+    margin: 0 0 6px;
     font-size: 0.9375rem;
     font-weight: 600;
 }
@@ -237,8 +237,8 @@
 .fp-privacy-banner-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    padding: 20px 28px 24px;
+    gap: 0.5rem;
+    padding: 14px 22px 16px;
     border-top: 1px solid var(--fp-privacy-border);
 }
 
@@ -247,7 +247,7 @@
     cursor: pointer;
     border-radius: var(--fp-privacy-radius-pill);
     font-weight: 600;
-    padding: 0.5rem 1.25rem;
+    padding: 0.45rem 1.1rem;
     border: 1px solid transparent;
     transition: box-shadow var(--fp-privacy-transition), transform var(--fp-privacy-transition), background var(--fp-privacy-transition), border-color var(--fp-privacy-transition);
     box-shadow: var(--fp-privacy-shadow-sm);
@@ -290,8 +290,8 @@
 /* Accetta tutto: CTA principale, più visibile */
 .fp-privacy-banner-buttons .fp-privacy-button-primary {
     font-weight: 700;
-    min-height: 2.75rem;
-    padding: 0.55rem 1.4rem;
+    min-height: 2.45rem;
+    padding: 0.45rem 1.25rem;
 }
 
 /* Rifiuta: stile secondario, meno enfasi */
@@ -349,7 +349,7 @@
 .fp-privacy-banner-links {
     display: flex;
     gap: 0.75rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.35rem;
     font-size: 0.875rem;
 }
 
@@ -489,7 +489,7 @@
 /* Header modal — accent bar + titolo + link */
 .fp-privacy-modal-header {
     position: relative;
-    padding: 8px 14px 6px;
+    padding: 6px 12px 4px;
     border-bottom: 1px solid var(--fp-privacy-border);
     background: color-mix(in srgb, var(--fp-privacy-button_primary_bg) 4%, var(--fp-privacy-surface_bg));
 }
@@ -523,7 +523,7 @@
 .fp-privacy-modal-links {
     display: flex;
     gap: 0.5rem;
-    margin-top: 0.125rem;
+    margin-top: 0;
     font-size: 0.6875rem;
 }
 
@@ -579,12 +579,12 @@
 }
 
 .fp-privacy-modal-tab {
-    padding: 8px 14px;
+    padding: 6px 12px;
     font-size: 0.8125rem;
     font-weight: 600;
     background: none;
     border: none;
-    border-bottom: 3px solid transparent;
+    border-bottom: 2px solid transparent;
     color: inherit;
     opacity: 0.7;
     cursor: pointer;
@@ -617,7 +617,7 @@
 
 /* Tab Details — elenco categorie e servizi */
 .fp-privacy-details-title {
-    margin: 0 0 10px;
+    margin: 0 0 6px;
     font-size: 0.9375rem;
     font-weight: 600;
 }
@@ -664,7 +664,7 @@
 
 /* Body modal — categorie scrollabili */
 .fp-privacy-modal-body {
-    padding: 8px 14px;
+    padding: 6px 12px;
     overflow-y: auto;
     flex: 1;
     min-height: 0;
@@ -784,7 +784,7 @@ outline-offset: 2px;
 
 /* Footer modal — azioni in riga unica, ordine visivo chiaro */
 .fp-privacy-modal-footer {
-    padding: 6px 14px 8px;
+    padding: 5px 12px 6px;
     border-top: 1px solid var(--fp-privacy-border);
     background: color-mix(in srgb, var(--fp-privacy-border) 8%, var(--fp-privacy-surface_bg));
     flex-shrink: 0;
@@ -871,11 +871,20 @@ outline-offset: 2px;
     }
     
     .fp-privacy-banner-content {
-        padding: 18px 20px 16px;
+        padding: 14px 18px 12px;
+    }
+    
+    .fp-privacy-banner-panels {
+        padding: 12px 18px;
+        height: 188px;
+    }
+    
+    .fp-privacy-banner-tab-panel {
+        height: 152px;
     }
     
     .fp-privacy-banner-buttons {
-        padding: 16px 20px 20px;
+        padding: 12px 18px 14px;
     }
     
     .fp-privacy-modal {
@@ -884,15 +893,15 @@ outline-offset: 2px;
     }
     
     .fp-privacy-modal-header {
-        padding: 6px 12px 5px;
+        padding: 5px 10px 4px;
     }
     
     .fp-privacy-modal-body {
-        padding: 6px 12px;
+        padding: 5px 10px;
     }
     
     .fp-privacy-modal-footer {
-        padding: 5px 12px 6px;
+        padding: 4px 10px 5px;
     }
     
     .fp-privacy-modal-close,
