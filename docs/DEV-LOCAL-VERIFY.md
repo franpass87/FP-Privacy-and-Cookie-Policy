@@ -26,6 +26,8 @@ Parametri:
 - **`-SiteUrl`**: base URL del sito Local (default `http://fp-development.local`).
 - **`-SkipTls`**: per HTTPS con certificato self-signed usa `-SkipTls` (richiede PowerShell 7+ per `-SkipCertificateCheck`).
 
+Lo script verifica anche **`/privacy-policy/`** e **`/cookie-policy/`** (200 atteso se gli slug canonici esistono sul sito).
+
 Su Windows, **HTTP** verso Local di solito funziona senza problemi di certificato; **HTTPS** può richiedere `-SkipTls` o aprire il sito nel browser accettando il certificato.
 
 ## Check rapido manuale

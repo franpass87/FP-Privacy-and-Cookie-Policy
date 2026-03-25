@@ -4,6 +4,18 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.29] - 2026-03-25
+
+### Fixed
+
+- PHPStan (configurazione attuale): `add_menu_page` con posizione **float** `56.8` (compatibile stub WordPress); PHPDoc `@param mixed` sugli attributi dei blocchi Gutenberg in `BlockRenderer` (frontend + presentation); subnav senza `??` ridondanti su shape nota; `FooterPolicyLinks` senza `empty( $links )` irraggiungibile; `BannerTextsManager` accesso diretto a chiavi `it_IT` / `en_US` note nel migrate.
+
+### Changed
+
+- `tools/verify-local.ps1`: aggiunti smoke HTTP su `/privacy-policy/` e `/cookie-policy/` (timeout 20s).
+
+---
+
 ## [1.0.28] - 2026-03-25
 
 ### Added

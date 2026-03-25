@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.28
+Stable tag: 1.0.29
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.29 =
+* Fixed: PHPStan livello configurato — posizione menu `add_menu_page` come float, PHPDoc `@param mixed` sui blocchi Gutenberg, rimozione check ridondanti (`FooterPolicyLinks`, `BannerTextsManager`, subnav).
+* Changed: `tools/verify-local.ps1` include smoke HTTP su `/privacy-policy/` e `/cookie-policy/`.
 
 = 1.0.28 =
 * Added: script CLI `tools/regenerate-policy-pages-wp.php` per rigenerare le policy senza WP-CLI; rigenera anche le cookie mappate solo per lingue extra (es. `en`/`en_US`) senza forzare `languages_active`.

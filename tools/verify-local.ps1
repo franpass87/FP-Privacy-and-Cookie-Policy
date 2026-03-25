@@ -45,6 +45,10 @@ $results += Test-Url -Uri "$SiteUrl/wp-json/"
 $results += Test-Url -Uri "$SiteUrl/wp-json/fp-privacy/v1/" -Expected @(200)
 $results += Test-Url -Uri "$SiteUrl/wp-json/fp-privacy/v1/consent/summary" -Expected @(200, 401)
 
+# Pagine policy (slug canonici tipici; 404 = FAIL se usi altri permalink).
+$results += Test-Url -Uri "$SiteUrl/privacy-policy/" -Expected @(200)
+$results += Test-Url -Uri "$SiteUrl/cookie-policy/" -Expected @(200)
+
 # HTTPS solo con -SkipTls (PS 7+), altrimenti il certificato locale fallisce spesso.
 if ($SkipTls -and $SiteUrl -match '^http:') {
     $httpsBase = $SiteUrl -replace '^http:', 'https:'
