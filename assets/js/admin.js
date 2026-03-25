@@ -164,12 +164,6 @@ $( function () {
         if ( $activeContent.length ) {
             $activeContent.addClass( 'active' ).attr( 'aria-hidden', 'false' );
         }
-        
-        // Scroll to top dopo cambio tab
-        var tabsNav = $( '.fp-privacy-tabs-nav' );
-        if ( tabsNav.length && tabsNav.offset() ) {
-            $( 'html, body' ).animate({ scrollTop: tabsNav.offset().top - 32 }, 300 );
-        }
     }
     
     // Inizializza tabs al caricamento
@@ -286,34 +280,6 @@ $( function () {
             }
         }
     } );
-    
-    // ========================================
-    // FOCUS MANAGEMENT
-    // ========================================
-    // Skip links
-    if ( $( '.fp-privacy-settings' ).length ) {
-        var skipLink = $( '<a href="#fp-privacy-settings-main" class="fp-skip-link">' + ( l10n.skipToContent || 'Skip to main content' ) + '</a>' );
-        skipLink.css({
-            position: 'absolute',
-            top: '-40px',
-            left: '6px',
-            background: '#000',
-            color: '#fff',
-            padding: '8px',
-            textDecoration: 'none',
-            zIndex: 100000,
-            borderRadius: '4px'
-        } );
-        
-        skipLink.on( 'focus', function() {
-            $( this ).css( 'top', '6px' );
-        } ).on( 'blur', function() {
-            $( this ).css( 'top', '-40px' );
-        } );
-        
-        $( 'body' ).prepend( skipLink );
-        $( '.fp-privacy-settings' ).attr( 'id', 'fp-privacy-settings-main' );
-    }
     
     // Funzione per aggiornare badge tab
     function updateTabBadges() {

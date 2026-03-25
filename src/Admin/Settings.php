@@ -143,7 +143,6 @@ class Settings {
 				'categoryPreferences' => \__( 'Preferenze', 'fp-privacy' ),
 				'statusDetected'      => \__( 'Rilevato', 'fp-privacy' ),
 				'statusNotDetected'   => \__( 'Non rilevato', 'fp-privacy' ),
-				'skipToContent'       => \__( 'Vai al contenuto principale', 'fp-privacy' ),
 				'policyUrls'          => array(
 					'privacy' => $privacy_url,
 					'cookie'  => $cookie_url,

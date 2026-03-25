@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.3] - 2026-03-25
+
+### Changed
+
+- Admin: rimossi **skip link** con `href` verso ancora interna, **scroll animato** al cambio tab e attributo `id` forzato su `.fp-privacy-settings`; eliminato CSS `.fp-skip-link` e voce l10n `skipToContent`.
+
 ## [1.2.2] - 2026-03-25
 
 ### Changed

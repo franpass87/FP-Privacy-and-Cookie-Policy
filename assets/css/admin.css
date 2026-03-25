@@ -1166,14 +1166,6 @@ textarea:focus-visible {
     word-wrap: normal !important;
 }
 
-/* Skip link */
-.fp-skip-link:focus {
-    clip: auto;
-    height: auto;
-    width: auto;
-    top: 6px !important;
-}
-
 /* High Contrast Mode */
 .fp-privacy-high-contrast {
     --fp-primary: #0066cc;
