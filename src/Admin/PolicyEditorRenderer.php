@@ -41,19 +41,19 @@ class PolicyEditorRenderer {
 	public function render( array $languages, array $privacy_posts, array $cookie_posts ) {
 		?>
 		<div class="wrap fp-privacy-policy-editor fp-privacy-admin-page">
-			<h1 class="screen-reader-text"><?php \esc_html_e( 'Policy editor', 'fp-privacy' ); ?></h1>
+			<h1 class="screen-reader-text"><?php \esc_html_e( 'Editor policy', 'fp-privacy' ); ?></h1>
 			<?php
 			AdminHeader::render(
 				'dashicons-edit',
-				\__( 'Policy editor', 'fp-privacy' ),
-				\__( 'Edit privacy and cookie policy content per language.', 'fp-privacy' )
+				\__( 'Editor policy', 'fp-privacy' ),
+				\__( 'Modifica i contenuti privacy e cookie per ogni lingua.', 'fp-privacy' )
 			);
 			AdminSubnav::maybe_render( 'fp-privacy-policy-editor' );
 			?>
 
 			<div class="fp-privacy-card fp-privacy-card--intro">
 				<div class="fp-privacy-card-body">
-					<p class="description"><?php \esc_html_e( 'Customize the generated documents or regenerate them using the detector.', 'fp-privacy' ); ?></p>
+					<p class="description"><?php \esc_html_e( 'Personalizza i documenti generati oppure rigenerali con il detector.', 'fp-privacy' ); ?></p>
 				</div>
 			</div>
 
@@ -74,7 +74,7 @@ class PolicyEditorRenderer {
 							</div>
 						</div>
 						<div class="fp-privacy-card-body">
-						<h3 class="fp-privacy-language-section__subtitle"><?php echo \esc_html( \sprintf( \__( 'Privacy policy (%s)', 'fp-privacy' ), $language ) ); ?></h3>
+						<h3 class="fp-privacy-language-section__subtitle"><?php echo \esc_html( \sprintf( \__( 'Informativa privacy (%s)', 'fp-privacy' ), $language ) ); ?></h3>
 						<?php \wp_editor( $privacy ? $privacy->post_content : '', 'fp_privacy_policy_' . $lang_key, array( 'textarea_name' => 'privacy_content[' . \esc_attr( $language ) . ']', 'textarea_rows' => 12 ) ); ?>
 
 						<h3 class="fp-privacy-language-section__subtitle"><?php echo \esc_html( \sprintf( \__( 'Cookie policy (%s)', 'fp-privacy' ), $language ) ); ?></h3>
@@ -85,7 +85,7 @@ class PolicyEditorRenderer {
 
 				<?php
 				AdminUi::render_submit_button(
-					\__( 'Save policies', 'fp-privacy' ),
+					\__( 'Salva policy', 'fp-privacy' ),
 					'primary',
 					array( 'name' => 'submit', 'id' => 'submit', 'dashicon' => 'dashicons-saved' )
 				);
@@ -96,17 +96,17 @@ class PolicyEditorRenderer {
 				<div class="fp-privacy-card-header">
 					<div class="fp-privacy-card-header-left">
 						<span class="dashicons dashicons-search" aria-hidden="true"></span>
-						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Detector & regenerate', 'fp-privacy' ); ?></h2>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Detector e rigenerazione', 'fp-privacy' ); ?></h2>
 					</div>
 				</div>
 				<div class="fp-privacy-card-body">
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-regenerate">
 				<?php \wp_nonce_field( 'fp_privacy_regenerate_policy', 'fp_privacy_regenerate_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_regenerate_policy" />
-				<p class="description"><?php \esc_html_e( 'Run the integration detector, refresh snapshots, and reset the dedicated pages to the dynamic shortcodes so service tables stay current on every visit.', 'fp-privacy' ); ?></p>
+				<p class="description"><?php \esc_html_e( 'Esegue il detector integrazioni, aggiorna gli snapshot e ripristina le pagine dedicate agli shortcode dinamici così le tabelle servizi restano aggiornate.', 'fp-privacy' ); ?></p>
 				<?php
 				AdminUi::render_submit_button(
-					\__( 'Detect integrations and regenerate', 'fp-privacy' ),
+					\__( 'Rileva integrazioni e rigenera', 'fp-privacy' ),
 					'secondary',
 					array( 'name' => 'submit', 'id' => 'submit', 'dashicon' => 'dashicons-search' )
 				);
@@ -121,7 +121,7 @@ class PolicyEditorRenderer {
 					<div class="fp-privacy-card-header">
 						<div class="fp-privacy-card-header-left">
 							<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
-							<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Differences between generated templates and current documents', 'fp-privacy' ); ?></h2>
+							<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Differenze tra template generati e documenti attuali', 'fp-privacy' ); ?></h2>
 						</div>
 					</div>
 					<div class="fp-privacy-card-body fp-privacy-diff"><?php echo wp_kses_post( $diff ); ?></div>

@@ -35,28 +35,29 @@ class ConsentLogRenderer {
 
 		?>
 		<div class="wrap fp-privacy-consent-log fp-privacy-admin-page">
-			<h1 class="screen-reader-text"><?php \esc_html_e( 'Consent log', 'fp-privacy' ); ?></h1>
+			<h1 class="screen-reader-text"><?php \esc_html_e( 'Registro consensi', 'fp-privacy' ); ?></h1>
 			<?php
 			AdminHeader::render(
 				'dashicons-list-view',
-				\__( 'Consent log', 'fp-privacy' ),
-				\__( 'Review consent events and export them for compliance.', 'fp-privacy' )
+				\__( 'Registro consensi', 'fp-privacy' ),
+				\__( 'Consulta gli eventi di consenso ed esportali per tracciabilità e compliance.', 'fp-privacy' )
 			);
 			AdminSubnav::maybe_render( 'fp-privacy-consent-log' );
 			?>
 
 			<?php if ( ! empty( $data['error'] ) ) : ?>
-				<div class="notice notice-error"><p><?php echo \esc_html__( 'There was a problem loading consent log data. The table may be missing or the database is temporarily unavailable. The view is still shown below so you can adjust filters or try again.', 'fp-privacy' ); ?></p></div>
+				<div class="notice notice-error"><p><?php echo \esc_html__( 'Impossibile caricare il registro consensi: tabella assente o database temporaneamente non disponibile. Puoi comunque usare i filtri o riprovare.', 'fp-privacy' ); ?></p></div>
 			<?php endif; ?>
 
 			<div class="fp-privacy-card fp-privacy-card--filters">
 				<div class="fp-privacy-card-header">
 					<div class="fp-privacy-card-header-left">
 						<span class="dashicons dashicons-filter" aria-hidden="true"></span>
-						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Filters & export', 'fp-privacy' ); ?></h2>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Filtri ed esportazione', 'fp-privacy' ); ?></h2>
 					</div>
 				</div>
 				<div class="fp-privacy-card-body">
+					<p class="description"><?php \esc_html_e( 'Filtra per data, evento o testo; esporta i risultati in CSV.', 'fp-privacy' ); ?></p>
 					<?php $this->render_filters( $args, $urls['export'] ); ?>
 				</div>
 			</div>
@@ -65,10 +66,11 @@ class ConsentLogRenderer {
 				<div class="fp-privacy-card-header">
 					<div class="fp-privacy-card-header-left">
 						<span class="dashicons dashicons-calendar-alt" aria-hidden="true"></span>
-						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Last 30 days overview', 'fp-privacy' ); ?></h2>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Panoramica ultimi 30 giorni', 'fp-privacy' ); ?></h2>
 					</div>
 				</div>
 				<div class="fp-privacy-card-body">
+					<p class="description"><?php \esc_html_e( 'Conteggi rapidi per tipo di evento nel periodo indicato.', 'fp-privacy' ); ?></p>
 					<ul class="fp-privacy-summary-list">
 					<?php foreach ( $data['summary'] as $event => $count ) : ?>
 						<li><strong><?php echo \esc_html( $this->event_label( $event ) ); ?>:</strong> <?php echo (int) $count; ?></li>
@@ -80,18 +82,18 @@ class ConsentLogRenderer {
 			<table class="widefat fp-privacy-log-table fp-privacy-table">
 				<thead>
 					<tr>
-						<th><?php \esc_html_e( 'Date', 'fp-privacy' ); ?></th>
-						<th><?php \esc_html_e( 'Event', 'fp-privacy' ); ?></th>
-						<th><?php \esc_html_e( 'Consent ID', 'fp-privacy' ); ?></th>
-						<th><?php \esc_html_e( 'Language', 'fp-privacy' ); ?></th>
-						<th><?php \esc_html_e( 'Revision', 'fp-privacy' ); ?></th>
+						<th><?php \esc_html_e( 'Data', 'fp-privacy' ); ?></th>
+						<th><?php \esc_html_e( 'Evento', 'fp-privacy' ); ?></th>
+						<th><?php \esc_html_e( 'ID consenso', 'fp-privacy' ); ?></th>
+						<th><?php \esc_html_e( 'Lingua', 'fp-privacy' ); ?></th>
+						<th><?php \esc_html_e( 'Revisione', 'fp-privacy' ); ?></th>
 						<th><?php \esc_html_e( 'User agent', 'fp-privacy' ); ?></th>
-						<th><?php \esc_html_e( 'States', 'fp-privacy' ); ?></th>
+						<th><?php \esc_html_e( 'Stati', 'fp-privacy' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php if ( empty( $data['entries'] ) ) : ?>
-						<tr><td colspan="7"><?php \esc_html_e( 'No entries found.', 'fp-privacy' ); ?></td></tr>
+						<tr><td colspan="7"><?php \esc_html_e( 'Nessun risultato.', 'fp-privacy' ); ?></td></tr>
 					<?php else : ?>
 						<?php foreach ( $data['entries'] as $entry ) : ?>
 							<tr>
@@ -101,7 +103,7 @@ class ConsentLogRenderer {
 								<td><?php echo \esc_html( $entry['lang'] ); ?></td>
 								<td><?php echo (int) $entry['rev']; ?></td>
 								<td><code><?php echo \esc_html( $this->truncate_user_agent( $entry['ua'] ) ); ?></code></td>
-								<td><details><summary><?php \esc_html_e( 'View', 'fp-privacy' ); ?></summary><pre><?php echo \esc_html( \wp_json_encode( $entry['states'], JSON_PRETTY_PRINT ) ); ?></pre></details></td>
+								<td><details><summary><?php \esc_html_e( 'Mostra', 'fp-privacy' ); ?></summary><pre><?php echo \esc_html( \wp_json_encode( $entry['states'], JSON_PRETTY_PRINT ) ); ?></pre></details></td>
 							</tr>
 						<?php endforeach; ?>
 					<?php endif; ?>
@@ -138,17 +140,17 @@ class ConsentLogRenderer {
 		?>
 		<form method="get" class="fp-privacy-filters">
 			<input type="hidden" name="page" value="fp-privacy-consent-log" />
-			<input type="search" name="s" value="<?php echo \esc_attr( $args['search'] ); ?>" placeholder="<?php \esc_attr_e( 'Search by ID, user agent or language', 'fp-privacy' ); ?>" />
+			<input type="search" name="s" value="<?php echo \esc_attr( $args['search'] ); ?>" placeholder="<?php \esc_attr_e( 'Cerca per ID, user agent o lingua', 'fp-privacy' ); ?>" />
 			<select name="event">
-				<option value=""><?php \esc_html_e( 'All events', 'fp-privacy' ); ?></option>
+				<option value=""><?php \esc_html_e( 'Tutti gli eventi', 'fp-privacy' ); ?></option>
 				<?php foreach ( $this->events as $event ) : ?>
 					<option value="<?php echo \esc_attr( $event ); ?>" <?php selected( $args['event'], $event ); ?>><?php echo \esc_html( $this->event_label( $event ) ); ?></option>
 				<?php endforeach; ?>
 			</select>
-			<label><?php \esc_html_e( 'From', 'fp-privacy' ); ?> <input type="date" name="from" value="<?php echo \esc_attr( $args['from'] ); ?>" /></label>
-			<label><?php \esc_html_e( 'To', 'fp-privacy' ); ?> <input type="date" name="to" value="<?php echo \esc_attr( $args['to'] ); ?>" /></label>
-			<button type="submit" class="button"><?php \esc_html_e( 'Filter', 'fp-privacy' ); ?></button>
-			<a href="<?php echo \esc_url( $export_url ); ?>" class="button button-secondary"><?php \esc_html_e( 'Export CSV', 'fp-privacy' ); ?></a>
+			<label><?php \esc_html_e( 'Da', 'fp-privacy' ); ?> <input type="date" name="from" value="<?php echo \esc_attr( $args['from'] ); ?>" /></label>
+			<label><?php \esc_html_e( 'A', 'fp-privacy' ); ?> <input type="date" name="to" value="<?php echo \esc_attr( $args['to'] ); ?>" /></label>
+			<button type="submit" class="button"><?php \esc_html_e( 'Filtra', 'fp-privacy' ); ?></button>
+			<a href="<?php echo \esc_url( $export_url ); ?>" class="button button-secondary"><?php \esc_html_e( 'Esporta CSV', 'fp-privacy' ); ?></a>
 		</form>
 		<?php
 	}
@@ -220,12 +222,22 @@ class ConsentLogRenderer {
 	 */
 	public function event_label( $event ) {
 		$event = (string) $event;
+		$labels = array(
+			'accept_all'      => \__( 'Accetta tutto', 'fp-privacy' ),
+			'reject_all'      => \__( 'Rifiuta tutto', 'fp-privacy' ),
+			'consent'         => \__( 'Preferenze', 'fp-privacy' ),
+			'reset'           => \__( 'Reset', 'fp-privacy' ),
+			'revision_bump'   => \__( 'Nuova revisione consenso', 'fp-privacy' ),
+			'consent_revoked' => \__( 'Consenso revocato', 'fp-privacy' ),
+			'consent_withdrawn' => \__( 'Consenso ritirato', 'fp-privacy' ),
+		);
+		if ( isset( $labels[ $event ] ) ) {
+			return $labels[ $event ];
+		}
 		$label = str_replace( '_', ' ', $event );
-
 		if ( function_exists( 'mb_convert_case' ) ) {
 			return mb_convert_case( $label, MB_CASE_TITLE, 'UTF-8' );
 		}
-
 		return ucfirst( $label );
 	}
 }

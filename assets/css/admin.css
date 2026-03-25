@@ -1271,6 +1271,15 @@ textarea:focus-visible {
     vertical-align: middle;
 }
 
+/* Tooltip sopra sticky save e contesti affollati; focus-within alza lo stacking */
+body.fp-privacy-admin-shell .fp-help-icon-wrapper:focus-within {
+    z-index: 10;
+}
+
+body.fp-privacy-admin-shell .fp-help-tooltip {
+    z-index: 200000;
+}
+
 .fp-help-icon {
     width: 20px;
     height: 20px;
@@ -1305,9 +1314,11 @@ textarea:focus-visible {
     font-size: 16px;
 }
 
+/* Sotto l'icona: resta dentro accordion con overflow:hidden */
 .fp-help-tooltip {
     position: absolute;
-    bottom: calc(100% + 8px);
+    top: calc(100% + 8px);
+    bottom: auto;
     left: 50%;
     transform: translateX(-50%);
     min-width: 200px;
@@ -1330,11 +1341,12 @@ textarea:focus-visible {
 .fp-help-tooltip::after {
     content: '';
     position: absolute;
-    top: 100%;
+    bottom: 100%;
+    top: auto;
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
-    border-top-color: var(--fp-gray-900);
+    border-bottom-color: var(--fp-gray-900);
 }
 
 .fp-help-icon-wrapper:hover .fp-help-tooltip,

@@ -61,12 +61,12 @@ class DiagnosticPageRenderer {
 
 		?>
 		<div class="wrap fp-privacy-admin-page fp-privacy-diagnostics-wrap">
-			<h1 class="screen-reader-text"><?php echo \esc_html( \__( 'FP Privacy diagnostics', 'fp-privacy' ) ); ?></h1>
+			<h1 class="screen-reader-text"><?php echo \esc_html( \__( 'Diagnostica FP Privacy', 'fp-privacy' ) ); ?></h1>
 			<?php
 			AdminHeader::render(
 				'dashicons-info',
-				\__( 'FP Privacy diagnostics', 'fp-privacy' ),
-				\__( 'Current state, quick actions and debug information.', 'fp-privacy' )
+				\__( 'Diagnostica FP Privacy', 'fp-privacy' ),
+				\__( 'Stato corrente, azioni rapide e informazioni di debug.', 'fp-privacy' )
 			);
 			AdminSubnav::maybe_render( 'fp-privacy-diagnostics' );
 			?>

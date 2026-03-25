@@ -46,7 +46,7 @@ public function hooks() {
  * @return void
  */
 public function register_widget() {
-\wp_add_dashboard_widget( 'fp_privacy_dashboard', \__( 'Privacy & Cookie overview', 'fp-privacy' ), array( $this, 'render_widget' ) );
+\wp_add_dashboard_widget( 'fp_privacy_dashboard', \__( 'Panoramica Privacy e Cookie', 'fp-privacy' ), array( $this, 'render_widget' ) );
 }
 
 /**
@@ -55,16 +55,17 @@ public function register_widget() {
  * @return void
  */
 public function render_widget() {
-$summary = $this->log_model->summary_last_30_days();
-$total   = array_sum( $summary );
+$summary       = $this->log_model->summary_last_30_days();
+$total         = array_sum( $summary );
+$event_labels  = new ConsentLogRenderer();
 ?>
-<p><strong><?php \esc_html_e( 'Total events in the last 30 days:', 'fp-privacy' ); ?></strong> <?php echo (int) $total; ?></p>
+<p><strong><?php \esc_html_e( 'Eventi totali negli ultimi 30 giorni:', 'fp-privacy' ); ?></strong> <?php echo (int) $total; ?></p>
 <ul>
 <?php foreach ( $summary as $event => $count ) : ?>
-<li><?php echo \esc_html( ucfirst( str_replace( '_', ' ', $event ) ) ); ?>: <?php echo (int) $count; ?></li>
+<li><?php echo \esc_html( $event_labels->event_label( (string) $event ) ); ?>: <?php echo (int) $count; ?></li>
 <?php endforeach; ?>
 </ul>
-<p><a href="<?php echo \esc_url( admin_url( 'admin.php?page=fp-privacy-consent-log' ) ); ?>" class="button"><?php \esc_html_e( 'View consent log', 'fp-privacy' ); ?></a></p>
+<p><a href="<?php echo \esc_url( admin_url( 'admin.php?page=fp-privacy-consent-log' ) ); ?>" class="button"><?php \esc_html_e( 'Apri registro consensi', 'fp-privacy' ); ?></a></p>
 <?php
 }
 }

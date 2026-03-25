@@ -43,15 +43,17 @@ class AnalyticsRenderer {
 
 		?>
 		<div class="wrap fp-privacy-analytics-page fp-privacy-admin-page">
-			<h1 class="screen-reader-text"><?php \esc_html_e( 'Consent analytics', 'fp-privacy' ); ?></h1>
+			<h1 class="screen-reader-text"><?php \esc_html_e( 'Analytics consensi', 'fp-privacy' ); ?></h1>
 			<?php
 			AdminHeader::render(
 				'dashicons-chart-area',
-				\__( 'Consent analytics', 'fp-privacy' ),
-				\__( 'Cookie consent trends and usage statistics.', 'fp-privacy' )
+				\__( 'Analytics', 'fp-privacy' ),
+				\__( 'Trend dei consensi cookie e statistiche d’uso.', 'fp-privacy' )
 			);
 			AdminSubnav::maybe_render( 'fp-privacy-analytics' );
 			?>
+
+			<p class="description fp-privacy-analytics-intro"><?php \esc_html_e( 'Riepilogo numerico, grafici e ultimi eventi registrati nel log consensi.', 'fp-privacy' ); ?></p>
 
 			<!-- Summary Cards -->
 			<div class="fp-privacy-stats-grid">
@@ -76,7 +78,7 @@ class AnalyticsRenderer {
 				<div class="fp-privacy-stat-card">
 					<div class="stat-icon">⚙️</div>
 					<div class="stat-value"><?php echo isset( $summary['consent'] ) ? \number_format_i18n( $summary['consent'] ) : '0'; ?></div>
-					<div class="stat-label"><?php \esc_html_e( 'Preferenze Custom', 'fp-privacy' ); ?></div>
+					<div class="stat-label"><?php \esc_html_e( 'Preferenze personalizzate', 'fp-privacy' ); ?></div>
 				</div>
 
 				<?php if ( isset( $stats['total_revocations'] ) && $stats['total_revocations'] > 0 ) : ?>
@@ -102,7 +104,7 @@ class AnalyticsRenderer {
 				</div>
 
 				<div class="fp-privacy-chart-card">
-					<h3><?php \esc_html_e( '🥧 Breakdown per Tipo', 'fp-privacy' ); ?></h3>
+					<h3><?php \esc_html_e( '🥧 Ripartizione per tipo', 'fp-privacy' ); ?></h3>
 					<canvas id="fp-consent-type-chart"></canvas>
 				</div>
 			</div>
@@ -124,10 +126,11 @@ class AnalyticsRenderer {
 				<div class="fp-privacy-card-header">
 					<div class="fp-privacy-card-header-left">
 						<span class="dashicons dashicons-list-view" aria-hidden="true"></span>
-						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Last 100 consent events', 'fp-privacy' ); ?></h2>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Ultimi 100 eventi di consenso', 'fp-privacy' ); ?></h2>
 					</div>
 				</div>
 				<div class="fp-privacy-card-body">
+					<p class="description"><?php \esc_html_e( 'Estratto dal registro: data, tipo evento, categorie attive e lingua.', 'fp-privacy' ); ?></p>
 					<?php $this->render_recent_consents_table(); ?>
 				</div>
 			</div>
@@ -161,7 +164,7 @@ class AnalyticsRenderer {
 					<th><?php \esc_html_e( 'Evento', 'fp-privacy' ); ?></th>
 					<th><?php \esc_html_e( 'Categoria', 'fp-privacy' ); ?></th>
 					<th><?php \esc_html_e( 'Lingua', 'fp-privacy' ); ?></th>
-					<th><?php \esc_html_e( 'Rev', 'fp-privacy' ); ?></th>
+					<th><?php \esc_html_e( 'Revisione', 'fp-privacy' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>

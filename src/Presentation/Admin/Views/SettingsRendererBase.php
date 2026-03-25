@@ -103,7 +103,7 @@ abstract class SettingsRendererBase {
 				type="button"
 				class="fp-help-icon" 
 				data-help-id="<?php echo \esc_attr( $help_id ); ?>"
-				aria-label="<?php echo \esc_attr( \sprintf( \__( 'Help: %s', 'fp-privacy' ), $tooltip_text ) ); ?>"
+				aria-label="<?php echo \esc_attr( \sprintf( \__( 'Aiuto: %s', 'fp-privacy' ), $tooltip_text ) ); ?>"
 				aria-describedby="<?php echo \esc_attr( $help_id . '-tooltip' ); ?>"
 			>
 				<span class="dashicons dashicons-info"></span>
@@ -121,7 +121,7 @@ abstract class SettingsRendererBase {
 						data-modal-title="<?php echo \esc_attr( $modal_title ); ?>"
 						data-modal-content="<?php echo \esc_attr( $modal_content ); ?>"
 					>
-						<?php \esc_html_e( 'Learn more', 'fp-privacy' ); ?> →
+						<?php \esc_html_e( 'Scopri di più', 'fp-privacy' ); ?> →
 					</button>
 				<?php endif; ?>
 			</span>

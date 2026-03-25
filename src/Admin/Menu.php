@@ -90,8 +90,8 @@ class Menu {
 
 		\add_submenu_page(
 			self::MENU_SLUG,
-			\__( 'Settings', 'fp-privacy' ),
-			\__( 'Settings', 'fp-privacy' ),
+			\__( 'Impostazioni', 'fp-privacy' ),
+			\__( 'Impostazioni', 'fp-privacy' ),
 			'manage_options',
 			self::MENU_SLUG,
 			array( $this, 'render_settings_page' )
@@ -99,8 +99,8 @@ class Menu {
 
 		\add_submenu_page(
 			self::MENU_SLUG,
-			\__( 'Consent log', 'fp-privacy' ),
-			\__( 'Consent log', 'fp-privacy' ),
+			\__( 'Registro consensi', 'fp-privacy' ),
+			\__( 'Registro consensi', 'fp-privacy' ),
 			'manage_options',
 			'fp-privacy-consent-log',
 			array( $this, 'render_consent_log' )
@@ -117,8 +117,8 @@ class Menu {
 
 		\add_submenu_page(
 			self::MENU_SLUG,
-			\__( 'Policy editor', 'fp-privacy' ),
-			\__( 'Policy editor', 'fp-privacy' ),
+			\__( 'Editor policy', 'fp-privacy' ),
+			\__( 'Editor policy', 'fp-privacy' ),
 			'manage_options',
 			'fp-privacy-policy-editor',
 			array( $this, 'render_policy_editor' )
@@ -126,8 +126,8 @@ class Menu {
 
 		\add_submenu_page(
 			self::MENU_SLUG,
-			\__( 'Tools', 'fp-privacy' ),
-			\__( 'Tools', 'fp-privacy' ),
+			\__( 'Strumenti', 'fp-privacy' ),
+			\__( 'Strumenti', 'fp-privacy' ),
 			'manage_options',
 			'fp-privacy-tools',
 			array( $this, 'render_tools' )
@@ -136,8 +136,8 @@ class Menu {
 		if ( null !== $this->diagnostic_tools ) {
 			\add_submenu_page(
 				self::MENU_SLUG,
-				\__( 'Diagnostics', 'fp-privacy' ),
-				\__( 'Diagnostics', 'fp-privacy' ),
+				\__( 'Diagnostica', 'fp-privacy' ),
+				\__( 'Diagnostica', 'fp-privacy' ),
 				'manage_options',
 				'fp-privacy-diagnostics',
 				array( $this->diagnostic_tools, 'render_page' )
@@ -146,8 +146,8 @@ class Menu {
 
 		\add_submenu_page(
 			self::MENU_SLUG,
-			\__( 'Quick guide', 'fp-privacy' ),
-			\__( 'Quick guide', 'fp-privacy' ),
+			\__( 'Guida rapida', 'fp-privacy' ),
+			\__( 'Guida rapida', 'fp-privacy' ),
 			'manage_options',
 			'fp-privacy-guide',
 			array( $this, 'render_guide' )

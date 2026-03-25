@@ -64,14 +64,14 @@ class IntegrationAuditNoticeRenderer {
 
 		if ( $added_count ) {
 			$summary_parts[] = sprintf(
-				_n( '%s new service detected', '%s new services detected', $added_count, 'fp-privacy' ),
+				_n( '%s nuovo servizio rilevato', '%s nuovi servizi rilevati', $added_count, 'fp-privacy' ),
 				number_format_i18n( $added_count )
 			);
 		}
 
 		if ( $removed_count ) {
 			$summary_parts[] = sprintf(
-				_n( '%s service missing', '%s services missing', $removed_count, 'fp-privacy' ),
+				_n( '%s servizio assente', '%s servizi assenti', $removed_count, 'fp-privacy' ),
 				number_format_i18n( $removed_count )
 			);
 		}
@@ -91,11 +91,11 @@ class IntegrationAuditNoticeRenderer {
 				if ( $detected_at ) {
 					printf(
 						'<strong>%s</strong> %s ',
-						esc_html__( 'Integration changes detected', 'fp-privacy' ),
-						esc_html( sprintf( __( 'on %s', 'fp-privacy' ), $detected_at ) )
+						esc_html__( 'Modifiche alle integrazioni rilevate', 'fp-privacy' ),
+						esc_html( sprintf( __( 'il %s', 'fp-privacy' ), $detected_at ) )
 					);
 				} else {
-					printf( '<strong>%s</strong> ', esc_html__( 'Integration changes detected', 'fp-privacy' ) );
+					printf( '<strong>%s</strong> ', esc_html__( 'Modifiche alle integrazioni rilevate', 'fp-privacy' ) );
 				}
 
 				if ( ! empty( $summary_parts ) ) {
@@ -104,17 +104,17 @@ class IntegrationAuditNoticeRenderer {
 				?>
 			</p>
 			<?php if ( $added_list ) : ?>
-				<p><strong><?php esc_html_e( 'New:', 'fp-privacy' ); ?></strong> <?php echo esc_html( $added_list ); ?></p>
+				<p><strong><?php esc_html_e( 'Aggiunti:', 'fp-privacy' ); ?></strong> <?php echo esc_html( $added_list ); ?></p>
 			<?php endif; ?>
 			<?php if ( $removed_list ) : ?>
-				<p><strong><?php esc_html_e( 'Removed:', 'fp-privacy' ); ?></strong> <?php echo esc_html( $removed_list ); ?></p>
+				<p><strong><?php esc_html_e( 'Rimossi:', 'fp-privacy' ); ?></strong> <?php echo esc_html( $removed_list ); ?></p>
 			<?php endif; ?>
 			<p>
 				<a class="button button-primary" href="<?php echo esc_url( $editor_url ); ?>">
-					<?php esc_html_e( 'Review in policy editor', 'fp-privacy' ); ?>
+					<?php esc_html_e( 'Controlla nell’editor policy', 'fp-privacy' ); ?>
 				</a>
 				<a class="button" href="<?php echo esc_url( \admin_url( 'admin.php?page=fp-privacy-tools' ) ); ?>">
-					<?php esc_html_e( 'Open tools', 'fp-privacy' ); ?>
+					<?php esc_html_e( 'Apri Strumenti', 'fp-privacy' ); ?>
 				</a>
 			</p>
 		</div>

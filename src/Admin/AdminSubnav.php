@@ -40,7 +40,7 @@ final class AdminSubnav {
 		$items = self::items();
 		$base  = \admin_url( 'admin.php' );
 		?>
-		<nav class="fp-privacy-admin-subnav" aria-label="<?php \esc_attr_e( 'FP Privacy admin sections', 'fp-privacy' ); ?>">
+		<nav class="fp-privacy-admin-subnav" aria-label="<?php \esc_attr_e( 'Sezioni admin FP Privacy', 'fp-privacy' ); ?>">
 			<ul class="fp-privacy-admin-subnav__list">
 				<?php foreach ( $items as $slug => $meta ) : ?>
 					<?php
@@ -94,11 +94,11 @@ final class AdminSubnav {
 	private static function items(): array {
 		$items = array(
 			Menu::MENU_SLUG            => array(
-				'label' => \__( 'Settings', 'fp-privacy' ),
+				'label' => \__( 'Impostazioni', 'fp-privacy' ),
 				'icon'  => 'dashicons-admin-settings',
 			),
 			'fp-privacy-consent-log'   => array(
-				'label' => \__( 'Consent log', 'fp-privacy' ),
+				'label' => \__( 'Registro consensi', 'fp-privacy' ),
 				'icon'  => 'dashicons-list-view',
 			),
 			'fp-privacy-analytics'     => array(
@@ -106,19 +106,19 @@ final class AdminSubnav {
 				'icon'  => 'dashicons-chart-area',
 			),
 			'fp-privacy-policy-editor' => array(
-				'label' => \__( 'Policy editor', 'fp-privacy' ),
+				'label' => \__( 'Editor policy', 'fp-privacy' ),
 				'icon'  => 'dashicons-edit',
 			),
 			'fp-privacy-tools'         => array(
-				'label' => \__( 'Tools', 'fp-privacy' ),
+				'label' => \__( 'Strumenti', 'fp-privacy' ),
 				'icon'  => 'dashicons-admin-tools',
 			),
 			'fp-privacy-diagnostics'   => array(
-				'label' => \__( 'Diagnostics', 'fp-privacy' ),
+				'label' => \__( 'Diagnostica', 'fp-privacy' ),
 				'icon'  => 'dashicons-info',
 			),
 			'fp-privacy-guide'         => array(
-				'label' => \__( 'Quick guide', 'fp-privacy' ),
+				'label' => \__( 'Guida rapida', 'fp-privacy' ),
 				'icon'  => 'dashicons-book-alt',
 			),
 		);

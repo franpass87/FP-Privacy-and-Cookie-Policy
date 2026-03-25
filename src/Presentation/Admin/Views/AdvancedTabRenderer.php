@@ -28,12 +28,13 @@ class AdvancedTabRenderer extends SettingsRendererBase {
 		$notification_recipients = $data['notification_recipients'];
 		?>
 		<div class="fp-privacy-tab-content" id="fp-privacy-tab-content-advanced" role="tabpanel" aria-labelledby="fp-privacy-tab-button-advanced" data-tab-content="advanced">
-			<h2><?php \esc_html_e( 'Integration alerts', 'fp-privacy' ); ?></h2>
+			<h2><?php \esc_html_e( 'Avvisi integrazioni', 'fp-privacy' ); ?></h2>
+			<p class="description"><?php \esc_html_e( 'Notifiche email e aggiornamento automatico degli snapshot quando il detector rileva servizi nuovi o rimossi; opzionale rigenerazione policy.', 'fp-privacy' ); ?></p>
 			<?php $this->render_detector_notifications( $notifications, $notification_recipients ); ?>
 
 			<?php
 			AdminUi::render_submit_button(
-				\__( 'Save advanced tab (use Save all at the top for full settings)', 'fp-privacy' ),
+				\__( 'Salva scheda Avanzate (usa Salva tutto in alto per l’intera configurazione)', 'fp-privacy' ),
 				'primary',
 				array(
 					'name'     => 'submit-advanced',
@@ -59,34 +60,34 @@ class AdvancedTabRenderer extends SettingsRendererBase {
 		$auto_update_services = $this->options->get( 'auto_update_services', false );
 		$auto_update_policies = $this->options->get( 'auto_update_policies', false );
 		?>
-		<p class="description"><?php \esc_html_e( 'Configure automatic detection and updates for third-party services.', 'fp-privacy' ); ?></p>
+		<p class="description"><?php \esc_html_e( 'Configura rilevamento automatico e aggiornamento degli snapshot per i servizi di terze parti.', 'fp-privacy' ); ?></p>
 		
 		<label>
 			<input type="checkbox" name="auto_update_services" value="1" <?php \checked( $auto_update_services, true ); ?> />
-			<?php \esc_html_e( 'Automatically add newly detected services to the system', 'fp-privacy' ); ?>
+			<?php \esc_html_e( 'Aggiungi automaticamente al sistema i servizi appena rilevati', 'fp-privacy' ); ?>
 		</label>
 		<p class="fp-privacy-checkbox-help description">
-			<?php \esc_html_e( 'When enabled, new services detected by the daily scan will be automatically added to your snapshots.', 'fp-privacy' ); ?>
+			<?php \esc_html_e( 'Se attivo, i nuovi servizi rilevati dalla scansione giornaliera vengono aggiunti agli snapshot.', 'fp-privacy' ); ?>
 		</p>
 
 		<label>
 			<input type="checkbox" name="auto_update_policies" value="1" <?php \checked( $auto_update_policies, true ); ?> />
-			<?php \esc_html_e( 'Automatically regenerate privacy and cookie policies', 'fp-privacy' ); ?>
+			<?php \esc_html_e( 'Rigenera automaticamente le policy privacy e cookie', 'fp-privacy' ); ?>
 		</label>
 		<p class="fp-privacy-checkbox-help description">
-			<?php \esc_html_e( 'When enabled, policies will be automatically regenerated when new services are detected. Requires "Automatically add newly detected services" to be enabled.', 'fp-privacy' ); ?>
+			<?php \esc_html_e( 'Se attivo, le policy vengono rigenerate quando cambiano i servizi rilevati. Richiede l’opzione «Aggiungi automaticamente i servizi rilevati».', 'fp-privacy' ); ?>
 		</p>
 
 		<div class="fp-privacy-advanced-section-gap" aria-hidden="true"></div>
 
 		<label>
 			<input type="checkbox" name="detector_notifications[email]" value="1" <?php \checked( ! empty( $notifications['email'] ) ); ?> />
-			<?php \esc_html_e( 'Send an email when new services are detected or existing ones disappear.', 'fp-privacy' ); ?>
+			<?php \esc_html_e( 'Invia un’email quando compaiono servizi nuovi o ne scompaiono di esistenti.', 'fp-privacy' ); ?>
 		</label>
 		<label>
-			<span><?php \esc_html_e( 'Notification recipients', 'fp-privacy' ); ?></span>
+			<span><?php \esc_html_e( 'Destinatari notifiche', 'fp-privacy' ); ?></span>
 			<input type="text" name="detector_notifications[recipients]" value="<?php echo \esc_attr( $recipients ); ?>" class="regular-text" />
-			<span class="description"><?php \esc_html_e( 'Comma separated email addresses. Leave blank to use the site administrator email.', 'fp-privacy' ); ?></span>
+			<span class="description"><?php \esc_html_e( 'Indirizzi email separati da virgola. Lascia vuoto per usare l’email dell’amministratore del sito.', 'fp-privacy' ); ?></span>
 		</label>
 		<?php
 	}

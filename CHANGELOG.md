@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.6] - 2026-03-25
+
+### Changed
+
+- Admin: interfaccia in italiano (etichette, descrizioni, notifiche, stringhe JS localizzate); termini tecnici lasciati in inglese dove previsto (REST, JSON, GDPR, Consent Mode, shortcode, detector, ecc.).
+- Schede impostazioni, editor policy, registro consensi, Analytics, Diagnostica, widget dashboard e notice detector: testi e hint di sezione allineati.
+- Tooltip help: `z-index` elevato nel contesto `fp-privacy-admin-shell`, posizionamento sotto l’icona per evitare taglio negli accordion con `overflow: hidden`; `focus-within` sul wrapper per lo stacking.
+
 ## [1.1.5] - 2026-03-25
 
 ### Changed

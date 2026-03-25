@@ -29,47 +29,48 @@ class DiagnosticStateRenderer {
 			<div class="fp-privacy-card-header">
 				<div class="fp-privacy-card-header-left">
 					<span class="dashicons dashicons-chart-line" aria-hidden="true"></span>
-					<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Current state', 'fp-privacy' ); ?></h2>
+					<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Stato corrente', 'fp-privacy' ); ?></h2>
 				</div>
 			</div>
 			<div class="fp-privacy-card-body fp-privacy-card-body--flush-table">
+			<p class="description"><?php \esc_html_e( 'Valutazione lato visitatore: se il banner deve mostrarsi, anteprima admin e dati del consenso.', 'fp-privacy' ); ?></p>
 			<table class="widefat striped fp-privacy-table">
 				<tbody>
 					<tr>
-						<td><strong><?php \esc_html_e( 'Banner visible', 'fp-privacy' ); ?></strong></td>
+						<td><strong><?php \esc_html_e( 'Banner visibile', 'fp-privacy' ); ?></strong></td>
 						<td>
 							<?php if ( ! empty( $frontend_state['state']['should_display'] ) ) : ?>
-								<span class="fp-privacy-diagnostic-flag fp-privacy-diagnostic-flag--yes"><?php \esc_html_e( 'Yes', 'fp-privacy' ); ?></span>
+								<span class="fp-privacy-diagnostic-flag fp-privacy-diagnostic-flag--yes"><?php \esc_html_e( 'Sì', 'fp-privacy' ); ?></span>
 							<?php else : ?>
 								<span class="fp-privacy-diagnostic-flag fp-privacy-diagnostic-flag--no"><?php \esc_html_e( 'No', 'fp-privacy' ); ?></span>
 							<?php endif; ?>
 						</td>
 					</tr>
 					<tr>
-						<td><strong><?php \esc_html_e( 'Preview mode', 'fp-privacy' ); ?></strong></td>
+						<td><strong><?php \esc_html_e( 'Modalità anteprima', 'fp-privacy' ); ?></strong></td>
 						<td>
-							<?php echo ! empty( $frontend_state['state']['preview_mode'] ) ? \esc_html__( 'Active', 'fp-privacy' ) : \esc_html__( 'Inactive', 'fp-privacy' ); ?>
+							<?php echo ! empty( $frontend_state['state']['preview_mode'] ) ? \esc_html__( 'Attiva', 'fp-privacy' ) : \esc_html__( 'Disattiva', 'fp-privacy' ); ?>
 						</td>
 					</tr>
 					<tr>
-						<td><strong><?php \esc_html_e( 'Consent ID', 'fp-privacy' ); ?></strong></td>
+						<td><strong><?php \esc_html_e( 'ID consenso', 'fp-privacy' ); ?></strong></td>
 						<td>
 							<?php
 							$consent_id = $frontend_state['state']['consent_id'] ?? '';
 							if ( $consent_id ) {
 								echo '<code class="is-monospace">' . \esc_html( \substr( (string) $consent_id, 0, 16 ) ) . '…</code>';
 							} else {
-								echo '<em>' . \esc_html__( 'None', 'fp-privacy' ) . '</em>';
+								echo '<em>' . \esc_html__( 'Nessuno', 'fp-privacy' ) . '</em>';
 							}
 							?>
 						</td>
 					</tr>
 					<tr>
-						<td><strong><?php \esc_html_e( 'Revision', 'fp-privacy' ); ?></strong></td>
+						<td><strong><?php \esc_html_e( 'Revisione', 'fp-privacy' ); ?></strong></td>
 						<td><code class="is-monospace"><?php echo \esc_html( (string) ( $frontend_state['state']['revision'] ?? '1' ) ); ?></code></td>
 					</tr>
 					<tr>
-						<td><strong><?php \esc_html_e( 'Language', 'fp-privacy' ); ?></strong></td>
+						<td><strong><?php \esc_html_e( 'Lingua', 'fp-privacy' ); ?></strong></td>
 						<td><code class="is-monospace"><?php echo \esc_html( (string) ( $frontend_state['state']['lang'] ?? 'N/A' ) ); ?></code></td>
 					</tr>
 				</tbody>
@@ -93,40 +94,41 @@ class DiagnosticStateRenderer {
 			<div class="fp-privacy-card-header">
 				<div class="fp-privacy-card-header-left">
 					<span class="dashicons dashicons-editor-code" aria-hidden="true"></span>
-					<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Debug information', 'fp-privacy' ); ?></h2>
+					<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Informazioni di debug', 'fp-privacy' ); ?></h2>
 				</div>
 			</div>
 			<div class="fp-privacy-card-body fp-privacy-card-body--flush-table">
+			<p class="description"><?php \esc_html_e( 'Tema attivo, hook wp_body_open, cookie consenso e versione plugin.', 'fp-privacy' ); ?></p>
 			<table class="widefat striped fp-privacy-table">
 				<tbody>
 					<tr>
-						<td><strong><?php \esc_html_e( 'Active theme', 'fp-privacy' ); ?></strong></td>
+						<td><strong><?php \esc_html_e( 'Tema attivo', 'fp-privacy' ); ?></strong></td>
 						<td><code class="is-monospace"><?php echo \esc_html( (string) \wp_get_theme()->get( 'Name' ) ); ?></code></td>
 					</tr>
 					<tr>
-						<td><strong><?php \esc_html_e( 'wp_body_open hook', 'fp-privacy' ); ?></strong></td>
+						<td><strong><?php \esc_html_e( 'Hook wp_body_open', 'fp-privacy' ); ?></strong></td>
 						<td>
 							<?php if ( \function_exists( 'wp_body_open' ) ) : ?>
-								<span class="fp-privacy-diagnostic-flag fp-privacy-diagnostic-flag--yes"><?php \esc_html_e( 'Supported', 'fp-privacy' ); ?></span>
+								<span class="fp-privacy-diagnostic-flag fp-privacy-diagnostic-flag--yes"><?php \esc_html_e( 'Supportato', 'fp-privacy' ); ?></span>
 							<?php else : ?>
-								<span class="fp-privacy-diagnostic-flag fp-privacy-diagnostic-flag--no"><?php \esc_html_e( 'Not supported', 'fp-privacy' ); ?></span>
+								<span class="fp-privacy-diagnostic-flag fp-privacy-diagnostic-flag--no"><?php \esc_html_e( 'Non supportato', 'fp-privacy' ); ?></span>
 							<?php endif; ?>
 						</td>
 					</tr>
 					<tr>
-						<td><strong><?php \esc_html_e( 'Consent cookie', 'fp-privacy' ); ?></strong></td>
+						<td><strong><?php \esc_html_e( 'Cookie consenso', 'fp-privacy' ); ?></strong></td>
 						<td>
 							<?php
 							if ( '' !== $cookie_raw ) {
 								echo '<code class="is-monospace">' . \esc_html( $cookie_raw ) . '</code>';
 							} else {
-								echo '<em>' . \esc_html__( 'None', 'fp-privacy' ) . '</em>';
+								echo '<em>' . \esc_html__( 'Nessuno', 'fp-privacy' ) . '</em>';
 							}
 							?>
 						</td>
 					</tr>
 					<tr>
-						<td><strong><?php \esc_html_e( 'Plugin version', 'fp-privacy' ); ?></strong></td>
+						<td><strong><?php \esc_html_e( 'Versione plugin', 'fp-privacy' ); ?></strong></td>
 						<td><code class="is-monospace"><?php echo \esc_html( $version ); ?></code></td>
 					</tr>
 				</tbody>
