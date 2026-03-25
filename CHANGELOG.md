@@ -4,6 +4,15 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.28] - 2026-03-25
+
+### Added
+
+- `tools/regenerate-policy-pages-wp.php`: rigenerazione policy via PHP+`wp-load` (equivalente operativa a “Detect & regenerate” in admin) quando WP-CLI non è disponibile; secondo passaggio sulle voci `cookie_policy_page_id` non coperte da `languages_active`, usando l’ID post dalla mappa e `Validator::locale` per il generatore (evita il collasso `en_US`→`it_IT` del normalizer quando è attivo solo l’italiano).
+- `tools/fix-policy-pages-option-mapping.php`: ripristino manuale di `fp_privacy_options['pages']` verso ID pagine con slug canonici (argomenti opzionali per ID privacy/cookie IT/EN).
+
+---
+
 ## [1.0.27] - 2026-03-25
 
 ### Added

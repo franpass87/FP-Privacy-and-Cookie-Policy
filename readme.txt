@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.27
+Stable tag: 1.0.28
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.28 =
+* Added: script CLI `tools/regenerate-policy-pages-wp.php` per rigenerare le policy senza WP-CLI; rigenera anche le cookie mappate solo per lingue extra (es. `en`/`en_US`) senza forzare `languages_active`.
+* Added: `tools/fix-policy-pages-option-mapping.php` per ripristinare gli ID pagina in `fp_privacy_options` (uso manuale).
 
 = 1.0.27 =
 * Added: script CLI `tools/cleanup-policy-pages-slugs.php` per pulizia slug policy duplicate (uso manuale, vedi CHANGELOG).
