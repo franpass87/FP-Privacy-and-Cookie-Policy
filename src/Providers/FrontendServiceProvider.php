@@ -37,9 +37,11 @@ class FrontendServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			ConsentState::class,
 			function( ContainerInterface $c ) {
-				$options = self::resolveOptions( $c );
+				$options   = self::resolveOptions( $c );
 				$log_model = $c->get( \FP\Privacy\Consent\LogModel::class );
-				return new ConsentState( $options, $log_model );
+				$detector  = $c->has( DetectorRegistry::class ) ? $c->get( DetectorRegistry::class ) : null;
+
+				return new ConsentState( $options, $log_model, $detector );
 			}
 		);
 

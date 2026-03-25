@@ -4,6 +4,19 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.4] - 2026-03-25
+
+### Added
+
+- Tab **Dettagli** del banner: elenco **servizi rilevati** dal detector (non più la stessa vista categorie/descrizioni del modal preferenze). Dati in `detected_services` nello stato frontend; fallback agli snapshot se il detector non è disponibile.
+- REST `GET /fp-privacy/v1/detected-services` (param `lang`) per aggiornare l’elenco; filtri `fp_privacy_rest_detected_services_enabled`, `fp_privacy_rest_detected_services_permission`. Polling banner configurabile con `fp_privacy_banner_detector_poll_interval_ms` (default 120000 ms; `0` disabilita).
+
+### Changed
+
+- `ConsentState` riceve opzionalmente `DetectorRegistry` dal container; `FP_PRIVACY_DATA.rest.detected_services` espone l’URL dell’endpoint.
+
+---
+
 ## [1.1.3] - 2026-03-25
 
 ### Changed

@@ -219,6 +219,39 @@
     margin-bottom: 2px;
 }
 
+.fp-privacy-banner-details-hint {
+    margin: 0 0 10px;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    opacity: 0.88;
+}
+
+.fp-privacy-banner-details-empty {
+    margin: 0;
+    font-size: 0.8125rem;
+    opacity: 0.9;
+}
+
+.fp-privacy-banner-detected-list {
+    margin: 0;
+    padding: 0 0 0 16px;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+.fp-privacy-banner-detected-item {
+    margin-bottom: 6px;
+}
+
+.fp-privacy-banner-detected-name {
+    font-weight: 600;
+}
+
+.fp-privacy-banner-detected-cat {
+    font-weight: 400;
+    opacity: 0.88;
+}
+
 /* Tab About banner */
 .fp-privacy-banner-about-text {
     margin: 0;

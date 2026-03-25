@@ -707,6 +707,99 @@ function initializeBanner() {
     }
 }
 
+/**
+ * Tab Dettagli del banner: elenco servizi rilevati (non replica del modal preferenze).
+ *
+ * @param {HTMLElement} panel Pannello tab details.
+ * @param {Array} list        Righe da data.options.detected_services o REST.
+ * @param {object} texts      Testi banner.
+ * @param {string} lang       Lingua corrente.
+ * @param {boolean} isItalian UI italiana.
+ */
+function fillBannerDetailsPanel( panel, list, texts, lang, isItalian ) {
+    if ( ! panel ) {
+        return;
+    }
+    panel.innerHTML = '';
+    var h = document.createElement( 'h3' );
+    h.className = 'fp-privacy-banner-details-title';
+    h.textContent = texts.tab_details_detected_title || ( isItalian ? 'Servizi rilevati sul sito' : 'Services detected on this site' );
+    panel.appendChild( h );
+    var hint = document.createElement( 'p' );
+    hint.className = 'fp-privacy-banner-details-hint';
+    hint.textContent = texts.tab_details_detected_hint || ( isItalian
+        ? 'Elenco prodotto dal rilevatore integrazioni (aggiornato a ogni caricamento pagina; opzionale refresh periodico).'
+        : 'List produced by the integrations detector (refreshed on each page load; optional periodic refresh).' );
+    panel.appendChild( hint );
+    if ( ! list || ! list.length ) {
+        var empty = document.createElement( 'p' );
+        empty.className = 'fp-privacy-banner-details-empty';
+        empty.textContent = texts.tab_details_no_services || ( isItalian ? 'Nessun servizio rilevato al momento.' : 'No services detected at the moment.' );
+        panel.appendChild( empty );
+        return;
+    }
+    var ul = document.createElement( 'ul' );
+    ul.className = 'fp-privacy-banner-detected-list';
+    for ( var i = 0; i < list.length; i++ ) {
+        var s = list[ i ];
+        if ( ! s || typeof s !== 'object' ) {
+            continue;
+        }
+        var li = document.createElement( 'li' );
+        li.className = 'fp-privacy-banner-detected-item';
+        var strong = document.createElement( 'strong' );
+        strong.className = 'fp-privacy-banner-detected-name';
+        strong.textContent = s.name || s.slug || '';
+        li.appendChild( strong );
+        if ( s.category_label || s.category ) {
+            var span = document.createElement( 'span' );
+            span.className = 'fp-privacy-banner-detected-cat';
+            span.textContent = ' — ' + ( s.category_label || s.category );
+            li.appendChild( span );
+        }
+        ul.appendChild( li );
+    }
+    panel.appendChild( ul );
+}
+
+/**
+ * Aggiorna la lista servizi rilevati via REST mentre il banner è visibile.
+ *
+ * @param {HTMLElement} detailsPanel Pannello tab details.
+ * @param {object} texts             Testi banner.
+ * @param {string} lang              Lingua corrente.
+ * @param {boolean} isItalian        UI italiana.
+ */
+function startDetectedServicesPoll( detailsPanel, texts, lang, isItalian ) {
+    var opts = data.options || {};
+    var pollMs = typeof opts.detector_poll_ms === 'number' ? opts.detector_poll_ms : 120000;
+    var restUrls = data.rest || {};
+    var baseUrl = restUrls.detected_services;
+    if ( pollMs <= 0 || ! baseUrl || typeof window.fetch !== 'function' ) {
+        return;
+    }
+    var nonce = restUrls.nonce || '';
+    setInterval( function () {
+        if ( ! banner || banner.style.display === 'none' ) {
+            return;
+        }
+        var sep = baseUrl.indexOf( '?' ) >= 0 ? '&' : '?';
+        var u = baseUrl + sep + 'lang=' + encodeURIComponent( lang || '' );
+        var headers = { Accept: 'application/json' };
+        if ( nonce ) {
+            headers[ 'X-WP-Nonce' ] = nonce;
+        }
+        window.fetch( u, { credentials: 'same-origin', headers: headers } )
+            .then( function ( r ) { return r.ok ? r.json() : null; } )
+            .then( function ( body ) {
+                if ( body && body.services && detailsPanel ) {
+                    fillBannerDetailsPanel( detailsPanel, body.services, texts, lang, isItalian );
+                }
+            } )
+            .catch( function () {} );
+    }, pollMs );
+}
+
 function buildBanner() {
 banner = document.createElement( 'div' );
 banner.className = 'fp-privacy-banner';
@@ -807,36 +900,7 @@ detailsPanel.setAttribute( 'role', 'tabpanel' );
 detailsPanel.setAttribute( 'data-tab', 'details' );
 detailsPanel.style.display = 'none';
 
-var detailsTitle = document.createElement( 'h3' );
-detailsTitle.className = 'fp-privacy-banner-details-title';
-detailsTitle.textContent = texts.tab_details_title || ( isItalian ? 'Categorie e servizi' : 'Categories and services' );
-detailsPanel.appendChild( detailsTitle );
-
-for ( var detKey in categories ) {
-    if ( ! categories.hasOwnProperty( detKey ) ) { continue; }
-    var detCat = categories[ detKey ];
-    var detBlock = document.createElement( 'div' );
-    detBlock.className = 'fp-privacy-banner-details-category';
-    var detH4 = document.createElement( 'h4' );
-    detH4.textContent = detCat.label || detKey;
-    detBlock.appendChild( detH4 );
-    var detP = document.createElement( 'p' );
-    detP.innerHTML = detCat.description || '';
-    detBlock.appendChild( detP );
-    if ( detCat.services && Array.isArray( detCat.services ) && detCat.services.length > 0 ) {
-        var servList = document.createElement( 'ul' );
-        servList.className = 'fp-privacy-banner-details-services';
-        for ( var si = 0; si < detCat.services.length; si++ ) {
-            var svc = detCat.services[ si ];
-            if ( ! svc || typeof svc !== 'object' ) { continue; }
-            var li = document.createElement( 'li' );
-            li.textContent = svc.name || svc.key || '';
-            servList.appendChild( li );
-        }
-        detBlock.appendChild( servList );
-    }
-    detailsPanel.appendChild( detBlock );
-}
+fillBannerDetailsPanel( detailsPanel, data.options.detected_services || [], texts, state.lang, isItalian );
 
 bannerPanels.appendChild( detailsPanel );
 
@@ -914,6 +978,7 @@ buttons.appendChild( prefs );
 banner.appendChild( buttons );
 
 root.appendChild( banner );
+startDetectedServicesPoll( detailsPanel, texts, state.lang, isItalian );
 buildModal();
 buildReopenButton();
 

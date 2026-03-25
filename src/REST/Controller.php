@@ -51,8 +51,9 @@ class Controller {
 			$consent_handler = new RESTConsentHandler( $state, $revoke_handler );
 		}
 
-		$revision_handler = new RESTRevisionHandler( $options );
-		$this->route_registrar = new RESTRouteRegistrar( $summary_handler, $consent_handler, $revision_handler, $permission_checker );
+		$revision_handler       = new RESTRevisionHandler( $options );
+		$detected_handler       = new RESTDetectedServicesHandler( $state );
+		$this->route_registrar = new RESTRouteRegistrar( $summary_handler, $consent_handler, $revision_handler, $permission_checker, $detected_handler );
 	}
 
 	/**

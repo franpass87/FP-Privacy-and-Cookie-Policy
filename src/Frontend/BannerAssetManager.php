@@ -89,8 +89,9 @@ class BannerAssetManager {
 					'duration' => (int) \apply_filters( 'fp_privacy_cookie_duration_days', \FP\Privacy\Shared\Constants::COOKIE_DURATION_DAYS_DEFAULT ),
 				),
 				'rest'      => array(
-					'url'   => \esc_url_raw( \rest_url( 'fp-privacy/v1/consent' ) ),
-					'nonce' => \wp_create_nonce( 'wp_rest' ),
+					'url'               => \esc_url_raw( \rest_url( 'fp-privacy/v1/consent' ) ),
+					'nonce'             => \wp_create_nonce( 'wp_rest' ),
+					'detected_services' => \esc_url_raw( \rest_url( 'fp-privacy/v1/detected-services' ) ),
 				),
 			)
 		);

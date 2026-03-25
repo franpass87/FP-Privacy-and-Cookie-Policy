@@ -2,7 +2,7 @@
 /**
  * Plugin Name: FP Privacy and Cookie Policy
  * Description: Provides a GDPR-ready consent banner, consent logging, and automated privacy/cookie policies with Google Consent Mode v2 for WordPress. Includes REST, WP-CLI, and Gutenberg tooling for privacy workflows.
- * Version: 1.1.3
+ * Version: 1.1.4
  * Author: Francesco Passeri
  * Author URI: https://francescopasseri.com
  * Text Domain: fp-privacy
@@ -61,7 +61,7 @@ if ( version_compare( PHP_VERSION, '8.0', '<' ) ) {
 
 define( 'FP_PRIVACY_PLUGIN_FILE', __FILE__ );
 
-define( 'FP_PRIVACY_PLUGIN_VERSION', '1.1.3' );
+define( 'FP_PRIVACY_PLUGIN_VERSION', '1.1.4' );
 
 // Alias per integrazione con FP Performance Suite
 define( 'FP_PRIVACY_VERSION', '1.1.3' );

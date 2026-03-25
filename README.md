@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 1.1.3 |
+| Version | 1.1.4 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |
@@ -139,6 +139,9 @@ Per dettagli completi: `wp help fp-privacy <comando>`
 - `fp_privacy_enqueue_banner_assets`
 - `fp_privacy_collapse_admin_submenus` — (filter, bool) default `false`: sidebar WordPress shows all submenu pages; use `__return_true` for slim top-level only + horizontal subnav in page content (legacy).
 - `fp_privacy_admin_subnav_items` — (filter) horizontal admin sub-navigation items.
+- `fp_privacy_banner_detector_poll_interval_ms` — (filter, int) interval in milliseconds for refreshing the banner “detected services” list via REST while the banner is visible; default `120000`; use `0` to disable polling (initial list still comes from the page load).
+- `fp_privacy_rest_detected_services_enabled` — (filter, bool) enable `GET /fp-privacy/v1/detected-services`; default `true`.
+- `fp_privacy_rest_detected_services_permission` — (filter, bool) REST permission callback for that route; default `true` (public read).
 
 ## Support
 

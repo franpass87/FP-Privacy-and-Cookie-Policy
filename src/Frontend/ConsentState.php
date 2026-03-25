@@ -10,6 +10,7 @@
 namespace FP\Privacy\Frontend;
 
 use FP\Privacy\Consent\LogModel;
+use FP\Privacy\Integrations\DetectorRegistry;
 use FP\Privacy\Shared\Constants;
 use FP\Privacy\Utils\Options;
 use FP\Privacy\Utils\Validator;
@@ -43,14 +44,23 @@ class ConsentState {
 	private $sanitizer;
 
 	/**
+	 * Registry detector (servizi attivi sul sito).
+	 *
+	 * @var DetectorRegistry|null
+	 */
+	private $detector;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Options  $options   Options handler.
-	 * @param LogModel $log_model Log model.
+	 * @param Options                $options   Options handler.
+	 * @param LogModel               $log_model Log model.
+	 * @param DetectorRegistry|null $detector  Opzionale: per elenco servizi rilevati nel banner.
 	 */
-	public function __construct( Options $options, LogModel $log_model ) {
+	public function __construct( Options $options, LogModel $log_model, ?DetectorRegistry $detector = null ) {
 		$this->options   = $options;
 		$this->log_model = $log_model;
+		$this->detector  = $detector;
 		$this->sanitizer = new ConsentStateSanitizer( $options );
 	}
 
@@ -165,6 +175,8 @@ class ConsentState {
 			$reject_confirm = (bool) \apply_filters( 'fp_privacy_reject_all_confirm_preview', false );
 		}
 
+		$detector_poll_ms = (int) \apply_filters( 'fp_privacy_banner_detector_poll_interval_ms', 120000 );
+
         return array(
             'texts'     => $text,
             'layout'    => $banner_layout->to_array(),
@@ -179,8 +191,127 @@ class ConsentState {
                 'privacy' => $privacy_url,
                 'cookie' => $cookie_url,
             ),
+			'detected_services'   => $this->get_detected_services_payload( $requested ),
+			'detector_poll_ms'    => $detector_poll_ms,
         );
     }
+
+	/**
+	 * Elenco servizi rilevati dal detector per il tab Dettagli del banner (e REST).
+	 *
+	 * @param string $lang Lingua richiesta (stesso formato di get_frontend_state).
+	 *
+	 * @return array<int, array<string, string>>
+	 */
+	public function get_detected_services_payload( $lang ): array {
+		$languages = $this->options->get_languages();
+		$primary   = $languages[0] ?? 'en_US';
+
+		if ( empty( $lang ) ) {
+			$lang = $this->options->detect_user_language();
+		}
+
+		$detected_lang = $lang;
+		$requested     = Validator::locale( $lang, $primary );
+
+		if ( ( $detected_lang === 'en_US' || strpos( strtolower( (string) $detected_lang ), 'en' ) === 0 )
+			&& ! in_array( 'en_US', $languages, true ) ) {
+			$requested = 'en_US';
+		}
+
+		if ( ( $detected_lang === 'it_IT' || strpos( strtolower( (string) $detected_lang ), 'it' ) === 0 )
+			&& ! in_array( 'it_IT', $languages, true ) ) {
+			$requested = 'it_IT';
+		}
+
+		$normalized      = $this->options->normalize_language( $requested );
+		$categories_meta = $this->options->get_categories_for_language( $normalized );
+
+		$raw = array();
+
+		if ( $this->detector instanceof DetectorRegistry ) {
+			try {
+				$raw = $this->detector->detect_services( false );
+				$raw = array_values(
+					array_filter(
+						$raw,
+						static function ( $row ) {
+							return is_array( $row ) && ! empty( $row['detected'] );
+						}
+					)
+				);
+			} catch ( \Throwable $e ) {
+				$raw = array();
+			}
+		}
+
+		if ( empty( $raw ) ) {
+			$snapshots = $this->options->get( 'snapshots', array() );
+			$stored    = array();
+
+			if ( is_array( $snapshots ) && isset( $snapshots['services']['detected'] ) && is_array( $snapshots['services']['detected'] ) ) {
+				$stored = $snapshots['services']['detected'];
+			}
+
+			$raw = array_values(
+				array_filter(
+					$stored,
+					static function ( $row ) {
+						return is_array( $row ) && ( ! isset( $row['detected'] ) || ! empty( $row['detected'] ) );
+					}
+				)
+			);
+		}
+
+		$out = array();
+
+		foreach ( $raw as $service ) {
+			if ( ! is_array( $service ) ) {
+				continue;
+			}
+			$out[] = $this->normalize_detected_service_row( $service, $categories_meta );
+		}
+
+		usort(
+			$out,
+			static function ( array $a, array $b ): int {
+				return strcasecmp( (string) ( $a['name'] ?? '' ), (string) ( $b['name'] ?? '' ) );
+			}
+		);
+
+		return $out;
+	}
+
+	/**
+	 * Normalizza una riga servizio per il frontend.
+	 *
+	 * @param array<string, mixed> $service         Riga detector o snapshot.
+	 * @param array<string, mixed> $categories_meta Categorie da get_categories_for_language.
+	 *
+	 * @return array<string, string>
+	 */
+	private function normalize_detected_service_row( array $service, array $categories_meta ): array {
+		$slug = isset( $service['slug'] ) ? \sanitize_text_field( (string) $service['slug'] ) : '';
+		$name = isset( $service['name'] ) ? \sanitize_text_field( (string) $service['name'] ) : $slug;
+		$cat  = isset( $service['category'] ) ? \sanitize_text_field( (string) $service['category'] ) : '';
+
+		$cat_label = $cat;
+
+		if ( '' !== $cat && isset( $categories_meta[ $cat ] ) && is_array( $categories_meta[ $cat ] ) ) {
+			$lbl = $categories_meta[ $cat ]['label'] ?? '';
+
+			if ( is_string( $lbl ) && '' !== $lbl ) {
+				$cat_label = $lbl;
+			}
+		}
+
+		return array(
+			'slug'            => $slug,
+			'name'            => $name,
+			'category'        => $cat,
+			'category_label'  => $cat_label,
+		);
+	}
 
     /**
      * Ensure about_content matches the expected standard for the resolved language (short legacy text or wrong-language canonical paragraph).
