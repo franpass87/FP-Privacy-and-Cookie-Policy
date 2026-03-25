@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.24] - 2026-03-25
+
+### Fixed
+
+- Template `privacy-policy.php`: quando la policy è generata per una lingua `en` / `en_US` / `en_GB` (parametro `$lang` del generatore), **titoli del sommario, h2, intestazioni tabella servizi e riga “Last updated”** usano il testo **inglese letterale** senza passare da `gettext`. Così WPML o un locale globale ancora `it_IT` non traduce più i msgid inglesi in italiano (sommario misto IT/EN sul sito).
+
+---
+
 ## [1.0.23] - 2026-03-25
 
 ### Changed
