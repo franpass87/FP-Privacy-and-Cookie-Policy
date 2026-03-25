@@ -4,6 +4,15 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.17] - 2026-03-25
+
+### Fixed
+
+- **Privacy/cookie policy (fatal residui)**: contesto vista non array dopo `fp_privacy_view_context` → `extract()` non riceve più tipi invalidi; palette non array in `BannerPaletteBuilder::array_merge`; testi AI parziali in admin uniti ai default (chiavi mancanti); `AlgorithmicTransparency` con `empty()` su `enabled`; lingua policy normalizzata da valori non stringa; template policy/cookie con `$options`/`$groups` sempre array; stesso `foreach` servizi sicuro sulla cookie policy.
+- **Shortcode** `[fp_privacy_policy]` / `[fp_cookie_policy]`: `try/catch \Throwable` attorno al rendering (evita schermata bianca se un filtro o asset lancia eccezione); log su `debug.log` solo con `WP_DEBUG`.
+
+---
+
 ## [1.0.16] - 2026-03-25
 
 ### Fixed

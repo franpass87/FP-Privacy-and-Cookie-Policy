@@ -72,6 +72,8 @@ class PolicyGenerator {
 		$original_locale = null;
 
 		try {
+			$lang = $this->sanitize_policy_language( $lang );
+
 			// Switch locale and load textdomain for the target language.
 			$original_locale = $this->load_textdomain_for_language( $lang );
 
@@ -136,6 +138,8 @@ class PolicyGenerator {
 		$original_locale = null;
 
 		try {
+			$lang = $this->sanitize_policy_language( $lang );
+
 			// Switch locale and load textdomain for the target language.
 			$original_locale = $this->load_textdomain_for_language( $lang );
 
@@ -271,6 +275,29 @@ class PolicyGenerator {
 		$html .= '<p>' . wp_kses_post( $rights_text ) . '</p>';
 
 		return $html;
+	}
+
+	/**
+	 * Normalize language input from shortcodes/blocks (scalar only).
+	 *
+	 * @param mixed $lang Raw language value.
+	 *
+	 * @return string Locale string for policy generation.
+	 */
+	private function sanitize_policy_language( $lang ): string {
+		if ( is_string( $lang ) ) {
+			$out = \sanitize_text_field( $lang );
+		} elseif ( is_scalar( $lang ) ) {
+			$out = \sanitize_text_field( (string) $lang );
+		} else {
+			$out = '';
+		}
+
+		if ( '' === $out ) {
+			return $this->options->normalize_language( \get_locale() );
+		}
+
+		return $this->options->normalize_language( $out );
 	}
 
 	/**

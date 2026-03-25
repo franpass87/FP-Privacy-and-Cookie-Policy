@@ -41,7 +41,7 @@ class AlgorithmicTransparencyGenerator {
 	public function generate_algorithmic_transparency( $lang ) {
 		$algorithmic_transparency_options = $this->options->get_algorithmic_transparency();
 
-		if ( ! $algorithmic_transparency_options['enabled'] ) {
+		if ( empty( $algorithmic_transparency_options['enabled'] ) ) {
 			return '';
 		}
 

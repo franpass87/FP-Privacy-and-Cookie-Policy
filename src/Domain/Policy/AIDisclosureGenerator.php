@@ -49,12 +49,14 @@ class AIDisclosureGenerator {
 
 		$lang = $this->options->normalize_language( $lang );
 
-		// Get AI-specific texts for language.
-		$ai_texts = isset( $ai_config['texts'][ $lang ] ) && is_array( $ai_config['texts'][ $lang ] )
+		// Merge saved texts with defaults so partial admin data never omits required keys (avoids notices / strict handlers).
+		$defaults_texts = $this->get_default_ai_texts( $lang );
+		$user_texts     = isset( $ai_config['texts'][ $lang ] ) && is_array( $ai_config['texts'][ $lang ] )
 			? $ai_config['texts'][ $lang ]
-			: $this->get_default_ai_texts( $lang );
+			: array();
+		$ai_texts       = array_merge( $defaults_texts, $user_texts );
 
-		$html = '<h2 id="fp-privacy-ai-disclosure">' . esc_html( $ai_texts['title'] ) . '</h2>';
+		$html = '<h2 id="fp-privacy-ai-disclosure">' . esc_html( (string) ( $ai_texts['title'] ?? '' ) ) . '</h2>';
 
 		// Main description.
 		if ( ! empty( $ai_texts['description'] ) ) {

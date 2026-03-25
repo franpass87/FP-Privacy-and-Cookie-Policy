@@ -9,6 +9,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 exit;
 }
 
+// Filtro fp_privacy_view_context o extract possono omettere chiavi: evita fatal su foreach / offset.
+$options = ( isset( $options ) && is_array( $options ) ) ? $options : array();
+$groups  = ( isset( $groups ) && is_array( $groups ) ) ? $groups : array();
+
 $org      = isset( $options['org_name'] ) ? $options['org_name'] : '';
 $address  = isset( $options['address'] ) ? $options['address'] : '';
 $dpo_name = isset( $options['dpo_name'] ) ? $options['dpo_name'] : '';

@@ -9,6 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 exit;
 }
 
+$options = ( isset( $options ) && is_array( $options ) ) ? $options : array();
+$groups  = ( isset( $groups ) && is_array( $groups ) ) ? $groups : array();
+
 $retention       = isset( $options['retention_days'] ) ? (int) $options['retention_days'] : 180;
 $generated_at    = isset( $generated_at ) ? (int) $generated_at : 0;
 $date_format     = (string) get_option( 'date_format' );
@@ -136,6 +139,9 @@ if ( '' === $last_generated ) {
 <p><?php esc_html_e( 'You can revisit your preferences using the cookie preferences button available on every page or adjust your browser settings to delete or block cookies. Blocking essential cookies may impact site functionality. Detailed instructions for major browsers are linked within the preferences centre.', 'fp-privacy' ); ?></p>
 
 <?php foreach ( $groups as $category => $services ) :
+    if ( ! is_array( $services ) ) {
+        continue;
+    }
     $meta  = isset( $categories_meta[ $category ] ) && is_array( $categories_meta[ $category ] ) ? $categories_meta[ $category ] : array();
     $label = isset( $meta['label'] ) && '' !== $meta['label'] ? $meta['label'] : ucfirst( str_replace( '_', ' ', $category ) );
     $description = isset( $meta['description'] ) ? $meta['description'] : '';

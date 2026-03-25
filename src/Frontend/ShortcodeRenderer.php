@@ -95,20 +95,29 @@ class ShortcodeRenderer {
 	 * @return string
 	 */
 	public function render_privacy_policy( $atts ) {
-		$atts = \shortcode_atts(
-			array(
-				'lang' => \get_locale(),
-			),
-			$atts,
-			'fp_privacy_policy'
-		);
+		try {
+			$atts = \shortcode_atts(
+				array(
+					'lang' => \get_locale(),
+				),
+				$atts,
+				'fp_privacy_policy'
+			);
 
-		// Carica gli stili CSS per la privacy policy
-		$this->asset_manager->enqueue_policy_styles();
+			// Carica gli stili CSS per la privacy policy
+			$this->asset_manager->enqueue_policy_styles();
 
-		$html = $this->generator->generate_privacy_policy( $atts['lang'] );
+			$html = $this->generator->generate_privacy_policy( $atts['lang'] );
 
-		return \apply_filters( 'fp_privacy_policy_content', $html, $atts['lang'] );
+			return \apply_filters( 'fp_privacy_policy_content', $html, $atts['lang'] );
+		} catch ( \Throwable $e ) {
+			if ( \defined( 'WP_DEBUG' ) && \WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- diagnostica solo con WP_DEBUG.
+				\error_log( \sprintf( 'FP Privacy: render_privacy_policy — %s', $e->getMessage() ) );
+			}
+
+			return '';
+		}
 	}
 
 	/**
@@ -119,20 +128,29 @@ class ShortcodeRenderer {
 	 * @return string
 	 */
 	public function render_cookie_policy( $atts ) {
-		$atts = \shortcode_atts(
-			array(
-				'lang' => \get_locale(),
-			),
-			$atts,
-			'fp_cookie_policy'
-		);
+		try {
+			$atts = \shortcode_atts(
+				array(
+					'lang' => \get_locale(),
+				),
+				$atts,
+				'fp_cookie_policy'
+			);
 
-		// Carica gli stili CSS per la cookie policy
-		$this->asset_manager->enqueue_policy_styles();
+			// Carica gli stili CSS per la cookie policy
+			$this->asset_manager->enqueue_policy_styles();
 
-		$html = $this->generator->generate_cookie_policy( $atts['lang'] );
+			$html = $this->generator->generate_cookie_policy( $atts['lang'] );
 
-		return \apply_filters( 'fp_cookie_policy_content', $html, $atts['lang'] );
+			return \apply_filters( 'fp_cookie_policy_content', $html, $atts['lang'] );
+		} catch ( \Throwable $e ) {
+			if ( \defined( 'WP_DEBUG' ) && \WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- diagnostica solo con WP_DEBUG.
+				\error_log( \sprintf( 'FP Privacy: render_cookie_policy — %s', $e->getMessage() ) );
+			}
+
+			return '';
+		}
 	}
 
 	/**

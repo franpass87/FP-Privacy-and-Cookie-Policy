@@ -29,6 +29,10 @@ class BannerPaletteBuilder {
 			$palette = $palette->to_array();
 		}
 
+		if ( ! is_array( $palette ) ) {
+			$palette = array();
+		}
+
 		$defaults = array(
 			'surface_bg'          => '#F9FAFB',
 			'surface_text'        => '#1F2937',
@@ -87,6 +91,10 @@ class BannerPaletteBuilder {
 	public function build_policy_page_css( $palette ) {
 		if ( $palette instanceof ColorPalette ) {
 			$palette = $palette->to_array();
+		}
+
+		if ( ! is_array( $palette ) ) {
+			$palette = array();
 		}
 
 		$defaults = array(

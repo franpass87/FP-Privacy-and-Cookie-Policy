@@ -37,6 +37,10 @@ class View {
 
 		$context = apply_filters( 'fp_privacy_view_context', $context, $template );
 
+		if ( ! is_array( $context ) ) {
+			$context = array();
+		}
+
 		ob_start();
 		try {
 			extract( $context, EXTR_SKIP );
