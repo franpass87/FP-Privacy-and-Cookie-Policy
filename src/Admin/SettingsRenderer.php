@@ -180,7 +180,8 @@ AdminSubnav::render( Menu::MENU_SLUG );
 <!-- Sticky Save Button -->
 <div class="fp-privacy-sticky-save">
 	<button type="submit" form="fp-privacy-settings-form-id" class="button button-primary">
-		<?php \esc_html_e( 'Salva tutte le impostazioni', 'fp-privacy' ); ?>
+		<span class="dashicons dashicons-saved" aria-hidden="true"></span>
+		<?php \esc_html_e( 'Save all settings', 'fp-privacy' ); ?>
 	</button>
 </div>
 

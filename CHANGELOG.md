@@ -4,6 +4,15 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.32] - 2026-03-25
+
+### Changed
+
+- Admin UI: allineamento visivo a **FP Mail SMTP** (token `--fpdms-*`): pulsanti primari/secondari con gradiente e ombre, page header e badge, card/subnav/tab impostazioni, barra sticky salvataggio, filtri tabella servizi, accordion e breadcrumb; notice nel `.wrap` senza float.
+- Barra sticky impostazioni: icona `dashicons-saved` e etichetta “Save all settings” (msgid inglese, dominio `fp-privacy`).
+
+---
+
 ## [1.0.31] - 2026-03-25
 
 ### Changed
