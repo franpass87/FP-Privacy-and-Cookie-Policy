@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.27] - 2026-03-25
+
+### Added
+
+- `tools/cleanup-policy-pages-slugs.php`: script CLI (opzionale) per cestinare pagine policy duplicate con slug numerati, impostare slug canonici `privacy-policy` / `cookie-policy` per la lingua predefinita, suffisso `-{lang}` WPML per le altre lingue, sostituire URL noti in `wp_options`/`postmeta`. Supporta `WORDPRESS_ROOT`, primo argomento = root WP, `FP_KEEP_*`, `FP_EXTRA_PROTECT_IDS`.
+
+---
+
 ## [1.0.26] - 2026-03-25
 
 ### Fixed

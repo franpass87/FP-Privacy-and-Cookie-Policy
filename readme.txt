@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.26
+Stable tag: 1.0.27
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.27 =
+* Added: script CLI `tools/cleanup-policy-pages-slugs.php` per pulizia slug policy duplicate (uso manuale, vedi CHANGELOG).
 
 = 1.0.26 =
 * Fixed: cookie policy in inglese — titoli e label tabella come privacy (testo EN letterale se lang è en_*).
