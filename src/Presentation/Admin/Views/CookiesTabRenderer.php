@@ -212,19 +212,26 @@ class CookiesTabRenderer extends SettingsRendererBase {
 
 		?>
 		<div class="fp-privacy-sub-categories">
-			<?php
-			$this->render_help_icon(
-				\__( 'Abilita la granularità avanzata del consenso per conformità EDPB 2025.', 'fp-privacy' ),
-				\__( 'Granularità Consenso Avanzata', 'fp-privacy' ),
-				$help_content,
-				'help-sub-categories'
-			);
-			?>
-
-			<label>
-				<span><?php \esc_html_e( 'Abilita toggle individuali per servizi', 'fp-privacy' ); ?></span>
-				<input type="checkbox" name="enable_sub_categories" value="1" <?php \checked( $enable_sub_categories, true ); ?> />
-			</label>
+			<div class="fp-privacy-checkbox-with-help">
+				<label class="fp-privacy-inline-checkbox-label" for="fp-privacy-enable-sub-categories">
+					<input
+						type="checkbox"
+						id="fp-privacy-enable-sub-categories"
+						name="enable_sub_categories"
+						value="1"
+						<?php \checked( $enable_sub_categories, true ); ?>
+					/>
+					<span class="fp-privacy-inline-checkbox-text"><?php \esc_html_e( 'Abilita toggle individuali per servizi', 'fp-privacy' ); ?></span>
+				</label>
+				<?php
+				$this->render_help_icon(
+					\__( 'Abilita la granularità avanzata del consenso per conformità EDPB 2025.', 'fp-privacy' ),
+					\__( 'Granularità Consenso Avanzata', 'fp-privacy' ),
+					$help_content,
+					'help-sub-categories'
+				);
+				?>
+			</div>
 			<p class="description">
 				<?php \esc_html_e( 'Quando abilitato, gli utenti possono controllare individualmente ogni servizio rilevato (es: GA4, GTM, Facebook Pixel) invece di accettare/rifiutare solo le categorie principali. Questo migliora la conformità con le linee guida EDPB 2025.', 'fp-privacy' ); ?>
 			</p>

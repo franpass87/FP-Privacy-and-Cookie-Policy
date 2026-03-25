@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.15] - 2026-03-25
+
+### Fixed
+
+- Scheda **Cookie e script** — sezione «Granularità consenso (EDPB 2025)»: checkbox, etichetta e icona **info** (tooltip + «Scopri di più») sulla **stessa riga**; area tap icona leggermente più grande; `label` associato con `for` / `id`.
+
 ## [1.1.14] - 2026-03-25
 
 ### Fixed
