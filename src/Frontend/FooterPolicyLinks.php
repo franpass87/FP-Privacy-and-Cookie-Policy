@@ -110,10 +110,6 @@ class FooterPolicyLinks {
 			$links[] = '<a href="' . \esc_url( $cookie_url ) . '" class="fp-privacy-footer-link">' . \esc_html( $cookie_label ) . '</a>';
 		}
 
-		if ( empty( $links ) ) {
-			return;
-		}
-
 		$separator   = ' <span class="fp-privacy-footer-sep" aria-hidden="true">|</span> ';
 		$block_style = 'margin:12px 0;padding:8px 0;text-align:center;font-size:0.8125rem;color:#6b7280;';
 		$html        = '<div class="fp-privacy-footer-links" role="contentinfo" style="' . \esc_attr( $block_style ) . '">' . implode( $separator, $links ) . '</div>';

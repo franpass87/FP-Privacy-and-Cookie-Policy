@@ -31,8 +31,8 @@ final class AdminSubnav {
 				<?php foreach ( $items as $slug => $meta ) : ?>
 					<?php
 					$url   = \add_query_arg( 'page', $slug, $base );
-					$label = isset( $meta['label'] ) ? $meta['label'] : $slug;
-					$icon  = isset( $meta['icon'] ) ? (string) $meta['icon'] : 'dashicons-admin-generic';
+					$label = $meta['label'];
+					$icon  = (string) $meta['icon'];
 					$active = ( $slug === $current_slug );
 					?>
 					<li class="fp-privacy-admin-subnav__item">

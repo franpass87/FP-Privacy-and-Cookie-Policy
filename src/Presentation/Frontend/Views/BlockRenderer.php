@@ -16,7 +16,7 @@ class BlockRenderer {
 	/**
 	 * Render privacy policy block.
 	 *
-	 * @param array<string, mixed> $attributes Attributes.
+	 * @param mixed $attributes Block attributes from Gutenberg (typically array).
 	 *
 	 * @return string
 	 */
@@ -30,7 +30,7 @@ class BlockRenderer {
 	/**
 	 * Render cookie policy block.
 	 *
-	 * @param array<string, mixed> $attributes Attributes.
+	 * @param mixed $attributes Block attributes from Gutenberg (typically array).
 	 *
 	 * @return string
 	 */
@@ -44,7 +44,7 @@ class BlockRenderer {
 	/**
 	 * Render preferences block.
 	 *
-	 * @param array<string, mixed> $attributes Attributes.
+	 * @param mixed $attributes Block attributes from Gutenberg (typically array).
 	 *
 	 * @return string
 	 */
@@ -86,7 +86,7 @@ class BlockRenderer {
 	/**
 	 * Render banner block.
 	 *
-	 * @param array<string, mixed> $attributes Attributes.
+	 * @param mixed $attributes Block attributes from Gutenberg (typically array).
 	 *
 	 * @return string
 	 */

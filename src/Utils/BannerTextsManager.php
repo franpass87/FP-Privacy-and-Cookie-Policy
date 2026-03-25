@@ -156,7 +156,7 @@ class BannerTextsManager {
 		);
 
 		$lang_key   = ( strpos( $lang, 'it' ) === 0 ) ? 'it_IT' : 'en_US';
-		$to_replace = $deprecated[ $lang_key ] ?? array();
+		$to_replace = $deprecated[ $lang_key ];
 		$new_text   = $lang_key === 'it_IT'
 			? Constants::BANNER_INFO_ABOUT_IT
 			: Constants::BANNER_INFO_ABOUT_EN_UK;
@@ -176,7 +176,7 @@ class BannerTextsManager {
 				'it_IT' => array( 'personalizzare contenuti', 'azienda', 'Chi siamo' ),
 				'en_US' => array( 'personalise content', 'our company', 'About us' ),
 			);
-			$phrases = $short_deprecated_phrases[ $lang_key ] ?? array();
+			$phrases = $short_deprecated_phrases[ $lang_key ];
 			foreach ( $phrases as $phrase ) {
 				if ( false !== \strpos( \strtolower( $current ), \strtolower( $phrase ) ) ) {
 					$should_replace = true;

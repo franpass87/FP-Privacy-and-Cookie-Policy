@@ -84,7 +84,7 @@ class Menu {
 			self::MENU_SLUG,
 			array( $this, 'render_settings_page' ),
 			'dashicons-shield-alt',
-			'56.8'
+			56.8
 		);
 
 		\add_submenu_page(
