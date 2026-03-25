@@ -1241,16 +1241,26 @@ $( function () {
     
     // Intercetta submit form per mostrare indicatore
     form.on( 'submit', function( e ) {
-        var $submitBtn = form.find( '.button-primary' );
-        var $stickyBtn = $( '.fp-privacy-sticky-save .button-primary' );
-        
-        // Disable buttons
-        $submitBtn.prop( 'disabled', true ).addClass( 'fp-saving' );
-        $stickyBtn.prop( 'disabled', true ).addClass( 'fp-saving' );
-        
-        // Show loading indicator
+        var formId = form.attr( 'id' ) || '';
+        var $inFormSubmit = form.find( 'button[type="submit"]' );
+        var $associatedSubmit = formId
+            ? $( 'button[type="submit"][form="' + formId.replace( /"/g, '' ) + '"]' )
+            : $();
+        var $allSubmit = $inFormSubmit.add( $associatedSubmit );
+        var ev = e.originalEvent;
+        var $submitter = ev && ev.submitter ? $( ev.submitter ) : $();
+
+        // Disable tutti i submit che inviano questo form (tab .fp-privacy-btn + Quick actions / sticky con attributo form=)
+        $allSubmit.prop( 'disabled', true ).addClass( 'fp-saving' );
+
+        // Show loading indicator vicino al pulsante usato, altrimenti al primo submit nel form
         var loadingIndicator = createLoadingIndicator();
-        $submitBtn.after( loadingIndicator );
+        var $anchor = $submitter.length && $allSubmit.filter( $submitter ).length
+            ? $submitter
+            : ( $inFormSubmit.length ? $inFormSubmit.first() : $associatedSubmit.first() );
+        if ( $anchor.length ) {
+            $anchor.after( loadingIndicator );
+        }
         
         // Show toast notification
         setTimeout( function() {

@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.1] - 2026-03-25
+
+### Fixed
+
+- Admin impostazioni: al salvataggio dai tab, lo script cercava solo `.button-primary` dentro il form; i pulsanti `.fp-privacy-btn-primary` non venivano disabilitati e non compariva l’indicatore di salvataggio. Ora vengono considerati tutti i `button[type="submit"]` nel form e quelli esterni con `form="{id}"`, con ancoraggio dell’indicatore al `submitter` quando disponibile.
+
+---
+
 ## [1.1.0] - 2026-03-25
 
 ### Added
