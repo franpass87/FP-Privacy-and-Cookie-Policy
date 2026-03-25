@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.9] - 2026-03-25
+
+### Changed
+
+- Pagina **Impostazioni**: rimossa anche la riga di link rapidi sotto l’intro; rimossi gli handler JS e le stringhe `wp_localize_script` usate solo per quelle azioni (annulla modifiche non salvate, scroll anteprima).
+- Pagina **Strumenti**: aggiunta card **Ripristina predefiniti** (form `admin-post` + conferma) per sostituire il reset rimosso dalla pagina Impostazioni.
+- `AdminUi::render_submit_button`: supporto attributo opzionale `onclick`.
+
 ## [1.1.8] - 2026-03-25
 
 ### Changed

@@ -128,12 +128,6 @@ class Settings {
 				'shortcutClose'       => \__( 'Chiudi modali e tooltip', 'fp-privacy' ),
 				'shortcutHelp'        => \__( 'Mostra questo aiuto', 'fp-privacy' ),
 				'close'               => \__( 'Chiudi', 'fp-privacy' ),
-				'resetConfirmTitle'   => \__( 'Ripristina predefiniti', 'fp-privacy' ),
-				'resetConfirmMessage' => \__( 'Tutte le impostazioni torneranno ai valori predefiniti. Azione irreversibile.', 'fp-privacy' ),
-				'resetConfirmQuestion' => \__( 'Continuare?', 'fp-privacy' ),
-				'resetConfirm'        => \__( 'Sì, ripristina', 'fp-privacy' ),
-				'resetSettingsMissing' => \__( 'Reset non disponibile (dati di sicurezza mancanti). Ricarica la pagina e riprova.', 'fp-privacy' ),
-				'cancel'              => \__( 'Annulla', 'fp-privacy' ),
 				'savingInProgress'    => \__( 'Salvataggio in corso…', 'fp-privacy' ),
 				'saveSuccessMessage'  => \__( 'Impostazioni salvate.', 'fp-privacy' ),
 				'saveSuccessTitle'    => \__( 'Salvataggio completato', 'fp-privacy' ),
@@ -155,8 +149,6 @@ class Settings {
 					'privacy' => $privacy_url,
 					'cookie'  => $cookie_url,
 				),
-				'adminPostUrl'        => \admin_url( 'admin-post.php' ),
-				'resetSettingsNonce'  => \wp_create_nonce( 'fp_privacy_reset_settings' ),
 			)
 		);
 	}

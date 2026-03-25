@@ -20,7 +20,7 @@ final class AdminUi {
 	 *
 	 * @param string               $text            Etichetta (già tradotta o da tradurre dal chiamante).
 	 * @param string               $variant         `primary` o `secondary`.
-	 * @param array<string, mixed> $attrs           Attributi: `name`, `id`, `class` (aggiuntivi), `value`, `form`.
+	 * @param array<string, mixed> $attrs           Attributi: `name`, `id`, `class` (aggiuntivi), `value`, `form`, `onclick`.
 	 * @param bool                 $wrap_paragraph  Se true avvolge in `<p>` come `submit_button()` default WP.
 	 *
 	 * @return void
@@ -49,6 +49,9 @@ final class AdminUi {
 		}
 		if ( isset( $attrs['form'] ) && '' !== (string) $attrs['form'] ) {
 			$attr_parts[] = 'form="' . \esc_attr( (string) $attrs['form'] ) . '"';
+		}
+		if ( isset( $attrs['onclick'] ) && '' !== (string) $attrs['onclick'] ) {
+			$attr_parts[] = 'onclick="' . \esc_attr( (string) $attrs['onclick'] ) . '"';
 		}
 
 		$button_inner = \esc_html( $text );

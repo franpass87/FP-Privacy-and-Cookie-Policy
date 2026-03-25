@@ -97,15 +97,6 @@ AdminSubnav::maybe_render( Menu::MENU_SLUG );
 		<span class="fp-privacy-breadcrumb-current"><?php \esc_html_e( 'Sezioni di configurazione', 'fp-privacy' ); ?></span>
 	</nav>
 	<p class="fp-privacy-settings-form-intro description"><?php \esc_html_e( 'Usa le schede sotto per modificare ogni area. Salva con il pulsante in basso a destra. Registro consensi, Analytics, editor policy, Strumenti e Guida rapida sono nel sottomenu FP Privacy.', 'fp-privacy' ); ?></p>
-	<div class="fp-privacy-settings-inline-tools" role="toolbar" aria-label="<?php \esc_attr_e( 'Strumenti impostazioni', 'fp-privacy' ); ?>">
-		<button type="button" class="button button-link fp-action-reset" id="fp-reset-changes"><?php \esc_html_e( 'Annulla modifiche non salvate', 'fp-privacy' ); ?></button>
-		<span class="fp-privacy-inline-tools-sep" aria-hidden="true">·</span>
-		<button type="button" class="button button-link fp-action-reset-default" id="fp-reset-default"><?php \esc_html_e( 'Ripristina predefiniti', 'fp-privacy' ); ?></button>
-		<span class="fp-privacy-inline-tools-sep" aria-hidden="true">·</span>
-		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-tools' ) ); ?>" class="button button-link"><?php \esc_html_e( 'Esporta configurazione', 'fp-privacy' ); ?></a>
-		<span class="fp-privacy-inline-tools-sep" aria-hidden="true">·</span>
-		<button type="button" class="button button-link fp-action-preview" id="fp-scroll-to-preview"><?php \esc_html_e( 'Anteprima banner', 'fp-privacy' ); ?></button>
-	</div>
 </div>
 
 <nav class="fp-privacy-tabs-nav" role="tablist" aria-label="<?php \esc_attr_e( 'Schede configurazione impostazioni', 'fp-privacy' ); ?>">
@@ -179,7 +170,7 @@ AdminSubnav::maybe_render( Menu::MENU_SLUG );
 			AdminHeader::render(
 				'dashicons-admin-tools',
 				\__( 'Strumenti', 'fp-privacy' ),
-				\__( 'Esporta o importa la configurazione, rigenera le policy e reimposta la revisione consenso.', 'fp-privacy' )
+				\__( 'Esporta o importa la configurazione, ripristina i predefiniti del plugin, rigenera le policy e reimposta la revisione consenso.', 'fp-privacy' )
 			);
 			AdminSubnav::maybe_render( 'fp-privacy-tools' );
 			?>
@@ -225,6 +216,34 @@ AdminSubnav::maybe_render( Menu::MENU_SLUG );
 					\__( 'Importa impostazioni', 'fp-privacy' ),
 					'primary',
 					array( 'name' => 'submit', 'id' => 'submit', 'dashicon' => 'dashicons-upload' )
+				);
+				?>
+			</form>
+				</div>
+			</div>
+
+			<div class="fp-privacy-card">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-undo" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Ripristina predefiniti', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
+			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-tools-reset-defaults">
+				<?php \wp_nonce_field( 'fp_privacy_reset_settings', 'fp_privacy_reset_nonce' ); ?>
+				<input type="hidden" name="action" value="fp_privacy_reset_settings" />
+				<p class="description"><?php \esc_html_e( 'Reimposta tutte le opzioni del plugin ai valori predefiniti. Operazione irreversibile: esporta prima un backup JSON se ti serve una copia della configurazione attuale.', 'fp-privacy' ); ?></p>
+				<?php
+				AdminUi::render_submit_button(
+					\__( 'Ripristina predefiniti', 'fp-privacy' ),
+					'secondary',
+					array(
+						'name'     => 'submit',
+						'id'       => 'fp-privacy-tools-reset-submit',
+						'dashicon' => 'dashicons-undo',
+						'onclick'  => "return confirm('" . \esc_js( \__( 'Tutte le impostazioni torneranno ai valori predefiniti. Continuare?', 'fp-privacy' ) ) . "');",
+					)
 				);
 				?>
 			</form>
