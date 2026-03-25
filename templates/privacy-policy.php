@@ -256,6 +256,9 @@ if ( ! empty( $algorithmic_transparency_html ) ) {
 
 <h2 id="fp-privacy-services-cookies"><?php echo esc_html__( 'Servizi e cookie', 'fp-privacy' ); ?></h2>
 <?php foreach ( $groups as $category => $services ) :
+    if ( ! is_array( $services ) ) {
+        continue;
+    }
     $meta  = isset( $categories_meta[ $category ] ) && is_array( $categories_meta[ $category ] ) ? $categories_meta[ $category ] : array();
     $label = isset( $meta['label'] ) && '' !== $meta['label'] ? $meta['label'] : ucfirst( str_replace( '_', ' ', $category ) );
     $description = isset( $meta['description'] ) ? $meta['description'] : '';

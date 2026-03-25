@@ -4,6 +4,15 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.16] - 2026-03-25
+
+### Fixed
+
+- **Errore critico (PHP 8+) su pagina privacy policy**: i callback dei blocchi Gutenberg potevano ricevere `$attributes` nullo; l’accesso a chiavi array causava `TypeError`. Normalizzazione a array vuoto in `BlockRenderer` (frontend + presentation).
+- Template `privacy-policy.php`: salto sicuro se una voce del raggruppamento servizi non è un array (evita fatal su `foreach`).
+
+---
+
 ## [1.0.15] - 2026-03-25
 
 ### Fixed

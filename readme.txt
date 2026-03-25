@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.15
+Stable tag: 1.0.16
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.16 =
+* Fixed: Errore critico PHP 8+ su privacy policy — attributi blocco Gutenberg nulli normalizzati; template policy salta voci servizi non-array.
 
 = 1.0.15 =
 * Fixed: Subnav/link Diagnostica solo se voce menu presente; sticky save button WP classes.

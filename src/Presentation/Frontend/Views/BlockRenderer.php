@@ -21,7 +21,8 @@ class BlockRenderer {
 	 * @return string
 	 */
 	public static function render_privacy_policy_block( $attributes ) {
-		$lang = isset( $attributes['lang'] ) ? \sanitize_text_field( $attributes['lang'] ) : \get_locale();
+		$attributes = \is_array( $attributes ) ? $attributes : array();
+		$lang       = isset( $attributes['lang'] ) ? \sanitize_text_field( (string) $attributes['lang'] ) : \get_locale();
 
 		return \do_shortcode( '[fp_privacy_policy lang="' . \esc_attr( $lang ) . '"]' );
 	}
@@ -34,7 +35,8 @@ class BlockRenderer {
 	 * @return string
 	 */
 	public static function render_cookie_policy_block( $attributes ) {
-		$lang = isset( $attributes['lang'] ) ? \sanitize_text_field( $attributes['lang'] ) : \get_locale();
+		$attributes = \is_array( $attributes ) ? $attributes : array();
+		$lang       = isset( $attributes['lang'] ) ? \sanitize_text_field( (string) $attributes['lang'] ) : \get_locale();
 
 		return \do_shortcode( '[fp_cookie_policy lang="' . \esc_attr( $lang ) . '"]' );
 	}
@@ -47,7 +49,8 @@ class BlockRenderer {
 	 * @return string
 	 */
 	public static function render_preferences_block( $attributes ) {
-		$label = isset( $attributes['label'] ) && '' !== \trim( (string) $attributes['label'] )
+		$attributes = \is_array( $attributes ) ? $attributes : array();
+		$label      = isset( $attributes['label'] ) && '' !== \trim( (string) $attributes['label'] )
 			? \sanitize_text_field( $attributes['label'] )
 			: \__( 'Manage cookie preferences', 'fp-privacy' );
 
@@ -88,7 +91,8 @@ class BlockRenderer {
 	 * @return string
 	 */
 	public static function render_banner_block( $attributes ) {
-		$attrs = array();
+		$attributes = \is_array( $attributes ) ? $attributes : array();
+		$attrs      = array();
 
 		$layout   = isset( $attributes['layoutType'] ) ? $attributes['layoutType'] : '';
 		$position = isset( $attributes['position'] ) ? $attributes['position'] : '';
