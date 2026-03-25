@@ -10,6 +10,7 @@
 namespace FP\Privacy\Frontend;
 
 use FP\Privacy\Consent\LogModel;
+use FP\Privacy\Shared\Constants;
 use FP\Privacy\Utils\Options;
 use FP\Privacy\Utils\Validator;
 use WP_Error;
@@ -182,7 +183,7 @@ class ConsentState {
     }
 
     /**
-     * Ensure about_content is the standard text when it is short (deprecated old text).
+     * Ensure about_content matches the expected standard for the resolved language (short legacy text or wrong-language canonical paragraph).
      *
      * @param array<string, string> $text  Banner texts.
      * @param string                $lang Language code.
@@ -191,13 +192,17 @@ class ConsentState {
      */
     private function ensure_about_content_standard( array $text, string $lang ): array {
         $current = isset( $text['about_content'] ) ? trim( (string) $text['about_content'] ) : '';
+        $is_it   = ( strpos( $lang, 'it' ) === 0 );
+
         if ( '' !== $current && \strlen( $current ) >= 250 ) {
+            if ( $is_it && ( $current === Constants::BANNER_INFO_ABOUT_EN_UK || $current === Constants::BANNER_INFO_ABOUT_EN_US ) ) {
+                $text['about_content'] = Constants::BANNER_INFO_ABOUT_IT;
+            }
             return $text;
         }
-        $is_it = ( strpos( $lang, 'it' ) === 0 );
         $text['about_content'] = $is_it
-            ? 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.'
-            : 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
+            ? Constants::BANNER_INFO_ABOUT_IT
+            : Constants::BANNER_INFO_ABOUT_EN_UK;
         return $text;
     }
 

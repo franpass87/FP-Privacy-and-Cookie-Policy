@@ -7,6 +7,8 @@
  * @link https://francescopasseri.com
  */
 
+declare(strict_types=1);
+
 namespace FP\Privacy\Shared;
 
 /**
@@ -54,6 +56,15 @@ final class Constants {
 	 * Default locale.
 	 */
 	public const DEFAULT_LOCALE = 'it_IT';
+
+	/**
+	 * Default body text for the banner "Info / About" tab (canonical strings for locale fixes).
+	 */
+	public const BANNER_INFO_ABOUT_EN_UK = 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
+
+	public const BANNER_INFO_ABOUT_EN_US = 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalize content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
+
+	public const BANNER_INFO_ABOUT_IT = "Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l'Informativa sulla Privacy.";
 
 	/**
 	 * Prevent instantiation.

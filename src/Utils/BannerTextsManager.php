@@ -9,6 +9,8 @@
 
 namespace FP\Privacy\Utils;
 
+use FP\Privacy\Shared\Constants;
+
 /**
  * Manages banner texts and translations.
  */
@@ -128,6 +130,7 @@ class BannerTextsManager {
 
 	/**
 	 * Migrate deprecated about_content (old short/company text) to the new standard text.
+	 * If the locale is Italian but the saved body still matches the canonical English paragraph, replace it.
 	 * Persists the fix so it applies on next load.
 	 *
 	 * @param array<string, string> $result Merged banner texts.
@@ -155,8 +158,8 @@ class BannerTextsManager {
 		$lang_key   = ( strpos( $lang, 'it' ) === 0 ) ? 'it_IT' : 'en_US';
 		$to_replace = $deprecated[ $lang_key ] ?? array();
 		$new_text   = $lang_key === 'it_IT'
-			? 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.'
-			: 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
+			? Constants::BANNER_INFO_ABOUT_IT
+			: Constants::BANNER_INFO_ABOUT_EN_UK;
 
 		$should_replace = false;
 
@@ -179,6 +182,13 @@ class BannerTextsManager {
 					$should_replace = true;
 					break;
 				}
+			}
+		}
+
+		// Lingua italiana ma testo "Info" ancora il paragrafo standard inglese (es. merge opzioni errato).
+		if ( ! $should_replace && 'it_IT' === $lang_key ) {
+			if ( $current === Constants::BANNER_INFO_ABOUT_EN_UK || $current === Constants::BANNER_INFO_ABOUT_EN_US ) {
+				$should_replace = true;
 			}
 		}
 
@@ -346,7 +356,7 @@ class BannerTextsManager {
 			'tab_details'        => 'Dettagli',
 			'tab_about'          => 'Info',
 			'tab_details_title'  => 'Categorie e servizi',
-			'about_content'      => 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.',
+			'about_content'      => Constants::BANNER_INFO_ABOUT_IT,
 		);
 	}
 
@@ -377,7 +387,7 @@ class BannerTextsManager {
 			'tab_details'        => 'Details',
 			'tab_about'          => 'About',
 			'tab_details_title'  => 'Categories and services',
-			'about_content'      => 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.',
+			'about_content'      => Constants::BANNER_INFO_ABOUT_EN_UK,
 		);
 	}
 

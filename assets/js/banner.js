@@ -130,9 +130,13 @@ if ( data.options && data.options.texts ) {
             currentTexts.link_cookie_policy = 'Cookie Policy';
             debugTiming( 'Testi italiani applicati' );
         }
-        // Tab Info: usa sempre il testo standard se about_content è breve (vecchio testo deprecato)
+        // Tab Info: testo standard se breve, oppure se è ancora il paragrafo inglese canonico con UI italiana
         var stdAboutIt = 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.';
+        var stdAboutEnUk = 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
+        var stdAboutEnUs = 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalize content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
         if ( ! currentTexts.about_content || currentTexts.about_content.length < 250 ) {
+            currentTexts.about_content = stdAboutIt;
+        } else if ( currentTexts.about_content === stdAboutEnUk || currentTexts.about_content === stdAboutEnUs ) {
             currentTexts.about_content = stdAboutIt;
         }
     }
@@ -844,8 +848,11 @@ aboutPanel.style.display = 'none';
 
 var stdAboutIt = 'Utilizziamo i cookie per garantire il corretto funzionamento del sito e per migliorare la tua esperienza di navigazione. I cookie ci consentono di memorizzare le tue preferenze, analizzare il traffico e personalizzare i contenuti. Per maggiori dettagli su quali cookie utilizziamo e come gestirli, consulta la nostra Cookie Policy e l\'Informativa sulla Privacy.';
 var stdAboutEn = 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalise content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
+var stdAboutEnUsVariant = 'We use cookies to ensure the proper functioning of the site and to improve your browsing experience. Cookies allow us to store your preferences, analyze traffic and personalize content. For more details on which cookies we use and how to manage them, please refer to our Cookie Policy and Privacy Policy.';
 var rawAbout = texts.about_content || texts.message || '';
-var aboutContent = ( rawAbout && rawAbout.length >= 250 ) ? rawAbout : ( isItalian ? stdAboutIt : stdAboutEn );
+var rawLong = rawAbout && rawAbout.length >= 250;
+var isEnglishCanonicalAbout = ( rawAbout === stdAboutEn || rawAbout === stdAboutEnUsVariant );
+var aboutContent = ( rawLong && ! ( isItalian && isEnglishCanonicalAbout ) ) ? rawAbout : ( isItalian ? stdAboutIt : stdAboutEn );
 var aboutP = document.createElement( 'p' );
 aboutP.className = 'fp-privacy-banner-about-text';
 aboutP.innerHTML = aboutContent;

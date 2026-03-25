@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.12] - 2026-03-25
+
+### Fixed
+
+- Tab Info in italiano: se nelle opzioni era rimasto il paragrafo standard **inglese** (testo lungo), ora viene rilevato e sostituito con quello italiano (PHP `BannerTextsManager`, `ConsentState`, fallback in `banner.js`). Costanti condivise in `Constants` (varianti EN UK/US).
+
+---
+
 ## [1.0.11] - 2026-03-23
 
 ### Fixed
