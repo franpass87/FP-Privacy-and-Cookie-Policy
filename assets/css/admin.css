@@ -186,8 +186,8 @@ body.fp-privacy-admin-shell .fp-privacy-admin-page .button:not(.button-primary):
     color: var(--fpdms-primary);
 }
 
-/* Header pagina — stesso look di FP Mail SMTP (.fpmail-page-header) */
-.fp-privacy-admin-page .fp-privacy-page-header {
+/* Header pagina — speculare FP Mail SMTP (.fpmail-page-header): padding, font titolo 1.5rem, sottotitolo 0.95rem, badge */
+body.fp-privacy-admin-shell .fp-privacy-admin-page .fp-privacy-page-header {
     background: var(--fpdms-gradient-primary);
     border-radius: var(--radius-xl);
     padding: 1.5rem 2rem;
@@ -198,41 +198,45 @@ body.fp-privacy-admin-shell .fp-privacy-admin-page .button:not(.button-primary):
     color: #fff;
 }
 
-.fp-privacy-page-header-content {
+body.fp-privacy-admin-shell .fp-privacy-page-header-content {
     flex: 1;
     min-width: 200px;
 }
 
-.fp-privacy-page-header .fp-privacy-page-header-title {
+body.fp-privacy-admin-shell .fp-privacy-page-header .fp-privacy-page-header-title {
     margin: 0 0 0.25rem 0;
-    color: #fff !important;
+    color: #fff;
     font-size: 1.5rem;
+    line-height: 1.25;
     font-weight: 600;
 }
 
-.fp-privacy-page-header .fp-privacy-page-header-title .dashicons {
+body.fp-privacy-admin-shell .fp-privacy-page-header .fp-privacy-page-header-title .dashicons {
     font-size: 1.5rem;
     width: 1.5rem;
     height: 1.5rem;
     margin-right: 0.5rem;
     vertical-align: middle;
+    color: #fff;
 }
 
-.fp-privacy-page-header .fp-privacy-page-header-desc,
-.fp-privacy-page-header p {
+body.fp-privacy-admin-shell .fp-privacy-page-header .fp-privacy-page-header-desc,
+body.fp-privacy-admin-shell .fp-privacy-page-header p {
     margin: 0;
     opacity: 0.95;
     font-size: 0.95rem;
-    color: #fff !important;
+    line-height: 1.45;
+    color: #fff;
 }
 
-.fp-privacy-page-header-badge {
+body.fp-privacy-admin-shell .fp-privacy-page-header-badge {
     background: rgba(255, 255, 255, 0.25);
     padding: 0.25rem 0.75rem;
     border-radius: var(--radius-pill);
     font-size: 0.8rem;
     font-weight: 600;
     color: #fff;
+    flex-shrink: 0;
 }
 
 /* ——— Subnav orizzontale (tutte le pagine FP Privacy) ——— */
@@ -1189,8 +1193,8 @@ textarea:focus-visible {
     outline-width: 3px;
 }
 
-/* Verifica contrasto per testo su background */
-.fp-privacy-settings h2:not(.fp-privacy-settings-section-title) {
+/* Verifica contrasto per testo su background (escludi banner pagina e titoli card sezione) */
+.fp-privacy-settings h2:not(.fp-privacy-settings-section-title):not(.fp-privacy-page-header-title) {
     color: var(--fpdms-text);
 }
 
@@ -1497,7 +1501,7 @@ body.fp-privacy-admin-shell .fp-help-tooltip {
 }
 
 /* Titoli sezione interni — compattezza tipo header card FP Mail */
-.fp-privacy-settings h2:not(.fp-privacy-settings-section-title) {
+.fp-privacy-settings h2:not(.fp-privacy-settings-section-title):not(.fp-privacy-page-header-title) {
     display: block;
     font-size: 1.1rem;
     font-weight: 600;
@@ -1508,7 +1512,7 @@ body.fp-privacy-admin-shell .fp-help-tooltip {
     border-bottom: none;
 }
 
-.fp-privacy-settings h2:not(.fp-privacy-settings-section-title)::before {
+.fp-privacy-settings h2:not(.fp-privacy-settings-section-title):not(.fp-privacy-page-header-title)::before {
     display: none;
     content: none;
 }

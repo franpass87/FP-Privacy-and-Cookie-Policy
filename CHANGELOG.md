@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.14] - 2026-03-25
+
+### Fixed
+
+- **Banner gradiente** in cima alle pagine admin: il titolo non viene più trattato come h2 “di scheda” (regole `.fp-privacy-settings h2:not(.fp-privacy-settings-section-title)`), così restano **1.5rem** titolo e **0.95rem** sottotitolo come **FP Mail**; selettori header con `body.fp-privacy-admin-shell` e `line-height` / icona bianca allineati al reference.
+
 ## [1.1.13] - 2026-03-25
 
 ### Changed
