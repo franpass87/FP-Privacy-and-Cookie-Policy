@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.1.4
+Stable tag: 1.1.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.1.5 =
+* Changed: modal preferenze — layout più compatto in verticale (padding, card categorie, footer).
 
 = 1.1.4 =
 * Added: tab Dettagli banner — lista servizi rilevati dal detector; REST GET `detected-services`; polling opzionale (filtro `fp_privacy_banner_detector_poll_interval_ms`).

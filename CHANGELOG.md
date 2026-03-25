@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.5] - 2026-03-25
+
+### Changed
+
+- Modal preferenze cookie: ulteriore riduzione spazio verticale (header, link policy, tab bar se presente, body, card categorie con `line-height` più stretti, riga toggle, footer e pulsanti); breakpoint mobile allineato.
+
+---
+
 ## [1.1.4] - 2026-03-25
 
 ### Added
