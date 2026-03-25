@@ -104,6 +104,8 @@ class OptionsValidator {
 			$palette_fallback
 		);
 
+		$palette_preset_stored = PalettePresetRegistry::resolve_stored_preset_id( $layout_raw, $palette_resolved );
+
 		// Use BannerLayout value object for validation and sanitization.
 		$layout_data = array_merge(
 			$defaults['banner_layout'],
@@ -117,7 +119,9 @@ class OptionsValidator {
 		
 		// Create BannerLayout value object which validates and sanitizes automatically.
 		$banner_layout = BannerLayout::from_array( $layout_data );
-		$layout = $banner_layout->to_array();
+		$layout        = $banner_layout->to_array();
+		// Stato esplicito del select «Tema colore» (il VO non lo include).
+		$layout['palette_preset'] = $palette_preset_stored;
 
 		$default_categories = Validator::sanitize_categories( $defaults['categories'], $languages );
 		$categories         = Validator::sanitize_categories( $categories_raw, $languages );

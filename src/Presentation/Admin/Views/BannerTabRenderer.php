@@ -92,7 +92,7 @@ class BannerTabRenderer extends SettingsRendererBase {
 			$this->render_settings_section_open( 'dashicons-art', \__( 'Palette colori', 'fp-privacy' ) );
 			?>
 			<p class="description"><?php \esc_html_e( 'Scegli un tema predefinito per banner e pulsanti. Solo se serve una regolazione fine, usa «Personalizzato» e i campi esadecimali.', 'fp-privacy' ); ?></p>
-			<?php $this->render_palette_settings( $options['banner_layout']['palette'] ); ?>
+			<?php $this->render_palette_settings( $options['banner_layout'] ); ?>
 			<?php $this->render_settings_section_close(); ?>
 
 			<?php
@@ -242,13 +242,18 @@ class BannerTabRenderer extends SettingsRendererBase {
 	/**
 	 * Render palette color settings.
 	 *
-	 * @param array<string, string> $palette Color palette.
+	 * @param array<string, mixed> $layout Intera sezione banner_layout (palette + palette_preset salvato).
 	 *
 	 * @return void
 	 */
-	private function render_palette_settings( $palette ) {
-		$detected = PalettePresetRegistry::detect_preset( $palette );
-		$is_custom = PalettePresetRegistry::ID_CUSTOM === $detected;
+	private function render_palette_settings( array $layout ) {
+		$palette = isset( $layout['palette'] ) && \is_array( $layout['palette'] ) ? $layout['palette'] : array();
+		$stored  = isset( $layout['palette_preset'] ) && \is_string( $layout['palette_preset'] )
+			? \sanitize_key( $layout['palette_preset'] ) : '';
+		$selected = PalettePresetRegistry::is_valid_ui_preset( $stored )
+			? $stored
+			: PalettePresetRegistry::detect_preset( $palette );
+		$is_custom = PalettePresetRegistry::ID_CUSTOM === $selected;
 
 		$labels = array(
 			'surface_bg'          => \__( 'Sfondo banner', 'fp-privacy' ),
@@ -279,11 +284,11 @@ class BannerTabRenderer extends SettingsRendererBase {
 				<label for="fp-privacy-palette-preset"><?php \esc_html_e( 'Tema colore', 'fp-privacy' ); ?></label>
 				<select name="banner_layout[palette_preset]" id="fp-privacy-palette-preset" class="regular-text">
 					<?php foreach ( PalettePresetRegistry::builtin_preset_ids() as $preset_id ) : ?>
-						<option value="<?php echo \esc_attr( $preset_id ); ?>" <?php \selected( $detected, $preset_id ); ?>>
+						<option value="<?php echo \esc_attr( $preset_id ); ?>" <?php \selected( $selected, $preset_id ); ?>>
 							<?php echo \esc_html( PalettePresetRegistry::get_label( $preset_id ) ); ?>
 						</option>
 					<?php endforeach; ?>
-					<option value="<?php echo \esc_attr( PalettePresetRegistry::ID_CUSTOM ); ?>" <?php \selected( $detected, PalettePresetRegistry::ID_CUSTOM ); ?>>
+					<option value="<?php echo \esc_attr( PalettePresetRegistry::ID_CUSTOM ); ?>" <?php \selected( $selected, PalettePresetRegistry::ID_CUSTOM ); ?>>
 						<?php echo \esc_html( PalettePresetRegistry::get_label( PalettePresetRegistry::ID_CUSTOM ) ); ?>
 					</option>
 				</select>

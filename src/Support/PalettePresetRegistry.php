@@ -87,6 +87,34 @@ final class PalettePresetRegistry {
 	}
 
 	/**
+	 * Valori ammessi per il select admin (preset built-in o personalizzato).
+	 *
+	 * @param string $id Slug sanificato.
+	 */
+	public static function is_valid_ui_preset( string $id ): bool {
+		$id = \sanitize_key( $id );
+
+		return self::is_builtin_preset( $id ) || self::ID_CUSTOM === $id;
+	}
+
+	/**
+	 * ID preset da salvare in opzioni insieme alla palette (stato del dropdown).
+	 *
+	 * @param array<string, mixed>  $layout_raw        Frammento banner_layout (POST o merge).
+	 * @param array<string, string> $resolved_palette Colori dopo resolve_palette_from_request().
+	 *
+	 * @return string
+	 */
+	public static function resolve_stored_preset_id( array $layout_raw, array $resolved_palette ): string {
+		$posted = isset( $layout_raw['palette_preset'] ) ? \sanitize_key( (string) $layout_raw['palette_preset'] ) : '';
+		if ( self::is_valid_ui_preset( $posted ) ) {
+			return $posted;
+		}
+
+		return self::detect_preset( $resolved_palette );
+	}
+
+	/**
 	 * Resolve palette array from posted banner_layout fragment.
 	 *
 	 * @param array<string, mixed> $layout_raw     Raw banner_layout from request.

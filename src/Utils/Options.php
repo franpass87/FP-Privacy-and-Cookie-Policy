@@ -391,7 +391,10 @@ class Options {
 			'banner_texts'          => array(
 				$default_locale => $banner_default,
 			),
-			'banner_layout'         => $default_banner_layout->to_array(),
+			'banner_layout'         => \array_merge(
+				$default_banner_layout->to_array(),
+				array( 'palette_preset' => PalettePresetRegistry::ID_DEFAULT )
+			),
 			'categories'            => $category_defaults,
 			'consent_mode_defaults' => $default_consent_mode->to_array(),
 			'retention_days'        => Constants::RETENTION_DAYS_DEFAULT,
@@ -496,6 +499,8 @@ class Options {
 			$palette_fallback
 		);
 
+		$palette_preset_stored = PalettePresetRegistry::resolve_stored_preset_id( $layout_raw, $palette_resolved );
+
 		// Use BannerLayout value object for validation and sanitization.
 		$layout_data = array_merge(
 			$defaults['banner_layout'],
@@ -510,6 +515,7 @@ class Options {
 		// Create BannerLayout value object which validates and sanitizes automatically.
 		$banner_layout = BannerLayout::from_array( $layout_data );
 		$layout         = $banner_layout->to_array();
+		$layout['palette_preset'] = $palette_preset_stored;
 
 		$categories = $this->normalize_categories( $categories_raw, $defaults['categories'], $languages );
 

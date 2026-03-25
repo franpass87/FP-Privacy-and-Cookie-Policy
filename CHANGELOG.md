@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.4] - 2026-03-25
+
+### Fixed
+
+- **Tema colore (dropdown)**: salvato in opzioni il campo `banner_layout[palette_preset]` insieme ai colori; la UI admin usa quel valore per la selezione invece di dedurlo solo da `detect_preset()` sui hex (evita disallineamenti dopo il salvataggio).
+
 ## [1.2.3] - 2026-03-25
 
 ### Changed
