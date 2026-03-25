@@ -4,6 +4,22 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.15] - 2026-03-25
+
+### Fixed
+
+- Subnav e link rapidi **Diagnostics** solo se la voce è realmente registrata nel menu (`$submenu`), evitando URL senza callback.
+- Pulsante sticky salva impostazioni: classi `button button-primary` (stile WP corretto).
+
+### Changed
+
+- **Consent log**: filtri ed export in card «Filters & export»; CSS flex per il form.
+- **Analytics**: tabella ultimi 100 consensi in card con titolo accessibile; classe `fp-privacy-table` sul thead.
+- **AdminSubnav**: filtro `fp_privacy_admin_subnav_items` per estensioni.
+- Renderer diagnostica legacy (`Admin\Diagnostic`): allineato a subnav + griglia senza inline style.
+
+---
+
 ## [1.0.14] - 2026-03-25
 
 ### Added

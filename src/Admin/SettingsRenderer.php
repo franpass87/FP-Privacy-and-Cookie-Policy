@@ -119,10 +119,12 @@ AdminSubnav::render( Menu::MENU_SLUG );
 			<span class="dashicons dashicons-list-view"></span>
 			<?php \esc_html_e( 'Consent Log', 'fp-privacy' ); ?>
 		</a>
+		<?php if ( AdminSubnav::diagnostics_menu_available() ) : ?>
 		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-diagnostics' ) ); ?>" class="fp-quick-link">
 			<span class="dashicons dashicons-info"></span>
 			<?php \esc_html_e( 'Diagnostics', 'fp-privacy' ); ?>
 		</a>
+		<?php endif; ?>
 		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-guide' ) ); ?>" class="fp-quick-link">
 			<span class="dashicons dashicons-book"></span>
 			<?php \esc_html_e( 'Quick guide', 'fp-privacy' ); ?>
@@ -191,7 +193,7 @@ AdminSubnav::render( Menu::MENU_SLUG );
 
 <!-- Sticky Save Button -->
 <div class="fp-privacy-sticky-save">
-	<button type="submit" form="fp-privacy-settings-form-id" class="button-primary">
+	<button type="submit" form="fp-privacy-settings-form-id" class="button button-primary">
 		<?php \esc_html_e( 'Salva tutte le impostazioni', 'fp-privacy' ); ?>
 	</button>
 </div>

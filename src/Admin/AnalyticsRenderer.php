@@ -120,10 +120,16 @@ class AnalyticsRenderer {
 				</div>
 			</div>
 
-			<!-- Tabella Dettagli -->
-			<div class="fp-privacy-details-table">
-				<h3><?php \esc_html_e( '📋 Dettagli Ultimi 100 Consensi', 'fp-privacy' ); ?></h3>
-				<?php $this->render_recent_consents_table(); ?>
+			<div class="fp-privacy-card fp-privacy-card--analytics-detail">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-list-view" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Last 100 consent events', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
+					<?php $this->render_recent_consents_table(); ?>
+				</div>
 			</div>
 		</div>
 		<?php
@@ -148,7 +154,7 @@ class AnalyticsRenderer {
 		}
 
 		?>
-		<table class="wp-list-table widefat fixed striped">
+		<table class="wp-list-table widefat fixed striped fp-privacy-table">
 			<thead>
 				<tr>
 					<th><?php \esc_html_e( 'Data', 'fp-privacy' ); ?></th>

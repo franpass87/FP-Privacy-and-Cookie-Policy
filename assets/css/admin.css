@@ -338,6 +338,20 @@ table.fp-privacy-table.widefat {
     }
 }
 
+/* Filtri registro consensi nella card */
+.fp-privacy-card--filters .fp-privacy-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--fp-space-3);
+    margin: 0;
+}
+
+.fp-privacy-card--filters .fp-privacy-filters input[type="search"],
+.fp-privacy-card--filters .fp-privacy-filters select {
+    max-width: 100%;
+}
+
 /* Tools: form dentro card */
 .fp-privacy-admin-page.fp-privacy-tools .fp-privacy-card-body form {
     margin: 0;

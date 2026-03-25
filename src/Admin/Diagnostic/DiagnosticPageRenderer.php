@@ -10,6 +10,7 @@
 namespace FP\Privacy\Admin\Diagnostic;
 
 use FP\Privacy\Admin\AdminHeader;
+use FP\Privacy\Admin\AdminSubnav;
 use FP\Privacy\Consent\LogModel;
 use FP\Privacy\Frontend\ConsentState as FrontendConsentState;
 use FP\Privacy\Utils\Options;
@@ -58,11 +59,12 @@ class DiagnosticPageRenderer {
 				\__( 'FP Privacy diagnostics', 'fp-privacy' ),
 				\__( 'Current state, quick actions and debug information.', 'fp-privacy' )
 			);
+			AdminSubnav::render( 'fp-privacy-diagnostics' );
 			?>
 
 			<?php DiagnosticNoticesRenderer::render(); ?>
 
-			<div class="fp-privacy-diagnostic-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+			<div class="fp-privacy-diagnostic-grid">
 				
 				<!-- Colonna 1: Stato Corrente -->
 				<div>

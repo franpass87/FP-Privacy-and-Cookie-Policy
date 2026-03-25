@@ -49,7 +49,17 @@ class ConsentLogRenderer {
 				<div class="notice notice-error"><p><?php echo \esc_html__( 'There was a problem loading consent log data. The table may be missing or the database is temporarily unavailable. The view is still shown below so you can adjust filters or try again.', 'fp-privacy' ); ?></p></div>
 			<?php endif; ?>
 
-			<?php $this->render_filters( $args, $urls['export'] ); ?>
+			<div class="fp-privacy-card fp-privacy-card--filters">
+				<div class="fp-privacy-card-header">
+					<div class="fp-privacy-card-header-left">
+						<span class="dashicons dashicons-filter" aria-hidden="true"></span>
+						<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Filters & export', 'fp-privacy' ); ?></h2>
+					</div>
+				</div>
+				<div class="fp-privacy-card-body">
+					<?php $this->render_filters( $args, $urls['export'] ); ?>
+				</div>
+			</div>
 
 			<div class="fp-privacy-card fp-privacy-card--summary">
 				<div class="fp-privacy-card-header">
