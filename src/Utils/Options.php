@@ -219,11 +219,14 @@ class Options {
 	/**
 	 * Set options.
 	 *
-	 * @param array<string, mixed> $new_options New options.
+	 * @param array<string, mixed> $new_options        New options (merged with existing).
+	 * @param bool                   $skip_ensure_pages  When true, do not run ensure_pages_exist() after save.
+	 *                                                 Use for frontend-only cache writes (e.g. auto_translations)
+	 *                                                 to avoid wp_update_post during `the_content` / shortcode render.
 	 *
 	 * @return void
 	 */
-	public function set( array $new_options ): void {
+	public function set( array $new_options, bool $skip_ensure_pages = false ): void {
 		$defaults  = $this->get_default_options();
 		$merged    = \wp_parse_args( $new_options, $this->options );
 		$sanitized = $this->sanitize( $merged, $defaults );
@@ -239,7 +242,9 @@ class Options {
 
 		\update_option( self::OPTION_KEY, $sanitized, false );
 
-		$this->ensure_pages_exist();
+		if ( ! $skip_ensure_pages ) {
+			$this->ensure_pages_exist();
+		}
 	}
 
 	/**

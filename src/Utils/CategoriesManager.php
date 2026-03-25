@@ -142,7 +142,9 @@ class CategoriesManager {
 			$new_cache = $this->auto_translator->get_cache();
 			$all_options = $this->options->all();
 			if ( $new_cache !== ( $all_options['auto_translations'] ?? array() ) ) {
-				$this->options->set( array( 'auto_translations' => $new_cache ) );
+				// Non chiamare ensure_pages_exist qui: evita wp_update_post mentre si renderizza policy via shortcode
+				// (es. lang en_US/en_GB con lingue plugin diverse → traduzione automatica categorie).
+				$this->options->set( array( 'auto_translations' => $new_cache ), true );
 			}
 
 			return $translated;

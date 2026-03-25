@@ -4,6 +4,18 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.20] - 2026-03-25
+
+### Fixed
+
+- Salvataggio `auto_translations` da `CategoriesManager` durante il render delle policy: `Options::set( …, true )` salta `ensure_pages_exist()` così non partono `wp_update_post` / query pagine dentro `the_content` (scenario tipico: shortcode con `lang="en_US"` o `en_GB` mentre le lingue attive del plugin sono altre → traduzione automatica categorie + WPML).
+
+### Changed
+
+- Composer: `config.platform-check` disabilitato; `composer dump-autoload` rigenera `autoload_real.php` **senza** `require platform_check.php`, così un vendor incompleto (file mancante sul percorso LAB/junction) non provoca più fatal all’avvio del plugin.
+
+---
+
 ## [1.0.19] - 2026-03-25
 
 ### Fixed
