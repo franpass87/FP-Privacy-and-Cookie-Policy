@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.16] - 2026-03-25
+
+### Fixed
+
+- Admin: **`select`** con `padding-right` aumentato (`2.25rem`) così la freccia nativa del browser non si sovrappone al testo (scheda Layout, anteprima banner, filtri tabella servizi).
+
 ## [1.1.15] - 2026-03-25
 
 ### Fixed

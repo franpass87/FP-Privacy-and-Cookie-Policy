@@ -474,6 +474,11 @@ body.fp-privacy-admin-shell .fp-privacy-admin-page textarea:not(.wp-editor-area)
     box-sizing: border-box;
 }
 
+/* Select: padding destro maggiore per non sovrapporre il testo alla freccia nativa (Windows/Chrome/Edge) */
+body.fp-privacy-admin-shell .fp-privacy-admin-page select {
+    padding-right: 2.25rem;
+}
+
 body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='text']:focus,
 body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='email']:focus,
 body.fp-privacy-admin-shell .fp-privacy-admin-page input[type='number']:focus,
@@ -1594,7 +1599,7 @@ position: relative;
 
 .fp-privacy-preview-controls select {
 min-width: 160px;
-padding: 8px 12px;
+padding: 8px 2.25rem 8px 12px;
 border-radius: 6px;
 border: 1px solid #d1d5db;
 background: #ffffff;
@@ -2388,6 +2393,10 @@ border-radius: 6px;
     border-radius: var(--radius-md);
     font-size: 0.95rem;
     min-width: 140px;
+}
+
+.fp-privacy-table-filters select {
+    padding-right: 2.25rem;
 }
 
 .fp-privacy-table-filters input[type="text"] {
