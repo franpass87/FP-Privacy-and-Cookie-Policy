@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.8] - 2026-03-25
+
+### Changed
+
+- Pagina **Impostazioni**: rimossa la card «Azioni rapide» in cima; stessi collegamenti (annulla modifiche, ripristina predefiniti, esporta, anteprima banner) come riga discreta sotto l’introduzione; salvataggio solo dal pulsante fisso in basso.
+
 ## [1.1.7] - 2026-03-25
 
 ### Fixed

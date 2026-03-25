@@ -921,6 +921,29 @@ textarea:focus-visible {
     font-size: 0.95rem;
 }
 
+.fp-privacy-settings-inline-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.35rem;
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--fpdms-border-light, var(--fp-gray-200));
+}
+
+.fp-privacy-settings-inline-tools .button-link {
+    padding: 0 0.2rem;
+    min-height: 0;
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+
+.fp-privacy-inline-tools-sep {
+    color: var(--fp-gray-400);
+    user-select: none;
+    padding: 0 0.15rem;
+}
+
 .fp-privacy-tabs-nav {
     display: flex;
     flex-wrap: wrap;

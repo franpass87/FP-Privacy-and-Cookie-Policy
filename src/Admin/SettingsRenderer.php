@@ -73,43 +73,6 @@ AdminHeader::render(
 AdminSubnav::maybe_render( Menu::MENU_SLUG );
 ?>
 
-<div class="fp-privacy-card fp-privacy-card--actions">
-	<div class="fp-privacy-card-header">
-		<div class="fp-privacy-card-header-left">
-			<span class="dashicons dashicons-admin-plugins" aria-hidden="true"></span>
-			<h2 class="fp-privacy-card-title"><?php \esc_html_e( 'Azioni rapide', 'fp-privacy' ); ?></h2>
-		</div>
-	</div>
-	<div class="fp-privacy-card-body">
-<div class="fp-privacy-quick-actions">
-	<div class="fp-quick-actions-primary">
-		<button type="submit" form="fp-privacy-settings-form-id" class="button button-primary">
-			<span class="dashicons dashicons-saved"></span>
-			<?php \esc_html_e( 'Salva tutto', 'fp-privacy' ); ?>
-		</button>
-		<button type="button" class="button button-secondary fp-action-reset" id="fp-reset-changes">
-			<span class="dashicons dashicons-undo"></span>
-			<?php \esc_html_e( 'Annulla modifiche non salvate', 'fp-privacy' ); ?>
-		</button>
-		<button type="button" class="button button-secondary fp-action-reset-default" id="fp-reset-default">
-			<span class="dashicons dashicons-admin-generic"></span>
-			<?php \esc_html_e( 'Ripristina predefiniti', 'fp-privacy' ); ?>
-		</button>
-	</div>
-	<div class="fp-quick-actions-secondary">
-		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-tools' ) ); ?>" class="button button-secondary">
-			<span class="dashicons dashicons-download"></span>
-			<?php \esc_html_e( 'Esporta configurazione', 'fp-privacy' ); ?>
-		</a>
-		<button type="button" class="button button-secondary fp-action-preview" id="fp-scroll-to-preview">
-			<span class="dashicons dashicons-visibility"></span>
-			<?php \esc_html_e( 'Anteprima banner', 'fp-privacy' ); ?>
-		</button>
-	</div>
-</div>
-	</div>
-</div>
-
 <?php if ( isset( $_GET['updated'] ) && 'true' === $_GET['updated'] ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 <div class="notice notice-success is-dismissible"><p><?php \esc_html_e( 'Impostazioni salvate.', 'fp-privacy' ); ?></p></div>
 <?php endif; ?>
@@ -133,7 +96,16 @@ AdminSubnav::maybe_render( Menu::MENU_SLUG );
 		<span class="separator" aria-hidden="true">/</span>
 		<span class="fp-privacy-breadcrumb-current"><?php \esc_html_e( 'Sezioni di configurazione', 'fp-privacy' ); ?></span>
 	</nav>
-	<p class="fp-privacy-settings-form-intro description"><?php \esc_html_e( 'Usa le schede sotto per modificare ogni area. Salva tutto con «Salva tutto» o con la barra in basso. Registro consensi, Analytics, editor policy, Strumenti e Guida rapida sono nel sottomenu FP Privacy.', 'fp-privacy' ); ?></p>
+	<p class="fp-privacy-settings-form-intro description"><?php \esc_html_e( 'Usa le schede sotto per modificare ogni area. Salva con il pulsante in basso a destra. Registro consensi, Analytics, editor policy, Strumenti e Guida rapida sono nel sottomenu FP Privacy.', 'fp-privacy' ); ?></p>
+	<div class="fp-privacy-settings-inline-tools" role="toolbar" aria-label="<?php \esc_attr_e( 'Strumenti impostazioni', 'fp-privacy' ); ?>">
+		<button type="button" class="button button-link fp-action-reset" id="fp-reset-changes"><?php \esc_html_e( 'Annulla modifiche non salvate', 'fp-privacy' ); ?></button>
+		<span class="fp-privacy-inline-tools-sep" aria-hidden="true">·</span>
+		<button type="button" class="button button-link fp-action-reset-default" id="fp-reset-default"><?php \esc_html_e( 'Ripristina predefiniti', 'fp-privacy' ); ?></button>
+		<span class="fp-privacy-inline-tools-sep" aria-hidden="true">·</span>
+		<a href="<?php echo \esc_url( \admin_url( 'admin.php?page=fp-privacy-tools' ) ); ?>" class="button button-link"><?php \esc_html_e( 'Esporta configurazione', 'fp-privacy' ); ?></a>
+		<span class="fp-privacy-inline-tools-sep" aria-hidden="true">·</span>
+		<button type="button" class="button button-link fp-action-preview" id="fp-scroll-to-preview"><?php \esc_html_e( 'Anteprima banner', 'fp-privacy' ); ?></button>
+	</div>
 </div>
 
 <nav class="fp-privacy-tabs-nav" role="tablist" aria-label="<?php \esc_attr_e( 'Schede configurazione impostazioni', 'fp-privacy' ); ?>">
