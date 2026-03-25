@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.13] - 2026-03-25
+
+### Changed
+
+- Pagina **Impostazioni**: card sezione allineate a **FP Mail** — header con icona Dashicon a sinistra del titolo, corpo con `padding: 1.5rem` (classi `.fp-privacy-card-header` / `.fp-privacy-card-body` già usate altrove); helper `render_settings_section_open` / `close` in `SettingsRendererBase`; `gap` header-left come FP Mail (`0.5rem`).
+
 ## [1.1.12] - 2026-03-25
 
 ### Changed

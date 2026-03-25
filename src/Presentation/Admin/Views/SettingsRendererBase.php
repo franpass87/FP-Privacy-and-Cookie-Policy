@@ -32,6 +32,42 @@ abstract class SettingsRendererBase {
 	}
 
 	/**
+	 * Apre una card sezione Impostazioni (pattern FP Mail: header con icona + titolo, poi body).
+	 *
+	 * @param string $dashicon_class Classe completa dashicon, es. `dashicons-translation`.
+	 * @param string $title          Titolo già tradotto.
+	 *
+	 * @return void
+	 */
+	protected function render_settings_section_open( string $dashicon_class, string $title ): void {
+		$icon_class = \preg_match( '/^dashicons-[a-z0-9-]+$/', $dashicon_class )
+			? $dashicon_class
+			: 'dashicons-admin-generic';
+		?>
+		<div class="fp-privacy-settings-section">
+			<div class="fp-privacy-card-header">
+				<div class="fp-privacy-card-header-left">
+					<span class="dashicons <?php echo \esc_attr( $icon_class ); ?>" aria-hidden="true"></span>
+					<h2 class="fp-privacy-settings-section-title"><?php echo \esc_html( $title ); ?></h2>
+				</div>
+			</div>
+			<div class="fp-privacy-card-body">
+		<?php
+	}
+
+	/**
+	 * Chiude body e wrapper della card sezione Impostazioni.
+	 *
+	 * @return void
+	 */
+	protected function render_settings_section_close(): void {
+		?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Render a text/textarea field with standardized styling.
 	 *
 	 * @param string $name        Field name.

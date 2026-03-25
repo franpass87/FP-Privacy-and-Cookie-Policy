@@ -28,11 +28,12 @@ class AdvancedTabRenderer extends SettingsRendererBase {
 		$notification_recipients = $data['notification_recipients'];
 		?>
 		<div class="fp-privacy-tab-content" id="fp-privacy-tab-content-advanced" role="tabpanel" aria-labelledby="fp-privacy-tab-button-advanced" data-tab-content="advanced">
-			<div class="fp-privacy-settings-section">
-			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Avvisi integrazioni', 'fp-privacy' ); ?></h2>
+			<?php
+			$this->render_settings_section_open( 'dashicons-bell', \__( 'Avvisi integrazioni', 'fp-privacy' ) );
+			?>
 			<p class="description"><?php \esc_html_e( 'Notifiche email e aggiornamento automatico degli snapshot quando il detector rileva servizi nuovi o rimossi; opzionale rigenerazione policy.', 'fp-privacy' ); ?></p>
 			<?php $this->render_detector_notifications( $notifications, $notification_recipients ); ?>
-			</div>
+			<?php $this->render_settings_section_close(); ?>
 
 			<?php
 			AdminUi::render_submit_button(

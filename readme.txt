@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.1.12
+Stable tag: 1.1.13
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.1.13 =
+* Changed: Impostazioni — card sezioni come FP Mail (icona + titolo in header, padding body uniforme).
 
 = 1.1.12 =
 * Changed: etichette pulsanti salva fine scheda Impostazioni senza testo «Salva tutto in alto».

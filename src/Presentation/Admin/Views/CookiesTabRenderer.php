@@ -30,23 +30,26 @@ class CookiesTabRenderer extends SettingsRendererBase {
 		$detected          = $data['detected'];
 		?>
 		<div class="fp-privacy-tab-content" id="fp-privacy-tab-content-cookies" role="tabpanel" aria-labelledby="fp-privacy-tab-button-cookies" data-tab-content="cookies">
-			<div class="fp-privacy-settings-section">
-			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Granularità consenso (EDPB 2025)', 'fp-privacy' ); ?></h2>
+			<?php
+			$this->render_settings_section_open( 'dashicons-filter', \__( 'Granularità consenso (EDPB 2025)', 'fp-privacy' ) );
+			?>
 			<p class="description"><?php \esc_html_e( 'Consenti toggle per singolo servizio nel modal oltre alle categorie (linee guida EDPB).', 'fp-privacy' ); ?></p>
 			<?php $this->render_sub_categories_settings( $data['options'] ); ?>
-			</div>
+			<?php $this->render_settings_section_close(); ?>
 
-			<div class="fp-privacy-settings-section">
-			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Blocco script', 'fp-privacy' ); ?></h2>
+			<?php
+			$this->render_settings_section_open( 'dashicons-shield', \__( 'Blocco script', 'fp-privacy' ) );
+			?>
 			<p class="description"><?php \esc_html_e( 'Definisci handle, pattern URL e iframe da mettere in pausa finché l’utente non concede il consenso alla categoria.', 'fp-privacy' ); ?></p>
 			<?php $this->render_script_blocking_settings( $languages, $script_rules, $script_categories ); ?>
-			</div>
+			<?php $this->render_settings_section_close(); ?>
 
-			<div class="fp-privacy-settings-section">
-			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Servizi rilevati', 'fp-privacy' ); ?></h2>
+			<?php
+			$this->render_settings_section_open( 'dashicons-list-view', \__( 'Servizi rilevati', 'fp-privacy' ) );
+			?>
 			<p class="description"><?php \esc_html_e( 'Elenco dal detector: stato rilevato, fornitore e cookie noti. Utile per allineare script blocking e policy.', 'fp-privacy' ); ?></p>
 			<?php $this->render_detected_services( $detected ); ?>
-			</div>
+			<?php $this->render_settings_section_close(); ?>
 
 			<p class="description"><?php \esc_html_e( 'Dopo modifiche ai servizi, rigenera i documenti dall’editor policy.', 'fp-privacy' ); ?></p>
 

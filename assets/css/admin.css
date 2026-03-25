@@ -335,17 +335,20 @@ body.fp-privacy-admin-shell .fp-privacy-admin-page .button:not(.button-primary):
 .fp-privacy-card-header-left {
     display: flex;
     align-items: center;
-    gap: var(--fp-space-3);
+    gap: 0.5rem;
 }
 
-.fp-privacy-card-header-left .dashicons {
+.fp-privacy-card-header-left .dashicons,
+.fp-privacy-card-header .dashicons {
+    flex-shrink: 0;
     color: var(--fpdms-primary);
     font-size: 22px;
     width: 22px;
     height: 22px;
 }
 
-.fp-privacy-card-title {
+.fp-privacy-card-title,
+.fp-privacy-card-header .fp-privacy-settings-section-title {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
@@ -2474,13 +2477,12 @@ border-radius: 6px;
     to { transform: rotate(360deg); }
 }
 
-/* Sezioni impostazioni (card statiche, senza accordion) */
+/* Sezioni impostazioni: card come FP Mail (header + body); overflow visible per tooltip */
 .fp-privacy-settings-section {
     margin-bottom: 1.5rem;
     background: var(--fpdms-bg-white);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    /* visible: altrimenti i tooltip sopra le icone info vengono tagliati al bordo card */
     overflow: visible;
     border: none;
     transition: var(--transition);
@@ -2490,28 +2492,14 @@ border-radius: 6px;
     box-shadow: var(--shadow-lg);
 }
 
-.fp-privacy-settings-section-title {
-    margin: 0;
-    padding: 1rem 1.5rem;
-    border-bottom: 2px solid var(--fpdms-border-light);
-    background: var(--fpdms-bg-light);
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--fpdms-text);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+.fp-privacy-settings-section .fp-privacy-card-body {
+    overflow: visible;
 }
 
-.fp-privacy-settings-section > h2 ~ * {
-    margin-left: 1.5rem;
-    margin-right: 1.5rem;
-}
-
-.fp-privacy-settings-section > h2 + * {
-    margin-top: 1.5rem;
-}
-
-.fp-privacy-settings-section > *:last-child {
-    margin-bottom: 1.5rem;
+.fp-privacy-settings-section .fp-privacy-card-body > .description:first-child {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--fpdms-text-light);
 }
 
 /* Scheda Privacy e consenso — allineamento righe (select + icone help + checkbox) */
