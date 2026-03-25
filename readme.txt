@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.2.1 =
+* Fixed: salvataggio palette quando i campi hex non arrivano nel POST — si mantiene la palette già salvata.
 
 = 1.2.0 =
 * Added: scheda Banner — selettore tema colore (palette predefinite) + personalizzato opzionale nei dettagli.

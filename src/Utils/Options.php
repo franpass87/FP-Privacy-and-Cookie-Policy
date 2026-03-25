@@ -486,9 +486,14 @@ class Options {
 			)
 		);
 
+		$existing_layout  = isset( $this->options['banner_layout'] ) && \is_array( $this->options['banner_layout'] ) ? $this->options['banner_layout'] : array();
+		$palette_fallback = isset( $existing_layout['palette'] ) && \is_array( $existing_layout['palette'] )
+			? $existing_layout['palette']
+			: $defaults['banner_layout']['palette'];
+
 		$palette_resolved = PalettePresetRegistry::resolve_palette_from_request(
 			$layout_raw,
-			$defaults['banner_layout']['palette']
+			$palette_fallback
 		);
 
 		// Use BannerLayout value object for validation and sanitization.

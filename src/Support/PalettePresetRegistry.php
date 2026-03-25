@@ -90,11 +90,11 @@ final class PalettePresetRegistry {
 	 * Resolve palette array from posted banner_layout fragment.
 	 *
 	 * @param array<string, mixed> $layout_raw     Raw banner_layout from request.
-	 * @param array<string, string> $default_palette Default palette from options.
+	 * @param array<string, string> $fallback_palette Palette già salvata o default plugin se la richiesta non include i colori.
 	 *
 	 * @return array<string, string>
 	 */
-	public static function resolve_palette_from_request( array $layout_raw, array $default_palette ): array {
+	public static function resolve_palette_from_request( array $layout_raw, array $fallback_palette ): array {
 		$preset = isset( $layout_raw['palette_preset'] ) ? \sanitize_key( (string) $layout_raw['palette_preset'] ) : '';
 
 		if ( self::is_builtin_preset( $preset ) ) {
@@ -102,14 +102,14 @@ final class PalettePresetRegistry {
 		}
 
 		if ( self::ID_CUSTOM === $preset && isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ) {
-			return self::normalize_palette_keys( $layout_raw['palette'], $default_palette );
+			return self::normalize_palette_keys( $layout_raw['palette'], $fallback_palette );
 		}
 
 		if ( isset( $layout_raw['palette'] ) && \is_array( $layout_raw['palette'] ) ) {
-			return self::normalize_palette_keys( $layout_raw['palette'], $default_palette );
+			return self::normalize_palette_keys( $layout_raw['palette'], $fallback_palette );
 		}
 
-		return $default_palette;
+		return $fallback_palette;
 	}
 
 	/**

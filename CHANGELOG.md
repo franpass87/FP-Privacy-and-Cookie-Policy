@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.1] - 2026-03-25
+
+### Fixed
+
+- Salvataggio **palette**: se la richiesta non includeva i campi `banner_layout[palette][…]` (es. pannello personalizzato nascosto), la sanitizzazione ripiegava sui default plugin invece che sulla palette già salvata; ora si usa la palette esistente come fallback.
+
 ## [1.2.0] - 2026-03-25
 
 ### Added
