@@ -1240,7 +1240,7 @@ textarea:focus-visible {
 }
 
 /* Verifica contrasto per testo su background */
-.fp-privacy-settings h2:not(.fp-privacy-section-heading) {
+.fp-privacy-settings h2:not(.fp-privacy-settings-section-title) {
     color: var(--fpdms-text);
 }
 
@@ -1551,7 +1551,7 @@ body.fp-privacy-admin-shell .fp-help-tooltip {
 }
 
 /* Titoli sezione interni — compattezza tipo header card FP Mail */
-.fp-privacy-settings h2:not(.fp-privacy-section-heading) {
+.fp-privacy-settings h2:not(.fp-privacy-settings-section-title) {
     display: block;
     font-size: 1.1rem;
     font-weight: 600;
@@ -1562,7 +1562,7 @@ body.fp-privacy-admin-shell .fp-help-tooltip {
     border-bottom: none;
 }
 
-.fp-privacy-settings h2:not(.fp-privacy-section-heading)::before {
+.fp-privacy-settings h2:not(.fp-privacy-settings-section-title)::before {
     display: none;
     content: none;
 }
@@ -2138,11 +2138,6 @@ margin-bottom: 4px;
     background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
 }
 
-/* Tabella detected dentro sezione accordion */
-.fp-privacy-section-content > .fp-privacy-detected:first-child {
-    margin-top: 0;
-}
-
 .fp-privacy-detected thead th {
     color: #ffffff;
     font-weight: 600;
@@ -2536,12 +2531,8 @@ border-radius: 6px;
     to { transform: rotate(360deg); }
 }
 
-/* Sezioni collassabili impostazioni (markup da PHP + enhance JS) */
-.fp-privacy-accordion-section {
-    margin-bottom: var(--fp-space-4);
-}
-
-.fp-privacy-section-accordion {
+/* Sezioni impostazioni (card statiche, senza accordion) */
+.fp-privacy-settings-section {
     margin-bottom: 1.5rem;
     background: var(--fpdms-bg-white);
     border-radius: var(--radius-lg);
@@ -2552,8 +2543,32 @@ border-radius: 6px;
     transition: var(--transition);
 }
 
-.fp-privacy-section-accordion:hover {
+.fp-privacy-settings-section:hover {
     box-shadow: var(--shadow-lg);
+}
+
+.fp-privacy-settings-section-title {
+    margin: 0;
+    padding: 1rem 1.5rem;
+    border-bottom: 2px solid var(--fpdms-border-light);
+    background: var(--fpdms-bg-light);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--fpdms-text);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.fp-privacy-settings-section > h2 ~ * {
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+}
+
+.fp-privacy-settings-section > h2 + * {
+    margin-top: 1.5rem;
+}
+
+.fp-privacy-settings-section > *:last-child {
+    margin-bottom: 1.5rem;
 }
 
 /* Scheda Privacy e consenso — allineamento righe (select + icone help + checkbox) */
@@ -2622,91 +2637,6 @@ body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy .fp-privacy-algorith
     gap: 0.35rem;
 }
 
-.fp-privacy-section-heading {
-    margin: 0;
-    padding: 0;
-    font-size: inherit;
-    line-height: inherit;
-    border-bottom: 2px solid var(--fpdms-border-light);
-    background: var(--fpdms-bg-light);
-}
-
-.fp-privacy-section-toggle-btn {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    margin: 0;
-    padding: 1rem 1.5rem;
-    border: none;
-    border-radius: 0;
-    background: transparent;
-    cursor: pointer;
-    text-align: left;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--fpdms-text);
-    transition: var(--transition);
-    box-shadow: none;
-}
-
-.fp-privacy-section-toggle-btn:hover {
-    background: var(--fpdms-bg-white);
-    color: var(--fpdms-primary);
-}
-
-.fp-privacy-section-toggle-btn:focus-visible {
-    outline: 2px solid var(--fp-primary);
-    outline-offset: -2px;
-}
-
-.fp-privacy-section-toggle-label {
-    flex: 1;
-    min-width: 0;
-    padding-right: var(--fp-space-3);
-}
-
-.fp-privacy-section-chevron {
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-    color: var(--fpdms-primary);
-    transition: transform 0.2s ease;
-}
-
-.fp-privacy-section-accordion.collapsed .fp-privacy-section-chevron {
-    transform: rotate( -180deg );
-}
-
-.fp-privacy-section-content {
-    max-height: 3200px;
-    /* Aperto: consente tooltip help sopra le icone senza taglio */
-    overflow: visible;
-    transition: max-height 0.45s ease, opacity 0.25s ease, padding 0.25s ease;
-    opacity: 1;
-    padding: 1.5rem;
-}
-
-.fp-privacy-section-accordion.collapsed .fp-privacy-section-content {
-    max-height: 0;
-    opacity: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin: 0;
-    /* Chiuso: nasconde il corpo pannello durante il collasso */
-    overflow: hidden;
-}
-
-.fp-privacy-accordion-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--fp-space-2);
-    margin-bottom: var(--fp-space-5);
-    padding-bottom: var(--fp-space-4);
-    border-bottom: 1px solid var(--fpdms-border, var(--fp-gray-200));
-}
-
 .fp-privacy-btn {
     display: inline-flex;
     align-items: center;
@@ -2756,17 +2686,6 @@ body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy .fp-privacy-algorith
 .fp-privacy-btn-primary:focus-visible {
     outline: 2px solid var(--fpdms-primary);
     outline-offset: 2px;
-}
-
-@media (max-width: 782px) {
-    .fp-privacy-accordion-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .fp-privacy-accordion-toolbar .fp-privacy-btn {
-        justify-content: center;
-    }
 }
 
 /* Badge contatore */

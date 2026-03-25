@@ -27,32 +27,32 @@ class PrivacyTabRenderer extends SettingsRendererBase {
 		$options = $data['options'];
 		?>
 		<div class="fp-privacy-tab-content" id="fp-privacy-tab-content-privacy" role="tabpanel" aria-labelledby="fp-privacy-tab-button-privacy" data-tab-content="privacy">
-			<div class="fp-privacy-accordion-section" data-fp-section="privacy-consent-mode">
-			<h2><?php \esc_html_e( 'Consent Mode — valori predefiniti', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Consent Mode — valori predefiniti', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Stato iniziale dei segnali Google Consent Mode v2 prima della scelta dell’utente (consigliato denied per analytics/ad finché non c’è consenso).', 'fp-privacy' ); ?></p>
 			<?php $this->render_consent_mode_settings(); ?>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="privacy-gpc">
-			<h2><?php \esc_html_e( 'Global Privacy Control (GPC)', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Global Privacy Control (GPC)', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Rispetta il segnale GPC del browser (Sec-GPC / navigator.globalPrivacyControl) come opt-out per lo storage non necessario.', 'fp-privacy' ); ?></p>
 			<?php $this->render_gpc_settings( $options['gpc_enabled'] ); ?>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="privacy-retention">
-			<h2><?php \esc_html_e( 'Conservazione e revisione', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Conservazione e revisione', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Durata log consenso, modalità anteprima per admin e numero di revisione per forzare nuovo consenso.', 'fp-privacy' ); ?></p>
 			<?php $this->render_retention_settings( $options['retention_days'], $options['preview_mode'], $options['consent_revision'] ); ?>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="privacy-controller">
-			<h2><?php \esc_html_e( 'Titolare e DPO', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Titolare e DPO', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Dati del titolare del trattamento e del DPO usati nei testi policy e nelle informative.', 'fp-privacy' ); ?></p>
 			<?php $this->render_organization_settings( $options ); ?>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="privacy-algorithmic">
-			<h2><?php \esc_html_e( 'Trasparenza algoritmica (Digital Omnibus)', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Trasparenza algoritmica (Digital Omnibus)', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Sezione opzionale nella privacy policy su sistemi decisionali automatizzati (Direttiva Omnibus UE).', 'fp-privacy' ); ?></p>
 			<?php $this->render_algorithmic_transparency_settings( $options ); ?>
 			</div>

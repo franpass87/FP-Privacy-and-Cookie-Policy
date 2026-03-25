@@ -28,9 +28,11 @@ class AdvancedTabRenderer extends SettingsRendererBase {
 		$notification_recipients = $data['notification_recipients'];
 		?>
 		<div class="fp-privacy-tab-content" id="fp-privacy-tab-content-advanced" role="tabpanel" aria-labelledby="fp-privacy-tab-button-advanced" data-tab-content="advanced">
-			<h2><?php \esc_html_e( 'Avvisi integrazioni', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Avvisi integrazioni', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Notifiche email e aggiornamento automatico degli snapshot quando il detector rileva servizi nuovi o rimossi; opzionale rigenerazione policy.', 'fp-privacy' ); ?></p>
 			<?php $this->render_detector_notifications( $notifications, $notification_recipients ); ?>
+			</div>
 
 			<?php
 			AdminUi::render_submit_button(

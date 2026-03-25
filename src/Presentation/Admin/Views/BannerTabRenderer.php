@@ -29,8 +29,8 @@ class BannerTabRenderer extends SettingsRendererBase {
 		$primary_lang = $data['primary_lang'];
 		?>
 		<div class="fp-privacy-tab-content active" id="fp-privacy-tab-content-banner" role="tabpanel" aria-labelledby="fp-privacy-tab-button-banner" data-tab-content="banner">
-			<div class="fp-privacy-accordion-section" data-fp-section="banner-languages">
-			<h2><?php \esc_html_e( 'Lingue', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Lingue', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Definisci quali lingue sono attive per banner, policy e testi: i codici locale (es. it_IT, en_US) determinano le varianti salvate nelle opzioni.', 'fp-privacy' ); ?></p>
 			<div class="fp-privacy-fields-grid">
 				<div class="fp-privacy-field fp-privacy-field--full">
@@ -41,8 +41,8 @@ class BannerTabRenderer extends SettingsRendererBase {
 			</div>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="banner-content">
-			<h2><?php \esc_html_e( 'Contenuto banner', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Contenuto banner', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Testi del banner e del modal preferenze (titoli, pulsanti, link alle policy) per ogni lingua attiva.', 'fp-privacy' ); ?></p>
 			<?php foreach ( $languages as $lang ) :
 				$lang = $this->options->normalize_language( $lang );
@@ -59,22 +59,22 @@ class BannerTabRenderer extends SettingsRendererBase {
 			<?php endforeach; ?>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="banner-preview">
-			<h2><?php \esc_html_e( 'Anteprima banner', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Anteprima banner', 'fp-privacy' ); ?></h2>
 			<div class="fp-privacy-preview">
 				<p class="description"><?php \esc_html_e( 'Modifica testi, colori e layout per vedere un’anteprima del banner cookie senza uscire dall’admin.', 'fp-privacy' ); ?></p>
 				<?php $this->render_preview_controls( $languages, $primary_lang ); ?>
 			</div>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="banner-layout">
-			<h2><?php \esc_html_e( 'Layout', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Layout', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Tipo di banner (floating o barra), posizione verticale e sincronizzazione colori tra banner e modal.', 'fp-privacy' ); ?></p>
 			<?php $this->render_layout_settings( $options['banner_layout'] ); ?>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="banner-footer-links">
-			<h2><?php \esc_html_e( 'Link nel footer', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Link nel footer', 'fp-privacy' ); ?></h2>
 			<label>
 				<input type="checkbox" name="footer_policy_links_enabled" value="1" <?php \checked( isset( $options['footer_policy_links_enabled'] ) ? (bool) $options['footer_policy_links_enabled'] : true ); ?> />
 				<?php \esc_html_e( 'Mostra in fondo a ogni pagina i link Privacy Policy | Cookie Policy', 'fp-privacy' ); ?>
@@ -82,8 +82,8 @@ class BannerTabRenderer extends SettingsRendererBase {
 			<p class="description"><?php \esc_html_e( 'Aggiunge un blocco con link alle policy prima della chiusura del body. Serve almeno una pagina policy: configura in FP Privacy → Privacy oppure in Impostazioni WordPress → Privacy.', 'fp-privacy' ); ?></p>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="banner-palette">
-			<h2><?php \esc_html_e( 'Palette colori', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Palette colori', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Colori del banner e dei pulsanti (hex). Allineati al design system FP del plugin.', 'fp-privacy' ); ?></p>
 			<?php $this->render_palette_settings( $options['banner_layout']['palette'] ); ?>
 			</div>

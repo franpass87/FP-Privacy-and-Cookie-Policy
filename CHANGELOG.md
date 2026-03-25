@@ -4,6 +4,13 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.10] - 2026-03-25
+
+### Changed
+
+- Pagina **Impostazioni**: rimossi accordion per sezione (nessun pulsante espandi/comprimi, nessuna toolbar “tutte le sezioni”), niente `localStorage` sullo stato delle sezioni. Le aree Banner, Cookie e Privacy sono **card statiche** (`.fp-privacy-settings-section` + titolo `.fp-privacy-settings-section-title`); scheda Avanzate allineata alla stessa card.
+- `admin.js` / `admin.css` / `wp_localize_script`: eliminata logica e stili legati all’accordion.
+
 ## [1.1.9] - 2026-03-25
 
 ### Changed

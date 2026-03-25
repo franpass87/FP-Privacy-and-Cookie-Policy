@@ -133,8 +133,6 @@ class Settings {
 				'saveSuccessTitle'    => \__( 'Salvataggio completato', 'fp-privacy' ),
 				'leaveWithoutSaving' => \__( 'Ci sono modifiche non salvate. Uscire dalla pagina?', 'fp-privacy' ),
 				'bannerPreviewFullscreenTitle' => \__( 'Anteprima banner — schermo intero', 'fp-privacy' ),
-				'expandAllSections'   => \__( 'Espandi tutte le sezioni', 'fp-privacy' ),
-				'collapseAllSections' => \__( 'Comprimi tutte le sezioni', 'fp-privacy' ),
 				'detectedSearchPlaceholder' => \__( 'Cerca servizio…', 'fp-privacy' ),
 				'detectedCategoryAll' => \__( 'Tutte le categorie', 'fp-privacy' ),
 				'detectedStatusAll'   => \__( 'Tutti gli stati', 'fp-privacy' ),

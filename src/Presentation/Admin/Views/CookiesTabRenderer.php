@@ -30,20 +30,20 @@ class CookiesTabRenderer extends SettingsRendererBase {
 		$detected          = $data['detected'];
 		?>
 		<div class="fp-privacy-tab-content" id="fp-privacy-tab-content-cookies" role="tabpanel" aria-labelledby="fp-privacy-tab-button-cookies" data-tab-content="cookies">
-			<div class="fp-privacy-accordion-section" data-fp-section="cookies-consent-granularity">
-			<h2><?php \esc_html_e( 'Granularità consenso (EDPB 2025)', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Granularità consenso (EDPB 2025)', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Consenti toggle per singolo servizio nel modal oltre alle categorie (linee guida EDPB).', 'fp-privacy' ); ?></p>
 			<?php $this->render_sub_categories_settings( $data['options'] ); ?>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="cookies-script-blocking">
-			<h2><?php \esc_html_e( 'Blocco script', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Blocco script', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Definisci handle, pattern URL e iframe da mettere in pausa finché l’utente non concede il consenso alla categoria.', 'fp-privacy' ); ?></p>
 			<?php $this->render_script_blocking_settings( $languages, $script_rules, $script_categories ); ?>
 			</div>
 
-			<div class="fp-privacy-accordion-section" data-fp-section="cookies-detected-services">
-			<h2><?php \esc_html_e( 'Servizi rilevati', 'fp-privacy' ); ?></h2>
+			<div class="fp-privacy-settings-section">
+			<h2 class="fp-privacy-settings-section-title"><?php \esc_html_e( 'Servizi rilevati', 'fp-privacy' ); ?></h2>
 			<p class="description"><?php \esc_html_e( 'Elenco dal detector: stato rilevato, fornitore e cookie noti. Utile per allineare script blocking e policy.', 'fp-privacy' ); ?></p>
 			<?php $this->render_detected_services( $detected ); ?>
 			</div>
