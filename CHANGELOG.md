@@ -4,6 +4,13 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.7] - 2026-03-25
+
+### Fixed
+
+- Admin: tooltip icone help di nuovo **sopra** l’icona, centrati sul pulsante; `z-index` più alto sul wrapper al hover/focus; niente clip da `overflow: hidden` su accordion sezioni, card impostazioni (consent mode, ecc.) e contenuto pannello aperto.
+- Scheda **Privacy e consenso**: righe Consent Mode (label + select + help), checkbox GPC/anteprima/trasparenza algoritmica e titolo h3 con help allineati con flex (`:has()`).
+
 ## [1.1.6] - 2026-03-25
 
 ### Changed

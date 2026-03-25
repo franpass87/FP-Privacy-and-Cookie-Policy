@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.1.6
+Stable tag: 1.1.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.1.7 =
+* Fixed: tooltip help sopra icona, z-index e overflow accordion/card; allineamento checkbox e righe nella scheda Privacy e consenso.
 
 = 1.1.6 =
 * Changed: admin in italiano (stringhe, descrizioni sezioni, JS); tooltip help con z-index e posizione sotto icona.

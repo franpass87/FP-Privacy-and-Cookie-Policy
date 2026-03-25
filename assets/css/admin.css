@@ -1271,13 +1271,18 @@ textarea:focus-visible {
     vertical-align: middle;
 }
 
-/* Tooltip sopra sticky save e contesti affollati; focus-within alza lo stacking */
+/* Wrapper sopra campi vicini e sticky save; tooltip in cima allo stack */
+body.fp-privacy-admin-shell .fp-help-icon-wrapper {
+    isolation: isolate;
+}
+
+body.fp-privacy-admin-shell .fp-help-icon-wrapper:hover,
 body.fp-privacy-admin-shell .fp-help-icon-wrapper:focus-within {
-    z-index: 10;
+    z-index: 200010;
 }
 
 body.fp-privacy-admin-shell .fp-help-tooltip {
-    z-index: 200000;
+    z-index: 200020;
 }
 
 .fp-help-icon {
@@ -1314,15 +1319,15 @@ body.fp-privacy-admin-shell .fp-help-tooltip {
     font-size: 16px;
 }
 
-/* Sotto l'icona: resta dentro accordion con overflow:hidden */
+/* Sopra l'icona, centrato sul pulsante info (non sul blocco testo) */
 .fp-help-tooltip {
     position: absolute;
-    top: calc(100% + 8px);
-    bottom: auto;
+    bottom: calc(100% + 8px);
+    top: auto;
     left: 50%;
     transform: translateX(-50%);
     min-width: 200px;
-    max-width: 300px;
+    max-width: min(300px, calc(100vw - 24px));
     padding: var(--fp-space-3) var(--fp-space-4);
     background: var(--fp-gray-900);
     color: #ffffff;
@@ -1333,7 +1338,7 @@ body.fp-privacy-admin-shell .fp-help-tooltip {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: all var(--fp-transition-base);
+    transition: opacity var(--fp-transition-base), visibility var(--fp-transition-base);
     z-index: 1000;
     white-space: normal;
 }
@@ -1341,16 +1346,17 @@ body.fp-privacy-admin-shell .fp-help-tooltip {
 .fp-help-tooltip::after {
     content: '';
     position: absolute;
-    bottom: 100%;
-    top: auto;
+    top: 100%;
+    bottom: auto;
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
-    border-bottom-color: var(--fp-gray-900);
+    border-top-color: var(--fp-gray-900);
 }
 
 .fp-help-icon-wrapper:hover .fp-help-tooltip,
-.fp-help-icon:focus + .fp-help-tooltip {
+.fp-help-icon:focus + .fp-help-tooltip,
+.fp-help-icon-wrapper:focus-within .fp-help-tooltip {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
@@ -1530,9 +1536,10 @@ body.fp-privacy-admin-shell .fp-help-tooltip {
     border: none;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    transition: var(--transition);
+    transition: box-shadow var(--transition);
     position: relative;
-    overflow: hidden;
+    /* visible: i tooltip help devono uscire dalla card (no clip, no stacking strano da transform) */
+    overflow: visible;
 }
 
 .fp-privacy-settings .fp-privacy-language-panel:hover,
@@ -1541,7 +1548,6 @@ body.fp-privacy-admin-shell .fp-help-tooltip {
 .fp-privacy-settings .fp-privacy-palette:hover,
 .fp-privacy-settings .fp-privacy-consent-mode:hover {
     box-shadow: var(--shadow-lg);
-    transform: translateY(-1px);
 }
 
 /* Titoli sezione interni — compattezza tipo header card FP Mail */
@@ -2540,13 +2546,80 @@ border-radius: 6px;
     background: var(--fpdms-bg-white);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    overflow: hidden;
+    /* visible: altrimenti i tooltip sopra le icone info vengono tagliati al bordo card */
+    overflow: visible;
     border: none;
     transition: var(--transition);
 }
 
 .fp-privacy-section-accordion:hover {
     box-shadow: var(--shadow-lg);
+}
+
+/* Scheda Privacy e consenso — allineamento righe (select + icone help + checkbox) */
+body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy .fp-privacy-consent-mode label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy .fp-privacy-consent-mode label > span {
+    flex: 1 1 12rem;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy .fp-privacy-consent-mode label > select {
+    flex: 0 1 auto;
+    min-width: 8rem;
+}
+
+body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy label:has(> input[type='checkbox']) {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.65rem;
+    max-width: 100%;
+}
+
+body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy label:has(> input[type='checkbox']) > input[type='checkbox'] {
+    flex-shrink: 0;
+    margin: 0.2rem 0 0;
+}
+
+body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy label:has(> span ~ input[type='checkbox']) > span {
+    flex: 1;
+    min-width: 0;
+}
+
+body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy label:has(> input[type='checkbox']:first-child) {
+    align-items: center;
+}
+
+body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy label:has(> input[type='checkbox']:first-child) > input[type='checkbox'] {
+    margin-top: 0;
+}
+
+body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy h3:has(.fp-help-icon-wrapper) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.5rem;
+}
+
+body.fp-privacy-admin-shell #fp-privacy-tab-content-privacy .fp-privacy-algorithmic-transparency-fields label {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
 }
 
 .fp-privacy-section-heading {
@@ -2608,7 +2681,8 @@ border-radius: 6px;
 
 .fp-privacy-section-content {
     max-height: 3200px;
-    overflow: hidden;
+    /* Aperto: consente tooltip help sopra le icone senza taglio */
+    overflow: visible;
     transition: max-height 0.45s ease, opacity 0.25s ease, padding 0.25s ease;
     opacity: 1;
     padding: 1.5rem;
@@ -2620,6 +2694,8 @@ border-radius: 6px;
     padding-top: 0;
     padding-bottom: 0;
     margin: 0;
+    /* Chiuso: nasconde il corpo pannello durante il collasso */
+    overflow: hidden;
 }
 
 .fp-privacy-accordion-toolbar {
