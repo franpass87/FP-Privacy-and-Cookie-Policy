@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.33] - 2026-03-25
+
+### Fixed
+
+- Banner titolo pagine admin (`.fp-privacy-page-header`): allineato allo **standard universale** in `fp-admin-ui-design-system.mdc` (padding `28px 32px`, raggio `16px`, `h2` a `26px` con `text-shadow`, descrizione `rgba(255,255,255,0.88)`, badge versione pill).
+
+---
+
 ## [1.0.32] - 2026-03-25
 
 ### Changed
