@@ -1,6 +1,6 @@
 <?php
 /**
- * Navigazione orizzontale tra le sezioni admin del plugin (design system FP).
+ * Navigazione orizzontale opzionale (solo se `fp_privacy_collapse_admin_submenus` è true). Default: menu WP a sottopagine.
  *
  * @package FP\Privacy\Admin
  * @author Francesco Passeri
@@ -16,7 +16,21 @@ namespace FP\Privacy\Admin;
  */
 final class AdminSubnav {
 	/**
-	 * Slug della pagina corrente (param `page`).
+	 * Subnav orizzontale solo se il menu WP è collassato (filtro `fp_privacy_collapse_admin_submenus` = true).
+	 *
+	 * @param string $current_slug Slug pagina attiva (`page=`).
+	 *
+	 * @return void
+	 */
+	public static function maybe_render( string $current_slug ): void {
+		if ( ! \apply_filters( 'fp_privacy_collapse_admin_submenus', false ) ) {
+			return;
+		}
+		self::render( $current_slug );
+	}
+
+	/**
+	 * Output HTML della barra orizzontale (uso diretto o via {@see maybe_render()}).
 	 *
 	 * @param string $current_slug Slug attivo.
 	 *

@@ -48,7 +48,7 @@ class PolicyEditorRenderer {
 				\__( 'Policy editor', 'fp-privacy' ),
 				\__( 'Edit privacy and cookie policy content per language.', 'fp-privacy' )
 			);
-			AdminSubnav::render( 'fp-privacy-policy-editor' );
+			AdminSubnav::maybe_render( 'fp-privacy-policy-editor' );
 			?>
 
 			<div class="fp-privacy-card fp-privacy-card--intro">

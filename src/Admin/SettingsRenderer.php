@@ -70,7 +70,7 @@ AdminHeader::render(
 	\__( 'Privacy & Cookie Settings', 'fp-privacy' ),
 	\__( 'Banner, cookie, policy links and advanced options.', 'fp-privacy' )
 );
-AdminSubnav::render( Menu::MENU_SLUG );
+AdminSubnav::maybe_render( Menu::MENU_SLUG );
 ?>
 
 <div class="fp-privacy-card fp-privacy-card--actions">
@@ -289,7 +289,7 @@ AdminSubnav::render( Menu::MENU_SLUG );
 				\__( 'Quick guide', 'fp-privacy' ),
 				\__( 'Shortcodes, blocks and developer hooks.', 'fp-privacy' )
 			);
-			AdminSubnav::render( 'fp-privacy-guide' );
+			AdminSubnav::maybe_render( 'fp-privacy-guide' );
 			?>
 
 			<div class="fp-privacy-card">

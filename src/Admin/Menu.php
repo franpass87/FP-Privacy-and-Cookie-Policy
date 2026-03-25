@@ -155,9 +155,10 @@ class Menu {
 	}
 
 	/**
-	 * Rimuove le voci duplicate dal menu laterale WP: navigazione tra sezioni solo via subnav orizzontale (design FP).
+	 * Opzionale: nasconde le sottovoci dal menu laterale e lascia solo la subnav orizzontale in pagina (comportamento legacy).
 	 *
-	 * Disattivabile con `add_filter( 'fp_privacy_collapse_admin_submenus', '__return_false' );`.
+	 * Default: **false** — le sezioni sono **sottopagine nel menu WordPress** (come richiesto dal design operativo).
+	 * Per il menu “snello” + barra orizzontale: `add_filter( 'fp_privacy_collapse_admin_submenus', '__return_true' );`
 	 *
 	 * @return void
 	 */
@@ -167,11 +168,11 @@ class Menu {
 		}
 
 		/**
-		 * Se true (default), il menu WP mostra solo la voce top-level; le sottopagine restano raggiungibili da URL e da AdminSubnav.
+		 * Se true, rimuove le sottovoci dal sidebar; la navigazione è solo tramite `AdminSubnav` in contenuto.
 		 *
-		 * @param bool $collapse Default true.
+		 * @param bool $collapse Default false.
 		 */
-		if ( ! \apply_filters( 'fp_privacy_collapse_admin_submenus', true ) ) {
+		if ( ! \apply_filters( 'fp_privacy_collapse_admin_submenus', false ) ) {
 			return;
 		}
 

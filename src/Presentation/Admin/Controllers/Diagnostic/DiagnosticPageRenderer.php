@@ -68,7 +68,7 @@ class DiagnosticPageRenderer {
 				\__( 'FP Privacy diagnostics', 'fp-privacy' ),
 				\__( 'Current state, quick actions and debug information.', 'fp-privacy' )
 			);
-			AdminSubnav::render( 'fp-privacy-diagnostics' );
+			AdminSubnav::maybe_render( 'fp-privacy-diagnostics' );
 			?>
 
 			<?php DiagnosticNoticesRenderer::render(); ?>

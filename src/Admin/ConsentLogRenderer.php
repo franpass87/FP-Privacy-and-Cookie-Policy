@@ -42,7 +42,7 @@ class ConsentLogRenderer {
 				\__( 'Consent log', 'fp-privacy' ),
 				\__( 'Review consent events and export them for compliance.', 'fp-privacy' )
 			);
-			AdminSubnav::render( 'fp-privacy-consent-log' );
+			AdminSubnav::maybe_render( 'fp-privacy-consent-log' );
 			?>
 
 			<?php if ( ! empty( $data['error'] ) ) : ?>

@@ -50,7 +50,7 @@ class AnalyticsRenderer {
 				\__( 'Consent analytics', 'fp-privacy' ),
 				\__( 'Cookie consent trends and usage statistics.', 'fp-privacy' )
 			);
-			AdminSubnav::render( 'fp-privacy-analytics' );
+			AdminSubnav::maybe_render( 'fp-privacy-analytics' );
 			?>
 
 			<!-- Summary Cards -->

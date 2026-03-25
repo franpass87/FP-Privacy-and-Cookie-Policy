@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.35
+Stable tag: 1.0.36
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.36 =
+* Changed: navigazione sezioni nel menu laterale WordPress (sottopagine); barra orizzontale solo con filtro `fp_privacy_collapse_admin_submenus` = true (legacy).
 
 = 1.0.35 =
 * Fixed: pagine admin — niente scroll orizzontali su subnav/tab; tab a capo su mobile; editor policy contenuto nella larghezza.

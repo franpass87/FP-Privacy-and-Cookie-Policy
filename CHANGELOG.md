@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.36] - 2026-03-25
+
+### Changed
+
+- Menu admin: le sezioni (**Settings**, **Consent log**, **Analytics**, **Policy editor**, **Tools**, **Diagnostics**, **Quick guide**) sono di default **sottovoci nel menu WordPress**; la barra orizzontale in pagina non viene più mostrata salvo `add_filter( 'fp_privacy_collapse_admin_submenus', '__return_true' );` (comportamento legacy menu snello + subnav).
+
+---
+
 ## [1.0.35] - 2026-03-25
 
 ### Fixed
