@@ -120,9 +120,21 @@ class PolicyGenerator {
 			}
 			return '';
 		} finally {
-			// Always restore the original locale.
+			// Always restore the original locale (mai propagare eccezioni dal finally).
 			if ( null !== $original_locale ) {
-				$this->restore_language_after_generation( $original_locale );
+				try {
+					$this->restore_language_after_generation( $original_locale );
+				} catch ( \Throwable $e ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+						error_log(
+							sprintf(
+								'FP Privacy: restore locale after privacy policy failed: %s',
+								$e->getMessage()
+							)
+						);
+					}
+				}
 			}
 		}
 	}
@@ -184,9 +196,20 @@ class PolicyGenerator {
 			}
 			return '';
 		} finally {
-			// Always restore the original locale.
 			if ( null !== $original_locale ) {
-				$this->restore_language_after_generation( $original_locale );
+				try {
+					$this->restore_language_after_generation( $original_locale );
+				} catch ( \Throwable $e ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+						error_log(
+							sprintf(
+								'FP Privacy: restore locale after cookie policy failed: %s',
+								$e->getMessage()
+							)
+						);
+					}
+				}
 			}
 		}
 	}

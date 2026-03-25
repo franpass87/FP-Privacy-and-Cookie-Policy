@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 1.0.21 |
+| Version | 1.0.22 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |

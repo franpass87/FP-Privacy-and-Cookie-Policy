@@ -4,6 +4,15 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.22] - 2026-03-25
+
+### Fixed
+
+- **`View::render`**: `apply_filters( 'fp_privacy_view_context', … )` avvolto in `try/catch` — un filtro di tema/altro plugin che lancia eccezione non provoca più l’errore critico di WordPress durante il rendering delle policy.
+- **`PolicyGenerator`**: il ripristino locale nel blocco `finally` è protetto da `try/catch`, così un fallimento di `restore_previous_locale` / ricarica textdomain non sovrascrive l’eccezione originale né lascia la richiesta in stato inconsistente con fatal a catena.
+
+---
+
 ## [1.0.21] - 2026-03-25
 
 ### Fixed

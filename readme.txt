@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.21
+Stable tag: 1.0.22
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.22 =
+* Fixed: errore critico possibile su pagine policy se un filtro su `fp_privacy_view_context` lancia eccezione; ripristino lingua in `PolicyGenerator` non propaga più errori dal `finally`.
 
 = 1.0.21 =
 * Fixed: traduzioni en_US (PO + MO) per titoli/sommario policy — niente più testo italiano quando la lingua attiva è en_US.

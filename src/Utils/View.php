@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * View renderer.
  *
@@ -23,6 +24,8 @@ class View {
 	/**
 	 * Render a PHP template and return the output.
 	 *
+	 * Eccezioni da `fp_privacy_view_context` vengono catturate: si usa il contesto passato al metodo.
+	 *
 	 * @param string               $template Template path relative to the plugin directory.
 	 * @param array<string, mixed> $context  Data available inside the template.
 	 *
@@ -35,7 +38,24 @@ class View {
 			return '';
 		}
 
-		$context = apply_filters( 'fp_privacy_view_context', $context, $template );
+		try {
+			$filtered = apply_filters( 'fp_privacy_view_context', $context, $template );
+			if ( is_array( $filtered ) ) {
+				$context = $filtered;
+			}
+		} catch ( \Throwable $e ) {
+			// Filtri esterni non devono far cadere l'intera pagina (errore critico WP).
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log(
+					sprintf(
+						'FP Privacy: fp_privacy_view_context threw for %s: %s',
+						$template,
+						$e->getMessage()
+					)
+				);
+			}
+		}
 
 		if ( ! is_array( $context ) ) {
 			$context = array();
