@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.11] - 2026-03-25
+
+### Changed
+
+- Pagina **Impostazioni**: rimosso il blocco bianco sopra le schede (breadcrumb «FP Privacy & Cookie / Impostazioni / Sezioni di configurazione» e paragrafo introduttivo); restano header a gradiente, subnav e tab.
+
 ## [1.1.10] - 2026-03-25
 
 ### Changed

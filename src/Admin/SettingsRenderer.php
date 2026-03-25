@@ -88,17 +88,6 @@ AdminSubnav::maybe_render( Menu::MENU_SLUG );
 <div class="notice notice-warning fp-privacy-stale-notice"><p><?php echo \esc_html( $message ); ?> <a href="<?php echo \esc_url( $tools_link ); ?>"><?php \esc_html_e( 'Apri Strumenti', 'fp-privacy' ); ?></a></p></div>
 <?php endif; ?>
 
-<div class="fp-privacy-settings-form-heading">
-	<nav class="fp-privacy-breadcrumb" aria-label="<?php \esc_attr_e( 'Percorso modulo impostazioni', 'fp-privacy' ); ?>">
-		<span><?php \esc_html_e( 'FP Privacy & Cookie', 'fp-privacy' ); ?></span>
-		<span class="separator" aria-hidden="true">/</span>
-		<span><?php \esc_html_e( 'Impostazioni', 'fp-privacy' ); ?></span>
-		<span class="separator" aria-hidden="true">/</span>
-		<span class="fp-privacy-breadcrumb-current"><?php \esc_html_e( 'Sezioni di configurazione', 'fp-privacy' ); ?></span>
-	</nav>
-	<p class="fp-privacy-settings-form-intro description"><?php \esc_html_e( 'Usa le schede sotto per modificare ogni area. Salva con il pulsante in basso a destra. Registro consensi, Analytics, editor policy, Strumenti e Guida rapida sono nel sottomenu FP Privacy.', 'fp-privacy' ); ?></p>
-</div>
-
 <nav class="fp-privacy-tabs-nav" role="tablist" aria-label="<?php \esc_attr_e( 'Schede configurazione impostazioni', 'fp-privacy' ); ?>">
 	<button type="button" id="fp-privacy-tab-button-banner" class="fp-privacy-tab-button active" role="tab" aria-selected="true" aria-controls="fp-privacy-tab-content-banner" data-tab="banner" aria-label="<?php echo \esc_attr( \sprintf( \__( 'Scheda: %s', 'fp-privacy' ), \__( 'Banner e aspetto', 'fp-privacy' ) ) ); ?>">
 		<span class="dashicons dashicons-admin-appearance" aria-hidden="true"></span>

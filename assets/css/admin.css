@@ -899,28 +899,6 @@ textarea:focus-visible {
 /* ========================================
    TABS NAVIGATION
    ======================================== */
-/* Blocco contesto form impostazioni (sotto subnav, sopra tab segmentate) */
-.fp-privacy-settings-form-heading {
-    margin: 0 0 1.5rem;
-    padding: 1rem 1.5rem;
-    background: var(--fpdms-bg-white);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    border: none;
-}
-
-.fp-privacy-settings-form-heading .fp-privacy-breadcrumb {
-    margin-bottom: var(--fp-space-2);
-    flex-wrap: wrap;
-}
-
-.fp-privacy-settings-form-intro {
-    margin: 0;
-    max-width: 52rem;
-    color: var(--fpdms-text-light);
-    font-size: 0.95rem;
-}
-
 .fp-privacy-tabs-nav {
     display: flex;
     flex-wrap: wrap;
@@ -1031,37 +1009,6 @@ textarea:focus-visible {
 
 .fp-tab-badge.new::before {
     content: 'NEW';
-}
-
-/* Breadcrumb */
-.fp-privacy-breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: var(--fp-space-2);
-    margin-bottom: 0.5rem;
-    font-size: 0.85rem;
-    color: var(--fpdms-text-muted);
-}
-
-.fp-privacy-breadcrumb a {
-    color: var(--fpdms-primary);
-    text-decoration: none;
-    transition: var(--transition);
-}
-
-.fp-privacy-breadcrumb a:hover {
-    color: var(--fpdms-primary-dark);
-    text-decoration: underline;
-}
-
-.fp-privacy-breadcrumb .separator {
-    color: var(--fpdms-border);
-    user-select: none;
-}
-
-.fp-privacy-breadcrumb > span.fp-privacy-breadcrumb-current {
-    color: var(--fpdms-text);
-    font-weight: 600;
 }
 
 /* Modal System */
@@ -1423,10 +1370,6 @@ body.fp-privacy-admin-shell .fp-help-tooltip {
     .fp-quick-actions-secondary {
         justify-content: center;
         flex-wrap: wrap;
-    }
-
-    .fp-privacy-settings-form-heading {
-        padding: var(--fp-space-3) var(--fp-space-4);
     }
 }
 
