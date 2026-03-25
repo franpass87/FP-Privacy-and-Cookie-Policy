@@ -289,7 +289,7 @@ if ( ! empty( $algorithmic_transparency_html ) ) {
 
 <h2 id="fp-privacy-services-cookies"><?php echo esc_html( fp_privacy_policy_msg( 'Services and cookies', $fp_policy_is_en ) ); ?></h2>
 <?php foreach ( $groups as $category => $services ) :
-    if ( ! is_array( $services ) ) {
+    if ( ! is_array( $services ) || empty( $services ) ) {
         continue;
     }
     $meta  = isset( $categories_meta[ $category ] ) && is_array( $categories_meta[ $category ] ) ? $categories_meta[ $category ] : array();

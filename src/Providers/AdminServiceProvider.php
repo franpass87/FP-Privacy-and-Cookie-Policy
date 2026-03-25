@@ -132,8 +132,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			PolicyAutoUpdater::class,
 			function( ContainerInterface $c ) {
 				$options = self::resolveOptions( $c );
-				$generator = $c->get( PolicyGenerator::class );
-				return new PolicyAutoUpdater( $options, $generator );
+				return new PolicyAutoUpdater( $options );
 			}
 		);
 

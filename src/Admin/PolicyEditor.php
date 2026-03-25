@@ -54,7 +54,7 @@ class PolicyEditor {
 
 		$diff_generator       = new PolicyDiffGenerator( $options, $generator );
 		$this->renderer       = new PolicyEditorRenderer( $diff_generator );
-		$this->document_generator = new PolicyDocumentGenerator( $options, $generator );
+		$this->document_generator = new PolicyDocumentGenerator( $options );
 		$snapshot_manager     = new PolicySnapshotManager( $options );
 		$this->handler        = new PolicyEditorHandler( $options, $generator, $snapshot_manager );
 	}

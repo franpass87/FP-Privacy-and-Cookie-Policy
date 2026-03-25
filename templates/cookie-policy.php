@@ -160,7 +160,7 @@ if ( '' === $last_generated ) {
 <p><?php esc_html_e( 'You can revisit your preferences using the cookie preferences button available on every page or adjust your browser settings to delete or block cookies. Blocking essential cookies may impact site functionality. Detailed instructions for major browsers are linked within the preferences centre.', 'fp-privacy' ); ?></p>
 
 <?php foreach ( $groups as $category => $services ) :
-    if ( ! is_array( $services ) ) {
+    if ( ! is_array( $services ) || empty( $services ) ) {
         continue;
     }
     $meta  = isset( $categories_meta[ $category ] ) && is_array( $categories_meta[ $category ] ) ? $categories_meta[ $category ] : array();

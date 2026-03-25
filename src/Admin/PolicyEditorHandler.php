@@ -121,6 +121,7 @@ class PolicyEditorHandler {
 
 		$generated_privacy = array();
 		$generated_cookie  = array();
+		$doc_placeholders  = new PolicyDocumentGenerator( $this->options );
 
 		foreach ( $languages as $language ) {
 			$language   = $this->options->normalize_language( $language );
@@ -133,22 +134,27 @@ class PolicyEditorHandler {
 			$generated_privacy[ $language ] = $privacy;
 			$generated_cookie[ $language ]  = $cookie;
 
+			$placeholder_privacy = $doc_placeholders->get_page_placeholder( 'privacy', $language );
+			$placeholder_cookie  = $doc_placeholders->get_page_placeholder( 'cookie', $language );
+
 			if ( $privacy_id ) {
 				\wp_update_post(
 					array(
 						'ID'           => $privacy_id,
-						'post_content' => $privacy,
+						'post_content' => $placeholder_privacy,
 					)
 				);
+				\update_post_meta( $privacy_id, Options::PAGE_MANAGED_META_KEY, \hash( 'sha256', $placeholder_privacy ) );
 			}
 
 			if ( $cookie_id ) {
 				\wp_update_post(
 					array(
 						'ID'           => $cookie_id,
-						'post_content' => $cookie,
+						'post_content' => $placeholder_cookie,
 					)
 				);
+				\update_post_meta( $cookie_id, Options::PAGE_MANAGED_META_KEY, \hash( 'sha256', $placeholder_cookie ) );
 			}
 		}
 

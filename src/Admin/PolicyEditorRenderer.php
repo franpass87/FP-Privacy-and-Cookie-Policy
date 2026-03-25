@@ -103,7 +103,7 @@ class PolicyEditorRenderer {
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" class="fp-privacy-regenerate">
 				<?php \wp_nonce_field( 'fp_privacy_regenerate_policy', 'fp_privacy_regenerate_nonce' ); ?>
 				<input type="hidden" name="action" value="fp_privacy_regenerate_policy" />
-				<p class="description"><?php \esc_html_e( 'Run the integration detector and overwrite policy pages with freshly generated HTML.', 'fp-privacy' ); ?></p>
+				<p class="description"><?php \esc_html_e( 'Run the integration detector, refresh snapshots, and reset the dedicated pages to the dynamic shortcodes so service tables stay current on every visit.', 'fp-privacy' ); ?></p>
 				<?php
 				AdminUi::render_submit_button(
 					\__( 'Detect integrations and regenerate', 'fp-privacy' ),

@@ -4,6 +4,19 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.1.2] - 2026-03-25
+
+### Changed
+
+- Pagine dedicate Privacy/Cookie: il contenuto salvato nel post è di nuovo **solo lo shortcode** (`[fp_privacy_policy lang="…"]` / `[fp_cookie_policy lang="…"]`), così le **tabelle servizi** sono generate ad ogni visualizzazione dal detector e dalle voci manuali (prima l’HTML statico poteva restare vuoto o obsoleto dopo l’apertura dell’editor policy o la rigenerazione).
+- Rigenerazione (editor policy, Tools, auto-update policy, WP-CLI `generate-pages`, script `bin/generate-policies.php`): aggiorna le pagine con gli shortcode e imposta la firma `_fp_privacy_managed_signature` coerente; lo snapshot in opzioni continua a ricevere l’HTML completo per confronti/diff.
+
+### Fixed
+
+- Template policy: niente blocchi tabella “vuoti” per categorie senza servizi (solo intestazioni).
+
+---
+
 ## [1.1.1] - 2026-03-25
 
 ### Fixed

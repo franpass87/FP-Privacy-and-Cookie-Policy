@@ -9,6 +9,7 @@
 
 namespace FP\Privacy\Presentation\CLI\Commands;
 
+use FP\Privacy\Admin\PolicyDocumentGenerator;
 use FP\Privacy\Admin\PolicyGenerator;
 use FP\Privacy\Utils\Options;
 use WP_CLI;
@@ -76,14 +77,18 @@ class PolicyPageGenerator {
 		WP_CLI::log( sprintf( '  📊 Privacy Policy: %d caratteri', strlen( $privacy ) ) );
 		WP_CLI::log( sprintf( '  📊 Cookie Policy: %d caratteri', strlen( $cookie ) ) );
 
-		// Aggiorna le pagine
+		// Aggiorna le pagine (shortcode dinamico: tabelle servizi aggiornate ad ogni visualizzazione).
 		if ( ! $dry_run ) {
-			WP_CLI::log( '  💾 Aggiornamento pagine...' );
+			WP_CLI::log( '  💾 Aggiornamento pagine (shortcode fp_privacy_policy / fp_cookie_policy)...' );
+
+			$doc        = new PolicyDocumentGenerator( $this->options );
+			$ph_privacy = $doc->get_page_placeholder( 'privacy', $language );
+			$ph_cookie  = $doc->get_page_placeholder( 'cookie', $language );
 
 			$privacy_result = \wp_update_post(
 				array(
 					'ID'           => $privacy_id,
-					'post_content' => $privacy,
+					'post_content' => $ph_privacy,
 					'post_status'  => 'publish',
 				),
 				true
@@ -92,15 +97,15 @@ class PolicyPageGenerator {
 			$cookie_result = \wp_update_post(
 				array(
 					'ID'           => $cookie_id,
-					'post_content' => $cookie,
+					'post_content' => $ph_cookie,
 					'post_status'  => 'publish',
 				),
 				true
 			);
 
 			if ( ! \is_wp_error( $privacy_result ) && ! \is_wp_error( $cookie_result ) ) {
-				\delete_post_meta( $privacy_id, Options::PAGE_MANAGED_META_KEY );
-				\delete_post_meta( $cookie_id, Options::PAGE_MANAGED_META_KEY );
+				\update_post_meta( $privacy_id, Options::PAGE_MANAGED_META_KEY, \hash( 'sha256', $ph_privacy ) );
+				\update_post_meta( $cookie_id, Options::PAGE_MANAGED_META_KEY, \hash( 'sha256', $ph_cookie ) );
 				WP_CLI::success( '  Pagine aggiornate con successo!' );
 			} else {
 				WP_CLI::error( '  Errore nell\'aggiornamento delle pagine' );

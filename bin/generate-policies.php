@@ -182,6 +182,7 @@ $options = \FP\Privacy\Utils\Options::instance();
 $detector = new \FP\Privacy\Integrations\DetectorRegistry();
 $view = new \FP\Privacy\Utils\View();
 $generator = new \FP\Privacy\Admin\PolicyGenerator( $options, $detector, $view );
+$doc_gen   = new \FP\Privacy\Admin\PolicyDocumentGenerator( $options );
 
 // Determina le lingue
 if ( $args['lang'] ) {
@@ -289,14 +290,17 @@ foreach ( $languages as $language ) {
 	ConsoleOutput::log( sprintf( '  📊 Privacy Policy: %s caratteri', number_format( strlen( $privacy ) ) ) );
 	ConsoleOutput::log( sprintf( '  📊 Cookie Policy: %s caratteri', number_format( strlen( $cookie ) ) ) );
 
-	// Aggiorna le pagine
+	// Aggiorna le pagine (shortcode dinamico sulle pagine dedicate).
 	if ( ! $args['dry-run'] ) {
-		ConsoleOutput::info( '  💾 Aggiornamento pagine...' );
+		ConsoleOutput::info( '  💾 Aggiornamento pagine (shortcode live per tabelle servizi)...' );
+
+		$ph_privacy = $doc_gen->get_page_placeholder( 'privacy', $language );
+		$ph_cookie  = $doc_gen->get_page_placeholder( 'cookie', $language );
 
 		$privacy_result = wp_update_post(
 			array(
 				'ID'           => $privacy_id,
-				'post_content' => $privacy,
+				'post_content' => $ph_privacy,
 				'post_status'  => 'publish',
 			)
 		);
@@ -304,14 +308,14 @@ foreach ( $languages as $language ) {
 		$cookie_result = wp_update_post(
 			array(
 				'ID'           => $cookie_id,
-				'post_content' => $cookie,
+				'post_content' => $ph_cookie,
 				'post_status'  => 'publish',
 			)
 		);
 
 		if ( ! is_wp_error( $privacy_result ) && ! is_wp_error( $cookie_result ) ) {
-			delete_post_meta( $privacy_id, \FP\Privacy\Utils\Options::PAGE_MANAGED_META_KEY );
-			delete_post_meta( $cookie_id, \FP\Privacy\Utils\Options::PAGE_MANAGED_META_KEY );
+			update_post_meta( $privacy_id, \FP\Privacy\Utils\Options::PAGE_MANAGED_META_KEY, hash( 'sha256', $ph_privacy ) );
+			update_post_meta( $cookie_id, \FP\Privacy\Utils\Options::PAGE_MANAGED_META_KEY, hash( 'sha256', $ph_cookie ) );
 			ConsoleOutput::success( '  Pagine aggiornate con successo!' );
 			$pages_updated++;
 		} else {

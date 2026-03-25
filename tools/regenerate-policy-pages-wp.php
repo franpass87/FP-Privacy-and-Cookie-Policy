@@ -44,6 +44,7 @@ $container = $kernel->getContainer();
 $options = $container->get( \FP\Privacy\Utils\Options::class );
 /** @var \FP\Privacy\Admin\PolicyGenerator $generator */
 $generator        = $container->get( \FP\Privacy\Admin\PolicyGenerator::class );
+$doc_gen          = new \FP\Privacy\Admin\PolicyDocumentGenerator( $options );
 $snapshot_manager = new \FP\Privacy\Admin\PolicySnapshotManager( $options );
 
 $options->ensure_pages_exist();
@@ -68,14 +69,18 @@ foreach ( $languages as $language ) {
 	$generated_privacy[ $language ] = $privacy;
 	$generated_cookie[ $language ]  = $cookie;
 
+	$ph_privacy = $doc_gen->get_page_placeholder( 'privacy', $language );
+	$ph_cookie  = $doc_gen->get_page_placeholder( 'cookie', $language );
+
 	if ( $privacy_id ) {
 		\wp_update_post(
 			array(
 				'ID'           => $privacy_id,
-				'post_content' => $privacy,
+				'post_content' => $ph_privacy,
 			)
 		);
-		echo "OK privacy post {$privacy_id} ({$language})\n";
+		\update_post_meta( $privacy_id, \FP\Privacy\Utils\Options::PAGE_MANAGED_META_KEY, \hash( 'sha256', $ph_privacy ) );
+		echo "OK privacy post {$privacy_id} ({$language}) shortcode\n";
 	} else {
 		echo "SKIP privacy: nessun ID per {$language}\n";
 	}
@@ -84,11 +89,12 @@ foreach ( $languages as $language ) {
 		\wp_update_post(
 			array(
 				'ID'           => $cookie_id,
-				'post_content' => $cookie,
+				'post_content' => $ph_cookie,
 			)
 		);
+		\update_post_meta( $cookie_id, \FP\Privacy\Utils\Options::PAGE_MANAGED_META_KEY, \hash( 'sha256', $ph_cookie ) );
 		$updated_cookie_post_ids[] = $cookie_id;
-		echo "OK cookie post {$cookie_id} ({$language})\n";
+		echo "OK cookie post {$cookie_id} ({$language}) shortcode\n";
 	} else {
 		echo "SKIP cookie: nessun ID per {$language}\n";
 	}
@@ -106,12 +112,14 @@ foreach ( $cookie_map as $raw_lang => $cookie_post_id ) {
 	}
 	$locale_for_gen = \FP\Privacy\Utils\Validator::locale( (string) $raw_lang, 'en_US' );
 	$cookie         = $generator->generate_cookie_policy( $locale_for_gen );
+	$ph_cookie_map  = $doc_gen->get_page_placeholder( 'cookie', $locale_for_gen );
 	\wp_update_post(
 		array(
 			'ID'           => $cookie_post_id,
-			'post_content' => $cookie,
+			'post_content' => $ph_cookie_map,
 		)
 	);
+	\update_post_meta( $cookie_post_id, \FP\Privacy\Utils\Options::PAGE_MANAGED_META_KEY, \hash( 'sha256', $ph_cookie_map ) );
 	$updated_cookie_post_ids[]     = $cookie_post_id;
 	$generated_cookie[ $locale_for_gen ] = $cookie;
 	echo "OK cookie post {$cookie_post_id} ({$locale_for_gen}, solo mappa)\n";

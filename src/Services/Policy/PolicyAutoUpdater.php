@@ -9,7 +9,7 @@
 
 namespace FP\Privacy\Services\Policy;
 
-use FP\Privacy\Admin\PolicyGenerator;
+use FP\Privacy\Admin\PolicyDocumentGenerator;
 use FP\Privacy\Utils\Options;
 use FP\Privacy\Utils\Logger;
 
@@ -25,21 +25,12 @@ class PolicyAutoUpdater {
 	private $options;
 
 	/**
-	 * Policy generator.
-	 *
-	 * @var PolicyGenerator
-	 */
-	private $generator;
-
-	/**
 	 * Constructor.
 	 *
-	 * @param Options         $options  Options handler.
-	 * @param PolicyGenerator $generator Policy generator.
+	 * @param Options $options Options handler.
 	 */
-	public function __construct( Options $options, PolicyGenerator $generator ) {
-		$this->options  = $options;
-		$this->generator = $generator;
+	public function __construct( Options $options ) {
+		$this->options = $options;
 	}
 
 	/**
@@ -124,28 +115,17 @@ class PolicyAutoUpdater {
 			return $results;
 		}
 
-		// Generate policy content
+		// Pagine dedicate: solo shortcode così le tabelle servizi restano allineate al detector a ogni hit.
 		try {
-			$privacy_content = $this->generator->generate_privacy_policy( $lang );
-			$cookie_content  = $this->generator->generate_cookie_policy( $lang );
-
-			if ( empty( $privacy_content ) || empty( $cookie_content ) ) {
-				Logger::warning(
-					'Failed to generate policy content',
-					array(
-						'lang'            => $lang,
-						'privacy_empty'   => empty( $privacy_content ),
-						'cookie_empty'    => empty( $cookie_content ),
-					)
-				);
-				return $results;
-			}
+			$doc_gen             = new PolicyDocumentGenerator( $this->options );
+			$placeholder_privacy = $doc_gen->get_page_placeholder( 'privacy', $lang );
+			$placeholder_cookie  = $doc_gen->get_page_placeholder( 'cookie', $lang );
 
 			// Update privacy policy page
 			$privacy_result = \wp_update_post(
 				array(
 					'ID'           => $privacy_id,
-					'post_content' => $privacy_content,
+					'post_content' => $placeholder_privacy,
 					'post_status'  => 'publish',
 				),
 				true
@@ -153,8 +133,7 @@ class PolicyAutoUpdater {
 
 			if ( ! \is_wp_error( $privacy_result ) ) {
 				$results['privacy'] = true;
-				// Remove managed meta key to mark as auto-managed
-				\delete_post_meta( $privacy_id, Options::PAGE_MANAGED_META_KEY );
+				\update_post_meta( $privacy_id, Options::PAGE_MANAGED_META_KEY, \hash( 'sha256', $placeholder_privacy ) );
 			} else {
 				Logger::error(
 					'Failed to update privacy policy page',
@@ -170,7 +149,7 @@ class PolicyAutoUpdater {
 			$cookie_result = \wp_update_post(
 				array(
 					'ID'           => $cookie_id,
-					'post_content' => $cookie_content,
+					'post_content' => $placeholder_cookie,
 					'post_status'  => 'publish',
 				),
 				true
@@ -178,8 +157,7 @@ class PolicyAutoUpdater {
 
 			if ( ! \is_wp_error( $cookie_result ) ) {
 				$results['cookie'] = true;
-				// Remove managed meta key to mark as auto-managed
-				\delete_post_meta( $cookie_id, Options::PAGE_MANAGED_META_KEY );
+				\update_post_meta( $cookie_id, Options::PAGE_MANAGED_META_KEY, \hash( 'sha256', $placeholder_cookie ) );
 			} else {
 				Logger::error(
 					'Failed to update cookie policy page',

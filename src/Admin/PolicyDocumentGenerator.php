@@ -9,7 +9,6 @@
 
 namespace FP\Privacy\Admin;
 
-use FP\Privacy\Admin\PolicyGenerator;
 use FP\Privacy\Utils\Options;
 
 /**
@@ -24,21 +23,28 @@ class PolicyDocumentGenerator {
 	private $options;
 
 	/**
-	 * Generator.
-	 *
-	 * @var PolicyGenerator
-	 */
-	private $generator;
-
-	/**
 	 * Constructor.
 	 *
-	 * @param Options         $options   Options handler.
-	 * @param PolicyGenerator $generator Generator.
+	 * @param Options $options Options handler.
 	 */
-	public function __construct( Options $options, PolicyGenerator $generator ) {
-		$this->options   = $options;
-		$this->generator = $generator;
+	public function __construct( Options $options ) {
+		$this->options = $options;
+	}
+
+	/**
+	 * Contenuto da salvare nella pagina dedicata: solo shortcode, così tabelle e servizi
+	 * riflettono il detector e le opzioni ad ogni visualizzazione frontend.
+	 *
+	 * @param string $type     `privacy` o `cookie`.
+	 * @param string $language Codice lingua normalizzato (es. it_IT).
+	 *
+	 * @return string Shortcode completo, es. `[fp_privacy_policy lang="it_IT"]`.
+	 */
+	public function get_page_placeholder( string $type, string $language ): string {
+		$language  = $this->options->normalize_language( $language );
+		$shortcode = ( 'privacy' === $type ) ? 'fp_privacy_policy' : 'fp_cookie_policy';
+
+		return \sprintf( '[%1$s lang="%2$s"]', $shortcode, \esc_attr( $language ) );
 	}
 
 	/**
@@ -65,7 +71,8 @@ class PolicyDocumentGenerator {
 	}
 
 	/**
-	 * Generate policy content when the stored page is empty or still using the shortcode placeholder.
+	 * Se la pagina è vuota, imposta lo shortcode dedicato (mai HTML statico: le tabelle restano aggiornate col detector).
+	 * Se contiene già lo shortcode corretto, non modifica nulla. HTML o contenuto personalizzato restano intatti.
 	 *
 	 * @param int    $post_id  Page identifier.
 	 * @param string $type     Document type (privacy|cookie).
@@ -82,41 +89,34 @@ class PolicyDocumentGenerator {
 			}
 
 			$current_content = trim( (string) $post->post_content );
-			$shortcode       = 'privacy' === $type ? 'fp_privacy_policy' : 'fp_cookie_policy';
-			$placeholder     = \sprintf( '[%1$s lang="%2$s"]', $shortcode, $language );
+			$placeholder     = $this->get_page_placeholder( (string) $type, (string) $language );
 
-			if ( '' !== $current_content && $current_content !== $placeholder ) {
+			if ( $current_content === $placeholder ) {
 				return;
 			}
 
-			$generated = 'privacy' === $type
-				? $this->generator->generate_privacy_policy( $language )
-				: $this->generator->generate_cookie_policy( $language );
-
-			// Only update if we have valid content.
-			if ( '' === $generated ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( sprintf( 'FP Privacy: Generated content is empty for %s policy in %s', $type, $language ) );
-				}
+			if ( '' !== $current_content ) {
 				return;
 			}
 
 			$updated = \wp_update_post(
 				array(
 					'ID'           => $post->ID,
-					'post_content' => $generated,
+					'post_content' => $placeholder,
 				),
 				true
 			);
 
 			if ( ! \is_wp_error( $updated ) ) {
-				\delete_post_meta( $post->ID, Options::PAGE_MANAGED_META_KEY );
-			} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'FP Privacy: Error updating %s policy page %d: %s', $type, $post_id, $updated->get_error_message() ) );
+				\update_post_meta( $post->ID, Options::PAGE_MANAGED_META_KEY, \hash( 'sha256', $placeholder ) );
+			} elseif ( \defined( 'WP_DEBUG' ) && \WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				\error_log( \sprintf( 'FP Privacy: Error seeding %s policy page %d: %s', $type, $post_id, $updated->get_error_message() ) );
 			}
 		} catch ( \Throwable $e ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'FP Privacy: Error generating %s document for page %d: %s', $type, $post_id, $e->getMessage() ) );
+			if ( \defined( 'WP_DEBUG' ) && \WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				\error_log( \sprintf( 'FP Privacy: Error preparing %s document for page %d: %s', $type, $post_id, $e->getMessage() ) );
 			}
 		}
 	}
