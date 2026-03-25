@@ -134,6 +134,11 @@ class Settings {
 				'resetConfirm'        => \__( 'Yes, reset', 'fp-privacy' ),
 				'resetSettingsMissing' => \__( 'Reset is not available (missing security data). Reload the page and try again.', 'fp-privacy' ),
 				'cancel'              => \__( 'Cancel', 'fp-privacy' ),
+				'savingInProgress'    => \__( 'Saving…', 'fp-privacy' ),
+				'saveSuccessMessage'  => \__( 'Settings saved successfully.', 'fp-privacy' ),
+				'saveSuccessTitle'    => \__( 'Save complete', 'fp-privacy' ),
+				'leaveWithoutSaving' => \__( 'You have unsaved changes. Leave this page?', 'fp-privacy' ),
+				'bannerPreviewFullscreenTitle' => \__( 'Banner preview — fullscreen', 'fp-privacy' ),
 				'skipToContent'       => \__( 'Skip to main content', 'fp-privacy' ),
 				'policyUrls'          => array(
 					'privacy' => $privacy_url,

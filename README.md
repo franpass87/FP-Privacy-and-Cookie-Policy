@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 1.0.29 |
+| Version | 1.0.30 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |
@@ -137,6 +137,8 @@ Per dettagli completi: `wp help fp-privacy <comando>`
 - `fp_privacy_cookie_options`
 - `fp_privacy_detector_cache_ttl`
 - `fp_privacy_enqueue_banner_assets`
+- `fp_privacy_collapse_admin_submenus` — (filter, bool) default `true`: hide duplicate WordPress submenu entries; use `__return_false` to restore the classic sidebar subpages list.
+- `fp_privacy_admin_subnav_items` — (filter) horizontal admin sub-navigation items.
 
 ## Support
 

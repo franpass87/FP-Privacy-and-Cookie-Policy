@@ -867,7 +867,10 @@ $( function () {
             '<div class="fp-fullscreen-preview-banner">' + previewBanner + '</div>' +
             '</div>';
         
-        window.fpPrivacyShowModal( fullscreenContent, 'Banner Preview - Fullscreen' );
+        window.fpPrivacyShowModal(
+            fullscreenContent,
+            l10n.bannerPreviewFullscreenTitle || 'Banner preview — fullscreen'
+        );
         
         // Apply current preview mode styles
         var modal = $( '#fp-privacy-modal' );
@@ -1220,8 +1223,9 @@ $( function () {
     $( window ).on( 'beforeunload', function( e ) {
         if ( modifiedFields.size > 0 && ! formSubmitted ) {
             e.preventDefault();
-            e.returnValue = 'Hai modifiche non salvate. Vuoi davvero uscire?';
-            return e.returnValue;
+            var leaveMsg = l10n.leaveWithoutSaving || 'You have unsaved changes. Leave this page?';
+            e.returnValue = leaveMsg;
+            return leaveMsg;
         }
     } );
     
@@ -1229,7 +1233,10 @@ $( function () {
     // LOADING STATES
     // ========================================
     function createLoadingIndicator() {
-        return $( '<div class="fp-privacy-saving-indicator visible"><div class="spinner"></div><span>Salvataggio in corso...</span></div>' );
+        var savingText = l10n.savingInProgress || 'Saving…';
+        var $wrap = $( '<div class="fp-privacy-saving-indicator visible"><div class="spinner"></div><span></span></div>' );
+        $wrap.find( 'span' ).text( savingText );
+        return $wrap;
     }
     
     // Intercetta submit form per mostrare indicatore
@@ -1248,7 +1255,11 @@ $( function () {
         // Show toast notification
         setTimeout( function() {
             if ( ! formSubmitted ) {
-                fpPrivacyShowToast( 'Impostazioni salvate con successo', 'success', 'Salvataggio completato' );
+                fpPrivacyShowToast(
+                    l10n.saveSuccessMessage || 'Settings saved successfully.',
+                    'success',
+                    l10n.saveSuccessTitle || 'Save complete'
+                );
             }
         }, 500 );
     } );

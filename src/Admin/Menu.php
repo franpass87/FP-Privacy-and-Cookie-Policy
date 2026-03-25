@@ -49,6 +49,7 @@ class Menu {
 	 */
 	public function hooks() {
 		\add_action( 'admin_menu', array( $this, 'register_menu' ) );
+		\add_action( 'admin_menu', array( $this, 'maybe_collapse_wp_submenus' ), 999 );
 		\add_filter( 'admin_body_class', array( $this, 'filter_admin_body_class' ) );
 	}
 
@@ -151,6 +152,32 @@ class Menu {
 			'fp-privacy-guide',
 			array( $this, 'render_guide' )
 		);
+	}
+
+	/**
+	 * Rimuove le voci duplicate dal menu laterale WP: navigazione tra sezioni solo via subnav orizzontale (design FP).
+	 *
+	 * Disattivabile con `add_filter( 'fp_privacy_collapse_admin_submenus', '__return_false' );`.
+	 *
+	 * @return void
+	 */
+	public function maybe_collapse_wp_submenus(): void {
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		/**
+		 * Se true (default), il menu WP mostra solo la voce top-level; le sottopagine restano raggiungibili da URL e da AdminSubnav.
+		 *
+		 * @param bool $collapse Default true.
+		 */
+		if ( ! \apply_filters( 'fp_privacy_collapse_admin_submenus', true ) ) {
+			return;
+		}
+
+		foreach ( self::ADMIN_PAGE_SLUGS as $slug ) {
+			\remove_submenu_page( self::MENU_SLUG, $slug );
+		}
 	}
 
 	/**

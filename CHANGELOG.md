@@ -4,6 +4,21 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.30] - 2026-03-25
+
+### Added
+
+- Filtro `fp_privacy_collapse_admin_submenus` (default `true`): con menu WordPress “snello” le sezioni restano raggiungibili dalla subnav orizzontale e dagli URL `admin.php?page=…`; disattivabile con `__return_false`.
+- Blocco breadcrumb / testo guida sopra i tab delle impostazioni (classi `.fp-privacy-settings-form-heading`, `.fp-privacy-breadcrumb`).
+
+### Changed
+
+- Admin impostazioni: etichette tab, ARIA e pulsanti Quick actions con msgid in inglese (`fp-privacy`); rimossi link duplicati (Policy editor, Analytics, Consent log, Guida, Diagnostics) dalla card Quick actions.
+- `admin.css`: distinzione visiva tra subnav e tab (token surface/bordo), scroll orizzontale su tab sotto 782px, rimossi stili `.fp-quick-actions-links` non più usati.
+- `admin.js` + `fpPrivacyL10n`: stringhe salvataggio / uscita pagina / anteprima fullscreen traducibili.
+
+---
+
 ## [1.0.29] - 2026-03-25
 
 ### Fixed

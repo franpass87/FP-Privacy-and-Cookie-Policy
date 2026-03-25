@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.0.29
+Stable tag: 1.0.30
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.0.30 =
+* Added: filtro `fp_privacy_collapse_admin_submenus` — menu WP senza sottovoci duplicate (navigazione via subnav); breadcrumb sopra i tab impostazioni.
+* Changed: Quick actions snellite; tab impostazioni e stringhe admin JS con msgid inglesi; CSS tab/subnav e mobile.
 
 = 1.0.29 =
 * Fixed: PHPStan livello configurato — posizione menu `add_menu_page` come float, PHPDoc `@param mixed` sui blocchi Gutenberg, rimozione check ridondanti (`FooterPolicyLinks`, `BannerTextsManager`, subnav).
