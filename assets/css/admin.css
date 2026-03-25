@@ -242,7 +242,7 @@ body.fp-privacy-admin-shell .fp-privacy-admin-page .button:not(.button-primary):
     background: var(--fpdms-bg-white);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    overflow-x: auto;
+    overflow-x: visible;
     border: none;
     transition: var(--transition);
 }
@@ -271,7 +271,7 @@ body.fp-privacy-admin-shell .fp-privacy-admin-page .button:not(.button-primary):
     color: var(--fpdms-text);
     font-size: 13px;
     font-weight: 600;
-    white-space: nowrap;
+    white-space: normal;
     border: 1px solid transparent;
     transition: var(--transition-fpdms);
 }
@@ -674,6 +674,7 @@ textarea:focus-visible {
 
 .fp-privacy-tabs-nav {
     display: flex;
+    flex-wrap: wrap;
     gap: 6px;
     margin: 0 0 1.5rem;
     background: var(--fpdms-bg-white);
@@ -681,13 +682,12 @@ textarea:focus-visible {
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
     border: none;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
+    overflow-x: visible;
 }
 
 .fp-privacy-tab-button {
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: min(10rem, 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1233,26 +1233,24 @@ textarea:focus-visible {
     }
 }
 
-/* Responsive tabs */
+/* Responsive tabs — niente scroll orizzontale: le tab vanno a capo */
 @media (max-width: 782px) {
     .fp-privacy-tabs-nav {
-        flex-wrap: nowrap;
-        gap: 2px;
-        padding: 3px;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 4px;
     }
 
     .fp-privacy-tab-button {
-        flex: 1 1 auto;
-        min-width: 0;
+        flex: 1 1 calc(50% - 4px);
+        min-width: min(8rem, 100%);
         padding: var(--fp-space-2) var(--fp-space-3);
-        scroll-snap-align: start;
     }
 
     .fp-privacy-tab-button span:not(.dashicons) {
         font-size: 12px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        white-space: normal;
+        text-align: center;
     }
 }
 
@@ -2010,12 +2008,25 @@ padding: 12px;
 border-radius: 6px;
 }
 
+.fp-privacy-policy-editor .wp-editor-wrap,
+.fp-privacy-policy-editor .wp-editor-container {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.fp-privacy-policy-editor .mce-tinymce,
+.fp-privacy-policy-editor .mce-container-body iframe {
+    max-width: 100%;
+}
+
 .fp-privacy-policy-editor .wp-editor-area {
-min-height: 200px;
+    min-height: 200px;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .fp-privacy-policy-editor .fp-privacy-regenerate {
-margin-top: 20px;
+    margin-top: 20px;
 }
 
 /* ========================================

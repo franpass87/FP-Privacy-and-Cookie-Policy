@@ -4,6 +4,14 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.0.35] - 2026-03-25
+
+### Fixed
+
+- Admin: rimossi scroll orizzontali indesiderati — subnav e tab impostazioni senza `overflow-x: auto` / scroll-snap; tab con `flex-wrap` e pulsanti `flex: 1 1 auto`; su viewport strette le tab vanno a capo invece di scorrere; link subnav con testo a capo (`white-space: normal`); editor policy con `max-width: 100%` su wrap TinyMCE.
+
+---
+
 ## [1.0.34] - 2026-03-25
 
 ### Changed
