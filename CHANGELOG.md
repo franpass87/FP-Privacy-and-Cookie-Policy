@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.6] - 2026-03-27
+
+### Fixed
+
+- **Modal preferenze**: allineamento verticale degli switch tra categorie — griglia a colonna fissa (36px) e larghezza fissa del blocco toggle+etichetta, così «Obbligatorio» (più lungo di «Abilitato») non sposta il toggle verso sinistra.
+
 ## [1.2.5] - 2026-03-26
 
 ### Changed

@@ -747,10 +747,20 @@
     color: inherit;
 }
 
+/* Larghezza fissa + griglia: lo switch resta nella stessa colonna (36px) anche se il testo
+   (Obbligatorio vs Abilitato) cambia — evita che space-between sposti il toggle. */
 .fp-privacy-category-head .fp-privacy-switch {
     flex-shrink: 0;
     margin-top: 0;
     align-self: center;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    column-gap: 0.35rem;
+    align-items: center;
+    width: 8.75rem;
+    max-width: 100%;
+    box-sizing: border-box;
+    justify-content: unset;
 }
 
 .fp-privacy-category p {
@@ -808,6 +818,8 @@
     font-weight: 600;
     line-height: 1.2;
     text-align: right;
+    min-width: 0;
+    word-break: break-word;
 }
 
 .fp-privacy-switch input[type="checkbox"] {

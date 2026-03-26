@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.2.5
+Stable tag: 1.2.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.2.6 =
+* Fixed: modal preferenze — toggle allineati tra categorie (stessa colonna per lo switch indipendentemente dalla lunghezza di Obbligatorio/Abilitato).
 
 = 1.2.5 =
 * Changed: banner — titoli tab uniformi (classe `.fp-privacy-banner-panel-title`), tab Info con intestazione visiva; modal preferenze — switch a destra del titolo categoria.
