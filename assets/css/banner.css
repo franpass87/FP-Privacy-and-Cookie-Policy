@@ -151,24 +151,38 @@
     padding: 6px 12px;
     font-size: 0.8125rem;
     font-weight: 600;
+    line-height: 1.25;
     background: none;
     border: none;
     border-bottom: 2px solid transparent;
-    color: inherit;
-    opacity: 0.7;
+    opacity: 1;
     cursor: pointer;
-    transition: opacity var(--fp-privacy-transition), border-color var(--fp-privacy-transition), color var(--fp-privacy-transition);
+    transition: border-color var(--fp-privacy-transition), color var(--fp-privacy-transition);
     margin-bottom: -1px;
+    /* Nessuna opacity sulle inattive: stessa “grandezza” percettiva della tab attiva */
+    color: #64748b;
 }
 
 .fp-privacy-banner-tab:hover {
-    opacity: 0.9;
+    color: #475569;
 }
 
 .fp-privacy-banner-tab.is-active {
-    opacity: 1;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25;
     border-bottom-color: var(--fp-privacy-button_primary_bg);
     color: var(--fp-privacy-button_primary_bg);
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+    .fp-privacy-banner-tab:not(.is-active) {
+        color: color-mix(in srgb, var(--fp-privacy-surface_text) 58%, var(--fp-privacy-surface_bg));
+    }
+
+    .fp-privacy-banner-tab:not(.is-active):hover {
+        color: color-mix(in srgb, var(--fp-privacy-surface_text) 78%, var(--fp-privacy-surface_bg));
+    }
 }
 
 .fp-privacy-banner-panels {
@@ -617,24 +631,37 @@
     padding: 4px 10px;
     font-size: 0.8125rem;
     font-weight: 600;
+    line-height: 1.25;
     background: none;
     border: none;
     border-bottom: 2px solid transparent;
-    color: inherit;
-    opacity: 0.7;
+    opacity: 1;
     cursor: pointer;
-    transition: opacity var(--fp-privacy-transition), border-color var(--fp-privacy-transition), color var(--fp-privacy-transition);
+    transition: border-color var(--fp-privacy-transition), color var(--fp-privacy-transition);
     margin-bottom: -1px;
+    color: #64748b;
 }
 
 .fp-privacy-modal-tab:hover {
-    opacity: 0.9;
+    color: #475569;
 }
 
 .fp-privacy-modal-tab.is-active {
-    opacity: 1;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25;
     border-bottom-color: var(--fp-privacy-button_primary_bg);
     color: var(--fp-privacy-button_primary_bg);
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+    .fp-privacy-modal-tab:not(.is-active) {
+        color: color-mix(in srgb, var(--fp-privacy-surface_text) 58%, var(--fp-privacy-surface_bg));
+    }
+
+    .fp-privacy-modal-tab:not(.is-active):hover {
+        color: color-mix(in srgb, var(--fp-privacy-surface_text) 78%, var(--fp-privacy-surface_bg));
+    }
 }
 
 .fp-privacy-modal-panels {

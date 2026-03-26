@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.8] - 2026-03-27
+
+### Fixed
+
+- **Banner / modal**: etichette tab inattive non usano più `opacity` (che faceva sembrare il testo più piccolo della tab attiva); colore smorzato via tinta su `--fp-privacy-surface_text` / sfondo, stessi `font-size`, `font-weight` e `line-height` per tutte le tab.
+
 ## [1.2.7] - 2026-03-27
 
 ### Changed
