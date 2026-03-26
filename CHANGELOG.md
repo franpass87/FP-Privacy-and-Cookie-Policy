@@ -4,6 +4,13 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.5] - 2026-03-26
+
+### Changed
+
+- **Banner (tab Consenso / Dettagli / Info)**: titoli allineati con classe condivisa `.fp-privacy-banner-panel-title`; tab Info con `h3` visivo coerente con l’etichetta tab; corpo tab Info a `0.9375rem` come il messaggio Consenso.
+- **Modal preferenze**: toggle categoria sulla stessa riga del titolo (`.fp-privacy-category-head`); descrizione sotto; layout responsive sotto 782px con wrap.
+
 ## [1.2.4] - 2026-03-25
 
 ### Fixed

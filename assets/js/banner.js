@@ -722,7 +722,7 @@ function fillBannerDetailsPanel( panel, list, texts, lang, isItalian ) {
     }
     panel.innerHTML = '';
     var h = document.createElement( 'h3' );
-    h.className = 'fp-privacy-banner-details-title';
+    h.className = 'fp-privacy-banner-panel-title fp-privacy-banner-details-title';
     h.textContent = texts.tab_details_detected_title || ( isItalian ? 'Servizi rilevati sul sito' : 'Services detected on this site' );
     panel.appendChild( h );
     var hint = document.createElement( 'p' );
@@ -848,7 +848,7 @@ consentPanel.setAttribute( 'role', 'tabpanel' );
 consentPanel.setAttribute( 'data-tab', 'consent' );
 
 var title = document.createElement( 'h2' );
-title.className = 'fp-privacy-banner-title';
+title.className = 'fp-privacy-banner-title fp-privacy-banner-panel-title';
 title.textContent = texts.title || '';
 consentPanel.appendChild( title );
 
@@ -917,6 +917,10 @@ var rawAbout = texts.about_content || texts.message || '';
 var rawLong = rawAbout && rawAbout.length >= 250;
 var isEnglishCanonicalAbout = ( rawAbout === stdAboutEn || rawAbout === stdAboutEnUsVariant );
 var aboutContent = ( rawLong && ! ( isItalian && isEnglishCanonicalAbout ) ) ? rawAbout : ( isItalian ? stdAboutIt : stdAboutEn );
+var aboutHeading = document.createElement( 'h3' );
+aboutHeading.className = 'fp-privacy-banner-panel-title';
+aboutHeading.textContent = texts.tab_about || tabLabels.about;
+aboutPanel.appendChild( aboutHeading );
 var aboutP = document.createElement( 'p' );
 aboutP.className = 'fp-privacy-banner-about-text';
 aboutP.innerHTML = aboutContent;
@@ -1072,13 +1076,12 @@ for ( var key in categories ) {
         var wrapper = document.createElement( 'div' );
         wrapper.className = 'fp-privacy-category';
 
-        var title = document.createElement( 'h3' );
-        title.textContent = cat.label || key;
-        wrapper.appendChild( title );
+        var catHead = document.createElement( 'div' );
+        catHead.className = 'fp-privacy-category-head';
 
-        var desc = document.createElement( 'p' );
-        desc.innerHTML = cat.description || '';
-        wrapper.appendChild( desc );
+        var catHeading = document.createElement( 'h3' );
+        catHeading.textContent = cat.label || key;
+        catHead.appendChild( catHeading );
 
         var toggle = document.createElement( 'label' );
         toggle.className = 'fp-privacy-switch';
@@ -1113,7 +1116,12 @@ var toggleText = document.createElement( 'span' );
         checkbox.setAttribute( 'aria-describedby', toggleTextId );
 toggle.appendChild( toggleText );
 
-wrapper.appendChild( toggle );
+        catHead.appendChild( toggle );
+        wrapper.appendChild( catHead );
+
+        var desc = document.createElement( 'p' );
+        desc.innerHTML = cat.description || '';
+        wrapper.appendChild( desc );
 
         // EDPB 2025: Add individual service toggles if sub-categories enabled.
         var enableSubCategories = data.options && data.options.enable_sub_categories;

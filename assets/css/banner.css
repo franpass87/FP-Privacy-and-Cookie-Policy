@@ -61,6 +61,8 @@
     padding: 18px 24px 14px;
 }
 
+/* Titolo primario comune alle tab Consenso / Dettagli / Info del banner */
+.fp-privacy-banner-panel-title,
 .fp-privacy-banner-title {
     margin-top: 0;
     margin-bottom: 0.35rem;
@@ -186,13 +188,9 @@
     display: none !important;
 }
 
-/* Tab Details banner */
-.fp-privacy-banner-details-title {
-    margin: 0 0 6px;
-    font-size: 0.9375rem;
-    font-weight: 600;
-}
+/* Tab Details banner — titolo: .fp-privacy-banner-panel-title (+ .fp-privacy-banner-details-title in JS per hook CSS legacy) */
 
+/* Tab Details banner */
 .fp-privacy-banner-details-category {
     margin-bottom: 12px;
 }
@@ -252,12 +250,13 @@
     opacity: 0.88;
 }
 
-/* Tab About banner */
+/* Tab About banner — corpo allineato al messaggio tab Consenso */
 .fp-privacy-banner-about-text {
     margin: 0;
-    font-size: 0.8125rem;
+    font-size: 0.9375rem;
     line-height: 1.6;
     opacity: 0.92;
+    color: inherit;
 }
 
 @supports not (color: color-mix(in srgb, red, blue)) {
@@ -729,12 +728,29 @@
     box-shadow: var(--fp-privacy-shadow-sm);
 }
 
-.fp-privacy-category h3 {
-    margin: 0 0 0.1rem;
+/* Intestazione categoria: titolo + toggle sulla stessa riga */
+.fp-privacy-category-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.15rem;
+}
+
+.fp-privacy-category-head h3 {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
     font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1.25;
     color: inherit;
+}
+
+.fp-privacy-category-head .fp-privacy-switch {
+    flex-shrink: 0;
+    margin-top: 0;
+    align-self: center;
 }
 
 .fp-privacy-category p {
@@ -787,7 +803,7 @@
 }
 
 /* Solo riga stato categoria (Obbligatorio / Abilitato), non etichette servizi nei sub-toggle */
-.fp-privacy-modal .fp-privacy-category > .fp-privacy-switch > span {
+.fp-privacy-modal .fp-privacy-category-head > .fp-privacy-switch > span {
     font-size: 0.6875rem;
     font-weight: 600;
     line-height: 1.2;
@@ -965,6 +981,14 @@ outline-offset: 2px;
     .fp-privacy-modal-tab {
         padding: 3px 8px;
         font-size: 0.75rem;
+    }
+
+    .fp-privacy-category-head {
+        flex-wrap: wrap;
+    }
+
+    .fp-privacy-category-head .fp-privacy-switch {
+        margin-left: auto;
     }
     
     .fp-privacy-banner-buttons {
