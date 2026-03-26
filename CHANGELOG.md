@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.7] - 2026-03-27
+
+### Changed
+
+- **Banner**: altezza area tab `.fp-privacy-banner-panels` portata a **180px** (pannello scroll `.fp-privacy-banner-tab-panel` **152px**); breakpoint mobile ridotto in proporzione (168px / 132px).
+
 ## [1.2.6] - 2026-03-27
 
 ### Fixed

@@ -173,14 +173,14 @@
 
 .fp-privacy-banner-panels {
     padding: 14px 22px;
-    height: 200px;
+    height: 180px;
     overflow: hidden;
     box-sizing: border-box;
 }
 
 .fp-privacy-banner-tab-panel {
     display: block;
-    height: 164px;
+    height: 152px;
     overflow-y: auto;
 }
 
@@ -952,11 +952,11 @@ outline-offset: 2px;
     
     .fp-privacy-banner-panels {
         padding: 12px 18px;
-        height: 188px;
+        height: 168px;
     }
     
     .fp-privacy-banner-tab-panel {
-        height: 152px;
+        height: 132px;
     }
     
     .fp-privacy-banner-buttons {
