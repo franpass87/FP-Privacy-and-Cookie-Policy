@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.9] - 2026-03-29
+
+### Fixed
+
+- **Banner mobile**: il layout «floating» manteneva `min-width: 640px` anche sotto i 782px, quindi testo e pulsanti uscivano dal viewport; in breakpoint stretto si azzera `min-width`, si fissa `max-width: calc(100% - 32px)` e `box-sizing: border-box` sul banner. Testo e link con `overflow-wrap` / `flex-wrap` sulle tab e sui link policy.
+
 ## [1.2.8] - 2026-03-27
 
 ### Fixed
