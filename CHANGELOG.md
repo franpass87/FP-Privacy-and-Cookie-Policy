@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.2.10] - 2026-04-03
+
+### Fixed
+
+- **FooterPolicyLinks.php**: rimosso blocco duplicato (`echo` + chiusure `}`) incollato dopo la fine della classe; causava `PHP Parse error: Unmatched '}'` e impediva il bootstrap del provider frontend (HTTP 500 con il plugin attivo).
+
 ## [1.2.9] - 2026-03-29
 
 ### Fixed
