@@ -4,11 +4,11 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
-## [1.2.10] - 2026-04-03
+## [1.3.0] - 2026-04-03
 
-### Fixed
+### Added
 
-- **FooterPolicyLinks.php**: rimosso blocco duplicato (`echo` + chiusure `}`) incollato dopo la fine della classe; causava `PHP Parse error: Unmatched '}'` e impediva il bootstrap del provider frontend (HTTP 500 con il plugin attivo).
+- **Tema Salient**: per le pagine Privacy/Cookie configurate nel plugin, sincronizzazione automatica dei meta Page Header (`_nectar_header_title` dal titolo pagina, allineamento orizzontale `center`, verticale `middle`) al salvataggio e dopo `after_switch_theme` se il template attivo è Salient.
 
 ## [1.2.9] - 2026-03-29
 

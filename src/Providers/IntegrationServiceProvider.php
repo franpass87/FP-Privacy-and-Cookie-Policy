@@ -13,6 +13,7 @@ use FP\Privacy\Core\ContainerInterface;
 use FP\Privacy\Core\ServiceProviderInterface;
 use FP\Privacy\Integrations\ConsentMode;
 use FP\Privacy\Integrations\DetectorRegistry;
+use FP\Privacy\Integrations\SalientPolicyHeaderIntegration;
 use FP\Privacy\Domain\Services\ServiceRegistry;
 use FP\Privacy\Services\Cache\CacheInterface;
 use FP\Privacy\Services\Options\OptionsInterface;
@@ -69,5 +70,7 @@ class IntegrationServiceProvider implements ServiceProviderInterface {
 		if ( method_exists( $consent_mode, 'hooks' ) ) {
 			$consent_mode->hooks();
 		}
+
+		SalientPolicyHeaderIntegration::register( self::resolveOptions( $container ) );
 	}
 }

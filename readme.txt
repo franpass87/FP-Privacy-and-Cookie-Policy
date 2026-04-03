@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.2.10
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,8 +71,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
-= 1.2.10 =
-* Fixed: `FooterPolicyLinks.php` — rimosso duplicato in coda al file (parse error, HTTP 500).
+
+= 1.3.0 =
+* Added: con tema Salient, meta Page Header automatici sulle pagine policy del plugin (titolo = titolo pagina, allineamento centrato).
 
 = 1.2.9 =
 * Fixed: banner cookie su mobile — niente più taglio orizzontale (min-width 640px rispettato solo su desktop; wrap testo/link/tab).
