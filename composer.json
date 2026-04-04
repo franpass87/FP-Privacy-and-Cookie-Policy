@@ -42,7 +42,8 @@
             "npx --yes conventional-changelog -p angular -i CHANGELOG.md -s || true"
         ],
         "test": "phpunit -c phpunit.xml.dist",
-        "phpstan": "phpstan analyse -c phpstan.neon.dist --memory-limit=768M"
+        "phpstan": "phpstan analyse -c phpstan.neon.dist --memory-limit=768M",
+        "lint:syntax": "php tools/php-syntax-check.php"
     },
     "authors": [
         {

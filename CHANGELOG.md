@@ -4,6 +4,16 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.3.1] - 2026-04-04
+
+### Fixed
+
+- **FooterPolicyLinks.php**: rimosso blocco duplicato dopo la chiusura della classe (`Unmatched '}'` / errore critico WordPress in avvio).
+
+### Added
+
+- **Qualità**: `tools/php-syntax-check.php` + script Composer `lint:syntax` + workflow GitHub Actions `php-syntax.yml` per eseguire `php -l` su tutti i `.php` (esclusi `vendor` / `.git` / `node_modules`) su push e PR.
+
 ## [1.3.0] - 2026-04-03
 
 ### Added

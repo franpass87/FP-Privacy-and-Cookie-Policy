@@ -124,4 +124,4 @@ class FooterPolicyLinks {
 
 		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above, filter may add markup
 	}
-}
+} // End FooterPolicyLinks — do not append duplicate closing blocks (merge/copy-paste).

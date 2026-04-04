@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.3.1 =
+* Fixed: FooterPolicyLinks — rimosso codice duplicato dopo la classe (parse error / errore critico).
+* Added: controllo sintassi PHP (`composer lint:syntax` / GitHub Actions).
 
 = 1.3.0 =
 * Added: con tema Salient, meta Page Header automatici sulle pagine policy del plugin (titolo = titolo pagina, allineamento centrato).
