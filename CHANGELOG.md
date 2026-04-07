@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.3.2] - 2026-04-07
+
+### Fixed
+
+- **Modal preferenze cookie**: barra superiore (`::before`) e link Privacy/Cookie usano di nuovo le variabili colore della palette; il modal è montato su `body` e prima ereditava solo i fallback blu di `:root`.
+
 ## [1.3.1] - 2026-04-04
 
 ### Fixed

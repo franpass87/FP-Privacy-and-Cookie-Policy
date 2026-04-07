@@ -57,7 +57,9 @@ class BannerPaletteBuilder {
 		$border              = $this->sanitize_palette_value( $palette, 'border', $defaults['border'] );
 		$focus               = $this->sanitize_palette_value( $palette, 'focus', $defaults['focus'] );
 
-		$selectors = '#fp-privacy-banner-root, [data-fp-privacy-banner], #fp-privacy-preview-banner';
+		// Overlay modal è su document.body (non discendente del banner): senza questo selettore,
+		// link e barra ::before usano i fallback blu di :root invece della palette impostazioni.
+		$selectors = '#fp-privacy-banner-root, [data-fp-privacy-banner], #fp-privacy-preview-banner, #fp-privacy-modal-overlay';
 		$css       = $selectors . ' {';
 		$css      .= '--fp-privacy-surface_bg:' . $surface_bg . ';';
 		$css      .= '--fp-privacy-surface_text:' . $surface_text . ';';
