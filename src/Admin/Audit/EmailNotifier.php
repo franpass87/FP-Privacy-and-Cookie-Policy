@@ -166,7 +166,7 @@ class EmailNotifier {
 			$removed_block = $this->formatter->format_services_for_email( $alert['removed'] );
 
 			if ( $removed_block ) {
-				$lines[] = \__( 'Removed services:', 'fp-privacy' );
+				$lines[] = \__( 'No longer detected (confirmed across scans):', 'fp-privacy' );
 				$lines[] = $removed_block;
 			}
 		}

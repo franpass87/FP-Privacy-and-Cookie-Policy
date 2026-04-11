@@ -71,7 +71,12 @@ class IntegrationAuditNoticeRenderer {
 
 		if ( $removed_count ) {
 			$summary_parts[] = sprintf(
-				_n( '%s servizio assente', '%s servizi assenti', $removed_count, 'fp-privacy' ),
+				_n(
+					'%s servizio non più rilevato in scansioni successive',
+					'%s servizi non più rilevati in scansioni successive',
+					$removed_count,
+					'fp-privacy'
+				),
 				number_format_i18n( $removed_count )
 			);
 		}
@@ -107,7 +112,7 @@ class IntegrationAuditNoticeRenderer {
 				<p><strong><?php esc_html_e( 'Aggiunti:', 'fp-privacy' ); ?></strong> <?php echo esc_html( $added_list ); ?></p>
 			<?php endif; ?>
 			<?php if ( $removed_list ) : ?>
-				<p><strong><?php esc_html_e( 'Rimossi:', 'fp-privacy' ); ?></strong> <?php echo esc_html( $removed_list ); ?></p>
+				<p><strong><?php esc_html_e( 'Non più rilevati (confermati):', 'fp-privacy' ); ?></strong> <?php echo esc_html( $removed_list ); ?></p>
 			<?php endif; ?>
 			<p>
 				<a class="button button-primary" href="<?php echo esc_url( $editor_url ); ?>">

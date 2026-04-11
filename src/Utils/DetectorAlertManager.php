@@ -74,11 +74,12 @@ class DetectorAlertManager {
 	 */
 	public function get_default_detector_alert() {
 		return array(
-			'active'       => false,
-			'detected_at'  => 0,
-			'last_checked' => 0,
-			'added'        => array(),
-			'removed'      => array(),
+			'active'          => false,
+			'detected_at'     => 0,
+			'last_checked'    => 0,
+			'added'           => array(),
+			'removed'         => array(),
+			'absence_streaks' => array(),
 		);
 	}
 

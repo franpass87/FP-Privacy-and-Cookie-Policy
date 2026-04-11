@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,7 @@ Visitors can always revisit their decisions via the built-in floating reopen but
 * `fp_privacy_cookie_duration_days` – Change the consent cookie lifespan.
 * `fp_privacy_cookie_options` – Filter cookie attributes before they are written.
 * `fp_privacy_detector_cache_ttl` – Override the detector cache expiry time.
+* `fp_privacy_integration_absence_confirm_scans` – Number of consecutive detector audits without a service before it is reported as removed (default 2; use 1 for immediate removal like older versions).
 * `fp_privacy_enqueue_banner_assets` – Force banner assets to load when rendering via shortcode.
 
 == Installation ==
@@ -71,6 +72,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.3.3 =
+* Fixed: audit integrazioni — un servizio assente da una sola scansione non viene più trattato come rimosso (evita falsi negativi del detector); conferma su più passate, snapshot e script rules allineati all’elenco “effettivo”.
 
 = 1.3.2 =
 * Fixed: modal preferenze — link policy e barra accent rispettano la palette (variabili CSS anche su `#fp-privacy-modal-overlay`).

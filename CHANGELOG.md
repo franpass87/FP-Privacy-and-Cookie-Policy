@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.3.3] - 2026-04-11
+
+### Fixed
+
+- **Audit integrazioni / detector**: un servizio assente solo in una scansione (falso negativo del detector, es. limiti della scansione contenuti) non viene più segnalato come rimosso né tolti subito snapshot e preset script rules. La rimozione richiede assenze consecutive confermate (default 2 passate); filtro `fp_privacy_integration_absence_confirm_scans` (1–10) per regolare la soglia. Snapshot `snapshots.services.detected` si aggiorna quando cambia l’insieme effettivo delle chiavi, così non si ripetono allarmi sullo stesso falso negativo.
+
 ## [1.3.2] - 2026-04-07
 
 ### Fixed

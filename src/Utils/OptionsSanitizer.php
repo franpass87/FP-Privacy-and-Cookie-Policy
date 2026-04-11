@@ -72,12 +72,44 @@ class OptionsSanitizer {
 	 */
 	public static function sanitize_detector_alert( array $alert ) {
 		return array(
-			'active'       => Validator::bool( $alert['active'] ?? false ),
-			'detected_at'  => Validator::int( $alert['detected_at'] ?? 0, 0, 0 ),
-			'last_checked' => Validator::int( $alert['last_checked'] ?? 0, 0, 0 ),
-			'added'        => self::sanitize_service_summaries( $alert['added'] ?? array() ),
-			'removed'      => self::sanitize_service_summaries( $alert['removed'] ?? array() ),
+			'active'           => Validator::bool( $alert['active'] ?? false ),
+			'detected_at'      => Validator::int( $alert['detected_at'] ?? 0, 0, 0 ),
+			'last_checked'     => Validator::int( $alert['last_checked'] ?? 0, 0, 0 ),
+			'added'            => self::sanitize_service_summaries( $alert['added'] ?? array() ),
+			'removed'          => self::sanitize_service_summaries( $alert['removed'] ?? array() ),
+			'absence_streaks'  => self::sanitize_absence_streaks( $alert['absence_streaks'] ?? array() ),
 		);
+	}
+
+	/**
+	 * Sanitize per-service absence streak counters (integration audit).
+	 *
+	 * @param mixed $streaks Raw map service_key => count.
+	 *
+	 * @return array<string, int>
+	 */
+	public static function sanitize_absence_streaks( $streaks ): array {
+		if ( ! \is_array( $streaks ) ) {
+			return array();
+		}
+
+		$out = array();
+
+		foreach ( $streaks as $key => $value ) {
+			$k = \is_string( $key ) ? \sanitize_key( $key ) : \sanitize_key( (string) $key );
+
+			if ( '' === $k ) {
+				continue;
+			}
+
+			$n = Validator::int( $value, 0, 0 );
+
+			if ( $n > 0 ) {
+				$out[ $k ] = $n;
+			}
+		}
+
+		return $out;
 	}
 
 	/**

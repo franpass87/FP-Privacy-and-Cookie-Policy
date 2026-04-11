@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | Name | FP Privacy and Cookie Policy |
-| Version | 1.3.2 |
+| Version | 1.3.3 |
 | Author | [Francesco Passeri](https://francescopasseri.com) |
 | Author Email | [info@francescopasseri.com](mailto:info@francescopasseri.com) |
 | Requires WordPress | 6.2 |
@@ -142,6 +142,7 @@ Per dettagli completi: `wp help fp-privacy <comando>`
 - `fp_privacy_banner_detector_poll_interval_ms` — (filter, int) interval in milliseconds for refreshing the banner “detected services” list via REST while the banner is visible; default `120000`; use `0` to disable polling (initial list still comes from the page load).
 - `fp_privacy_rest_detected_services_enabled` — (filter, bool) enable `GET /fp-privacy/v1/detected-services`; default `true`.
 - `fp_privacy_rest_detected_services_permission` — (filter, bool) REST permission callback for that route; default `true` (public read).
+- `fp_privacy_integration_absence_confirm_scans` — (filter, int) consecutive detector runs without a service before the integration audit treats it as removed (default `2`, clamped `1`–`10`; `1` restores legacy single-scan behaviour).
 
 ## Support
 
