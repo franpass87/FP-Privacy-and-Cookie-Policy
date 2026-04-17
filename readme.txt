@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.3.5
+Stable tag: 1.3.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,6 +72,12 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.3.6 =
+* Changed: modal preferenze più arioso (max-width 500px, radius-lg, padding raddoppiati, tipografia con gerarchia marcata).
+* Changed: card categoria con hover soft (bordo + shadow verso il primary), toggle attivo con glow colorato.
+* Changed: pulsante chiudi (X) più tangibile con rotazione all'hover; tabs con hover background soft; link policy con underline animato.
+* Changed: notice di revisione policy più evidente con icona SVG e pulse soft (rispetta prefers-reduced-motion).
 
 = 1.3.5 =
 * Changed: cookie banner — mini-header a gradiente (palette cliente) con icona cookie + etichetta localizzabile, in sostituzione della barra accent 3px.

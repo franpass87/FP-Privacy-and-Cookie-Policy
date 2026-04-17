@@ -4,6 +4,19 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.3.6] - 2026-04-17
+
+### Changed
+
+- **Modal preferenze più arioso e leggibile**: max-width da 460px a 500px, radius `--radius-lg` (16px), padding header/body/footer raddoppiato, tipografia con gerarchia più marcata (titolo modal 1.0625rem bold, titoli categoria 0.9rem bold, descrizioni 0.8125rem con line-height 1.45).
+- **Card categoria**: padding `10px 14px`, radius `--radius-md`, hover con bordo più saturo verso il colore primario e shadow più marcata (`--fp-privacy-shadow-hover`).
+- **Toggle switch attivo**: box-shadow "glow" colorato (derivato dal primary) che rafforza il feedback visivo dello stato "on".
+- **Pulsante chiudi modal (X)**: più tangibile (30×30, radius-sm), hover con rotazione 90° + bordo/testo che virano verso il primary.
+- **Tabs (banner + modal)**: hover con soft background derivato dal primary (via `color-mix`), angoli superiori arrotondati.
+- **Link policy**: underline animato che cresce da sinistra all'hover (stile FP), focus ring morbido con fallback outline.
+- **Notice revisione policy**: ora ha icona "info/alert" SVG a sinistra, radius più morbido, bordo e shadow più saturi, animazione `pulse` soft limitata a 2 iterazioni (rispetta `prefers-reduced-motion`).
+- **Accent bar modal header**: gradiente 3px (primary → variante scurita) invece di linea piatta 2px.
+
 ## [1.3.5] - 2026-04-17
 
 ### Changed
