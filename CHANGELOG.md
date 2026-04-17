@@ -4,6 +4,16 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.3.5] - 2026-04-17
+
+### Changed
+
+- **Cookie banner e modal preferenze — direttive estetiche FP**: il banner cookie ora ha un mini-header a fascia con gradiente (derivato dal colore primario configurato dal cliente) + icona SVG cookie + etichetta "Preferenze cookie" / "Cookie preferences", in sostituzione della barra accent 3px. Nuovo testo localizzabile via `texts.banner_header_label`.
+- **Toggle switch**: pallina con shadow morbida e transizione cubic-bezier, focus ring 3px con `color-mix` sulla palette cliente (fallback `outline` classico per browser senza supporto). Stato `disabled` visivamente distinto (`opacity: 0.6`, `cursor: not-allowed`).
+- **Bottoni**: primario con shadow colorata derivata dal `button_primary_bg` (stile "elevated" FP), hover con shadow più marcata. Focus ring allineato al design system FP con `box-shadow: 0 0 0 3px` + fallback `outline`.
+- **Card categoria (modal)**: radius morbido (`--fp-privacy-radius-sm`), hover/focus-within con bordo che vira verso il colore primario e shadow soft.
+- Nessuna modifica alla palette default: i colori restano pienamente configurabili dall'admin (nessun lock sul viola brand FP).
+
 ## [1.3.4] - 2026-04-16
 
 ### Fixed

@@ -822,6 +822,24 @@ var tabLabels = {
     about: texts.tab_about || ( isItalian ? 'Info' : 'About' ),
 };
 
+// Mini-header a gradiente (icona + etichetta di contesto): sostituisce l'accent bar 3px CSS.
+// Usa una label localizzata generica per non duplicare texts.title (mostrato nel panel Consenso).
+var bannerHeader = document.createElement( 'div' );
+bannerHeader.className = 'fp-privacy-banner-header';
+bannerHeader.setAttribute( 'aria-hidden', 'true' );
+
+var bannerHeaderIcon = document.createElement( 'span' );
+bannerHeaderIcon.className = 'fp-privacy-banner-header-icon';
+bannerHeaderIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21.54 11.55A9.9 9.9 0 0 1 12 22a10 10 0 1 1 .48-19.99A5 5 0 0 0 17 7a5 5 0 0 0 5 5c-.02-.15-.28-.3-.46-.45Z"/><circle cx="8.5" cy="10.5" r="1"/><circle cx="15.5" cy="13.5" r="1"/><circle cx="10.5" cy="15.5" r="1"/><circle cx="13.5" cy="8.5" r="1"/></svg>';
+bannerHeader.appendChild( bannerHeaderIcon );
+
+var bannerHeaderLabel = document.createElement( 'span' );
+bannerHeaderLabel.className = 'fp-privacy-banner-header-label';
+bannerHeaderLabel.textContent = texts.banner_header_label || ( isItalian ? 'Preferenze cookie' : 'Cookie preferences' );
+bannerHeader.appendChild( bannerHeaderLabel );
+
+banner.appendChild( bannerHeader );
+
 var bannerTabs = document.createElement( 'div' );
 bannerTabs.className = 'fp-privacy-banner-tabs';
 bannerTabs.setAttribute( 'role', 'tablist' );

@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.3.4
+Stable tag: 1.3.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,12 @@ See the quick guide screen inside the plugin and the repository `README.md` for 
 Run `bin/package.sh` from the repository root. The script produces a clean archive under `dist/` without minified or binary artefacts.
 
 == Changelog ==
+
+
+= 1.3.5 =
+* Changed: cookie banner — mini-header a gradiente (palette cliente) con icona cookie + etichetta localizzabile, in sostituzione della barra accent 3px.
+* Changed: toggle switch, bottoni, card categoria e focus ring allineati alle direttive estetiche FP (shadow soft, transizioni cubic-bezier, focus ring con color-mix e fallback).
+* Changed: nessuna modifica alla palette default — i colori restano pienamente configurabili dall'admin.
 
 = 1.3.4 =
 * Fix: cookie banner non più coperto da sticky CTA di altri plugin (z-index alzato a 2147483644, sotto overlay/modal interni).
