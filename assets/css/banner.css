@@ -32,7 +32,13 @@
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 99999;
+    /*
+     * Z-index molto elevato per vincere sticky CTA di terze parti (es. FP Experiences
+     * sticky bar usa 2147483640). Il banner consenso, per requisiti normativi, deve
+     * restare visibile finché l'utente non decide. Resta comunque sotto overlay/modal
+     * interne (2147483646 / 2147483647) e pulsante reopen (2147483645).
+     */
+    z-index: 2147483644;
     box-sizing: border-box;
     width: 640px;
     min-width: 640px;

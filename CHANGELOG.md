@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.3.4] - 2026-04-16
+
+### Fixed
+
+- **Sticky CTA di terze parti coprivano il banner consenso**: `.fp-privacy-banner` aveva `z-index: 99999` ed era visivamente sotto a barre sticky con z-index molto elevato (es. sticky CTA di FP Experiences a `2147483640`). Il cookie banner ora usa `z-index: 2147483644`, così resta sempre visibile finché l'utente non esprime il consenso, pur restando sotto overlay/modal interni e al pulsante "riapri preferenze".
+
 ## [1.3.3] - 2026-04-11
 
 ### Fixed

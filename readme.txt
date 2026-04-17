@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.3.3
+Stable tag: 1.3.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,6 +72,8 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+= 1.3.4 =
+* Fix: cookie banner non più coperto da sticky CTA di altri plugin (z-index alzato a 2147483644, sotto overlay/modal interni).
 
 = 1.3.3 =
 * Fixed: audit integrazioni — un servizio assente da una sola scansione non viene più trattato come rimosso (evita falsi negativi del detector); conferma su più passate, snapshot e script rules allineati all’elenco “effettivo”.
