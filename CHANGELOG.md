@@ -4,6 +4,12 @@ Tutte le modifiche importanti al progetto sono documentate in questo file.
 
 ---
 
+## [1.3.7] - 2026-04-30
+
+### Fixed
+
+- **`FooterPolicyLinks.php`**: rimosso frammento duplicato dopo la chiusura della classe (stesso pattern «duplica-coda» già visto altrove) che generava **parse error** `unexpected identifier "above"` e impediva il boot di `FrontendServiceProvider` (sito in errore critico). Il commento `phpcs:ignore` è stato spostato sulla riga precedente a `echo` per ridurre il rischio di spezzature casuali sulla stessa riga.
+
 ## [1.3.6] - 2026-04-17
 
 ### Changed

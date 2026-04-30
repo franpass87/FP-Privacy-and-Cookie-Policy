@@ -4,7 +4,7 @@ Tags: privacy, cookies, consent, gdpr, consent mode
 Requires at least: 6.2
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.3.6
+Stable tag: 1.3.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,6 +72,9 @@ Run `bin/package.sh` from the repository root. The script produces a clean archi
 
 == Changelog ==
 
+
+= 1.3.7 =
+* Fixed: parse error in `FooterPolicyLinks.php` (frammento duplicato dopo la classe; boot `FrontendServiceProvider`).
 
 = 1.3.6 =
 * Changed: modal preferenze più arioso (max-width 500px, radius-lg, padding raddoppiati, tipografia con gerarchia marcata).

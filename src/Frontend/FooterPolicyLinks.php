@@ -122,6 +122,7 @@ class FooterPolicyLinks {
 		 */
 		$html = \apply_filters( 'fp_privacy_footer_links_html', $html, $links );
 
-		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above, filter may add markup
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML built with escaped parts; filter may adjust markup.
+		echo $html;
 	}
-} // End FooterPolicyLinks — do not append duplicate closing blocks (merge/copy-paste).
+} // End class FooterPolicyLinks.
